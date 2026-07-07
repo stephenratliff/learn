@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Pages — Ship It Free · Static Hosting, Step by Step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;
+  --bg-deep:#010409;
+  --panel:#161b22;
+  --panel-2:#1c2129;
+  --line:#30363d;
+  --ink:#e6edf3;
+  --muted:#8b949e;
+  --faint:#565e68;
+  --green:#3fb950;      /* deployed / success */
+  --green-soft:#3fb95026;
+  --blue:#58a6ff;       /* links / info */
+  --blue-soft:#58a6ff26;
+  --purple:#bc8cff;     /* Actions / build */
+  --purple-soft:#bc8cff26;
+  --amber:#d29922;
+  --red:#f85149;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --disp:'Space Grotesk',sans-serif;
+  --body:'Public Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.65}
+::selection{background:var(--blue-soft)}
+
+.wrap{display:grid;grid-template-columns:280px 1fr;max-width:1280px;margin:0 auto}
+main{min-width:0;padding:0 48px 120px 56px;border-left:1px solid var(--line)}
+
+/* ── Sidebar: the pipeline ──────────────────────── */
+nav.rail{position:sticky;top:0;height:100vh;overflow-y:auto;padding:36px 8px 40px 24px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.rail-brand{font-family:var(--disp);font-weight:700;font-size:1.02rem;letter-spacing:.02em;margin-bottom:4px}
+.rail-brand .ok{color:var(--green)}
+.rail-sub{font-family:var(--mono);font-size:.66rem;color:var(--faint);letter-spacing:.08em;margin-bottom:26px}
+.rail ol{list-style:none;counter-reset:step;position:relative}
+.rail ol::before{content:"";position:absolute;left:10px;top:12px;bottom:12px;width:2px;background:var(--line);border-radius:2px}
+.rail li{counter-increment:step;position:relative}
+.rail a{display:flex;align-items:center;gap:12px;padding:7px 8px 7px 0;color:var(--muted);text-decoration:none;font-size:.86rem;transition:color .18s}
+.rail a::before{
+  content:counter(step,decimal-leading-zero);
+  font-family:var(--mono);font-size:.6rem;
+  flex:0 0 22px;width:22px;height:22px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--bg);border:1.5px solid var(--faint);color:var(--faint);
+  transition:all .18s;position:relative;z-index:1;
+}
+.rail a:hover{color:var(--ink)}
+.rail li.active a{color:var(--ink)}
+.rail li.active a::before{border-color:var(--green);color:var(--bg);background:var(--green);content:"✓";font-size:.7rem}
+.rail li[data-zone="build"].active a::before{border-color:var(--purple);background:var(--purple)}
+.rail li[data-zone="extra"].active a::before{border-color:var(--blue);background:var(--blue)}
+
+/* ── Hero ───────────────────────────────────────── */
+header.hero{padding:72px 0 48px}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;color:var(--green);text-transform:uppercase;margin-bottom:18px}
+h1{font-family:var(--disp);font-weight:700;font-size:clamp(2.3rem,5vw,3.5rem);line-height:1.06;letter-spacing:-.02em}
+h1 .thin{color:var(--muted);font-weight:500}
+.hero p.lede{max-width:62ch;margin-top:22px;font-size:1.08rem;color:var(--muted)}
+.hero p.lede strong{color:var(--ink)}
+
+/* hero pipeline */
+.pipe{margin-top:44px;background:var(--bg-deep);border:1px solid var(--line);border-radius:12px;padding:28px 26px;max-width:720px}
+.pipe-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:0}
+.pipe-node{text-align:center;padding:0 6px}
+.pipe-dot{width:46px;height:46px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;font-size:1.15rem;background:var(--panel);border:2px solid var(--line);transition:border-color .4s,box-shadow .4s,background .4s}
+.pipe-node h5{font-family:var(--disp);font-size:.82rem;font-weight:600}
+.pipe-node p{font-family:var(--mono);font-size:.62rem;color:var(--faint);margin-top:2px}
+.pipe-node.lit .pipe-dot{border-color:var(--green);background:var(--green-soft);box-shadow:0 0 18px var(--green-soft)}
+.pipe-node.lit.p2 .pipe-dot{border-color:var(--purple);background:var(--purple-soft);box-shadow:0 0 18px var(--purple-soft)}
+.pipe-wire{height:2px;background:var(--line);min-width:34px;position:relative;overflow:hidden}
+.pipe-wire i{position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--green),transparent);transform:translateX(-100%)}
+.pipe-wire.flow i{animation:flow 1.1s linear infinite}
+@keyframes flow{to{transform:translateX(100%)}}
+.pipe-status{margin-top:20px;font-family:var(--mono);font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:10px}
+.pipe-status .lamp{width:9px;height:9px;border-radius:50%;background:var(--amber)}
+.pipe-status.live .lamp{background:var(--green);box-shadow:0 0 10px var(--green)}
+.pipe-status a{color:var(--blue);text-decoration:none}
+.pipe-replay{margin-top:14px}
+
+/* ── Sections ───────────────────────────────────── */
+section{padding:64px 0 8px;border-top:1px solid var(--line);margin-top:56px}
+section:first-of-type{border-top:none;margin-top:0}
+.sec-tag{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:14px}
+.sec-tag::before{content:"";width:26px;height:2px;background:var(--green)}
+section[data-zone="build"] .sec-tag{color:var(--purple)}
+section[data-zone="build"] .sec-tag::before{background:var(--purple)}
+section[data-zone="extra"] .sec-tag{color:var(--blue)}
+section[data-zone="extra"] .sec-tag::before{background:var(--blue)}
+h2{font-family:var(--disp);font-weight:700;font-size:1.85rem;letter-spacing:-.01em;margin-bottom:20px}
+h3{font-family:var(--disp);font-weight:600;font-size:1.16rem;margin:40px 0 12px}
+p{max-width:70ch;margin-bottom:16px}
+p.note{color:var(--muted)}
+a.inline{color:var(--blue);text-decoration:none;border-bottom:1px dotted var(--blue)}
+strong{color:#fff}
+em{color:var(--amber);font-style:italic}
+ul.list,ol.list{max-width:70ch;margin:0 0 18px 22px}
+ul.list li,ol.list li{margin-bottom:9px}
+ol.steps{max-width:72ch;margin:0 0 20px 0;list-style:none;counter-reset:s}
+ol.steps>li{counter-increment:s;position:relative;padding:0 0 22px 46px;border-left:2px solid var(--line);margin-left:15px}
+ol.steps>li:last-child{border-left-color:transparent;padding-bottom:4px}
+ol.steps>li::before{content:counter(s);position:absolute;left:-16px;top:-2px;width:30px;height:30px;border-radius:50%;background:var(--panel);border:2px solid var(--green);color:var(--green);font-family:var(--disp);font-weight:700;font-size:.85rem;display:grid;place-items:center}
+section[data-zone="build"] ol.steps>li::before{border-color:var(--purple);color:var(--purple)}
+section[data-zone="extra"] ol.steps>li::before{border-color:var(--blue);color:var(--blue)}
+ol.steps h4{font-family:var(--disp);font-weight:600;font-size:1.02rem;margin-bottom:8px;padding-top:2px}
+ol.steps p{font-size:.97rem;color:var(--muted);margin-bottom:10px}
+ol.steps p strong{color:var(--ink)}
+code{font-family:var(--mono);font-size:.85em;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:#eef2f6;white-space:nowrap}
+kbd{font-family:var(--mono);font-size:.78em;background:var(--panel);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:2px 7px}
+
+/* ── UI path chips (Settings → Pages) ───────────── */
+.uipath{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px;font-family:var(--mono);font-size:.78rem;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;margin:4px 0 14px}
+.uipath b{color:var(--blue);font-weight:500}
+.uipath span.sep{color:var(--faint)}
+
+/* ── Code blocks ────────────────────────────────── */
+.cb{position:relative;background:var(--bg-deep);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:8px;margin:18px 0 24px;max-width:760px}
+section[data-zone="build"] .cb{border-left-color:var(--purple)}
+section[data-zone="extra"] .cb{border-left-color:var(--blue)}
+.cb-label{position:absolute;top:-9px;left:14px;background:var(--bg);padding:0 8px;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.cb pre{padding:18px 18px 16px;overflow-x:auto;font-family:var(--mono);font-size:.83rem;line-height:1.75;scrollbar-width:thin}
+.cb code{background:none;border:none;padding:0;white-space:pre}
+.cb .c{color:var(--faint);font-style:italic}
+.cb .g{color:var(--green);font-weight:600}
+.cb .sub{color:var(--blue)}
+.cb .f{color:var(--purple)}
+.cb .s{color:var(--amber)}
+.cb .o{color:var(--muted)}
+.cb .ok{color:var(--green)}
+.cb .bad{color:var(--red)}
+.cb .tag{color:#7ee787}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:.64rem;letter-spacing:.06em;background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:4px 10px;cursor:pointer;transition:color .15s,border-color .15s}
+.copy:hover{color:var(--ink);border-color:var(--muted)}
+.copy.done{color:var(--green);border-color:var(--green)}
+
+/* ── Callouts ───────────────────────────────────── */
+.callout{display:grid;grid-template-columns:auto 1fr;gap:14px;max-width:720px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:22px 0}
+.callout .ic{font-family:var(--disp);font-weight:700;font-size:.78rem;letter-spacing:.1em;padding:2px 8px;height:fit-content;border-radius:4px}
+.callout.tip .ic{background:var(--green-soft);color:var(--green)}
+.callout.warn .ic{background:#f8514926;color:var(--red)}
+.callout.idea .ic{background:var(--blue-soft);color:var(--blue)}
+.callout p{margin:0;font-size:.95rem;color:var(--muted)}
+.callout p strong{color:var(--ink)}
+.callout p code{white-space:normal}
+
+/* ── Tables ─────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;margin:20px 0 28px;max-width:840px;border:1px solid var(--line);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{font-family:var(--disp);font-weight:600;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:var(--muted);background:var(--panel);padding:12px 16px;border-bottom:1px solid var(--line)}
+td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#ffffff05}
+td code{white-space:nowrap}
+td.dim{color:var(--muted)}
+
+/* ── Demos ──────────────────────────────────────── */
+.demo{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;margin:28px 0;max-width:800px}
+.demo-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.demo-head h4{font-family:var(--disp);font-weight:600;font-size:1rem}
+.demo-head .badge{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);border:1px solid var(--green);border-radius:20px;padding:3px 10px}
+button.act{font-family:var(--mono);font-size:.78rem;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 14px;cursor:pointer;transition:border-color .15s,transform .1s}
+button.act:hover{border-color:var(--muted)}
+button.act:active{transform:translateY(1px)}
+button.act.primary{background:var(--green-soft);border-color:var(--green);color:#c8f5cf}
+button.act:focus-visible,.copy:focus-visible,.rail a:focus-visible,.demo input:focus-visible,.demo select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.demo label{font-family:var(--disp);font-size:.8rem;font-weight:600;color:var(--muted);display:block;margin:12px 0 6px}
+.demo input[type=text],.demo select{width:100%;max-width:380px;font-family:var(--mono);font-size:.85rem;background:var(--bg-deep);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:9px 12px}
+.demo .result{font-family:var(--mono);font-size:.82rem;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:16px;line-height:1.8;color:var(--muted)}
+.demo .result b{color:var(--ink);font-weight:500}
+.demo .result .u{color:var(--green)}
+.demo .result .k{color:var(--blue)}
+.demo .result .v{color:var(--amber)}
+.radio-row{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.radio-row label{display:flex;align-items:center;gap:8px;margin:0;font-family:var(--mono);font-size:.78rem;font-weight:400;color:var(--ink);background:var(--bg-deep);border:1px solid var(--line);border-radius:6px;padding:9px 14px;cursor:pointer}
+.radio-row label:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+.radio-row input{accent-color:var(--green)}
+
+/* checklist */
+.check{max-width:720px}
+.check label{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,opacity .2s}
+.check label:has(input:checked){border-color:var(--green);opacity:.65}
+.check label:has(input:checked) span{text-decoration:line-through;text-decoration-color:var(--green)}
+.check input{margin-top:4px;accent-color:var(--green);width:16px;height:16px;flex:none}
+.check span{font-size:.94rem}
+.check span code{font-size:.8em}
+.check-progress{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin:6px 0 16px}
+.check-bar{height:6px;background:var(--panel-2);border-radius:4px;max-width:720px;overflow:hidden;margin-bottom:22px}
+.check-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--green));border-radius:4px;transition:width .35s}
+
+footer{border-top:1px solid var(--line);margin-top:80px;padding:32px 0 8px;font-family:var(--mono);font-size:.72rem;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+footer .sig{color:var(--green)}
+
+@media (max-width:1000px){
+  .wrap{grid-template-columns:1fr}
+  nav.rail{position:relative;height:auto;padding:28px 24px 0}
+  .rail ol{display:none}
+  main{border-left:none;padding:0 24px 90px}
+  .pipe-row{grid-template-columns:1fr;gap:14px}
+  .pipe-wire{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="rail" aria-label="Guide steps">
+  <div class="rail-brand">PAGES <span class="ok">· SHIP IT FREE</span></div>
+  <div class="rail-sub">push → build → deploy → live</div>
+  <ol>
+    <li data-zone="ship"><a href="#what-free">What "free" gets you</a></li>
+    <li data-zone="ship"><a href="#site-types">User site vs project site</a></li>
+    <li data-zone="ship"><a href="#path-browser">Path A · browser only</a></li>
+    <li data-zone="ship"><a href="#path-git">Path B · from your Mac</a></li>
+    <li data-zone="build"><a href="#publish">Turning Pages on</a></li>
+    <li data-zone="build"><a href="#verify">Watching the deploy</a></li>
+    <li data-zone="build"><a href="#update">Updating the site</a></li>
+    <li data-zone="extra"><a href="#domain">Custom domain</a></li>
+    <li data-zone="extra"><a href="#polish">Polish &amp; gotchas</a></li>
+    <li data-zone="extra"><a href="#trouble">Troubleshooting</a></li>
+    <li data-zone="extra"><a href="#checklist">Launch checklist</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Static Hosting · $0 · Forever</div>
+  <h1>GitHub Pages.<br><span class="thin">Your site on the real internet, for free, in ten minutes.</span></h1>
+  <p class="lede">GitHub Pages turns a repository into a website: <strong>every push to your repo automatically redeploys the site</strong> to a global CDN, with free HTTPS, at <code>username.github.io</code> — or your own domain. No servers, no billing page, no credit card field anywhere in the flow. If you finished the Git field guide, you already know 90% of what this takes; the last 10% is a handful of clicks in GitHub's Settings.</p>
+  <div class="pipe" aria-label="Deployment pipeline animation">
+    <div class="pipe-row">
+      <div class="pipe-node" id="pn1"><div class="pipe-dot">⇡</div><h5>git push</h5><p>your Mac</p></div>
+      <div class="pipe-wire" id="pw1"><i></i></div>
+      <div class="pipe-node p2" id="pn2"><div class="pipe-dot">⚙</div><h5>Pages build</h5><p>GitHub Actions</p></div>
+      <div class="pipe-wire" id="pw2"><i></i></div>
+      <div class="pipe-node" id="pn3"><div class="pipe-dot">◍</div><h5>Live on CDN</h5><p>github.io</p></div>
+    </div>
+    <div class="pipe-status" id="pipeStatus"><span class="lamp"></span><span id="pipeMsg">waiting for push…</span></div>
+    <div class="pipe-replay"><button class="act" id="pipeReplay">▶ replay deploy</button></div>
+  </div>
+</header>
+
+<section id="what-free" data-zone="ship">
+  <div class="sec-tag">Step 01</div>
+  <h2>What "completely free" actually includes</h2>
+  <p>GitHub Pages is genuinely free — not trial-free, not freemium-free. On GitHub's Free plan you get, per account:</p>
+  <ul class="list">
+    <li><strong>Hosting for unlimited public repositories</strong>, each of which can be a website. (Pages on <em>private</em> repos requires a paid plan — so keep the site's repo public, which is normal for a personal site anyway.)</li>
+    <li><strong>A free subdomain:</strong> <code>username.github.io</code>, plus <code>username.github.io/repo-name</code> for every additional project.</li>
+    <li><strong>Free HTTPS</strong> — automatically provisioned certificates, on the github.io address and on custom domains alike.</li>
+    <li><strong>A global CDN</strong> (Fastly) serving your files from edge locations worldwide.</li>
+    <li><strong>Automatic redeployment</strong> on every push — the pipeline animated above.</li>
+  </ul>
+  <p>The fine-print limits are generous for any personal or project site: sites should stay under <strong>1 GB</strong>, individual files under <strong>100 MB</strong>, bandwidth has a <em>soft</em> limit of <strong>100 GB/month</strong>, and builds are capped at 10 per hour. The one hard rule that matters: Pages serves <strong>static content only</strong> — HTML, CSS, JavaScript, images, fonts. No server-side code runs there: no PHP, no databases, and — relevant to your roadmap — <strong>no Perl CGI</strong>. Your Apache setup at <code>mysite.test</code> remains the right home for the CGI experiments; Pages is the right home for the static site the world sees.</p>
+  <div class="callout idea"><span class="ic">IDEA</span><p><strong>"Static" is less limiting than it sounds.</strong> JavaScript still runs in the visitor's browser, so interactive pages — like the HTML guides you build, with their canvas demos and IntersectionObserver navigation — work perfectly. Only <em>server-side</em> execution is off the table.</p></div>
+</section>
+
+<section id="site-types" data-zone="ship">
+  <div class="sec-tag">Step 02</div>
+  <h2>One decision first: user site or project site</h2>
+  <p>Pages offers two flavors, and the <em>only</em> difference in setup is the repository's name:</p>
+  <div class="tbl-wrap"><table>
+    <tr><th></th><th>User site</th><th>Project site</th></tr>
+    <tr><td class="dim">Repo must be named</td><td><code>username.github.io</code> <em>exactly</em></td><td>anything — <code>mysite</code>, <code>french-grammar</code>, …</td></tr>
+    <tr><td class="dim">Site URL</td><td><code>https://username.github.io/</code></td><td><code>https://username.github.io/mysite/</code></td></tr>
+    <tr><td class="dim">How many allowed</td><td>one per account</td><td>unlimited</td></tr>
+    <tr><td class="dim">Best for</td><td>your main homepage / portfolio</td><td>each project, guide collection, experiment</td></tr>
+  </table></div>
+  <p>They can coexist: your user site at the root, and any number of project sites hanging off it. Not sure which you're making? Answer below and the rest of the guide's placeholders resolve themselves:</p>
+  <div class="demo" id="plannerDemo">
+    <div class="demo-head"><h4>Planner · Fill in your details</h4><span class="badge">interactive</span></div>
+    <label for="plUser">Your GitHub username</label>
+    <input type="text" id="plUser" placeholder="stephen" autocomplete="off" spellcheck="false">
+    <label>Site type</label>
+    <div class="radio-row">
+      <label><input type="radio" name="plType" value="user" checked> user site (my homepage)</label>
+      <label><input type="radio" name="plType" value="project"> project site</label>
+    </div>
+    <div id="plRepoWrap" style="display:none">
+      <label for="plRepo">Project repo name</label>
+      <input type="text" id="plRepo" placeholder="mysite" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="result" id="plOut"></div>
+  </div>
+</section>
+
+<section id="path-browser" data-zone="ship">
+  <div class="sec-tag">Step 03</div>
+  <h2>Path A — entirely in the browser (no Git needed)</h2>
+  <p>The fastest possible route, good for a first taste or for someone without a terminal handy. Everything happens on github.com:</p>
+  <ol class="steps">
+    <li><h4>Create the account</h4>
+      <p>Sign up at <a class="inline" href="https://github.com" target="_blank" rel="noopener">github.com</a> — the free plan is the default; you're never asked for payment. <strong>Choose the username carefully:</strong> it becomes your site's address, <code>username.github.io</code>, forever visible in the URL bar.</p></li>
+    <li><h4>Create the repository</h4>
+      <p>Click the <strong>+</strong> in the top-right → <strong>New repository</strong>. For your homepage, name it exactly <code>username.github.io</code> (substituting your real username — GitHub even hints when you get this right). Set it to <strong>Public</strong>, tick <strong>"Add a README file"</strong> so the repo isn't empty, and click <strong>Create repository</strong>.</p></li>
+    <li><h4>Add your index.html</h4>
+      <p>In the repo, click <strong>Add file → Create new file</strong>. Name it <code>index.html</code> — this exact name is what Pages serves when someone visits your root URL. Paste your HTML (a minimal starter is below), then click <strong>Commit changes</strong>. You just made a Git commit without touching Git.</p></li>
+    <li><h4>Turn on Pages</h4>
+      <p>Covered in full in <a class="inline" href="#publish">Step 05</a> — it's the same two clicks for both paths.</p></li>
+  </ol>
+  <div class="cb"><span class="cb-label">index.html · a respectable minimum</span><button class="copy">copy</button><pre><code><span class="tag">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;html</span> lang=<span class="s">"en"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;head&gt;</span>
+  <span class="tag">&lt;meta</span> charset=<span class="s">"UTF-8"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;meta</span> name=<span class="s">"viewport"</span> content=<span class="s">"width=device-width, initial-scale=1.0"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;title&gt;</span>Hello from GitHub Pages<span class="tag">&lt;/title&gt;</span>
+<span class="tag">&lt;/head&gt;</span>
+<span class="tag">&lt;body&gt;</span>
+  <span class="tag">&lt;h1&gt;</span>It's alive.<span class="tag">&lt;/h1&gt;</span>
+  <span class="tag">&lt;p&gt;</span>Served free, over HTTPS, from a global CDN.<span class="tag">&lt;/p&gt;</span>
+<span class="tag">&lt;/body&gt;</span>
+<span class="tag">&lt;/html&gt;</span></code></pre></div>
+  <p class="note">You can keep working this way indefinitely — GitHub's web editor (press <kbd>.</kbd> in any repo for a full VS Code in the browser) is surprisingly capable. But the moment you have a real project locally, Path B is better in every way.</p>
+</section>
+
+<section id="path-git" data-zone="ship">
+  <div class="sec-tag">Step 04</div>
+  <h2>Path B — push your existing site from the Mac</h2>
+  <p>This is the grown-up route, and it's exactly the remote workflow from the Git guide. Suppose the site lives in <code>~/Sites/mysite</code> and is already a Git repository (if not: <code>git init</code>, <code>git add .</code>, <code>git commit -m "Initial commit"</code> — thirty seconds).</p>
+  <ol class="steps">
+    <li><h4>Authenticate once</h4>
+      <p>GitHub doesn't accept account passwords from Git. The two clean options — pick one:</p>
+      <div class="cb"><span class="cb-label">option 1 · ssh key (classic, no extra tools)</span><button class="copy">copy</button><pre><code>ssh-keygen <span class="f">-t</span> ed25519 <span class="f">-C</span> <span class="s">"you@example.com"</span>   <span class="c"># accept defaults</span>
+pbcopy &lt; ~/.ssh/id_ed25519.pub                <span class="c"># copies the PUBLIC key</span>
+<span class="c"># github.com → Settings → SSH and GPG keys → New SSH key → paste</span>
+ssh <span class="f">-T</span> git@github.com                         <span class="c"># test: "Hi username!"</span></code></pre></div>
+      <div class="cb"><span class="cb-label">option 2 · github cli (easiest)</span><button class="copy">copy</button><pre><code>brew install gh
+gh auth login          <span class="c"># choose GitHub.com → HTTPS → login via browser</span></code></pre></div></li>
+    <li><h4>Create the empty repo on GitHub</h4>
+      <p>On github.com: <strong>+ → New repository</strong>, named <code>username.github.io</code> (user site) or e.g. <code>mysite</code> (project site). Public. This time <strong>add nothing</strong> — no README, no .gitignore — so the remote starts empty and your local history pushes in cleanly. (With the CLI it's one line: <code>gh repo create username.github.io --public --source=. --push</code> does this step <em>and</em> the next two.)</p></li>
+    <li><h4>Connect local ↔ remote</h4>
+      <div class="cb"><span class="cb-label">in ~/Sites/mysite</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">remote</span> add origin git@github.com:USERNAME/USERNAME.github.io.git
+<span class="g">git</span> <span class="sub">remote</span> <span class="f">-v</span>        <span class="c"># verify — shows fetch & push URLs</span></code></pre></div></li>
+    <li><h4>Push</h4>
+      <div class="cb"><span class="cb-label">first push</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">push</span> <span class="f">-u</span> origin main
+<span class="o">Enumerating objects: 12, done.</span>
+<span class="o">Writing objects: 100% (12/12), 24.3 KiB | 8.1 MiB/s, done.</span>
+<span class="ok">To github.com:USERNAME/USERNAME.github.io.git</span>
+<span class="ok"> * [new branch]      main -> main</span></code></pre></div>
+      <p>Refresh the repo page on GitHub — your files are there, full history intact. One step remains.</p></li>
+  </ol>
+  <div class="callout tip"><span class="ic">TIP</span><p><strong>Make sure <code>index.html</code> sits at the repository root</strong> (or in a <code>/docs</code> folder — see the next step), not nested in some subfolder like <code>mysite/site/html/</code>. Pages serves the chosen folder as-is: root of folder = root of website.</p></div>
+</section>
+
+<section id="publish" data-zone="build">
+  <div class="sec-tag">Step 05</div>
+  <h2>Turning Pages on: the two clicks that matter</h2>
+  <p>This is the entire "hosting setup." In your repository on github.com:</p>
+  <div class="uipath"><b>Repo</b><span class="sep">→</span><b>Settings</b><span class="sep">→</span><b>Pages</b> <span class="sep">(left sidebar, under "Code and automation")</span></div>
+  <ol class="steps">
+    <li><h4>Source: "Deploy from a branch"</h4>
+      <p>Under <strong>Build and deployment → Source</strong>, keep <strong>Deploy from a branch</strong>. (The alternative, <em>GitHub Actions</em>, is for sites that need a build step — Jekyll with plugins, Hugo, a bundler. Plain HTML/CSS/JS doesn't.)</p></li>
+    <li><h4>Branch: <code>main</code>, folder: <code>/ (root)</code></h4>
+      <p>Select branch <strong>main</strong> and folder <strong>/ (root)</strong>, then click <strong>Save</strong>. The folder dropdown also offers <code>/docs</code> — useful when you want the website in a subfolder of a larger repo (code at root, site in <code>docs/</code>).</p></li>
+    <li><h4>That's it — wait ~1 minute</h4>
+      <p>GitHub kicks off the first deploy immediately. Refresh the Pages settings page and a banner appears: <strong>"Your site is live at https://username.github.io/"</strong> with a <strong>Visit site</strong> button. First deploys can take a couple of minutes; subsequent ones are usually 20–60 seconds.</p></li>
+  </ol>
+  <div class="callout warn"><span class="ic">CARE</span><p><strong>404 after it says "live"?</strong> Ninety percent of the time it's one of two things: the file isn't named exactly <code>index.html</code> (lowercase, no <code>Index.html</code> or <code>index.HTML</code>), or it isn't at the root of the folder you selected. The other ten percent: give the CDN two more minutes and hard-refresh (<kbd>⌘⇧R</kbd>).</p></div>
+</section>
+
+<section id="verify" data-zone="build">
+  <div class="sec-tag">Step 06</div>
+  <h2>Watching the deploy (and knowing when it's done)</h2>
+  <p>Every deploy — including that first one — runs as a visible workflow. Two places to watch:</p>
+  <ul class="list">
+    <li><strong>The Actions tab</strong> of your repo lists a workflow called <em>pages-build-deployment</em> for every push: amber dot = running, green check = live, red X = failed (click it for logs).</li>
+    <li><strong>The repo homepage</strong> shows the same status as a tiny icon next to the latest commit's hash.</li>
+  </ul>
+  <div class="cb"><span class="cb-label">or never leave the terminal (github cli)</span><button class="copy">copy</button><pre><code>gh run list <span class="f">--limit</span> 3
+<span class="o">STATUS  NAME                     BRANCH  EVENT   </span>
+<span class="ok">✓       pages build and deploy…  main    dynamic </span>
+
+gh run watch          <span class="c"># live-follows the current deploy to completion</span>
+gh browse             <span class="c"># opens the repo; add --settings for Settings</span></code></pre></div>
+  <p>When the check turns green, the site is live at your URL. Verify the essentials once: pages load over <strong>https://</strong>, internal links work, images appear. Then check Settings → Pages and tick <strong>"Enforce HTTPS"</strong> if it isn't already (it usually is) — this redirects any <code>http://</code> visitor to the secure version.</p>
+</section>
+
+<section id="update" data-zone="build">
+  <div class="sec-tag">Step 07</div>
+  <h2>Updating the site: the loop you already know</h2>
+  <p>From now on, "deploying" is not a separate skill. It's the Git loop with one extra word:</p>
+  <div class="cb"><span class="cb-label">the entire maintenance workflow, forever</span><button class="copy">copy</button><pre><code><span class="c"># edit files locally, preview in the browser, then:</span>
+<span class="g">git</span> <span class="sub">add</span> .
+<span class="g">git</span> <span class="sub">commit</span> <span class="f">-m</span> <span class="s">"Add Spanish grammar chart page"</span>
+<span class="g">git</span> <span class="sub">push</span>
+<span class="c"># ~30 seconds later the live site reflects it. That's the whole deploy.</span>
+
+<span class="c"># with the aliases from the Git guide, a full publish is:</span>
+<span class="g">git</span> <span class="sub">aa</span> <span class="o">&&</span> <span class="g">git</span> <span class="sub">cm</span> <span class="s">"Update charts"</span> <span class="o">&&</span> <span class="g">git</span> <span class="sub">pu</span></code></pre></div>
+  <p>Notice what you get free that FTP-era hosting never gave you: every version of the live site ever published is a commit you can inspect, diff, and — if a deploy breaks something — instantly roll back:</p>
+  <div class="cb"><span class="cb-label">rolling back a bad deploy</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">revert</span> HEAD        <span class="c"># new commit that undoes the last one</span>
+<span class="g">git</span> <span class="sub">push</span>               <span class="c"># site redeploys to the previous state</span></code></pre></div>
+  <div class="callout idea"><span class="ic">IDEA</span><p><strong>Local preview stays local.</strong> Your Apache at <code>mysite.test</code> is now the <em>staging server</em>: preview there, and only <code>git push</code> when it looks right. Two hosts, one folder, zero conflict.</p></div>
+</section>
+
+<section id="domain" data-zone="extra">
+  <div class="sec-tag">Step 08</div>
+  <h2>Optional: your own domain (still free on GitHub's side)</h2>
+  <p>The only money in this entire guide is optional: a domain name (~$10–15/year from a registrar like Cloudflare, Porkbun, or Namecheap). GitHub's side — hosting, HTTPS certificate for the domain — costs nothing. Two halves to configure:</p>
+  <h3>Half 1 · at your DNS provider</h3>
+  <p>Create these records (the four A records are GitHub's permanent Pages addresses):</p>
+  <div class="tbl-wrap"><table>
+    <tr><th>Type</th><th>Name / Host</th><th>Value</th></tr>
+    <tr><td><code>A</code></td><td><code>@</code> (apex, i.e. example.com)</td><td><code>185.199.108.153</code></td></tr>
+    <tr><td><code>A</code></td><td><code>@</code></td><td><code>185.199.109.153</code></td></tr>
+    <tr><td><code>A</code></td><td><code>@</code></td><td><code>185.199.110.153</code></td></tr>
+    <tr><td><code>A</code></td><td><code>@</code></td><td><code>185.199.111.153</code></td></tr>
+    <tr><td><code>CNAME</code></td><td><code>www</code></td><td><code>username.github.io</code></td></tr>
+  </table></div>
+  <h3>Half 2 · in GitHub</h3>
+  <ol class="steps">
+    <li><h4>Enter the domain</h4><p><strong>Settings → Pages → Custom domain</strong>: type <code>www.example.com</code> (or the apex <code>example.com</code>), click <strong>Save</strong>. GitHub adds a <code>CNAME</code> file to your repo and starts a DNS check.</p></li>
+    <li><h4>Wait for the check, then enforce HTTPS</h4><p>DNS propagation takes minutes to a few hours. When the check shows green, tick <strong>Enforce HTTPS</strong>. GitHub provisions a Let's Encrypt certificate for your domain automatically — the checkbox may be greyed for up to a day while that happens; it resolves on its own.</p></li>
+    <li><h4>(Recommended) verify the domain account-wide</h4><p>Account <strong>Settings → Pages → Add a domain</strong> lets you verify ownership via a TXT record, which prevents anyone from claiming your domain on Pages if you ever unlink it.</p></li>
+  </ol>
+  <p>Or generate your exact records here:</p>
+  <div class="demo" id="dnsDemo">
+    <div class="demo-head"><h4>Generator · DNS records for your domain</h4><span class="badge">interactive</span></div>
+    <label for="dnsDomain">Your domain</label>
+    <input type="text" id="dnsDomain" placeholder="example.com" autocomplete="off" spellcheck="false">
+    <label for="dnsUser">Your GitHub username</label>
+    <input type="text" id="dnsUser" placeholder="stephen" autocomplete="off" spellcheck="false">
+    <div class="result" id="dnsOut"></div>
+  </div>
+</section>
+
+<section id="polish" data-zone="extra">
+  <div class="sec-tag">Step 09</div>
+  <h2>Polish &amp; the gotchas worth knowing</h2>
+  <h3>The project-site path gotcha (the #1 trap)</h3>
+  <p>A <em>project</em> site lives at <code>username.github.io/mysite/</code> — note the subpath. Any link or asset URL starting with <code>/</code> points at the <em>domain root</em>, above your site, and breaks:</p>
+  <div class="cb"><span class="cb-label">absolute vs relative paths on a project site</span><button class="copy">copy</button><pre><code><span class="c">&lt;!-- BREAKS on a project site: resolves to username.github.io/style.css --&gt;</span>
+<span class="tag">&lt;link</span> rel=<span class="s">"stylesheet"</span> href=<span class="s">"/style.css"</span><span class="tag">&gt;</span>
+
+<span class="c">&lt;!-- WORKS everywhere: relative to the current page --&gt;</span>
+<span class="tag">&lt;link</span> rel=<span class="s">"stylesheet"</span> href=<span class="s">"style.css"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;a</span> href=<span class="s">"charts/french.html"</span><span class="tag">&gt;</span>French charts<span class="tag">&lt;/a&gt;</span>
+<span class="tag">&lt;img</span> src=<span class="s">"img/hero.png"</span><span class="tag">&gt;</span></code></pre></div>
+  <p class="note">User sites (<code>username.github.io</code>) sit at the domain root, so both styles work there — but relative paths are the habit that never bites.</p>
+  <h3>A custom 404 page</h3>
+  <p>Drop a <code>404.html</code> at the repo root and Pages serves it for any missing URL — same design language as your site instead of GitHub's default.</p>
+  <h3>The <code>.nojekyll</code> file</h3>
+  <p>By default, Pages runs your files through <strong>Jekyll</strong>, a static-site generator. For plain HTML it's nearly transparent — <em>except</em> it silently skips any file or folder starting with an underscore (<code>_drafts/</code>, <code>_data.js</code>). Opt out with an empty marker file and Pages serves everything verbatim, slightly faster:</p>
+  <div class="cb"><span class="cb-label">recommended for hand-written sites</span><button class="copy">copy</button><pre><code>touch .nojekyll
+<span class="g">git</span> <span class="sub">add</span> .nojekyll <span class="o">&&</span> <span class="g">git</span> <span class="sub">commit</span> <span class="f">-m</span> <span class="s">"Serve files verbatim"</span> <span class="o">&&</span> <span class="g">git</span> <span class="sub">push</span></code></pre></div>
+  <h3>Things Pages will never do (plan around them)</h3>
+  <ul class="list">
+    <li><strong>No server-side code</strong> — for form handling use a service (Formspree et al.) or a separate backend; for Perl CGI, that's your Apache box.</li>
+    <li><strong>No secrets in the repo</strong> — the repository is public; so is every file and its entire history.</li>
+    <li><strong>Not for commercial storefronts</strong> — GitHub's terms disallow primarily-commercial/e-commerce use; personal sites, docs, portfolios, and project pages are exactly the intended use.</li>
+  </ul>
+</section>
+
+<section id="trouble" data-zone="extra">
+  <div class="sec-tag">Step 10</div>
+  <h2>Troubleshooting</h2>
+  <div class="tbl-wrap"><table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+    <tr><td>404 at the site URL</td><td class="dim">no <code>index.html</code> at the published folder's root, or wrong case</td><td class="dim">rename to exactly <code>index.html</code>; confirm branch/folder in Settings → Pages</td></tr>
+    <tr><td>Site loads, CSS/images missing</td><td class="dim">absolute <code>/paths</code> on a project site; or case mismatch (<code>Hero.PNG</code> vs <code>hero.png</code> — Pages is case-sensitive, macOS isn't)</td><td class="dim">switch to relative paths; match filename case exactly</td></tr>
+    <tr><td>Changes pushed but site unchanged</td><td class="dim">deploy still running, or browser cache</td><td class="dim">check Actions tab for green ✓; hard-refresh <kbd>⌘⇧R</kbd></td></tr>
+    <tr><td>Push rejected: <code>fetch first</code></td><td class="dim">remote has commits you don't (e.g. README made on the site)</td><td class="dim"><code>git pull --rebase</code>, then push</td></tr>
+    <tr><td>Files with <code>_underscore</code> names vanish</td><td class="dim">Jekyll processing</td><td class="dim">add <code>.nojekyll</code> (previous section)</td></tr>
+    <tr><td>Custom domain check stuck / red</td><td class="dim">DNS not propagated or records wrong</td><td class="dim">verify with <code>dig example.com +short</code> → should list the four 185.199.* IPs; wait, then re-save the domain</td></tr>
+    <tr><td>"Enforce HTTPS" greyed out</td><td class="dim">certificate still provisioning</td><td class="dim">normal for up to ~24 h after DNS goes green; check back</td></tr>
+    <tr><td>Red X on the deploy run</td><td class="dim">build error (usually Jekyll choking on a file)</td><td class="dim">click the run in Actions for the log; <code>.nojekyll</code> often cures it</td></tr>
+  </table></div>
+</section>
+
+<section id="checklist" data-zone="extra">
+  <div class="sec-tag">Step 11</div>
+  <h2>Launch checklist</h2>
+  <p class="note">Tick as you go — progress is saved only in this browser session.</p>
+  <div class="check-progress" id="ckProg">0 / 10 complete</div>
+  <div class="check-bar"><i id="ckBar"></i></div>
+  <div class="check" id="ckList">
+    <label><input type="checkbox"><span>GitHub account created; username chosen with the <code>username.github.io</code> URL in mind</span></label>
+    <label><input type="checkbox"><span>Repo created — <code>username.github.io</code> for the homepage, or any name for a project site</span></label>
+    <label><input type="checkbox"><span>Authentication working: <code>ssh -T git@github.com</code> greets you, or <code>gh auth status</code> is green</span></label>
+    <label><input type="checkbox"><span><code>index.html</code> present at the root of the folder being published</span></label>
+    <label><input type="checkbox"><span>Local repo connected (<code>git remote -v</code>) and pushed (<code>git push -u origin main</code>)</span></label>
+    <label><input type="checkbox"><span>Settings → Pages: source = <em>Deploy from a branch</em>, branch <code>main</code>, folder <code>/ (root)</code>, saved</span></label>
+    <label><input type="checkbox"><span>Actions tab shows a green ✓ on <em>pages-build-deployment</em></span></label>
+    <label><input type="checkbox"><span>Site verified live over <code>https://</code>; "Enforce HTTPS" ticked</span></label>
+    <label><input type="checkbox"><span><code>.nojekyll</code> and a custom <code>404.html</code> committed</span></label>
+    <label><input type="checkbox"><span>(Optional) custom domain: DNS records set, GitHub check green, HTTPS enforced</span></label>
+  </div>
+  <p>From here, publishing is a reflex: <code>git aa && git cm "…" && git pu</code> — and thirty seconds later, the world sees it.</p>
+</section>
+
+<footer>
+  <span>GitHub Pages — Ship It Free · single-file HTML5 · companion to the Git Field Guide</span>
+  <span class="sig">✓ deployed</span>
+</footer>
+
+</main>
+</div>
+<script>
+(function(){
+"use strict";
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── Hero pipeline animation ──────────────────── */
+(function(){
+  const n1=document.getElementById('pn1'), n2=document.getElementById('pn2'), n3=document.getElementById('pn3'),
+        w1=document.getElementById('pw1'), w2=document.getElementById('pw2'),
+        st=document.getElementById('pipeStatus'), msg=document.getElementById('pipeMsg');
+  let timer = [];
+  function clear(){ timer.forEach(clearTimeout); timer=[];
+    [n1,n2,n3].forEach(n=>n.classList.remove('lit'));
+    [w1,w2].forEach(w=>w.classList.remove('flow'));
+    st.classList.remove('live');
+  }
+  function play(){
+    clear();
+    if (reduced){ [n1,n2,n3].forEach(n=>n.classList.add('lit')); st.classList.add('live');
+      msg.innerHTML='deployed → <a href="#publish">username.github.io</a>'; return; }
+    msg.textContent='waiting for push…';
+    timer.push(setTimeout(()=>{ n1.classList.add('lit'); msg.textContent='push received on main…'; w1.classList.add('flow'); },600));
+    timer.push(setTimeout(()=>{ n2.classList.add('lit'); w1.classList.remove('flow'); msg.textContent='pages-build-deployment running…'; w2.classList.add('flow'); },1900));
+    timer.push(setTimeout(()=>{ n3.classList.add('lit'); w2.classList.remove('flow'); st.classList.add('live');
+      msg.innerHTML='✓ deployed — your site is live at <a href="#publish">username.github.io</a>'; },3400));
+  }
+  document.getElementById('pipeReplay').addEventListener('click', play);
+  play();
+})();
+
+/* ── Sidebar active state ─────────────────────── */
+const items = [...document.querySelectorAll('.rail li')];
+const map = {};
+items.forEach(li => { map[li.querySelector('a').getAttribute('href').slice(1)] = li; });
+const io = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if (e.isIntersecting){
+      items.forEach(l=>l.classList.remove('active'));
+      const li = map[e.target.id]; if (li) li.classList.add('active');
+    }
+  });
+}, {rootMargin:'-20% 0px -65% 0px'});
+document.querySelectorAll('main section').forEach(s => io.observe(s));
+
+/* ── Copy buttons ─────────────────────────────── */
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    navigator.clipboard.writeText(btn.parentElement.querySelector('pre').innerText).then(()=>{
+      btn.textContent='copied ✓'; btn.classList.add('done');
+      setTimeout(()=>{btn.textContent='copy'; btn.classList.remove('done');},1400);
+    });
+  });
+});
+
+/* ── Planner ──────────────────────────────────── */
+(function(){
+  const user=document.getElementById('plUser'), repo=document.getElementById('plRepo'),
+        wrap=document.getElementById('plRepoWrap'), out=document.getElementById('plOut');
+  function type(){ return document.querySelector('input[name=plType]:checked').value; }
+  function clean(s, def){ s=(s||'').trim().toLowerCase().replace(/[^a-z0-9._-]/g,''); return s||def; }
+  function render(){
+    const u=clean(user.value,'username'), t=type();
+    wrap.style.display = t==='project' ? '' : 'none';
+    if (t==='user'){
+      out.innerHTML =
+        'repo name  <b>'+u+'.github.io</b>  <span style="color:var(--faint)">(must match exactly)</span><br>'+
+        'site URL   <span class="u">https://'+u+'.github.io/</span><br>'+
+        'remote     <b>git@github.com:'+u+'/'+u+'.github.io.git</b>';
+    } else {
+      const r=clean(repo.value,'mysite');
+      out.innerHTML =
+        'repo name  <b>'+r+'</b>  <span style="color:var(--faint)">(any name works)</span><br>'+
+        'site URL   <span class="u">https://'+u+'.github.io/'+r+'/</span><br>'+
+        'remote     <b>git@github.com:'+u+'/'+r+'.git</b><br>'+
+        '<span style="color:var(--amber)">⚠ subpath site — use relative paths (see Polish &amp; gotchas)</span>';
+    }
+  }
+  [user,repo].forEach(el=>el.addEventListener('input',render));
+  document.querySelectorAll('input[name=plType]').forEach(el=>el.addEventListener('change',render));
+  render();
+})();
+
+/* ── DNS generator ────────────────────────────── */
+(function(){
+  const dom=document.getElementById('dnsDomain'), user=document.getElementById('dnsUser'),
+        out=document.getElementById('dnsOut');
+  function render(){
+    let d=(dom.value||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');
+    if(!d) d='example.com';
+    let u=(user.value||'').trim().toLowerCase().replace(/[^a-z0-9-]/g,'')||'username';
+    out.innerHTML =
+      '<span style="color:var(--faint)">;; at your DNS provider for </span><b>'+d+'</b><br>'+
+      '<span class="k">A</span>      <span class="v">@</span>     185.199.108.153<br>'+
+      '<span class="k">A</span>      <span class="v">@</span>     185.199.109.153<br>'+
+      '<span class="k">A</span>      <span class="v">@</span>     185.199.110.153<br>'+
+      '<span class="k">A</span>      <span class="v">@</span>     185.199.111.153<br>'+
+      '<span class="k">CNAME</span>  <span class="v">www</span>   '+u+'.github.io<br><br>'+
+      '<span style="color:var(--faint)">;; then in GitHub: Settings → Pages → Custom domain →</span> <b>www.'+d+'</b><br>'+
+      '<span style="color:var(--faint)">;; verify from the terminal once propagated:</span><br>'+
+      'dig '+d+' +short   <span style="color:var(--faint)">→ the four 185.199.* addresses</span>';
+  }
+  [dom,user].forEach(el=>el.addEventListener('input',render));
+  render();
+})();
+
+/* ── Checklist progress ───────────────────────── */
+(function(){
+  const boxes=[...document.querySelectorAll('#ckList input')],
+        prog=document.getElementById('ckProg'), bar=document.getElementById('ckBar');
+  function upd(){
+    const n=boxes.filter(b=>b.checked).length;
+    prog.textContent = n+' / '+boxes.length+' complete' + (n===boxes.length ? ' — ship it! ✓' : '');
+    bar.style.width = (n/boxes.length*100)+'%';
+  }
+  boxes.forEach(b=>b.addEventListener('change',upd));
+  upd();
+})();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git — The Field Guide · From Zero to Fluent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14161a;
+  --bg-deep:#0e1013;
+  --panel:#1c1f26;
+  --panel-2:#22262f;
+  --line:#2e333d;
+  --ink:#d9d7d2;
+  --muted:#8b8e96;
+  --faint:#5c606a;
+  --main-line:#f0653a;   /* ember — the main branch */
+  --main-soft:#f0653a33;
+  --feat-line:#3ecfc0;   /* teal — feature branches */
+  --feat-soft:#3ecfc033;
+  --fix-line:#a78bfa;    /* violet — remotes & rescue */
+  --fix-soft:#a78bfa33;
+  --gold:#e8b34b;
+  --ok:#7ec97e;
+  --danger:#e06c6c;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --disp:'Chakra Petch',sans-serif;
+  --body:'Karla',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.65;
+}
+::selection{background:var(--main-soft)}
+
+/* ── Layout ─────────────────────────────────────── */
+.wrap{display:grid;grid-template-columns:288px 1fr;max-width:1280px;margin:0 auto}
+main{min-width:0;padding:0 48px 120px 56px;border-left:1px solid var(--line)}
+
+/* ── Sidebar: the commit rail ───────────────────── */
+nav.rail{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:36px 8px 40px 24px;
+  scrollbar-width:thin;scrollbar-color:var(--line) transparent;
+}
+.rail-brand{font-family:var(--disp);font-weight:700;font-size:1.05rem;letter-spacing:.06em;color:var(--ink);margin-bottom:4px}
+.rail-brand .dot{color:var(--main-line)}
+.rail-sub{font-family:var(--mono);font-size:.68rem;color:var(--faint);letter-spacing:.08em;margin-bottom:28px}
+.rail ol{list-style:none;position:relative}
+.rail ol::before{
+  content:"";position:absolute;left:7px;top:10px;bottom:10px;width:2px;
+  background:linear-gradient(var(--main-line) 0 62%,var(--feat-line) 62% 84%,var(--fix-line) 84% 100%);
+  opacity:.55;border-radius:2px;
+}
+.rail li{position:relative}
+.rail a{
+  display:flex;align-items:baseline;gap:12px;
+  padding:7px 10px 7px 0;margin-left:0;
+  color:var(--muted);text-decoration:none;font-size:.86rem;
+  transition:color .18s;
+}
+.rail a::before{
+  content:"";flex:0 0 8px;width:8px;height:8px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--faint);
+  transform:translate(4px,-1px);transition:border-color .18s,background .18s,box-shadow .18s;
+}
+.rail a .hash{font-family:var(--mono);font-size:.62rem;color:var(--faint);min-width:44px;transition:color .18s}
+.rail a:hover{color:var(--ink)}
+.rail li.active a{color:var(--ink)}
+.rail li.active a .hash{color:var(--main-line)}
+.rail li.active a::before{border-color:var(--main-line);background:var(--main-line);box-shadow:0 0 10px var(--main-soft)}
+.rail li[data-zone="feat"].active a::before{border-color:var(--feat-line);background:var(--feat-line);box-shadow:0 0 10px var(--feat-soft)}
+.rail li[data-zone="feat"].active a .hash{color:var(--feat-line)}
+.rail li[data-zone="fix"].active a::before{border-color:var(--fix-line);background:var(--fix-line);box-shadow:0 0 10px var(--fix-soft)}
+.rail li[data-zone="fix"].active a .hash{color:var(--fix-line)}
+
+/* ── Hero ───────────────────────────────────────── */
+header.hero{padding:72px 0 48px}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;color:var(--main-line);text-transform:uppercase;margin-bottom:18px}
+h1{font-family:var(--disp);font-weight:700;font-size:clamp(2.4rem,5vw,3.6rem);line-height:1.06;letter-spacing:-.01em}
+h1 .thin{color:var(--muted);font-weight:500}
+.hero p.lede{max-width:62ch;margin-top:22px;font-size:1.08rem;color:var(--muted)}
+.hero p.lede strong{color:var(--ink)}
+
+/* hero terminal */
+.term{
+  margin-top:40px;background:var(--bg-deep);border:1px solid var(--line);
+  border-radius:10px;overflow:hidden;max-width:680px;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.7);
+}
+.term-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.term-bar i{width:11px;height:11px;border-radius:50%;background:var(--line)}
+.term-bar i:nth-child(1){background:#e06c6c}.term-bar i:nth-child(2){background:#e8b34b}.term-bar i:nth-child(3){background:#7ec97e}
+.term-bar span{margin-left:8px;font-family:var(--mono);font-size:.7rem;color:var(--faint)}
+.term-body{padding:18px 20px;font-family:var(--mono);font-size:.85rem;line-height:1.8;min-height:150px}
+.term-body .ps{color:var(--feat-line)}
+.term-body .out{color:var(--muted)}
+.term-body .hl{color:var(--main-line)}
+.caret{display:inline-block;width:8px;height:1.05em;background:var(--ink);vertical-align:-3px;animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ── Sections ───────────────────────────────────── */
+section{padding:64px 0 8px;border-top:1px solid var(--line);margin-top:56px}
+section:first-of-type{border-top:none;margin-top:0}
+.sec-tag{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--main-line);margin-bottom:14px}
+.sec-tag::before{content:"";width:26px;height:2px;background:var(--main-line)}
+section[data-zone="feat"] .sec-tag{color:var(--feat-line)}
+section[data-zone="feat"] .sec-tag::before{background:var(--feat-line)}
+section[data-zone="fix"] .sec-tag{color:var(--fix-line)}
+section[data-zone="fix"] .sec-tag::before{background:var(--fix-line)}
+h2{font-family:var(--disp);font-weight:700;font-size:1.9rem;letter-spacing:-.01em;margin-bottom:20px}
+h3{font-family:var(--disp);font-weight:600;font-size:1.18rem;margin:40px 0 12px;color:var(--ink)}
+p{max-width:70ch;margin-bottom:16px}
+p.note{color:var(--muted)}
+a.inline{color:var(--feat-line);text-decoration:none;border-bottom:1px dotted var(--feat-line)}
+strong{color:#fff;font-weight:700}
+em{color:var(--gold);font-style:italic}
+ul.list,ol.list{max-width:70ch;margin:0 0 18px 22px}
+ul.list li,ol.list li{margin-bottom:8px}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:#eae8e3;white-space:nowrap}
+
+/* ── Code blocks ────────────────────────────────── */
+.cb{position:relative;background:var(--bg-deep);border:1px solid var(--line);border-left:3px solid var(--main-line);border-radius:8px;margin:20px 0 26px;max-width:760px}
+section[data-zone="feat"] .cb{border-left-color:var(--feat-line)}
+section[data-zone="fix"] .cb{border-left-color:var(--fix-line)}
+.cb-label{position:absolute;top:-9px;left:14px;background:var(--bg);padding:0 8px;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.cb pre{padding:18px 18px 16px;overflow-x:auto;font-family:var(--mono);font-size:.84rem;line-height:1.75;scrollbar-width:thin}
+.cb code{background:none;border:none;padding:0;white-space:pre}
+.cb .c{color:var(--faint);font-style:italic}       /* comment */
+.cb .g{color:var(--main-line);font-weight:600}      /* git keyword */
+.cb .sub{color:var(--feat-line)}                    /* subcommand */
+.cb .f{color:var(--fix-line)}                       /* flags */
+.cb .s{color:var(--gold)}                           /* strings */
+.cb .o{color:var(--muted)}                          /* output */
+.cb .ok{color:var(--ok)}
+.cb .bad{color:var(--danger)}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:.64rem;letter-spacing:.06em;background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:4px 10px;cursor:pointer;transition:color .15s,border-color .15s}
+.copy:hover{color:var(--ink);border-color:var(--muted)}
+.copy.done{color:var(--ok);border-color:var(--ok)}
+
+/* ── Callouts ───────────────────────────────────── */
+.callout{display:grid;grid-template-columns:auto 1fr;gap:14px;max-width:720px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:22px 0}
+.callout .ic{font-family:var(--disp);font-weight:700;font-size:.8rem;letter-spacing:.1em;padding:2px 8px;height:fit-content;border-radius:4px}
+.callout.tip .ic{background:var(--feat-soft);color:var(--feat-line)}
+.callout.warn .ic{background:#e06c6c26;color:var(--danger)}
+.callout.idea .ic{background:#e8b34b26;color:var(--gold)}
+.callout p{margin:0;font-size:.95rem;color:var(--muted)}
+.callout p strong{color:var(--ink)}
+.callout p code{white-space:normal}
+
+/* ── Tables ─────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;margin:20px 0 28px;max-width:820px;border:1px solid var(--line);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{font-family:var(--disp);font-weight:600;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:var(--muted);background:var(--panel);padding:12px 16px;border-bottom:1px solid var(--line)}
+td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#ffffff05}
+td code{white-space:nowrap}
+td.dim{color:var(--muted)}
+
+/* ── Three-areas diagram ────────────────────────── */
+.areas{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:stretch;max-width:760px;margin:26px 0}
+.area{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 16px;text-align:center}
+.area h4{font-family:var(--disp);font-size:.92rem;font-weight:600;margin-bottom:6px}
+.area p{font-size:.8rem;color:var(--muted);margin:0}
+.area.a1{border-top:3px solid var(--muted)}
+.area.a2{border-top:3px solid var(--gold)}
+.area.a3{border-top:3px solid var(--main-line)}
+.arrow{display:flex;flex-direction:column;justify-content:center;padding:0 10px;font-family:var(--mono);font-size:.68rem;color:var(--faint);text-align:center}
+.arrow b{color:var(--feat-line);font-weight:500}
+
+/* ── Interactive demos ──────────────────────────── */
+.demo{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;margin:28px 0;max-width:820px}
+.demo-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.demo-head h4{font-family:var(--disp);font-weight:600;font-size:1rem}
+.demo-head .badge{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--feat-line);border:1px solid var(--feat-line);border-radius:20px;padding:3px 10px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button.act{font-family:var(--mono);font-size:.78rem;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 14px;cursor:pointer;transition:border-color .15s,transform .1s,background .15s}
+button.act:hover{border-color:var(--muted)}
+button.act:active{transform:translateY(1px)}
+button.act:disabled{opacity:.35;cursor:not-allowed}
+button.act.primary{background:var(--main-soft);border-color:var(--main-line);color:#ffd9cb}
+button.act.teal{background:var(--feat-soft);border-color:var(--feat-line);color:#c9f5f0}
+button.act.violet{background:var(--fix-soft);border-color:var(--fix-line);color:#e3d8ff}
+button.act:focus-visible,.copy:focus-visible,.rail a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.demo .log{font-family:var(--mono);font-size:.78rem;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-height:54px;max-height:170px;overflow-y:auto;color:var(--muted);line-height:1.7;scrollbar-width:thin}
+.demo .log .cmd{color:var(--feat-line)}
+.demo .log .good{color:var(--ok)}
+.demo .log .err{color:var(--danger)}
+
+/* staging demo */
+.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0}
+.stage-col{background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;padding:12px;min-height:170px}
+.stage-col h5{font-family:var(--disp);font-size:.78rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.stage-col.wd h5{color:var(--muted)}.stage-col.ix h5{color:var(--gold)}.stage-col.hd h5{color:var(--main-line)}
+.filechip{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.74rem;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:6px 9px;margin-bottom:7px;transition:transform .25s,opacity .25s}
+.filechip.mod{border-left:3px solid var(--gold)}
+.filechip.new{border-left:3px solid var(--ok)}
+.filechip.committed{border-left:3px solid var(--main-line);color:var(--muted)}
+.filechip button{background:none;border:none;color:var(--feat-line);font-family:var(--mono);font-size:.68rem;cursor:pointer;padding:2px 5px}
+.filechip button:hover{text-decoration:underline}
+.commit-count{font-family:var(--mono);font-size:.68rem;color:var(--faint)}
+
+/* graph playground */
+.graph-shell{display:grid;grid-template-columns:1fr 240px;gap:16px}
+#dag{width:100%;height:340px;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px}
+.graph-side{display:flex;flex-direction:column;gap:10px}
+.graph-side .stat{font-family:var(--mono);font-size:.74rem;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--muted)}
+.graph-side .stat b{color:var(--ink);font-weight:500}
+.graph-side .stat .h{color:var(--main-line)}
+
+/* quiz */
+.quiz-q{font-family:var(--mono);font-size:.9rem;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px;color:var(--ink)}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quiz-opts button.act{text-align:left;white-space:normal;line-height:1.5}
+.quiz-opts button.act.right{border-color:var(--ok);background:#7ec97e1f;color:#d5f0d5}
+.quiz-opts button.act.wrong{border-color:var(--danger);background:#e06c6c1f;color:#f3d2d2}
+.quiz-meta{font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:12px;display:flex;justify-content:space-between}
+
+/* cheat sheet */
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px}
+.cheat-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.cheat-card h4{font-family:var(--disp);font-size:.9rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.cheat-card.c-main h4{color:var(--main-line)}.cheat-card.c-feat h4{color:var(--feat-line)}
+.cheat-card.c-fix h4{color:var(--fix-line)}.cheat-card.c-gold h4{color:var(--gold)}
+.cheat-card dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.8rem}
+.cheat-card dt{font-family:var(--mono);color:var(--ink);white-space:nowrap;font-size:.76rem}
+.cheat-card dd{color:var(--muted)}
+
+footer{border-top:1px solid var(--line);margin-top:80px;padding:32px 0 8px;font-family:var(--mono);font-size:.72rem;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+footer .sig{color:var(--main-line)}
+
+@media (max-width:1000px){
+  .wrap{grid-template-columns:1fr}
+  nav.rail{position:relative;height:auto;padding:28px 24px 0}
+  .rail ol{display:none}
+  main{border-left:none;padding:0 24px 90px}
+  .graph-shell{grid-template-columns:1fr}
+  .cheat-grid{grid-template-columns:1fr}
+  .areas{grid-template-columns:1fr;gap:8px}
+  .arrow{padding:6px 0;transform:rotate(90deg) translateX(4px);height:44px}
+  .quiz-opts{grid-template-columns:1fr}
+  .stage-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="rail" aria-label="Guide sections">
+  <div class="rail-brand">GIT<span class="dot">●</span>FIELD GUIDE</div>
+  <div class="rail-sub">main ← you are here</div>
+  <ol>
+    <li data-zone="main"><a href="#mental-model"><span class="hash">a1f9e2c</span>The mental model</a></li>
+    <li data-zone="main"><a href="#setup"><span class="hash">b7d3041</span>Install &amp; setup</a></li>
+    <li data-zone="main"><a href="#first-repo"><span class="hash">c2e88af</span>Your first repository</a></li>
+    <li data-zone="main"><a href="#three-areas"><span class="hash">d94c1b6</span>The three areas</a></li>
+    <li data-zone="main"><a href="#history"><span class="hash">e5a7d90</span>Reading history</a></li>
+    <li data-zone="feat"><a href="#branching"><span class="hash">f1b62e4</span>Branching &amp; merging</a></li>
+    <li data-zone="feat"><a href="#undo"><span class="hash">0a9fc37</span>Undoing things</a></li>
+    <li data-zone="feat"><a href="#remotes"><span class="hash">1c48d5b</span>Remotes &amp; GitHub</a></li>
+    <li data-zone="feat"><a href="#stash-ignore"><span class="hash">2ef07a8</span>Stash &amp; .gitignore</a></li>
+    <li data-zone="fix"><a href="#shortcuts"><span class="hash">3b91c60</span>Shortcuts &amp; aliases</a></li>
+    <li data-zone="fix"><a href="#habits"><span class="hash">4d20e9f</span>Good habits</a></li>
+    <li data-zone="fix"><a href="#cheatsheet"><span class="hash">5f6ab12</span>Cheat sheet</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Version Control · From Zero to Fluent</div>
+  <h1>Git, learned properly.<br><span class="thin">Snapshots, branches, and the shortcuts that make it fast.</span></h1>
+  <p class="lede">Git is a <strong>time machine for your project</strong>. Every time you tell it to, it takes a snapshot of all your files — and it never forgets one. Once you understand three ideas — <strong>the snapshot</strong>, <strong>the three areas</strong>, and <strong>the branch</strong> — everything else is vocabulary. This guide builds those three ideas in order, with live playgrounds, then hands you the alias kit that makes daily Git nearly effortless.</p>
+  <div class="term" aria-hidden="true">
+    <div class="term-bar"><i></i><i></i><i></i><span>zsh — ~/Sites/mysite</span></div>
+    <div class="term-body" id="heroTerm"></div>
+  </div>
+</header>
+
+<section id="mental-model" data-zone="main">
+  <div class="sec-tag">Commit a1f9e2c</div>
+  <h2>The mental model: snapshots, not diffs</h2>
+  <p>Most beginners imagine Git as a pile of "changes." It isn't. Every <strong>commit</strong> is a complete snapshot of your entire project at one moment, plus a little metadata: who made it, when, a message explaining why, and a pointer to the snapshot that came before it. Chain those pointers together and you get your project's history — a line of commits stretching back to the very first one.</p>
+  <p>Each commit gets a unique ID — a 40-character SHA-1 hash like <code>a1f9e2c…</code>. You almost never type the whole thing; the first 7 characters are enough. Those little hex labels in the sidebar? That's what commit IDs look like in the wild.</p>
+  <p>Three facts to internalize before touching the keyboard:</p>
+  <ul class="list">
+    <li><strong>Git is local.</strong> The entire history lives in a hidden <code>.git</code> folder inside your project. Committing, branching, viewing history — none of it needs the network. GitHub is an optional <em>copy</em> of your repository, not the repository itself.</li>
+    <li><strong>Commits are permanent-ish.</strong> Once something is committed, it is astonishingly hard to lose. Even "deleted" commits linger for weeks and can be recovered (see <a class="inline" href="#undo">Undoing things</a>). The corollary: <em>commit early, commit often</em> — a commit is a save point, and save points are free.</li>
+    <li><strong>Branches are just labels.</strong> A branch is a 41-byte file containing a commit ID. That's it. Creating one is instant and costs nothing, which is why Git users branch constantly and casually.</li>
+  </ul>
+  <div class="callout idea"><span class="ic">IDEA</span><p><strong>The save-point analogy.</strong> If you've ever played a game with manual saves, you already understand Git: <code>git commit</code> is "save game," branches are separate save slots, and <code>git checkout</code> loads one. The only new idea is that Git keeps <em>every</em> save you ever made, forever.</p></div>
+</section>
+
+<section id="setup" data-zone="main">
+  <div class="sec-tag">Commit b7d3041</div>
+  <h2>Install &amp; one-time setup</h2>
+  <p>On macOS, Git ships with Apple's Command Line Tools. If you've ever compiled anything, you already have it. Otherwise, one command triggers the installer:</p>
+  <div class="cb"><span class="cb-label">terminal · macOS</span><button class="copy">copy</button><pre><code><span class="c"># Check whether git is present (and its version)</span>
+<span class="g">git</span> <span class="f">--version</span>
+<span class="o">git version 2.50.1 (Apple Git-155)</span>
+
+<span class="c"># If missing, this pops up the Command Line Tools installer</span>
+xcode-select <span class="f">--install</span>
+
+<span class="c"># Prefer a newer Git than Apple's? Homebrew has it:</span>
+brew install git</code></pre></div>
+  <h3>Tell Git who you are</h3>
+  <p>Every commit is stamped with an author. Set your identity once, globally, and Git uses it for every repository on the machine. While you're in there, set two more defaults that save friction later:</p>
+  <div class="cb"><span class="cb-label">one-time configuration</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> user.name <span class="s">"Stephen"</span>
+<span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> user.email <span class="s">"you@example.com"</span>
+
+<span class="c"># Name new repos' first branch "main" (matches GitHub)</span>
+<span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> init.defaultBranch main
+
+<span class="c"># Pick your editor for commit messages (nano is beginner-friendly)</span>
+<span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> core.editor <span class="s">"nano"</span>
+<span class="c"># ...or, since you're an Emacs person:</span>
+<span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> core.editor <span class="s">"emacs"</span>
+
+<span class="c"># Colorized output everywhere (usually on by default)</span>
+<span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> color.ui auto
+
+<span class="c"># See everything you've configured</span>
+<span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> <span class="f">--list</span></code></pre></div>
+  <div class="callout tip"><span class="ic">TIP</span><p>All of this lands in a plain-text file at <code>~/.gitconfig</code>. You can edit it directly — and later in this guide you'll paste an <strong>alias block</strong> into it that turns long commands into two-letter shortcuts.</p></div>
+</section>
+
+<section id="first-repo" data-zone="main">
+  <div class="sec-tag">Commit c2e88af</div>
+  <h2>Your first repository: the core loop</h2>
+  <p>Ninety percent of daily Git is a four-command loop: <code>status</code> → <code>add</code> → <code>commit</code> → repeat. Let's build a repository around your actual project — say, the static site in <code>~/Sites/mysite</code> — and run the loop once, slowly.</p>
+  <div class="cb"><span class="cb-label">step 1 · create the repository</span><button class="copy">copy</button><pre><code>cd ~/Sites/mysite
+<span class="g">git</span> <span class="sub">init</span>
+<span class="o">Initialized empty Git repository in /Users/stephen/Sites/mysite/.git/</span></code></pre></div>
+  <p>That's the whole ceremony. Git created a hidden <code>.git</code> directory — the database where every snapshot will live. Your files are untouched; Git is simply <em>watching</em> now. Ask it what it sees:</p>
+  <div class="cb"><span class="cb-label">step 2 · ask for status (you will run this constantly)</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">status</span>
+<span class="o">On branch main</span>
+<span class="o">No commits yet</span>
+<span class="o">Untracked files:</span>
+<span class="o">  (use "git add &lt;file&gt;..." to include in what will be committed)</span>
+<span class="bad">        index.html</span>
+<span class="bad">        style.css</span></code></pre></div>
+  <p><strong>Untracked</strong> means Git has never been told these files matter. Stage them — that is, put them in the box that the next snapshot will photograph:</p>
+  <div class="cb"><span class="cb-label">step 3 · stage files</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">add</span> index.html style.css
+<span class="c"># or stage everything in the current directory at once:</span>
+<span class="g">git</span> <span class="sub">add</span> .
+
+<span class="g">git</span> <span class="sub">status</span>
+<span class="o">Changes to be committed:</span>
+<span class="ok">        new file:   index.html</span>
+<span class="ok">        new file:   style.css</span></code></pre></div>
+  <div class="cb"><span class="cb-label">step 4 · commit (take the snapshot)</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">commit</span> <span class="f">-m</span> <span class="s">"Initial commit: site skeleton"</span>
+<span class="o">[main (root-commit) c2e88af] Initial commit: site skeleton</span>
+<span class="o"> 2 files changed, 48 insertions(+)</span></code></pre></div>
+  <p>Done — snapshot <code>c2e88af</code> exists forever. Now the loop: edit <code>style.css</code>, and <code>git status</code> reports it as <strong>modified</strong>. Stage it, commit it, and you have a second save point. That rhythm — <em>work, status, add, commit</em> — is the heartbeat of everything else in this guide.</p>
+  <div class="callout tip"><span class="ic">TIP</span><p><strong>The shortcut you'll use most:</strong> <code>git commit -am "message"</code> stages every <em>already-tracked</em> modified file and commits in one step. It does not pick up brand-new files — those still need an explicit <code>git add</code> once.</p></div>
+  <div class="callout warn"><span class="ic">CARE</span><p>If you run <code>git commit</code> without <code>-m</code>, Git opens your editor for the message. In vim (a common default) that surprises people: type your message, then press <code>Esc</code> and type <code>:wq</code> to save and exit. Setting <code>core.editor</code> to nano or emacs in the setup section avoids the ambush entirely.</p></div>
+</section>
+
+<section id="three-areas" data-zone="main">
+  <div class="sec-tag">Commit d94c1b6</div>
+  <h2>The three areas: why <span style="font-family:var(--mono);font-size:.85em">add</span> exists at all</h2>
+  <p>Newcomers often ask why committing takes two steps. The answer is Git's most distinctive design decision: between your files and the permanent history sits a middle layer called the <strong>staging area</strong> (also "the index"). It's a loading dock where you assemble <em>exactly</em> the snapshot you want, before making it permanent.</p>
+  <div class="areas">
+    <div class="area a1"><h4>Working directory</h4><p>Your real files, as they are right now. Messy. In progress.</p></div>
+    <div class="arrow"><b>git add</b>→</div>
+    <div class="area a2"><h4>Staging area</h4><p>The next snapshot, under construction. You choose what goes in.</p></div>
+    <div class="arrow"><b>git commit</b>→</div>
+    <div class="area a3"><h4>Repository</h4><p>Permanent history. Snapshots that can always be recovered.</p></div>
+  </div>
+  <p>Why bother? Because real work is messy. You fixed a bug <em>and</em> half-finished a new feature in the same afternoon. The staging area lets you <code>add</code> just the bug-fix files and commit them as one clean, focused snapshot — leaving the half-finished feature uncommitted until it's ready. Focused commits are what make history readable and reversible.</p>
+  <p>Try it below. Edit files, stage some of them, commit, and watch changes flow left to right through the three areas.</p>
+
+  <div class="demo" id="stagingDemo">
+    <div class="demo-head"><h4>Playground · The three areas</h4><span class="badge">interactive</span></div>
+    <div class="btnrow">
+      <button class="act" id="sdEdit">✎ edit a random file</button>
+      <button class="act" id="sdNew">＋ create new file</button>
+      <button class="act teal" id="sdAddAll">git add .</button>
+      <button class="act primary" id="sdCommit">git commit -m "…"</button>
+      <button class="act" id="sdReset">↺ reset demo</button>
+    </div>
+    <div class="stage-grid">
+      <div class="stage-col wd"><h5>Working directory</h5><div id="sdWD"></div></div>
+      <div class="stage-col ix"><h5>Staging area</h5><div id="sdIX"></div></div>
+      <div class="stage-col hd"><h5>Repository <span class="commit-count" id="sdCount"></span></h5><div id="sdHD"></div></div>
+    </div>
+    <div class="log" id="sdLog" aria-live="polite"></div>
+  </div>
+
+  <h3>Seeing what's where: the two diffs</h3>
+  <p>With three areas come two gaps, and Git gives you a diff for each:</p>
+  <div class="cb"><span class="cb-label">inspecting the gaps</span><button class="copy">copy</button><pre><code><span class="c"># Working directory vs. staging area — "what have I changed but not staged?"</span>
+<span class="g">git</span> <span class="sub">diff</span>
+
+<span class="c"># Staging area vs. last commit — "what exactly will my next commit contain?"</span>
+<span class="g">git</span> <span class="sub">diff</span> <span class="f">--staged</span>
+
+<span class="c"># Unstage a file you added by mistake (file itself is untouched)</span>
+<span class="g">git</span> <span class="sub">restore</span> <span class="f">--staged</span> style.css</code></pre></div>
+</section>
+
+<section id="history" data-zone="main">
+  <div class="sec-tag">Commit e5a7d90</div>
+  <h2>Reading history</h2>
+  <p>A history you can't read is a history you can't use. <code>git log</code> is the raw tool; the trick is knowing the three or four flag combinations that turn its firehose into something scannable.</p>
+  <div class="cb"><span class="cb-label">the log, four ways</span><button class="copy">copy</button><pre><code><span class="c"># Full detail: hash, author, date, message — one screen per commit</span>
+<span class="g">git</span> <span class="sub">log</span>
+
+<span class="c"># One line per commit — the everyday view</span>
+<span class="g">git</span> <span class="sub">log</span> <span class="f">--oneline</span>
+<span class="o">e5a7d90 Add contact page</span>
+<span class="o">d94c1b6 Style the navigation bar</span>
+<span class="o">c2e88af Initial commit: site skeleton</span>
+
+<span class="c"># The full picture: every branch, drawn as an ASCII graph</span>
+<span class="c"># (this becomes indispensable once you branch — alias it!)</span>
+<span class="g">git</span> <span class="sub">log</span> <span class="f">--oneline --graph --all --decorate</span>
+
+<span class="c"># Only what touched one file, with the actual changes shown</span>
+<span class="g">git</span> <span class="sub">log</span> <span class="f">-p</span> <span class="f">--follow</span> style.css</code></pre></div>
+  <div class="cb"><span class="cb-label">inspecting a single commit</span><button class="copy">copy</button><pre><code><span class="c"># Show everything about one commit (message + full diff)</span>
+<span class="g">git</span> <span class="sub">show</span> d94c1b6
+
+<span class="c"># Who last touched each line of a file, and in which commit?</span>
+<span class="g">git</span> <span class="sub">blame</span> index.html</code></pre></div>
+  <div class="callout tip"><span class="ic">TIP</span><p><code>HEAD</code>, which you'll see everywhere, simply means <strong>"the commit you're standing on right now"</strong> — almost always the latest commit of your current branch. <code>HEAD~1</code> is its parent, <code>HEAD~2</code> its grandparent, and so on.</p></div>
+</section>
+
+<section id="branching" data-zone="feat">
+  <div class="sec-tag">Commit f1b62e4 · branch: feature</div>
+  <h2>Branching &amp; merging: Git's superpower</h2>
+  <p>A branch lets you leave the main line of history untouched while you experiment on a parallel one. Redesigning your site's CSS? Branch. Trying a risky refactor of a Perl script? Branch. If it works, <strong>merge</strong> it back; if it doesn't, delete the branch and <code>main</code> never knew. Because a branch is just a movable label pointing at a commit, all of this is instant.</p>
+  <div class="cb"><span class="cb-label">the branching workflow</span><button class="copy">copy</button><pre><code><span class="c"># Create a branch AND switch to it (the everyday command)</span>
+<span class="g">git</span> <span class="sub">switch</span> <span class="f">-c</span> new-navbar
+
+<span class="c"># ...edit, add, commit as usual. Commits now land on new-navbar...</span>
+<span class="g">git</span> <span class="sub">commit</span> <span class="f">-am</span> <span class="s">"Rebuild navbar as flexbox"</span>
+
+<span class="c"># See all branches (* marks where you are)</span>
+<span class="g">git</span> <span class="sub">branch</span>
+<span class="o">  main</span>
+<span class="ok">* new-navbar</span>
+
+<span class="c"># Jump back to main — your working files instantly change to match!</span>
+<span class="g">git</span> <span class="sub">switch</span> main
+
+<span class="c"># Happy with the branch? Merge it into main, then tidy up</span>
+<span class="g">git</span> <span class="sub">merge</span> new-navbar
+<span class="g">git</span> <span class="sub">branch</span> <span class="f">-d</span> new-navbar</code></pre></div>
+  <div class="callout idea"><span class="ic">IDEA</span><p>Older tutorials use <code>git checkout -b name</code> and <code>git checkout main</code> for these jobs. They still work — <code>switch</code> (2019+) is just the clearer, modern spelling. <code>checkout</code> survives because it also does other, unrelated things, which is exactly why it was split up.</p></div>
+  <h3>The two shapes of a merge</h3>
+  <ul class="list">
+    <li><strong>Fast-forward.</strong> If <code>main</code> hasn't moved since you branched, Git just slides the <code>main</code> label forward to your branch's tip. No new commit; history stays a straight line.</li>
+    <li><strong>Merge commit.</strong> If both branches gained commits, Git weaves them together with a new commit that has <em>two parents</em>. The graph shows a genuine fork and rejoin.</li>
+  </ul>
+  <h3>When both branches edit the same line: conflicts</h3>
+  <p>Conflicts sound scary; they're actually just Git refusing to guess. It pauses the merge and marks the disputed lines directly in the file:</p>
+  <div class="cb"><span class="cb-label">what a conflict looks like — and how to resolve it</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">merge</span> new-navbar
+<span class="bad">CONFLICT (content): Merge conflict in style.css</span>
+<span class="o">Automatic merge failed; fix conflicts and then commit the result.</span>
+
+<span class="c"># Inside style.css you'll find markers like this:</span>
+<span class="bad">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
+<span class="o">  nav { background: #14161a; }      </span><span class="c">← main's version</span>
+<span class="o">=======</span>
+<span class="o">  nav { background: #1c1f26; }      </span><span class="c">← the branch's version</span>
+<span class="bad">&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-navbar</span>
+
+<span class="c"># 1. Edit the file: keep what you want, DELETE all marker lines</span>
+<span class="c"># 2. Then tell Git it's resolved:</span>
+<span class="g">git</span> <span class="sub">add</span> style.css
+<span class="g">git</span> <span class="sub">commit</span>            <span class="c"># Git supplies a merge message</span>
+
+<span class="c"># Panicking? Abort and return to exactly before the merge:</span>
+<span class="g">git</span> <span class="sub">merge</span> <span class="f">--abort</span></code></pre></div>
+
+  <p>Now drive the graph yourself. Commit, branch, switch, and merge below — the DAG (directed acyclic graph, Git's actual data structure) redraws live, and the merge button demonstrates both fast-forward and true merges depending on the shape you've built.</p>
+  <div class="demo" id="graphDemo">
+    <div class="demo-head"><h4>Playground · Commit graph</h4><span class="badge">interactive</span></div>
+    <div class="btnrow">
+      <button class="act primary" id="gdCommit">git commit</button>
+      <button class="act teal" id="gdBranch">git switch -c …</button>
+      <button class="act" id="gdSwitch">git switch (cycle)</button>
+      <button class="act violet" id="gdMerge">git merge … → here</button>
+      <button class="act" id="gdReset">↺ reset</button>
+    </div>
+    <div class="graph-shell">
+      <svg id="dag" viewBox="0 0 560 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Live commit graph"></svg>
+      <div class="graph-side">
+        <div class="stat">HEAD → <b id="gdHead">main</b></div>
+        <div class="stat">branches<br><span id="gdBranches"></span></div>
+        <div class="stat">last action<br><span id="gdLast" class="h">repo initialized</span></div>
+      </div>
+    </div>
+    <div class="log" id="gdLog" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="undo" data-zone="feat">
+  <div class="sec-tag">Commit 0a9fc37 · branch: feature</div>
+  <h2>Undoing things: the safety net</h2>
+  <p>This is the section that turns anxiety into confidence. Git has a graduated set of undo tools, from "fix a typo in my last commit message" to "recover a branch I deleted an hour ago." Learn them in order of severity.</p>
+  <div class="tbl-wrap"><table>
+    <tr><th>You want to…</th><th>Command</th><th>Danger level</th></tr>
+    <tr><td>Discard <em>unstaged</em> edits to a file</td><td><code>git restore file.css</code></td><td class="dim">⚠ destroys uncommitted work in that file</td></tr>
+    <tr><td>Unstage a file (keep the edits)</td><td><code>git restore --staged file.css</code></td><td class="dim">safe</td></tr>
+    <tr><td>Fix the last commit's message / add a forgotten file</td><td><code>git commit --amend</code></td><td class="dim">safe locally; avoid after pushing</td></tr>
+    <tr><td>Undo a commit <em>publicly</em> (make a new commit that reverses it)</td><td><code>git revert a1f9e2c</code></td><td class="dim">safe — history only grows</td></tr>
+    <tr><td>Move the branch back, keep changes staged</td><td><code>git reset --soft HEAD~1</code></td><td class="dim">safe — nothing is lost</td></tr>
+    <tr><td>Move back, keep changes as unstaged edits (default)</td><td><code>git reset HEAD~1</code></td><td class="dim">safe — nothing is lost</td></tr>
+    <tr><td>Erase the last commit <em>and</em> all its changes</td><td><code>git reset --hard HEAD~1</code></td><td class="dim">⚠⚠ working files overwritten</td></tr>
+    <tr><td>Recover after any disaster</td><td><code>git reflog</code></td><td class="dim">read-only — pure rescue</td></tr>
+  </table></div>
+  <h3>Amend: the polish tool</h3>
+  <div class="cb"><span class="cb-label">fixing the most recent commit</span><button class="copy">copy</button><pre><code><span class="c"># Typo in the message?</span>
+<span class="g">git</span> <span class="sub">commit</span> <span class="f">--amend</span> <span class="f">-m</span> <span class="s">"Style the navigation bar"</span>
+
+<span class="c"># Forgot to include a file? Stage it, then fold it in silently:</span>
+<span class="g">git</span> <span class="sub">add</span> forgotten.css
+<span class="g">git</span> <span class="sub">commit</span> <span class="f">--amend</span> <span class="f">--no-edit</span></code></pre></div>
+  <h3>Reflog: the true safety net</h3>
+  <p>Here is the fact that makes Git nearly loss-proof: <strong>the reflog records every place <code>HEAD</code> has ever been</strong> on your machine — every commit, switch, reset, and merge — for ~90 days, even for commits no branch points to anymore. "Destroyed" work is usually one reflog lookup away:</p>
+  <div class="cb"><span class="cb-label">recovering from a bad reset</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">reflog</span>
+<span class="o">3b91c60 HEAD@{0}: reset: moving to HEAD~1     </span><span class="c">← the mistake</span>
+<span class="ok">0a9fc37 HEAD@{1}: commit: Add contact form    </span><span class="c">← the "lost" commit!</span>
+<span class="o">e5a7d90 HEAD@{2}: commit: Add contact page</span>
+
+<span class="c"># Point the branch right back at it — fully restored</span>
+<span class="g">git</span> <span class="sub">reset</span> <span class="f">--hard</span> 0a9fc37</code></pre></div>
+  <div class="callout warn"><span class="ic">CARE</span><p><strong>The one real rule:</strong> never rewrite history you've already pushed and others may have pulled (<code>--amend</code>, <code>reset</code> on shared branches). For anything public, use <code>git revert</code> — it undoes by <em>adding</em> a commit, so everyone's history stays consistent. Solo repos: rewrite freely.</p></div>
+</section>
+
+<section id="remotes" data-zone="feat">
+  <div class="sec-tag">Commit 1c48d5b · branch: feature</div>
+  <h2>Remotes &amp; GitHub</h2>
+  <p>Everything so far lived on your Mac. A <strong>remote</strong> is a copy of the repository somewhere else — GitHub, GitLab, another machine — that you synchronize with. By convention your primary remote is named <code>origin</code>. Two verbs move commits across the wire: <code>push</code> (send yours up) and <code>pull</code> (bring theirs down).</p>
+  <h3>Starting from either direction</h3>
+  <div class="cb"><span class="cb-label">direction 1 · existing project → up to GitHub</span><button class="copy">copy</button><pre><code><span class="c"># On github.com: New Repository → name it → create (add nothing to it)</span>
+<span class="c"># Then connect and push:</span>
+<span class="g">git</span> <span class="sub">remote</span> add origin git@github.com:stephen/mysite.git
+<span class="g">git</span> <span class="sub">push</span> <span class="f">-u</span> origin main
+<span class="c"># -u links local main ↔ origin/main; afterwards plain `git push` suffices</span></code></pre></div>
+  <div class="cb"><span class="cb-label">direction 2 · GitHub project → down to your Mac</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">clone</span> https://github.com/octocat/Spoon-Knife.git
+cd Spoon-Knife
+<span class="c"># clone = copy the entire history + set up origin automatically</span></code></pre></div>
+  <h3>The daily sync</h3>
+  <div class="cb"><span class="cb-label">the rhythm of a synced repo</span><button class="copy">copy</button><pre><code><span class="c"># Before starting work: get the latest</span>
+<span class="g">git</span> <span class="sub">pull</span>
+
+<span class="c"># ...work, add, commit locally as many times as you like...</span>
+
+<span class="c"># When ready to share:</span>
+<span class="g">git</span> <span class="sub">push</span>
+
+<span class="c"># pull = fetch (download) + merge (integrate). To only look first:</span>
+<span class="g">git</span> <span class="sub">fetch</span>
+<span class="g">git</span> <span class="sub">log</span> <span class="f">--oneline</span> main..origin/main   <span class="c"># what's new upstream?</span></code></pre></div>
+  <div class="callout tip"><span class="ic">TIP</span><p><strong>Auth note:</strong> GitHub no longer accepts account passwords over HTTPS. Either use <strong>SSH keys</strong> (generate with <code>ssh-keygen -t ed25519</code>, paste the <code>.pub</code> file into GitHub → Settings → SSH keys) or install the <strong>GitHub CLI</strong> and run <code>gh auth login</code>, which handles everything.</p></div>
+  <div class="callout idea"><span class="ic">IDEA</span><p>The classic collaboration flow — a <strong>pull request</strong> — is just branching over the network: push a feature branch (<code>git push -u origin new-navbar</code>), open a PR on GitHub, discuss, and merge there. Your branching skills transfer one-to-one.</p></div>
+</section>
+
+<section id="stash-ignore" data-zone="feat">
+  <div class="sec-tag">Commit 2ef07a8 · branch: feature</div>
+  <h2>Stash &amp; .gitignore: the two conveniences</h2>
+  <h3>git stash — the pocket</h3>
+  <p>Mid-edit with a messy working directory, and you suddenly need to switch branches? <code>stash</code> sweeps all uncommitted changes into a pocket, leaving the directory clean. Pop them back out whenever:</p>
+  <div class="cb"><span class="cb-label">shelving work-in-progress</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">stash</span>                     <span class="c"># pocket everything; directory now clean</span>
+<span class="g">git</span> <span class="sub">switch</span> main              <span class="c"># go do the urgent thing…</span>
+<span class="g">git</span> <span class="sub">switch</span> new-navbar        <span class="c"># …come back</span>
+<span class="g">git</span> <span class="sub">stash</span> pop                 <span class="c"># changes restored, stash removed</span>
+
+<span class="g">git</span> <span class="sub">stash</span> list                <span class="c"># stashes stack — see them all</span>
+<span class="g">git</span> <span class="sub">stash</span> push <span class="f">-m</span> <span class="s">"half-done navbar"</span>   <span class="c"># label one for later</span></code></pre></div>
+  <h3>.gitignore — the bouncer</h3>
+  <p>Some files should never be committed: OS litter, build output, editor droppings, secrets. List patterns in a file named <code>.gitignore</code> at the repo root and Git stops even mentioning them. A solid starter for Mac-based web work:</p>
+  <div class="cb"><span class="cb-label">.gitignore</span><button class="copy">copy</button><pre><code><span class="c"># macOS</span>
+.DS_Store
+
+<span class="c"># Editors</span>
+*~
+\#*\#
+.vscode/
+
+<span class="c"># Dependencies & build output</span>
+node_modules/
+dist/
+*.log
+
+<span class="c"># Secrets — never commit credentials</span>
+.env</code></pre></div>
+  <p class="note">Commit the <code>.gitignore</code> itself — it's part of the project. If a file was already committed before you ignored it, remove it from tracking (keeping the file on disk) with <code>git rm --cached .DS_Store</code>, then commit.</p>
+</section>
+
+<section id="shortcuts" data-zone="fix">
+  <div class="sec-tag">Commit 3b91c60 · branch: rescue</div>
+  <h2>Shortcuts &amp; aliases: making Git fast</h2>
+  <p>Fluent Git users don't type faster — they type <em>less</em>. Three layers of shortcuts stack on each other: Git's built-in abbreviations, Git aliases, and shell aliases.</p>
+
+  <h3>Layer 1 · built-in abbreviations you already have</h3>
+  <div class="tbl-wrap"><table>
+    <tr><th>Shortcut</th><th>Expands to</th><th>Notes</th></tr>
+    <tr><td><code>git commit -am "msg"</code></td><td class="dim">add all tracked + commit</td><td class="dim">the workhorse; skips new files</td></tr>
+    <tr><td><code>git switch -</code></td><td class="dim">switch to previous branch</td><td class="dim">like <code>cd -</code> — toggle between two branches</td></tr>
+    <tr><td><code>git add -p</code></td><td class="dim">stage <em>hunks</em> interactively</td><td class="dim">y/n through each change; surgical commits</td></tr>
+    <tr><td><code>git commit --amend --no-edit</code></td><td class="dim">fold staged changes into last commit</td><td class="dim">the "oops, one more thing"</td></tr>
+    <tr><td><code>HEAD~1</code>, <code>HEAD~2</code></td><td class="dim">1, 2 commits before HEAD</td><td class="dim">works anywhere a commit ID does</td></tr>
+    <tr><td><code>a1f9e2c</code></td><td class="dim">full 40-char hash</td><td class="dim">any unique prefix (≥4 chars) works</td></tr>
+    <tr><td><code>git log -3</code></td><td class="dim">last 3 commits only</td><td class="dim">any number</td></tr>
+  </table></div>
+
+  <h3>Layer 2 · Git aliases (the big one)</h3>
+  <p>Git lets you define your own subcommands. Paste this block into <code>~/.gitconfig</code> — it's a curated, battle-tested kit, and every alias below is used in anger by working developers:</p>
+  <div class="cb"><span class="cb-label">~/.gitconfig · paste under a new [alias] heading</span><button class="copy">copy</button><pre><code>[alias]
+    <span class="c"># — the daily four —</span>
+    st  = status <span class="f">-sb</span>                  <span class="c"># compact status w/ branch info</span>
+    co  = switch                       <span class="c"># git co main</span>
+    cm  = commit <span class="f">-m</span>                    <span class="c"># git cm "message"</span>
+    aa  = add <span class="f">-A</span>                       <span class="c"># stage everything, incl. new files</span>
+
+    <span class="c"># — history, readable —</span>
+    lg  = log <span class="f">--oneline --graph --decorate -15</span>
+    lga = log <span class="f">--oneline --graph --decorate --all</span>
+    last = log <span class="f">-1</span> HEAD <span class="f">--stat</span>          <span class="c"># what did I just commit?</span>
+
+    <span class="c"># — branches —</span>
+    br  = branch
+    new = switch <span class="f">-c</span>                    <span class="c"># git new feature-x</span>
+
+    <span class="c"># — safety & fixing —</span>
+    unstage = restore <span class="f">--staged</span>
+    oops    = commit <span class="f">--amend --no-edit</span>
+    undo    = reset <span class="f">--soft</span> HEAD~1      <span class="c"># un-commit, keep everything staged</span>
+
+    <span class="c"># — remotes —</span>
+    pu  = push
+    pl  = pull <span class="f">--ff-only</span>               <span class="c"># pull, but never create surprise merges</span></code></pre></div>
+  <p>Or install any single alias from the command line, no editing required:</p>
+  <div class="cb"><span class="cb-label">one-liner installation</span><button class="copy">copy</button><pre><code><span class="g">git</span> <span class="sub">config</span> <span class="f">--global</span> alias.lg <span class="s">"log --oneline --graph --decorate -15"</span></code></pre></div>
+  <p>The payoff, in one before/after:</p>
+  <div class="cb"><span class="cb-label">a day's work, abbreviated</span><button class="copy">copy</button><pre><code><span class="c"># Before                                    # After</span>
+<span class="o">git status                                  </span><span class="g">git</span> <span class="sub">st</span>
+<span class="o">git switch -c fix-footer                    </span><span class="g">git</span> <span class="sub">new</span> fix-footer
+<span class="o">git add -A                                  </span><span class="g">git</span> <span class="sub">aa</span>
+<span class="o">git commit -m "Fix footer overflow"         </span><span class="g">git</span> <span class="sub">cm</span> <span class="s">"Fix footer overflow"</span>
+<span class="o">git log --oneline --graph --decorate        </span><span class="g">git</span> <span class="sub">lg</span>
+<span class="o">git switch main && git merge fix-footer     </span><span class="g">git</span> <span class="sub">co</span> - <span class="o">&&</span> <span class="g">git</span> <span class="sub">merge</span> fix-footer</code></pre></div>
+
+  <h3>Layer 3 · shell aliases (zsh)</h3>
+  <p>For the absolute maximum laziness, alias at the shell level in <code>~/.zshrc</code> so even the word <code>git</code> disappears:</p>
+  <div class="cb"><span class="cb-label">~/.zshrc</span><button class="copy">copy</button><pre><code>alias g=<span class="s">'git'</span>
+alias gs=<span class="s">'git status -sb'</span>
+alias gl=<span class="s">'git log --oneline --graph --decorate -15'</span>
+alias gp=<span class="s">'git push'</span>
+<span class="c"># Reload: source ~/.zshrc — now it's just  g cm "message"</span></code></pre></div>
+  <div class="callout tip"><span class="ic">TIP</span><p>macOS's zsh ships with a huge <strong>git tab-completion</strong> system. Type <code>git sw⇥</code> to complete <code>switch</code>, or <code>git switch ⇥⇥</code> to list branch names. If completion seems inert, add <code>autoload -Uz compinit && compinit</code> to <code>~/.zshrc</code>.</p></div>
+
+  <h3>Drill it: command reflexes</h3>
+  <p>Fluency is recognition speed. Ten quick situations — pick the command you'd reach for:</p>
+  <div class="demo" id="quizDemo">
+    <div class="demo-head"><h4>Playground · What do you type?</h4><span class="badge">interactive</span></div>
+    <div class="quiz-q" id="qzQ"></div>
+    <div class="quiz-opts" id="qzOpts"></div>
+    <div class="quiz-meta"><span id="qzProg"></span><span id="qzScore"></span></div>
+  </div>
+</section>
+
+<section id="habits" data-zone="fix">
+  <div class="sec-tag">Commit 4d20e9f · branch: rescue</div>
+  <h2>Good habits: the taste layer</h2>
+  <ul class="list">
+    <li><strong>Commit one idea at a time.</strong> "Fix navbar overflow" is a commit. "Fix navbar, add contact page, tweak fonts" is three. Small commits make <code>revert</code>, <code>blame</code>, and code review all work dramatically better. <code>git add -p</code> exists precisely to untangle mixed work.</li>
+    <li><strong>Write messages in the imperative:</strong> <em>"Add contact form"</em>, not <em>"added contact form"</em>. Convention: a summary line ≤ 50 characters; if more explanation is needed, a blank line and then paragraphs. The summary answers <em>what</em>; the body answers <em>why</em>.</li>
+    <li><strong>Run <code>git status</code> before and after everything.</strong> It's free, it's instant, and it always tells you exactly where you stand — most beginner confusion evaporates on contact with <code>status</code>.</li>
+    <li><strong>Branch for anything nontrivial.</strong> The cost is one command; the benefit is that <code>main</code> always works.</li>
+    <li><strong>Pull before you push</strong> on shared repos; integrate others' work locally, where conflicts are easy to fix.</li>
+    <li><strong>Never commit secrets.</strong> API keys and passwords live in <code>.env</code>-style files listed in <code>.gitignore</code>. History is forever — a pushed secret must be treated as leaked and rotated.</li>
+  </ul>
+  <div class="callout idea"><span class="ic">IDEA</span><p><strong>Where to go deeper:</strong> the free official book <a class="inline" href="https://git-scm.com/book" target="_blank" rel="noopener">Pro Git</a> (chapters 1–3 cover everything here with more theory), and <code>git help &lt;command&gt;</code> for any command's full manual — try <code>git help log</code>.</p></div>
+</section>
+
+<section id="cheatsheet" data-zone="fix">
+  <div class="sec-tag">Commit 5f6ab12 · branch: rescue</div>
+  <h2>Cheat sheet</h2>
+  <p class="note">The whole guide on one screen. Print-worthy.</p>
+  <div class="cheat-grid">
+    <div class="cheat-card c-main"><h4>Core loop</h4><dl>
+      <dt>git init</dt><dd>start tracking this folder</dd>
+      <dt>git status</dt><dd>where am I? (run constantly)</dd>
+      <dt>git add &lt;f&gt; / .</dt><dd>stage file(s) for next snapshot</dd>
+      <dt>git add -p</dt><dd>stage change-by-change</dd>
+      <dt>git commit -m ""</dt><dd>take the snapshot</dd>
+      <dt>git commit -am ""</dt><dd>stage tracked + commit</dd>
+      <dt>git diff / --staged</dt><dd>unstaged / staged changes</dd>
+    </dl></div>
+    <div class="cheat-card c-feat"><h4>Branch &amp; merge</h4><dl>
+      <dt>git branch</dt><dd>list branches (* = current)</dd>
+      <dt>git switch -c x</dt><dd>create branch x, jump to it</dd>
+      <dt>git switch x / -</dt><dd>go to x / toggle previous</dd>
+      <dt>git merge x</dt><dd>fold x into current branch</dd>
+      <dt>git merge --abort</dt><dd>back out of a conflict</dd>
+      <dt>git branch -d x</dt><dd>delete merged branch</dd>
+      <dt>git stash / pop</dt><dd>pocket / restore WIP</dd>
+    </dl></div>
+    <div class="cheat-card c-fix"><h4>Undo &amp; rescue</h4><dl>
+      <dt>git restore f</dt><dd>discard unstaged edits ⚠</dd>
+      <dt>git restore --staged f</dt><dd>unstage, keep edits</dd>
+      <dt>git commit --amend</dt><dd>fix last commit</dd>
+      <dt>git revert &lt;id&gt;</dt><dd>safe public undo</dd>
+      <dt>git reset HEAD~1</dt><dd>un-commit, keep edits</dd>
+      <dt>git reset --hard &lt;id&gt;</dt><dd>jump branch here ⚠⚠</dd>
+      <dt>git reflog</dt><dd>everywhere HEAD has been</dd>
+    </dl></div>
+    <div class="cheat-card c-gold"><h4>History &amp; remotes</h4><dl>
+      <dt>git log --oneline</dt><dd>compact history</dd>
+      <dt>… --graph --all</dt><dd>full branch picture</dd>
+      <dt>git show &lt;id&gt;</dt><dd>one commit in detail</dd>
+      <dt>git clone &lt;url&gt;</dt><dd>copy a remote repo</dd>
+      <dt>git remote add origin</dt><dd>connect to GitHub</dd>
+      <dt>git push -u origin main</dt><dd>first push (links branches)</dd>
+      <dt>git pull / push</dt><dd>sync down / up</dd>
+      <dt>git fetch</dt><dd>download without merging</dd>
+    </dl></div>
+  </div>
+</section>
+
+<footer>
+  <span>Git — The Field Guide · single-file HTML5 · no dependencies</span>
+  <span class="sig">● committed on main</span>
+</footer>
+
+</main>
+</div>
+<script>
+(function(){
+"use strict";
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── Hero terminal typing ─────────────────────── */
+const term = document.getElementById('heroTerm');
+const script = [
+  {ps:true, text:'git init'},
+  {out:'Initialized empty Git repository in ~/Sites/mysite/.git/'},
+  {ps:true, text:'git add .'},
+  {ps:true, text:'git commit -m "Initial commit"'},
+  {out:'[main (root-commit) <span class="hl">a1f9e2c</span>] Initial commit'},
+  {out:' 2 files changed, 48 insertions(+)'}
+];
+function renderTermInstant(){
+  term.innerHTML = script.map(l => l.ps
+    ? '<div><span class="ps">➜ mysite</span> git:(<span class="hl">main</span>) ' + l.text + '</div>'
+    : '<div class="out">' + l.out + '</div>').join('') +
+    '<div><span class="ps">➜ mysite</span> git:(<span class="hl">main</span>) <span class="caret"></span></div>';
+}
+if (reduced) { renderTermInstant(); }
+else {
+  let li = 0, ci = 0, cur = null;
+  function nextLine(){
+    if (li >= script.length){
+      const d = document.createElement('div');
+      d.innerHTML = '<span class="ps">➜ mysite</span> git:(<span class="hl">main</span>) <span class="caret"></span>';
+      term.appendChild(d); return;
+    }
+    const l = script[li];
+    const d = document.createElement('div');
+    if (l.ps){
+      d.innerHTML = '<span class="ps">➜ mysite</span> git:(<span class="hl">main</span>) <span class="typed"></span><span class="caret"></span>';
+      term.appendChild(d);
+      cur = d.querySelector('.typed'); ci = 0;
+      typeChar(l.text, d);
+    } else {
+      d.className = 'out'; d.innerHTML = l.out; term.appendChild(d);
+      li++; setTimeout(nextLine, 260);
+    }
+  }
+  function typeChar(text, lineEl){
+    if (ci < text.length){
+      cur.textContent += text[ci++];
+      setTimeout(() => typeChar(text, lineEl), 34 + Math.random()*46);
+    } else {
+      lineEl.querySelector('.caret').remove();
+      li++; setTimeout(nextLine, 420);
+    }
+  }
+  setTimeout(nextLine, 700);
+}
+
+/* ── Sidebar active state ─────────────────────── */
+const links = [...document.querySelectorAll('.rail li')];
+const map = {};
+links.forEach(li => { map[li.querySelector('a').getAttribute('href').slice(1)] = li; });
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting){
+      links.forEach(l => l.classList.remove('active'));
+      const li = map[e.target.id]; if (li) li.classList.add('active');
+    }
+  });
+}, {rootMargin:'-20% 0px -65% 0px'});
+document.querySelectorAll('main section').forEach(s => io.observe(s));
+
+/* ── Copy buttons ─────────────────────────────── */
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pre = btn.parentElement.querySelector('pre');
+    // strip comment-only decoration? copy raw text as shown
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied ✓'; btn.classList.add('done');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('done'); }, 1400);
+    });
+  });
+});
+
+/* ── Staging area playground ──────────────────── */
+(function(){
+  const WD = document.getElementById('sdWD'), IX = document.getElementById('sdIX'),
+        HD = document.getElementById('sdHD'), LOG = document.getElementById('sdLog'),
+        CNT = document.getElementById('sdCount');
+  let files, commits, newN;
+  const names = ['about.html','app.js','nav.css','hero.png','notes.md','form.pl'];
+  function init(){
+    files = [
+      {name:'index.html', state:'clean', committedEver:true},
+      {name:'style.css',  state:'clean', committedEver:true}
+    ];
+    commits = 1; newN = 0;
+    log('Repository with 1 commit. Files are <span class="good">clean</span> (identical to last snapshot).');
+    render();
+  }
+  function log(html){
+    const d = document.createElement('div'); d.innerHTML = html;
+    LOG.appendChild(d); LOG.scrollTop = LOG.scrollHeight;
+    while (LOG.children.length > 40) LOG.firstChild.remove();
+  }
+  function chip(f, col){
+    const d = document.createElement('div');
+    d.className = 'filechip ' + (col==='hd' ? 'committed' : f.state==='new' ? 'new' : 'mod');
+    let action = '';
+    if (col==='wd' && f.state!=='clean') action = '<button data-f="'+f.name+'" data-a="add">add →</button>';
+    if (col==='ix') action = '<button data-f="'+f.name+'" data-a="unstage">← unstage</button>';
+    d.innerHTML = '<span>'+f.name+'</span>' + action;
+    return d;
+  }
+  function render(){
+    WD.innerHTML = IX.innerHTML = HD.innerHTML = '';
+    files.forEach(f => {
+      if (f.state==='clean' || f.state==='mod' || f.state==='new') WD.appendChild(chipStatic(f));
+      if (f.state==='staged' || f.state==='staged-new'){
+        WD.appendChild(chipStatic({name:f.name, state:'clean'}));
+        IX.appendChild(chip({name:f.name, state:f.state==='staged-new'?'new':'mod'}, 'ix'));
+      }
+      if (f.state==='mod' || f.state==='new') {
+        // replace static with actionable
+        WD.lastChild.replaceWith(chip(f,'wd'));
+      }
+    });
+    files.filter(f => f.committedEver).forEach(f => HD.appendChild(chip({name:f.name}, 'hd')));
+    CNT.textContent = '· ' + commits + ' commit' + (commits===1?'':'s');
+    IX.querySelectorAll('button').forEach(b => b.onclick = () => unstage(b.dataset.f));
+    WD.querySelectorAll('button').forEach(b => b.onclick = () => addOne(b.dataset.f));
+  }
+  function chipStatic(f){
+    const d = document.createElement('div');
+    d.className = 'filechip ' + (f.state==='new' ? 'new' : f.state==='mod' ? 'mod' : '');
+    d.innerHTML = '<span>'+f.name+'</span>' +
+      (f.state==='clean' ? '<span style="color:var(--faint);font-size:.62rem">clean</span>' : '');
+    return d;
+  }
+  function addOne(name){
+    const f = files.find(x => x.name===name);
+    if (!f) return;
+    f.state = (f.state==='new') ? 'staged-new' : 'staged';
+    log('<span class="cmd">$ git add '+name+'</span> — staged.');
+    render();
+  }
+  function unstage(name){
+    const f = files.find(x => x.name===name);
+    if (!f) return;
+    f.state = (f.state==='staged-new') ? 'new' : 'mod';
+    log('<span class="cmd">$ git restore --staged '+name+'</span> — back to unstaged. The file itself never changed.');
+    render();
+  }
+  document.getElementById('sdEdit').onclick = () => {
+    const pool = files.filter(f => f.state==='clean');
+    if (!pool.length){ log('<span class="err">Every tracked file is already modified or staged — commit something first.</span>'); return; }
+    const f = pool[Math.floor(Math.random()*pool.length)];
+    f.state = 'mod';
+    log('You edited <b>'+f.name+'</b>. git status now shows it as <span style="color:var(--gold)">modified</span>.');
+    render();
+  };
+  document.getElementById('sdNew').onclick = () => {
+    if (newN >= names.length){ log('<span class="err">Out of sample filenames!</span>'); return; }
+    const f = {name:names[newN++], state:'new'};
+    files.push(f);
+    log('You created <b>'+f.name+'</b> — an <span class="good">untracked</span> file. Git sees it but won\'t snapshot it until you add it.');
+    render();
+  };
+  document.getElementById('sdAddAll').onclick = () => {
+    let n = 0;
+    files.forEach(f => {
+      if (f.state==='mod'){ f.state='staged'; n++; }
+      if (f.state==='new'){ f.state='staged-new'; n++; }
+    });
+    log(n ? '<span class="cmd">$ git add .</span> — staged '+n+' file(s).' :
+            '<span class="cmd">$ git add .</span> — nothing to stage; working directory is clean.');
+    render();
+  };
+  document.getElementById('sdCommit').onclick = () => {
+    const staged = files.filter(f => f.state==='staged'||f.state==='staged-new');
+    if (!staged.length){ log('<span class="err">Nothing staged! git commit photographs the STAGING AREA — and it\'s empty. Add something first.</span>'); return; }
+    staged.forEach(f => { f.state='clean'; f.committedEver = true; });
+    files.forEach(f => { if(!f.committedEver && f.state==='clean') f.committedEver = true; });
+    commits++;
+    const hash = Math.random().toString(16).slice(2,9);
+    log('<span class="cmd">$ git commit -m "…"</span> → <span class="good">[main '+hash+']</span> '+staged.length+' file(s) snapshotted. They\'re now clean again.');
+    render();
+  };
+  document.getElementById('sdReset').onclick = init;
+  init();
+})();
+
+/* ── DAG playground ───────────────────────────── */
+(function(){
+  const svg = document.getElementById('dag'), LOG = document.getElementById('gdLog');
+  const headEl = document.getElementById('gdHead'), brEl = document.getElementById('gdBranches'),
+        lastEl = document.getElementById('gdLast');
+  const COLORS = {main:'#f0653a', feat:'#3ecfc0', fix:'#a78bfa', extra:'#e8b34b'};
+  const NAMEPOOL = ['feature','experiment','hotfix','redesign','spike'];
+  let commits, branches, head, nameI, colI;
+  const colOrder = ['feat','fix','extra'];
+
+  function init(){
+    commits = [{id:hash(), parents:[], lane:0, msg:'Initial commit'}];
+    commits.push({id:hash(), parents:[commits[0].id], lane:0, msg:'Add readme'});
+    branches = {main:{tip:commits[1].id, lane:0, color:COLORS.main}};
+    head = 'main'; nameI = 0; colI = 0;
+    log('Fresh repo: 2 commits on <span class="cmd">main</span>. Try: commit a few times, branch, commit on the branch, switch back, commit on main, then merge.');
+    lastEl.textContent = 'repo initialized';
+    draw();
+  }
+  function hash(){ return Math.random().toString(16).slice(2,9); }
+  function log(html){
+    const d = document.createElement('div'); d.innerHTML = html;
+    LOG.appendChild(d); LOG.scrollTop = LOG.scrollHeight;
+    while (LOG.children.length > 40) LOG.firstChild.remove();
+  }
+  function byId(id){ return commits.find(c => c.id===id); }
+  function isAncestor(a, b){ // is commit a an ancestor of (or equal to) b?
+    const seen = new Set(); const stack=[b];
+    while(stack.length){
+      const id = stack.pop();
+      if (id===a) return true;
+      if (seen.has(id)) continue; seen.add(id);
+      const c = byId(id); if (c) stack.push(...c.parents);
+    }
+    return false;
+  }
+  function draw(){
+    const W = 560, H = 340, X0 = 46, XSTEP = Math.min(64, (W-120)/Math.max(7,commits.length));
+    const laneY = l => 250 - l*62;
+    svg.innerHTML = '';
+    const posOf = {};
+    commits.forEach((c,i) => { posOf[c.id] = {x: X0 + i*XSTEP, y: laneY(c.lane)}; });
+    // edges
+    commits.forEach(c => c.parents.forEach(p => {
+      const a = posOf[p], b = posOf[c.id];
+      if(!a||!b) return;
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const mid = (a.x+b.x)/2;
+      path.setAttribute('d', a.y===b.y
+        ? `M${a.x},${a.y} L${b.x},${b.y}`
+        : `M${a.x},${a.y} C${mid},${a.y} ${mid},${b.y} ${b.x},${b.y}`);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke', c.lane===0 && byId(p).lane===0 ? COLORS.main : laneColor(Math.max(c.lane, byId(p).lane)));
+      path.setAttribute('stroke-width','2.5'); path.setAttribute('opacity','.65');
+      svg.appendChild(path);
+    }));
+    // nodes
+    commits.forEach(c => {
+      const p = posOf[c.id];
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circ.setAttribute('cx',p.x); circ.setAttribute('cy',p.y); circ.setAttribute('r','9');
+      circ.setAttribute('fill','#0e1013');
+      circ.setAttribute('stroke', laneColor(c.lane)); circ.setAttribute('stroke-width','3');
+      g.appendChild(circ);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',p.x); t.setAttribute('y',p.y+26); t.setAttribute('text-anchor','middle');
+      t.setAttribute('font-family','IBM Plex Mono, monospace'); t.setAttribute('font-size','9');
+      t.setAttribute('fill','#5c606a'); t.textContent = c.id.slice(0,5);
+      g.appendChild(t);
+      svg.appendChild(g);
+    });
+    // branch labels
+    let usedYs = [];
+    Object.entries(branches).forEach(([name,b]) => {
+      const p = posOf[b.tip]; if(!p) return;
+      let y = p.y - 22;
+      while (usedYs.some(u => Math.abs(u-y)<16 )) y -= 18;
+      usedYs.push(y);
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      const label = (name===head ? 'HEAD → ' : '') + name;
+      const wpx = label.length*6.4 + 14;
+      const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      r.setAttribute('x', p.x - wpx/2); r.setAttribute('y', y-11);
+      r.setAttribute('width', wpx); r.setAttribute('height', 16);
+      r.setAttribute('rx','8'); r.setAttribute('fill', b.color+'22'); r.setAttribute('stroke', b.color);
+      g.appendChild(r);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',p.x); t.setAttribute('y',y+1); t.setAttribute('text-anchor','middle');
+      t.setAttribute('font-family','IBM Plex Mono, monospace'); t.setAttribute('font-size','9.5');
+      t.setAttribute('fill', b.color); t.textContent = label;
+      g.appendChild(t);
+      svg.appendChild(g);
+    });
+    headEl.textContent = head;
+    brEl.innerHTML = Object.keys(branches).map(n =>
+      '<span style="color:'+branches[n].color+'">'+(n===head?'* ':'&nbsp;&nbsp;')+n+'</span>').join('<br>');
+  }
+  function laneColor(l){
+    if (l===0) return COLORS.main;
+    return COLORS[colOrder[(l-1)%colOrder.length]];
+  }
+  document.getElementById('gdCommit').onclick = () => {
+    const b = branches[head];
+    const c = {id:hash(), parents:[b.tip], lane:b.lane, msg:'work'};
+    commits.push(c); b.tip = c.id;
+    lastEl.textContent = 'commit '+c.id.slice(0,7)+' on '+head;
+    log('<span class="cmd">$ git commit</span> → <span class="good">['+head+' '+c.id.slice(0,7)+']</span> — branch label <b>'+head+'</b> slides forward to the new snapshot.');
+    draw();
+  };
+  document.getElementById('gdBranch').onclick = () => {
+    if (Object.keys(branches).length >= 4){ log('<span class="err">Four branches is plenty for one diagram — merge or reset!</span>'); return; }
+    const name = NAMEPOOL[nameI++ % NAMEPOOL.length] + (nameI>5 ? '-'+nameI : '');
+    const usedLanes = Object.values(branches).map(b=>b.lane);
+    let lane = 1; while (usedLanes.includes(lane)) lane++;
+    branches[name] = {tip: branches[head].tip, lane, color: laneColor(lane)};
+    head = name;
+    lastEl.textContent = 'created + switched to '+name;
+    log('<span class="cmd">$ git switch -c '+name+'</span> — new label <b>'+name+'</b> points at the SAME commit as before. Zero copying. HEAD moved to it.');
+    draw();
+  };
+  document.getElementById('gdSwitch').onclick = () => {
+    const names = Object.keys(branches);
+    head = names[(names.indexOf(head)+1) % names.length];
+    lastEl.textContent = 'switched to '+head;
+    log('<span class="cmd">$ git switch '+head+'</span> — HEAD now on <b>'+head+'</b>; your working files instantly match its snapshot.');
+    draw();
+  };
+  document.getElementById('gdMerge').onclick = () => {
+    const others = Object.keys(branches).filter(n => n!==head);
+    if (!others.length){ log('<span class="err">Only one branch exists — nothing to merge. Create a branch and commit on it first.</span>'); return; }
+    // merge the most recently diverged other branch
+    const src = others[others.length-1];
+    const a = branches[head].tip, b = branches[src].tip;
+    if (a===b){ log('<span class="cmd">$ git merge '+src+'</span> → Already up to date.'); return; }
+    if (isAncestor(a, b)){
+      branches[head].tip = b;
+      lastEl.textContent = 'fast-forward merge of '+src;
+      log('<span class="cmd">$ git merge '+src+'</span> → <span class="good">Fast-forward.</span> '+head+' hadn\'t moved, so its label simply slides up to '+src+'\'s tip. No new commit.');
+    } else {
+      const c = {id:hash(), parents:[a,b], lane:branches[head].lane, msg:'merge'};
+      commits.push(c); branches[head].tip = c.id;
+      lastEl.textContent = 'merge commit '+c.id.slice(0,7);
+      log('<span class="cmd">$ git merge '+src+'</span> → <span class="good">Merge commit '+c.id.slice(0,7)+'</span> with <b>two parents</b> — both histories are now woven into '+head+'.');
+    }
+    draw();
+  };
+  document.getElementById('gdReset').onclick = init;
+  init();
+})();
+
+/* ── Quiz ─────────────────────────────────────── */
+(function(){
+  const Q = [
+    {q:'You edited three files and want to see exactly what changed before staging anything.',
+     opts:['git diff','git status','git log -p','git show'], a:0,
+     why:'git diff compares working directory ↔ staging area — your unstaged edits.'},
+    {q:'You staged secret.env by accident. Get it out of the staging area without losing the file.',
+     opts:['git restore --staged secret.env','git rm secret.env','git reset --hard','git revert HEAD'], a:0,
+     why:'restore --staged only un-stages; the file and its contents are untouched.'},
+    {q:'Your last commit message says "Fxi navbar". Repair it (nothing pushed yet).',
+     opts:['git commit --amend -m "Fix navbar"','git revert HEAD','git reset --hard HEAD~1','git rebase -i'], a:0,
+     why:'--amend rewrites the most recent commit — perfect for local slips.'},
+    {q:'Start a risky redesign without endangering main.',
+     opts:['git switch -c redesign','git stash','git clone . backup','git checkout HEAD~1'], a:0,
+     why:'switch -c creates the branch and moves you onto it in one step.'},
+    {q:'Mid-edit, you must hop to main for a quick fix. Your changes aren\'t commit-worthy yet.',
+     opts:['git stash','git commit -am "wip"','git reset --hard','git restore .'], a:0,
+     why:'stash pockets the mess; pop it back after. (Though a wip commit works too — stash is the tool built for it.)'},
+    {q:'A commit from last week broke the live site. Undo it on a branch others share.',
+     opts:['git revert <id>','git reset --hard <id>~1','git commit --amend','git branch -d main'], a:0,
+     why:'revert adds a new inverse commit — history only grows, so collaborators stay consistent.'},
+    {q:'You ran reset --hard one commit too far. The work seems gone.',
+     opts:['git reflog','git fsck','git pull','cry'], a:0,
+     why:'reflog lists every commit HEAD has visited; reset --hard back to the good one.'},
+    {q:'See the last 10 commits, one line each, with the branch structure drawn.',
+     opts:['git log --oneline --graph -10','git show -10','git status -v','git blame'], a:0,
+     why:'--oneline --graph is THE history view; alias it to lg.'},
+    {q:'First push of a brand-new local repo to the GitHub repo you just created.',
+     opts:['git push -u origin main','git pull origin main','git fetch --all','git clone'], a:0,
+     why:'-u links main ↔ origin/main so future pushes are just `git push`.'},
+    {q:'Stage only the bug-fix hunks in a file that also contains unfinished feature work.',
+     opts:['git add -p file.js','git add file.js','git commit -am "fix"','git stash push file.js'], a:0,
+     why:'add -p walks through each hunk with y/n — surgical, focused commits.'}
+  ];
+  const qEl = document.getElementById('qzQ'), oEl = document.getElementById('qzOpts'),
+        pEl = document.getElementById('qzProg'), sEl = document.getElementById('qzScore');
+  let i = 0, score = 0, locked = false, order = [];
+  function show(){
+    if (i >= Q.length){
+      qEl.innerHTML = 'Done. <b>'+score+' / '+Q.length+'</b> on first try. ' +
+        (score>=9 ? 'Fluent — go set up those aliases.' : score>=6 ? 'Solid. Reread "Undoing things" and run it again.' : 'Good start — the cheat sheet below is your friend. Try again!');
+      oEl.innerHTML = '<button class="act primary" id="qzAgain">↺ run it again</button>';
+      document.getElementById('qzAgain').onclick = () => { i=0; score=0; show(); };
+      pEl.textContent = ''; sEl.textContent = '';
+      return;
+    }
+    const item = Q[i];
+    order = item.opts.map((_,k)=>k).sort(()=>Math.random()-.5);
+    locked = false;
+    qEl.textContent = item.q;
+    oEl.innerHTML = '';
+    order.forEach(k => {
+      const b = document.createElement('button');
+      b.className = 'act'; b.textContent = item.opts[k];
+      b.onclick = () => pick(b, k, item);
+      oEl.appendChild(b);
+    });
+    pEl.textContent = 'question ' + (i+1) + ' / ' + Q.length;
+    sEl.textContent = 'score ' + score;
+  }
+  function pick(btn, k, item){
+    if (locked) return;
+    if (k === item.a){
+      locked = true;
+      btn.classList.add('right');
+      score++;
+      qEl.innerHTML = '<span style="color:var(--ok)">✓</span> ' + item.why;
+      setTimeout(()=>{ i++; show(); }, 2100);
+    } else {
+      btn.classList.add('wrong'); btn.disabled = true;
+      locked = true;
+      const rightIdx = order.indexOf(item.a);
+      oEl.children[rightIdx].classList.add('right');
+      qEl.innerHTML = '<span style="color:var(--danger)">✗</span> ' + item.why;
+      setTimeout(()=>{ i++; show(); }, 2600);
+    }
+    sEl.textContent = 'score ' + score;
+  }
+  show();
+})();
+})();
+</script>
+
+</body>
+</html>

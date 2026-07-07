@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Host HTML & CSS on Apache — macOS Golden Gate 27</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fafaf9;--s1:#ffffff;--s2:#f5f5f4;--s3:#e7e5e4;
+  --bd:#d6d3d1;--bd2:#a8a29e;
+  --ink:#1c1917;--body:#44403c;--mu:#78716c;--fa:#a8a29e;
+  --orange:#ea580c;--orange-p:#fff7ed;--orange-d:#7c2d12;
+  --orange2:#fb923c;--orange3:#fed7aa;
+  --slate:#1e40af;--slate-p:#eff6ff;
+  --green:#15803d;--green-p:#f0fdf4;
+  --red:#b91c1c;--red-p:#fef2f2;
+  --violet:#7c3aed;--violet-p:#f5f3ff;
+  --teal:#0f766e;--teal-p:#f0fdfa;
+  --code:#1c1917;--code-s:#292524;--code-b:#3f3f46;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--body);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.7}
+
+/* ── TOP STRIP ── */
+.strip{height:3px;background:linear-gradient(90deg,var(--orange) 0%,#f97316 35%,#fb923c 65%,#fbbf24 100%)}
+
+/* ── NAV ── */
+nav{background:var(--ink);padding:11px 28px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:99}
+.nav-l{font-family:'DM Mono',monospace;font-size:11px;color:#78716c;letter-spacing:.06em;display:flex;align-items:center;gap:9px}
+.nav-l::before{content:'html';background:var(--orange);color:#fff;font-size:9px;font-weight:500;padding:2px 6px;border-radius:3px;letter-spacing:.04em}
+.nav-r{display:flex;gap:6px}
+.chip{font-family:'DM Mono',monospace;font-size:9px;color:#57534e;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:3px 9px;border-radius:99px;letter-spacing:.05em}
+.chip.hi{color:var(--orange2);border-color:rgba(251,146,60,.25);background:rgba(251,146,60,.08)}
+
+/* ── HERO ── */
+.hero{background:var(--ink);padding:56px 28px 64px;position:relative;overflow:hidden}
+.hero::before{content:'&lt;html&gt;';position:absolute;right:-20px;top:20px;font-family:'DM Mono',monospace;font-size:clamp(80px,15vw,160px);color:rgba(255,255,255,.025);font-weight:500;line-height:1;white-space:nowrap;pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--orange),transparent)}
+.hi{max-width:860px;margin:0 auto;position:relative;z-index:1}
+.hi-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(234,88,12,.12);border:1px solid rgba(234,88,12,.28);color:var(--orange2);font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:4px;margin-bottom:18px}
+.hi h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;color:#fafaf9;line-height:1.1;letter-spacing:-.03em;margin-bottom:16px}
+.hi h1 .accent{color:var(--orange2)}
+.hi h1 .dim{color:#57534e;font-weight:300}
+.hi-sub{font-size:14px;color:#78716c;max-width:520px;line-height:1.8;font-weight:300}
+.scope-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.scope-pill{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;padding:5px 12px;border-radius:99px;display:flex;align-items:center;gap:5px}
+.scope-pill::before{content:'✓';font-size:11px}
+.scope-pill.yes{background:rgba(21,128,61,.12);border:1px solid rgba(21,128,61,.25);color:#4ade80}
+.scope-pill.later{background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);color:var(--orange2)}
+.scope-pill.later::before{content:'○'}
+.scope-pill.no{background:rgba(120,113,108,.08);border:1px solid rgba(120,113,108,.15);color:#57534e;text-decoration:line-through}
+.scope-pill.no::before{content:'—'}
+
+/* ── SITE MOCKUP ── */
+.site-preview{background:var(--code);border:1px solid var(--code-b);border-radius:10px;overflow:hidden;margin:32px 0 0}
+.sp-bar{background:var(--code-s);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--code-b)}
+.sp-dots{display:flex;gap:5px}
+.sp-dots span{width:10px;height:10px;border-radius:50%}
+.dot-r{background:#ff5f57}.dot-y{background:#febc2e}.dot-g{background:#28c840}
+.sp-url{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:11px;color:#78716c;text-align:center}
+.sp-body{padding:28px 24px;display:grid;grid-template-columns:200px 1fr;gap:16px;min-height:180px}
+.sp-nav-mock{background:rgba(255,255,255,.04);border-radius:6px;padding:14px}
+.sp-nav-item{height:8px;border-radius:4px;background:rgba(255,255,255,.1);margin-bottom:10px}
+.sp-nav-item:first-child{width:80%;background:rgba(251,146,60,.4)}
+.sp-nav-item:nth-child(2){width:65%}
+.sp-nav-item:nth-child(3){width:75%}
+.sp-nav-item:nth-child(4){width:55%}
+.sp-content-mock{display:flex;flex-direction:column;gap:10px}
+.sp-h{height:14px;border-radius:4px;background:rgba(255,255,255,.18);width:60%}
+.sp-p{height:7px;border-radius:4px;background:rgba(255,255,255,.07)}
+.sp-p:nth-child(2){width:100%}
+.sp-p:nth-child(3){width:90%}
+.sp-p:nth-child(4){width:80%}
+.sp-p:nth-child(5){width:95%}
+.sp-p:nth-child(6){width:70%}
+
+/* ── FOLDER TREE ── */
+.tree{background:var(--code);border:1px solid var(--code-b);border-radius:8px;overflow:hidden;margin:12px 0}
+.tree-top{background:var(--code-s);border-bottom:1px solid var(--code-b);padding:8px 14px;font-family:'DM Mono',monospace;font-size:10px;color:#57534e;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.tree-top::before{content:'📁';font-size:13px}
+.tree-body{padding:14px 18px;font-family:'DM Mono',monospace;font-size:12.5px;line-height:2.1}
+.ti{color:#e7e5e4}
+.tf{color:#fb923c}
+.tcss{color:#60a5fa}
+.tg{color:#78716c}
+.td{color:#a8a29e;font-style:italic}
+
+/* ── MAIN ── */
+.wrap{max-width:860px;margin:0 auto;padding:44px 28px 100px}
+section{margin-bottom:56px}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.sn{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:var(--orange);background:var(--orange-p);border:1px solid rgba(234,88,12,.2);padding:3px 9px;border-radius:3px;letter-spacing:.07em;flex-shrink:0}
+h2{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+h3{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:var(--orange);letter-spacing:.16em;text-transform:uppercase;margin:26px 0 10px}
+p{font-size:13.5px;color:var(--mu);margin-bottom:12px;line-height:1.85;font-weight:300}
+p strong{color:var(--ink);font-weight:600}
+p code,li code,td code{font-family:'DM Mono',monospace;font-size:11.5px;background:var(--orange-p);color:var(--orange);padding:1px 5px;border-radius:3px;border:1px solid rgba(234,88,12,.15)}
+
+/* ── CODE BLOCKS ── */
+.cb{background:var(--code);border:1px solid var(--code-b);border-radius:8px;overflow:hidden;margin:10px 0;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+.ct{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--code-s);border-bottom:1px solid var(--code-b)}
+.cl{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:#57534e;letter-spacing:.1em;text-transform:uppercase}
+.cp{font-family:'DM Mono',monospace;font-size:10px;color:#57534e;background:transparent;border:1px solid var(--code-b);padding:2px 8px;border-radius:3px;cursor:pointer;transition:all .15s}
+.cp:hover{color:var(--orange2);border-color:rgba(251,146,60,.4)}
+pre{padding:15px 18px;overflow-x:auto;font-family:'DM Mono',monospace;font-size:12.5px;line-height:2}
+.g{color:#4ade80}.b{color:#60a5fa}.o{color:#fb923c}.y{color:#fbbf24;font-weight:600}
+.v{color:#c4b5fd}.x{color:#44403c;font-style:italic}.r{color:#f87171}.t{color:#e7e5e4}.w{color:#fcd34d}
+
+/* ── CALLOUTS ── */
+.ca{display:flex;gap:11px;padding:13px 16px;border-radius:7px;margin:12px 0;font-size:13px;line-height:1.7;font-weight:300}
+.ci{flex-shrink:0;font-size:16px}
+.ca p{color:inherit;margin:0;font-size:13px;font-weight:300}
+.ca p strong{font-weight:600}
+.ca.i{background:var(--slate-p);border:1px solid rgba(30,64,175,.18);color:#1e3a8a}
+.ca.w{background:var(--orange-p);border:1px solid rgba(234,88,12,.2);color:var(--orange-d)}
+.ca.ok{background:var(--green-p);border:1px solid rgba(21,128,61,.2);color:var(--green)}
+.ca.tip{background:var(--violet-p);border:1px solid rgba(124,58,237,.2);color:var(--violet)}
+.ca.teal{background:var(--teal-p);border:1px solid rgba(15,118,110,.2);color:var(--teal)}
+
+/* ── STEPS ── */
+.sf{display:flex;flex-direction:column}
+.st{display:flex}
+.sl{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0}
+.sd{width:30px;height:30px;border-radius:6px;background:var(--orange);color:#fff;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 3px var(--bg)}
+.sln{width:2px;flex:1;background:var(--s3);min-height:20px}
+.st:last-child .sln{display:none}
+.sb2{flex:1;padding:3px 0 28px 14px}
+.st2{font-weight:600;font-size:14px;color:var(--ink);margin-bottom:8px;line-height:1.3}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:12px 0;background:var(--s1);border:1px solid var(--bd);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+th{background:var(--s2);font-family:'DM Mono',monospace;font-size:9px;font-weight:500;color:var(--fa);letter-spacing:.15em;text-transform:uppercase;padding:9px 14px;text-align:left;border-bottom:1px solid var(--bd)}
+td{padding:10px 14px;border-bottom:1px solid var(--bd);color:var(--mu);font-weight:300;vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--orange-p)}
+
+/* ── TWO COL ── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.tc{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:16px 18px}
+.tc-lbl{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:var(--orange);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.tc p{font-size:12.5px}
+
+/* ── LISTS ── */
+ul,ol{padding-left:20px;color:var(--mu);font-size:13.5px;font-weight:300;line-height:1.9;margin-bottom:12px}
+ul li::marker{color:var(--orange)}
+ol li::marker{font-family:'DM Mono',monospace;font-size:11px;color:var(--orange);font-weight:500}
+
+/* ── HTML EXAMPLE BLOCK ── */
+.html-ex{background:var(--code);border:1px solid var(--code-b);border-radius:8px;overflow:hidden;margin:12px 0}
+.he-top{background:var(--code-s);border-bottom:1px solid var(--code-b);padding:8px 14px;display:flex;justify-content:space-between;align-items:center}
+.he-label{font-family:'DM Mono',monospace;font-size:10px;color:#57534e;letter-spacing:.1em;text-transform:uppercase}
+.he-file{font-family:'DM Mono',monospace;font-size:10px;color:var(--orange2);letter-spacing:.04em}
+.he-body{padding:16px 18px;font-family:'DM Mono',monospace;font-size:12.5px;line-height:2;overflow-x:auto}
+.ht{color:#e7e5e4}.htag{color:#60a5fa}.hattr{color:#fb923c}.hval{color:#4ade80}.hcm{color:#44403c;font-style:italic}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.05);padding:20px 28px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-family:'DM Mono',monospace;font-size:10px;color:#57534e;letter-spacing:.06em}
+
+@media(max-width:600px){.two{grid-template-columns:1fr}.wrap{padding:28px 14px 80px}.sp-body{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="strip"></div>
+
+<nav>
+  <span class="nav-l">Static HTML/CSS Site · Apache · macOS Golden Gate 27</span>
+  <div class="nav-r">
+    <span class="chip hi">HTML only</span>
+    <span class="chip">No JS</span>
+    <span class="chip">M4</span>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hi">
+    <div class="hi-tag">macOS 27 Golden Gate · Developer Beta · MacBook Air M4</div>
+    <h1>Host a <span class="accent">Static HTML</span> Site<br><span class="dim">on Built-in Apache</span></h1>
+    <p class="hi-sub">Everything you need to serve a clean HTML and CSS website from your Mac — no JavaScript, no PHP, no frameworks. Just markup and style, served by Apache.</p>
+    <div class="scope-row">
+      <span class="scope-pill yes">HTML files</span>
+      <span class="scope-pill yes">CSS stylesheets</span>
+      <span class="scope-pill yes">Images</span>
+      <span class="scope-pill yes">Multiple pages</span>
+      <span class="scope-pill later">Perl (later)</span>
+      <span class="scope-pill no">JavaScript</span>
+      <span class="scope-pill no">PHP</span>
+    </div>
+    <div class="site-preview">
+      <div class="sp-bar">
+        <div class="sp-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        <div class="sp-url">http://mysite.test</div>
+      </div>
+      <div class="sp-body">
+        <div class="sp-nav-mock">
+          <div class="sp-nav-item"></div>
+          <div class="sp-nav-item"></div>
+          <div class="sp-nav-item"></div>
+          <div class="sp-nav-item"></div>
+        </div>
+        <div class="sp-content-mock">
+          <div class="sp-h"></div>
+          <div class="sp-p"></div>
+          <div class="sp-p"></div>
+          <div class="sp-p"></div>
+          <div class="sp-p"></div>
+          <div class="sp-p"></div>
+          <div class="sp-p"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- WHY APACHE FOR STATIC -->
+  <section>
+    <div class="sh"><span class="sn">WHY</span><h2>Why Apache for a Static HTML Site?</h2></div>
+    <p>You could open an HTML file directly in a browser (<code>file:///</code>), but using Apache gives you a <strong>real server environment</strong> that works just like production hosting. Links, paths, and CSS references all behave correctly, and you can access the site from any device on your local network — phone, tablet, another computer — using your Mac's IP address.</p>
+
+    <div class="two">
+      <div class="tc">
+        <div class="tc-lbl">file:// (double-click)</div>
+        <p>Works for single pages. Relative paths can break. No network access from other devices. URLs look like <code>file:///Users/you/...</code></p>
+      </div>
+      <div class="tc">
+        <div class="tc-lbl">http:// via Apache ✓</div>
+        <p>Behaves exactly like a real server. Clean URLs. Access from phone and tablet on your WiFi. CSS and image paths always resolve correctly.</p>
+      </div>
+    </div>
+
+    <div class="ca teal"><span class="ci">💡</span><p>Apache is already installed on your Mac — no downloads needed. For a pure HTML/CSS site, the configuration is minimal and nothing can break at runtime since there's no code executing. Apache simply reads the file and sends it to the browser.</p></div>
+  </section>
+
+  <!-- FOLDER STRUCTURE -->
+  <section>
+    <div class="sh"><span class="sn">STRUCTURE</span><h2>Plan Your Site Folder Structure</h2></div>
+    <p>Before touching Apache, decide where your files will live and how to organize them. Here is a clean structure for a multi-page HTML/CSS site:</p>
+
+    <div class="tree">
+      <div class="tree-top">Recommended folder layout</div>
+      <div class="tree-body">
+<span class="ti">~/Sites/mysite/</span>          <span class="td">← your project root</span>
+<span class="ti">│</span>
+<span class="ti">├── </span><span class="tf">index.html</span>            <span class="td">← homepage (required)</span>
+<span class="ti">├── </span><span class="tf">about.html</span>
+<span class="ti">├── </span><span class="tf">contact.html</span>
+<span class="ti">│</span>
+<span class="ti">├── css/</span>
+<span class="ti">│   ├── </span><span class="tcss">style.css</span>           <span class="td">← main stylesheet</span>
+<span class="ti">│   ├── </span><span class="tcss">layout.css</span>
+<span class="ti">│   └── </span><span class="tcss">print.css</span>           <span class="td">← print media query stylesheet</span>
+<span class="ti">│</span>
+<span class="ti">├── images/</span>
+<span class="ti">│   ├── </span><span class="tg">logo.png</span>
+<span class="ti">│   ├── </span><span class="tg">hero.jpg</span>
+<span class="ti">│   └── </span><span class="tg">favicon.ico</span>
+<span class="ti">│</span>
+<span class="ti">├── fonts/</span>                <span class="td">← self-hosted fonts (optional)</span>
+<span class="ti">│   └── </span><span class="tg">myfont.woff2</span>
+<span class="ti">│</span>
+<span class="ti">└── .htaccess</span>             <span class="td">← Apache overrides (optional)</span>
+      </div>
+    </div>
+
+    <h3>// Create the structure in Terminal</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Create the project directory tree</span>
+<span class="g">mkdir</span> <span class="b">-p</span> ~/Sites/mysite/css
+<span class="g">mkdir</span> <span class="b">-p</span> ~/Sites/mysite/images
+<span class="g">mkdir</span> <span class="b">-p</span> ~/Sites/mysite/fonts
+
+<span class="x"># Confirm your username for config files</span>
+<span class="g">whoami</span>
+
+<span class="x"># Check the full path</span>
+<span class="g">echo</span> <span class="t">~/Sites/mysite</span>
+<span class="x"># Prints: /Users/YOUR_USERNAME/Sites/mysite</span></pre></div>
+  </section>
+
+  <!-- APACHE CONFIG -->
+  <section>
+    <div class="sh"><span class="sn">APACHE</span><h2>Configure Apache for Your Site</h2></div>
+    <p>Three files to edit, in order. All require <code>sudo</code> for the Apache config files. Replace <strong>YOUR_USERNAME</strong> with your actual macOS username everywhere.</p>
+
+    <div class="sf">
+
+      <div class="st">
+        <div class="sl"><div class="sd">1</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Enable Virtual Hosts in httpd.conf</div>
+          <p>Open the main Apache config and uncomment the vhosts include line.</p>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="g">sudo cp</span> <span class="o">/etc/apache2/httpd.conf</span> <span class="o">/etc/apache2/httpd.conf.bak</span>
+<span class="g">sudo nano</span> <span class="o">/etc/apache2/httpd.conf</span></pre></div>
+          <p>Use <strong>Ctrl+W</strong> to search for <code>httpd-vhosts</code>. Remove the <code>#</code> from this line:</p>
+          <div class="cb"><div class="ct"><span class="cl">httpd.conf — uncomment this line</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="r">Include</span> /private/etc/apache2/extra/httpd-vhosts.conf</pre></div>
+          <p>Also search for <code>mod_rewrite</code> and uncomment (useful for clean URLs later):</p>
+          <div class="cb"><div class="ct"><span class="cl">httpd.conf — also uncomment</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="r">LoadModule</span> <span class="v">rewrite_module</span> libexec/apache2/mod_rewrite.so</pre></div>
+          <div class="ca tip" style="margin-top:8px"><span class="ci">💡</span><p><strong>Ctrl+O</strong> saves in nano, <strong>Ctrl+X</strong> exits. Search with <strong>Ctrl+W</strong>.</p></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">2</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Create the Virtual Host definition</div>
+          <p>Open the vhosts config file and add your site block. The default catch-all must always come first.</p>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="g">sudo nano</span> <span class="o">/etc/apache2/extra/httpd-vhosts.conf</span></pre></div>
+          <p>Replace the entire file contents with this — change <strong>YOUR_USERNAME</strong> on each line:</p>
+          <div class="cb"><div class="ct"><span class="cl">/etc/apache2/extra/httpd-vhosts.conf — paste this in full</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># ── Default (always keep first) ────────────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   localhost
+    <span class="r">DocumentRoot</span> <span class="t">"/Library/WebServer/Documents"</span>
+    <span class="r">&lt;Directory</span> <span class="t">"/Library/WebServer/Documents"</span><span class="r">&gt;</span>
+        <span class="r">Options</span>       Indexes FollowSymLinks
+        <span class="r">AllowOverride</span> None
+        <span class="r">Require</span>       all granted
+    <span class="r">&lt;/Directory&gt;</span>
+<span class="r">&lt;/VirtualHost&gt;</span>
+
+<span class="x"># ── My HTML/CSS Site ────────────────────────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   mysite.test
+    <span class="r">ServerAlias</span>  www.mysite.test
+    <span class="r">DocumentRoot</span> <span class="t">"/Users/YOUR_USERNAME/Sites/mysite"</span>
+
+    <span class="r">ErrorLog</span>     <span class="t">"/private/var/log/apache2/mysite-error.log"</span>
+    <span class="r">CustomLog</span>    <span class="t">"/private/var/log/apache2/mysite-access.log"</span> combined
+
+    <span class="r">&lt;Directory</span> <span class="t">"/Users/YOUR_USERNAME/Sites/mysite"</span><span class="r">&gt;</span>
+        <span class="x"># Show directory listing if no index.html</span>
+        <span class="r">Options</span>       Indexes FollowSymLinks
+
+        <span class="x"># Allow .htaccess files to override settings</span>
+        <span class="r">AllowOverride</span> All
+
+        <span class="x"># Grant access to everyone (localhost only in practice)</span>
+        <span class="r">Require</span>       all granted
+    <span class="r">&lt;/Directory&gt;</span>
+
+    <span class="x"># Welcome page priority — tries index.html first</span>
+    <span class="r">DirectoryIndex</span> index.html index.htm
+<span class="r">&lt;/VirtualHost&gt;</span></pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">3</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Map the domain in /etc/hosts</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="g">sudo nano</span> <span class="o">/etc/hosts</span>
+
+<span class="x"># Add these two lines at the very bottom:</span>
+<span class="w">127.0.0.1    mysite.test</span>
+<span class="w">127.0.0.1    www.mysite.test</span></pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">4</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Test config, flush DNS, restart Apache</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal — run in order</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># Check for typos in config</span>
+<span class="g">sudo apachectl</span> configtest
+<span class="x"># Must print "Syntax OK"</span>
+
+<span class="x"># Flush DNS cache (Golden Gate / Tahoe)</span>
+<span class="g">sudo dscacheutil</span> -flushcache
+<span class="g">sudo killall</span> <span class="b">-HUP</span> mDNSResponder
+
+<span class="x"># Apply config changes gracefully</span>
+<span class="g">sudo apachectl</span> graceful
+
+<span class="x"># Start if not already running</span>
+<span class="g">sudo apachectl</span> start</pre></div>
+          <div class="ca ok" style="margin-top:8px"><span class="ci">✅</span><p>Apache is now configured. Next step is to put your HTML files in <code>~/Sites/mysite/</code> and open <code>http://mysite.test</code> in your browser.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- WRITE THE SITE -->
+  <section>
+    <div class="sh"><span class="sn">HTML</span><h2>Write Your First HTML Page</h2></div>
+    <p>Create a real, working <code>index.html</code> and <code>css/style.css</code> to prove everything is connected. These are clean, minimal starting-point files you can build from.</p>
+
+    <h3>// Create the homepage</h3>
+    <div class="html-ex">
+      <div class="he-top"><span class="he-label">HTML</span><span class="he-file">~/Sites/mysite/index.html</span></div>
+      <div class="he-body">
+<span class="hcm">&lt;!-- Save this as ~/Sites/mysite/index.html --&gt;</span>
+<span class="htag">&lt;!DOCTYPE html&gt;</span>
+<span class="htag">&lt;html</span> <span class="hattr">lang</span>=<span class="hval">"en"</span><span class="htag">&gt;</span>
+<span class="htag">&lt;head&gt;</span>
+  <span class="htag">&lt;meta</span> <span class="hattr">charset</span>=<span class="hval">"UTF-8"</span><span class="htag">&gt;</span>
+  <span class="htag">&lt;meta</span> <span class="hattr">name</span>=<span class="hval">"viewport"</span> <span class="hattr">content</span>=<span class="hval">"width=device-width, initial-scale=1.0"</span><span class="htag">&gt;</span>
+  <span class="htag">&lt;title&gt;</span><span class="ht">My Site</span><span class="htag">&lt;/title&gt;</span>
+  <span class="htag">&lt;link</span> <span class="hattr">rel</span>=<span class="hval">"stylesheet"</span> <span class="hattr">href</span>=<span class="hval">"css/style.css"</span><span class="htag">&gt;</span>
+<span class="htag">&lt;/head&gt;</span>
+<span class="htag">&lt;body&gt;</span>
+
+  <span class="htag">&lt;header&gt;</span>
+    <span class="htag">&lt;nav&gt;</span>
+      <span class="htag">&lt;a</span> <span class="hattr">href</span>=<span class="hval">"index.html"</span><span class="htag">&gt;</span><span class="ht">Home</span><span class="htag">&lt;/a&gt;</span>
+      <span class="htag">&lt;a</span> <span class="hattr">href</span>=<span class="hval">"about.html"</span><span class="htag">&gt;</span><span class="ht">About</span><span class="htag">&lt;/a&gt;</span>
+      <span class="htag">&lt;a</span> <span class="hattr">href</span>=<span class="hval">"contact.html"</span><span class="htag">&gt;</span><span class="ht">Contact</span><span class="htag">&lt;/a&gt;</span>
+    <span class="htag">&lt;/nav&gt;</span>
+  <span class="htag">&lt;/header&gt;</span>
+
+  <span class="htag">&lt;main&gt;</span>
+    <span class="htag">&lt;h1&gt;</span><span class="ht">Welcome to My Site</span><span class="htag">&lt;/h1&gt;</span>
+    <span class="htag">&lt;p&gt;</span><span class="ht">Running on Apache · macOS Golden Gate · MacBook Air M4</span><span class="htag">&lt;/p&gt;</span>
+
+    <span class="htag">&lt;section&gt;</span>
+      <span class="htag">&lt;h2&gt;</span><span class="ht">About This Site</span><span class="htag">&lt;/h2&gt;</span>
+      <span class="htag">&lt;p&gt;</span><span class="ht">Pure HTML and CSS — no JavaScript required.</span><span class="htag">&lt;/p&gt;</span>
+    <span class="htag">&lt;/section&gt;</span>
+  <span class="htag">&lt;/main&gt;</span>
+
+  <span class="htag">&lt;footer&gt;</span>
+    <span class="htag">&lt;p&gt;</span><span class="ht">Local development site — mysite.test</span><span class="htag">&lt;/p&gt;</span>
+  <span class="htag">&lt;/footer&gt;</span>
+
+<span class="htag">&lt;/body&gt;</span>
+<span class="htag">&lt;/html&gt;</span>
+      </div>
+    </div>
+
+    <h3>// Create the stylesheet</h3>
+    <div class="html-ex">
+      <div class="he-top"><span class="he-label">CSS</span><span class="he-file">~/Sites/mysite/css/style.css</span></div>
+      <div class="he-body">
+<span class="hcm">/* ── Reset ──────────────────────────────────────── */</span>
+<span class="hattr">*</span> { <span class="hval">margin: 0; padding: 0; box-sizing: border-box;</span> }
+<span class="hattr">html</span> { <span class="hval">font-size: 16px;</span> }
+
+<span class="hcm">/* ── Body ───────────────────────────────────────── */</span>
+<span class="hattr">body</span> {
+  <span class="hval">font-family: Georgia, 'Times New Roman', serif;</span>
+  <span class="hval">background: #fafaf9;</span>
+  <span class="hval">color: #1c1917;</span>
+  <span class="hval">line-height: 1.7;</span>
+  <span class="hval">max-width: 860px;</span>
+  <span class="hval">margin: 0 auto;</span>
+  <span class="hval">padding: 0 24px;</span>
+}
+
+<span class="hcm">/* ── Header / Nav ───────────────────────────────── */</span>
+<span class="hattr">header</span> {
+  <span class="hval">border-bottom: 2px solid #1c1917;</span>
+  <span class="hval">padding: 20px 0;</span>
+  <span class="hval">margin-bottom: 40px;</span>
+}
+
+<span class="hattr">nav a</span> {
+  <span class="hval">color: #1c1917;</span>
+  <span class="hval">text-decoration: none;</span>
+  <span class="hval">margin-right: 24px;</span>
+  <span class="hval">font-weight: 600;</span>
+  <span class="hval">font-size: 14px;</span>
+  <span class="hval">letter-spacing: 0.04em;</span>
+  <span class="hval">text-transform: uppercase;</span>
+}
+
+<span class="hattr">nav a:hover</span> { <span class="hval">color: #ea580c;</span> }
+
+<span class="hcm">/* ── Main content ───────────────────────────────── */</span>
+<span class="hattr">main</span> { <span class="hval">padding: 0 0 60px;</span> }
+
+<span class="hattr">h1</span> {
+  <span class="hval">font-size: 2.4rem;</span>
+  <span class="hval">font-weight: 700;</span>
+  <span class="hval">letter-spacing: -0.03em;</span>
+  <span class="hval">margin-bottom: 12px;</span>
+  <span class="hval">line-height: 1.1;</span>
+}
+
+<span class="hattr">h2</span> { <span class="hval">font-size: 1.4rem; margin: 32px 0 12px;</span> }
+<span class="hattr">p</span>  { <span class="hval">color: #78716c; margin-bottom: 16px;</span> }
+
+<span class="hcm">/* ── Footer ─────────────────────────────────────── */</span>
+<span class="hattr">footer</span> {
+  <span class="hval">border-top: 1px solid #e7e5e4;</span>
+  <span class="hval">padding: 20px 0;</span>
+  <span class="hval">font-size: 13px;</span>
+  <span class="hval">color: #a8a29e;</span>
+}
+
+<span class="hcm">/* ── Print styles ───────────────────────────────── */</span>
+<span class="hattr">@media print</span> {
+  <span class="hattr">nav, footer</span> { <span class="hval">display: none;</span> }
+  <span class="hattr">body</span> { <span class="hval">max-width: 100%; font-size: 12pt;</span> }
+}
+      </div>
+    </div>
+
+    <h3>// Quick Terminal way to create the files</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal — create files fast</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Create homepage</span>
+<span class="g">touch</span> ~/Sites/mysite/index.html
+<span class="g">touch</span> ~/Sites/mysite/about.html
+<span class="g">touch</span> ~/Sites/mysite/contact.html
+
+<span class="x"># Create stylesheet</span>
+<span class="g">touch</span> ~/Sites/mysite/css/style.css
+
+<span class="x"># Open folder in Finder to edit in your text editor</span>
+<span class="g">open</span> ~/Sites/mysite/
+
+<span class="x"># Or open directly in TextEdit</span>
+<span class="g">open</span> <span class="b">-e</span> ~/Sites/mysite/index.html</pre></div>
+
+    <div class="ca i"><span class="ci">ℹ️</span><p>Use any text editor you like — TextEdit (switch to plain text mode: Format → Make Plain Text), BBEdit, Zed, VS Code, or even nano in Terminal. As long as the file is saved as plain text with a <code>.html</code> or <code>.css</code> extension, Apache will serve it correctly.</p></div>
+  </section>
+
+  <!-- VIEW THE SITE -->
+  <section>
+    <div class="sh"><span class="sn">TEST</span><h2>View Your Site</h2></div>
+    <p>Once your files are in place and Apache is running, visit the site in any browser. You can also access it from your phone or tablet on the same WiFi network.</p>
+
+    <h3>// Open in browser</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal — open site</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Open in your default browser</span>
+<span class="g">open</span> <span class="t">http://mysite.test</span>
+
+<span class="x"># Open a specific page</span>
+<span class="g">open</span> <span class="t">http://mysite.test/about.html</span>
+
+<span class="x"># Open the CSS file to verify it loads</span>
+<span class="g">open</span> <span class="t">http://mysite.test/css/style.css</span></pre></div>
+
+    <h3>// Access from your iPhone or iPad on the same WiFi</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal — find your local IP</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Get your Mac's local IP address</span>
+<span class="g">ipconfig</span> getifaddr en0
+<span class="x"># Example output: 192.168.1.25</span>
+
+<span class="x"># Then on your iPhone, type in Safari:</span>
+<span class="x"># http://192.168.1.25</span>
+<span class="x"># (The /etc/hosts trick only works on your Mac,</span>
+<span class="x">#  so use the IP address for other devices)</span></pre></div>
+
+    <div class="ca ok"><span class="ci">📱</span><p>Using the IP address from another device shows exactly what your site looks like on mobile — no developer tools needed. Great for checking responsive CSS on a real screen.</p></div>
+
+    <h3>// Reload without restarting Apache</h3>
+    <p>For a static HTML site, you never need to restart Apache after changing files. Just <strong>save the file</strong> and <strong>refresh the browser</strong> — Apache reads the file fresh on every request. Only restart Apache when you change the <code>.conf</code> files.</p>
+    <div class="cb"><div class="ct"><span class="cl">When you DO need to restart</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Only needed after editing httpd.conf or httpd-vhosts.conf</span>
+<span class="g">sudo apachectl</span> configtest   <span class="x"># test first</span>
+<span class="g">sudo apachectl</span> graceful      <span class="x"># then restart
+
+# Editing .html or .css files? Just save and refresh browser.
+# No restart needed.</span></pre></div>
+  </section>
+
+  <!-- APACHE TUNING FOR STATIC -->
+  <section>
+    <div class="sh"><span class="sn">TUNE</span><h2>Apache Settings Useful for HTML/CSS Sites</h2></div>
+    <p>A few Apache features that improve the experience when serving static HTML and CSS files.</p>
+
+    <h3>// DirectoryIndex — control the default page</h3>
+    <p>Already set in the VirtualHost above, but here's what it means and how to customize it:</p>
+    <div class="cb"><div class="ct"><span class="cl">httpd-vhosts.conf — inside your VirtualHost block</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Apache tries these filenames in order when a directory is requested</span>
+<span class="r">DirectoryIndex</span> index.html index.htm</pre></div>
+
+    <h3>// Options Indexes — show a file listing</h3>
+    <p>When <code>Indexes</code> is on and there's no <code>index.html</code>, Apache shows a clickable directory listing. Very useful for browsing a site under construction:</p>
+    <div class="cb"><div class="ct"><span class="cl">httpd-vhosts.conf — inside Directory block</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Show file listing if no index.html (useful during dev)</span>
+<span class="r">Options</span> Indexes FollowSymLinks
+
+<span class="x"># Disable listing when site is "finished" (shows 403 instead)</span>
+<span class="r">Options</span> <span class="b">-Indexes</span> FollowSymLinks</pre></div>
+
+    <h3>// Custom 404 error page</h3>
+    <p>Create a friendly page for broken links. No JavaScript required:</p>
+    <div class="cb"><div class="ct"><span class="cl">~/Sites/mysite/.htaccess</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Redirect 404 errors to a custom page</span>
+<span class="r">ErrorDocument</span> 404 /404.html
+
+<span class="x"># Other useful error pages</span>
+<span class="r">ErrorDocument</span> 403 /403.html
+<span class="r">ErrorDocument</span> 500 /500.html</pre></div>
+
+    <h3>// Character encoding — ensure correct display</h3>
+    <div class="cb"><div class="ct"><span class="cl">~/Sites/mysite/.htaccess</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Force UTF-8 for all HTML and CSS files</span>
+<span class="r">AddDefaultCharset</span> UTF-8
+
+<span class="x"># Set correct MIME type for CSS (usually automatic, but good to be explicit)</span>
+<span class="r">AddType</span> text/css .css
+<span class="r">AddType</span> text/html .html .htm</pre></div>
+
+    <h3>// Prevent directory listing outside your site (security)</h3>
+    <div class="cb"><div class="ct"><span class="cl">~/Sites/mysite/.htaccess</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Hide .htaccess file from browser</span>
+<span class="r">&lt;Files</span> .htaccess<span class="r">&gt;</span>
+    <span class="r">Require</span> all denied
+<span class="r">&lt;/Files&gt;</span>
+
+<span class="x"># Prevent access to hidden files (dot files)</span>
+<span class="r">&lt;FilesMatch</span> <span class="t">"^\."</span><span class="r">&gt;</span>
+    <span class="r">Require</span> all denied
+<span class="r">&lt;/FilesMatch&gt;</span></pre></div>
+
+    <h3>// Clean URLs — drop the .html extension</h3>
+    <p>Makes <code>/about</code> work instead of <code>/about.html</code>. Requires mod_rewrite (already enabled):</p>
+    <div class="cb"><div class="ct"><span class="cl">~/Sites/mysite/.htaccess — optional clean URLs</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="r">RewriteEngine</span> On
+
+<span class="x"># If file exists as-is, serve it</span>
+<span class="r">RewriteCond</span> %{REQUEST_FILENAME} -f [OR]
+<span class="r">RewriteCond</span> %{REQUEST_FILENAME} -d
+<span class="r">RewriteRule</span> ^ - [L]
+
+<span class="x"># Otherwise try adding .html</span>
+<span class="r">RewriteCond</span> %{REQUEST_FILENAME}.html -f
+<span class="r">RewriteRule</span> ^(.+)$ $1.html [L]
+
+<span class="x"># Now http://mysite.test/about works the same as /about.html</span></pre></div>
+  </section>
+
+  <!-- MULTI-PAGE -->
+  <section>
+    <div class="sh"><span class="sn">PAGES</span><h2>Linking Between Pages</h2></div>
+    <p>On a server (vs double-clicking files), links behave differently. Here's the correct way to write links and CSS references so they work perfectly with Apache.</p>
+
+    <table>
+      <thead><tr><th>What you want</th><th>Correct link</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Link to About page</td><td><code>&lt;a href="about.html"&gt;</code></td><td>Relative — works from any folder depth</td></tr>
+        <tr><td>Link from a subdirectory page</td><td><code>&lt;a href="/about.html"&gt;</code></td><td>Absolute from root — safest approach</td></tr>
+        <tr><td>Load your CSS</td><td><code>&lt;link href="/css/style.css"&gt;</code></td><td>Root-relative — works on every page</td></tr>
+        <tr><td>Load an image</td><td><code>&lt;img src="/images/logo.png"&gt;</code></td><td>Root-relative prevents path issues</td></tr>
+        <tr><td>Link to homepage</td><td><code>&lt;a href="/"&gt;</code> or <code>&lt;a href="/index.html"&gt;</code></td><td>Both work correctly</td></tr>
+        <tr><td>External link</td><td><code>&lt;a href="https://..."&gt;</code></td><td>Always use full URL for external sites</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ca w"><span class="ci">⚠️</span><p>Use <strong>root-relative paths</strong> starting with <code>/</code> for CSS and images — e.g. <code>/css/style.css</code> not <code>css/style.css</code>. This prevents broken paths when pages are in subdirectories.</p></div>
+
+    <h3>// About and Contact page starter template</h3>
+    <div class="html-ex">
+      <div class="he-top"><span class="he-label">HTML</span><span class="he-file">~/Sites/mysite/about.html</span></div>
+      <div class="he-body">
+<span class="htag">&lt;!DOCTYPE html&gt;</span>
+<span class="htag">&lt;html</span> <span class="hattr">lang</span>=<span class="hval">"en"</span><span class="htag">&gt;</span>
+<span class="htag">&lt;head&gt;</span>
+  <span class="htag">&lt;meta</span> <span class="hattr">charset</span>=<span class="hval">"UTF-8"</span><span class="htag">&gt;</span>
+  <span class="htag">&lt;meta</span> <span class="hattr">name</span>=<span class="hval">"viewport"</span> <span class="hattr">content</span>=<span class="hval">"width=device-width, initial-scale=1.0"</span><span class="htag">&gt;</span>
+  <span class="htag">&lt;title&gt;</span><span class="ht">About — My Site</span><span class="htag">&lt;/title&gt;</span>
+  <span class="htag">&lt;link</span> <span class="hattr">rel</span>=<span class="hval">"stylesheet"</span> <span class="hattr">href</span>=<span class="hval">"/css/style.css"</span><span class="htag">&gt;</span>  <span class="hcm">&lt;!-- note the leading / --&gt;</span>
+<span class="htag">&lt;/head&gt;</span>
+<span class="htag">&lt;body&gt;</span>
+  <span class="htag">&lt;header&gt;</span>
+    <span class="htag">&lt;nav&gt;</span>
+      <span class="htag">&lt;a</span> <span class="hattr">href</span>=<span class="hval">"/"</span><span class="htag">&gt;</span><span class="ht">Home</span><span class="htag">&lt;/a&gt;</span>
+      <span class="htag">&lt;a</span> <span class="hattr">href</span>=<span class="hval">"/about.html"</span><span class="htag">&gt;</span><span class="ht">About</span><span class="htag">&lt;/a&gt;</span>
+      <span class="htag">&lt;a</span> <span class="hattr">href</span>=<span class="hval">"/contact.html"</span><span class="htag">&gt;</span><span class="ht">Contact</span><span class="htag">&lt;/a&gt;</span>
+    <span class="htag">&lt;/nav&gt;</span>
+  <span class="htag">&lt;/header&gt;</span>
+  <span class="htag">&lt;main&gt;</span>
+    <span class="htag">&lt;h1&gt;</span><span class="ht">About</span><span class="htag">&lt;/h1&gt;</span>
+    <span class="htag">&lt;p&gt;</span><span class="ht">About page content goes here.</span><span class="htag">&lt;/p&gt;</span>
+  <span class="htag">&lt;/main&gt;</span>
+  <span class="htag">&lt;footer&gt;&lt;p&gt;</span><span class="ht">My Site</span><span class="htag">&lt;/p&gt;&lt;/footer&gt;</span>
+<span class="htag">&lt;/body&gt;</span>
+<span class="htag">&lt;/html&gt;</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGS AND DEBUGGING -->
+  <section>
+    <div class="sh"><span class="sn">DEBUG</span><h2>Reading Logs &amp; Fixing Problems</h2></div>
+
+    <h3>// Watch your site's logs in real time</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal — open two tabs and run one in each</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Tab 1 — watch requests as they come in</span>
+<span class="g">tail</span> <span class="b">-f</span> <span class="o">/private/var/log/apache2/mysite-access.log</span>
+
+<span class="x"># Tab 2 — watch for errors</span>
+<span class="g">tail</span> <span class="b">-f</span> <span class="o">/private/var/log/apache2/mysite-error.log</span></pre></div>
+
+    <p>Each line in the access log tells you what file was requested and whether it was found. A <code>200</code> means success; a <code>404</code> means the file wasn't found (check path and filename).</p>
+
+    <h3>// Common problems and fixes</h3>
+    <table>
+      <thead><tr><th>Problem</th><th>What's happening</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CSS not loading</strong></td><td>Path to stylesheet is wrong</td><td>Change <code>href="css/style.css"</code> to <code>href="/css/style.css"</code>. Check the access log for a 404 on the CSS file.</td></tr>
+        <tr><td><strong>Image not showing</strong></td><td>Image path is wrong or file missing</td><td>Use root-relative path: <code>src="/images/photo.jpg"</code>. Verify the file is in <code>~/Sites/mysite/images/</code>.</td></tr>
+        <tr><td><strong>403 Forbidden</strong></td><td>Apache can't read your folder</td><td>Run <code>ls -la ~/Sites/</code>. Permissions should show <code>drwxr-xr-x</code>. Fix: <code>chmod 755 ~/Sites/mysite</code>.</td></tr>
+        <tr><td><strong>404 on all pages</strong></td><td>DocumentRoot path wrong in vhosts.conf</td><td>Confirm path matches exactly: <code>ls /Users/YOUR_USERNAME/Sites/mysite</code>.</td></tr>
+        <tr><td><strong>Can't reach mysite.test</strong></td><td>/etc/hosts entry missing</td><td>Run <code>grep mysite.test /etc/hosts</code>. If empty, add <code>127.0.0.1 mysite.test</code> and flush DNS.</td></tr>
+        <tr><td><strong>Old page showing after edit</strong></td><td>Browser cache</td><td>Hard refresh: <strong>Cmd+Shift+R</strong> in Safari/Chrome. No Apache restart needed.</td></tr>
+        <tr><td><strong>Blank page</strong></td><td>index.html is empty or malformed</td><td>Check the file has content. View source in browser (Cmd+U) to see what Apache actually sent.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>// Essential diagnostic commands</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Check Apache config is valid</span>
+<span class="g">sudo apachectl</span> configtest
+
+<span class="x"># See which vhost serves mysite.test</span>
+<span class="g">sudo apachectl</span> <span class="b">-t -D</span> DUMP_VHOSTS
+
+<span class="x"># Verify your /etc/hosts entry</span>
+<span class="g">grep</span> mysite.test /etc/hosts
+
+<span class="x"># Check file permissions on your site folder</span>
+<span class="g">ls</span> <span class="b">-la</span> ~/Sites/mysite/
+
+<span class="x"># Fix permissions if needed (755 for folders, 644 for files)</span>
+<span class="g">chmod</span> <span class="b">-R</span> 755 ~/Sites/mysite/
+<span class="g">find</span> ~/Sites/mysite <span class="b">-type f</span> <span class="b">-exec</span> chmod 644 {} \;
+
+<span class="x"># Restart Apache after config changes only</span>
+<span class="g">sudo apachectl</span> graceful</pre></div>
+  </section>
+
+  <!-- PREP FOR PERL -->
+  <section>
+    <div class="sh"><span class="sn">LATER</span><h2>Ready for Perl When You Are</h2></div>
+    <p>When you're ready to add Perl CGI scripts, very little changes. The VirtualHost config stays the same — you only need to enable two more Apache modules and add a <code>cgi-bin</code> directory. macOS Golden Gate ships with Perl built in at <code>/usr/bin/perl</code>.</p>
+
+    <div class="ca tip"><span class="ci">🔮</span><p>Your current <code>mysite.test</code> VirtualHost is already set up with <code>AllowOverride All</code>, which means you can control Perl CGI behaviour per-directory using <code>.htaccess</code> when the time comes — no changes to the main config files needed.</p></div>
+
+    <h3>// What enabling Perl CGI will look like (for reference — not needed now)</h3>
+    <div class="cb"><div class="ct"><span class="cl">httpd.conf — two modules to uncomment later</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Uncomment these in httpd.conf when you're ready for Perl CGI:</span>
+<span class="r">LoadModule</span> <span class="v">cgi_module</span>  libexec/apache2/mod_cgi.so
+<span class="r">LoadModule</span> <span class="v">cgid_module</span> libexec/apache2/mod_cgid.so</pre></div>
+    <div class="cb"><div class="ct"><span class="cl">VirtualHost addition — cgi-bin directory</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Add inside your VirtualHost block when ready for Perl:</span>
+<span class="r">ScriptAlias</span> /cgi-bin/ <span class="t">"/Users/YOUR_USERNAME/Sites/mysite/cgi-bin/"</span>
+
+<span class="r">&lt;Directory</span> <span class="t">"/Users/YOUR_USERNAME/Sites/mysite/cgi-bin"</span><span class="r">&gt;</span>
+    <span class="r">Options</span>       +ExecCGI
+    <span class="r">AllowOverride</span> None
+    <span class="r">Require</span>       all granted
+    <span class="r">AddHandler</span>    cgi-script .pl .cgi
+<span class="r">&lt;/Directory&gt;</span>
+
+<span class="x"># Perl scripts go in ~/Sites/mysite/cgi-bin/*.pl
+# First line of every Perl script must be:
+# #!/usr/bin/perl</span></pre></div>
+    <p>Your current setup will need zero changes to support Perl later — just uncomment the modules, add the cgi-bin block, and drop your <code>.pl</code> files in. The HTML and CSS files continue to work exactly as they do now.</p>
+  </section>
+
+</div>
+
+<footer>
+  <span>HTML/CSS SITE · APACHE · MACOS 27 GOLDEN GATE · MACBOOK AIR M4</span>
+  <span>July 2026 · Generated with Claude</span>
+</footer>
+
+<script>
+function copyCode(btn){
+  const pre=btn.closest('.cb').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(()=>{
+    const o=btn.textContent;
+    btn.textContent='COPIED';
+    btn.style.color='#4ade80';
+    btn.style.borderColor='rgba(74,222,128,.4)';
+    setTimeout(()=>{btn.textContent=o;btn.style.color='';btn.style.borderColor='';},1800);
+  });
+}
+</script>
+</body>
+</html>
