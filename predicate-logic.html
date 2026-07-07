@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predicate Logic — A Complete Interactive Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c1018;
+  --bg-2:#121826;
+  --panel:#161d2c;
+  --panel-2:#1c2638;
+  --line:#2a3650;
+  --line-soft:#212c42;
+  --fg:#e7e3d8;
+  --fg-soft:#a6b0c4;
+  --fg-faint:#6d7791;
+  --amber:#e8b96a;       /* primary accent */
+  --amber-deep:#c8923e;
+  --cyan:#5fc7d4;        /* secondary accent */
+  --violet:#9a8cf0;
+  --true:#6fcf97;
+  --false:#ef7d6b;
+  --glow-a:0 0 24px rgba(232,185,106,.25);
+  --glow-c:0 0 22px rgba(95,199,212,.22);
+  --shadow:0 22px 60px -30px rgba(0,0,0,.85);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--fg);font-family:"Newsreader",Georgia,serif;font-size:18.5px;line-height:1.72;
+  background:
+    radial-gradient(900px 500px at 78% -5%, rgba(95,199,212,.08), transparent 60%),
+    radial-gradient(800px 500px at 8% 12%, rgba(232,185,106,.07), transparent 55%),
+    var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+/* graph-paper grid overlay */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:
+    linear-gradient(rgba(122,140,180,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(122,140,180,.05) 1px, transparent 1px);
+  background-size:34px 34px;
+}
+.wrap{position:relative;z-index:1}
+.layout{display:grid;grid-template-columns:282px 1fr;max-width:1540px;margin:0 auto}
+
+/* ---- nav ---- */
+nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:36px 24px 60px;border-right:1px solid var(--line)}
+nav.toc .brand{font-family:"Instrument Serif";font-size:2rem;line-height:1;letter-spacing:.01em}
+nav.toc .brand em{font-style:italic;color:var(--amber)}
+nav.toc .sub{font-family:"IBM Plex Mono";font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--fg-faint);margin:6px 0 24px}
+nav.toc a{display:block;color:var(--fg-soft);text-decoration:none;font-size:.9rem;padding:5px 11px;border-radius:7px;margin:1px 0;transition:.16s;border-left:2px solid transparent}
+nav.toc a:hover{background:var(--panel);color:var(--fg);border-left-color:var(--amber)}
+nav.toc a .num{font-family:"IBM Plex Mono";font-size:.68rem;color:var(--cyan);margin-right:8px}
+main{padding:0 clamp(20px,5vw,92px) 120px;min-width:0}
+
+/* ---- hero ---- */
+header.hero{padding:96px 0 52px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+header.hero .eyebrow{font-family:"IBM Plex Mono";font-size:.76rem;letter-spacing:.3em;text-transform:uppercase;color:var(--cyan)}
+header.hero h1{font-family:"Instrument Serif";font-weight:400;font-size:clamp(3rem,8vw,6.2rem);line-height:.96;margin:.12em 0 .14em;letter-spacing:-.01em}
+header.hero h1 .q{color:var(--amber);text-shadow:var(--glow-a)}
+header.hero p.lede{font-size:1.24rem;max-width:62ch;color:var(--fg-soft)}
+header.hero .quantback{position:absolute;right:-10px;top:24px;font-family:"Instrument Serif";font-size:13rem;line-height:.8;color:var(--line);opacity:.55;user-select:none}
+@media(max-width:900px){header.hero .quantback{display:none}}
+
+/* ---- sections ---- */
+section{padding:56px 0;border-bottom:1px solid var(--line-soft);scroll-margin-top:12px}
+section>.kicker{font-family:"IBM Plex Mono";font-size:.72rem;letter-spacing:.26em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+h2{font-family:"Instrument Serif";font-weight:400;font-size:clamp(2.1rem,4.4vw,3.3rem);line-height:1.02;margin:.06em 0 .5em;letter-spacing:-.005em}
+h2 .n{color:var(--amber);font-size:.6em;margin-right:.35em;font-family:"IBM Plex Mono"}
+h3{font-family:"Instrument Serif";font-weight:400;font-size:1.62rem;margin:1.7em 0 .35em;color:var(--fg)}
+h4{font-family:"IBM Plex Mono";font-weight:600;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin:1.6em 0 .3em}
+p{margin:.7em 0;max-width:74ch;color:var(--fg)}
+em.term{font-style:italic;color:var(--amber);font-weight:500}
+.sym{font-family:"Instrument Serif";font-size:1.08em}
+a.inline{color:var(--cyan);text-decoration-color:var(--line)}
+ul,ol{max-width:74ch;color:var(--fg)}
+li{margin:.32em 0}
+strong{font-weight:600;color:#f3efe4}
+
+/* ---- callouts / defs ---- */
+.callout{border-left:3px solid var(--amber);background:linear-gradient(90deg,rgba(232,185,106,.07),transparent);padding:15px 22px;margin:1.4em 0;border-radius:0 10px 10px 0;max-width:76ch}
+.callout.cyan{border-color:var(--cyan);background:linear-gradient(90deg,rgba(95,199,212,.07),transparent)}
+.callout.violet{border-color:var(--violet);background:linear-gradient(90deg,rgba(154,140,240,.07),transparent)}
+.callout .label{font-family:"IBM Plex Mono";font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:4px}
+.callout.cyan .label{color:var(--cyan)} .callout.violet .label{color:var(--violet)}
+.defbox{border:1px solid var(--line);border-radius:14px;padding:6px 24px 18px;margin:1.5em 0;background:var(--panel);box-shadow:var(--shadow)}
+.defbox .deftag{display:inline-block;font-family:"IBM Plex Mono";font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;background:var(--amber);color:#1a1206;padding:4px 12px;border-radius:0 0 9px 9px;font-weight:600}
+.defbox p{margin:.55em 0}
+
+/* ---- tables ---- */
+.tablewrap{overflow-x:auto;margin:1.2em 0}
+table.ref{border-collapse:collapse;width:100%;font-size:.96rem;margin:1em 0}
+table.ref th,table.ref td{border-bottom:1px solid var(--line-soft);padding:9px 13px;text-align:left;vertical-align:top}
+table.ref th{font-family:"IBM Plex Mono";font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+table.ref code{background:var(--panel-2);padding:1px 6px;border-radius:4px;font-size:.85em;color:var(--amber)}
+table.grid{border-collapse:collapse;font-family:"IBM Plex Mono";font-size:.9rem;margin:1em 0}
+table.grid th,table.grid td{border:1px solid var(--line);padding:7px 13px;text-align:center}
+table.grid thead th{background:var(--panel-2);color:var(--cyan)}
+.T{color:var(--true);font-weight:700} .F{color:var(--false);font-weight:700}
+
+/* ---- widgets ---- */
+.widget{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:22px 24px 26px;margin:1.7em 0;box-shadow:var(--shadow)}
+.widget .wtitle{font-family:"IBM Plex Mono";font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.widget .wtitle::before{content:"◆";color:var(--amber);font-size:.7em}
+.field{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
+.field label{font-family:"IBM Plex Mono";font-size:.78rem;color:var(--fg-soft);min-width:78px}
+input[type=text]{font-family:"IBM Plex Mono";font-size:1.02rem;padding:11px 14px;border:1px solid var(--line);border-radius:9px;background:var(--bg-2);color:var(--fg);flex:1;min-width:220px;outline:none;transition:.15s}
+input[type=text]:focus{border-color:var(--amber);box-shadow:var(--glow-a)}
+button.btn{font-family:"IBM Plex Mono";font-size:.8rem;letter-spacing:.05em;font-weight:600;cursor:pointer;background:var(--amber);color:#1a1206;border:none;padding:11px 18px;border-radius:9px;transition:.15s}
+button.btn:hover{background:var(--amber-deep);box-shadow:var(--glow-a)}
+button.btn.ghost{background:transparent;color:var(--fg-soft);border:1px solid var(--line)}
+button.btn.ghost:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:none}
+.palette{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.palette .pk{font-family:"Instrument Serif";font-size:1.2rem;cursor:pointer;background:var(--panel-2);border:1px solid var(--line);width:38px;height:38px;border-radius:8px;color:var(--cyan);display:flex;align-items:center;justify-content:center;transition:.14s}
+.palette .pk:hover{background:var(--cyan);color:#06222a}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+.chip{font-family:"IBM Plex Mono";font-size:.82rem;cursor:pointer;background:var(--panel-2);border:1px solid var(--line);padding:6px 11px;border-radius:18px;color:var(--fg-soft);transition:.15s}
+.chip:hover{background:var(--amber);color:#1a1206;border-color:var(--amber)}
+.hint{font-family:"IBM Plex Mono";font-size:.78rem;color:var(--fg-faint)}
+.errmsg{color:var(--false);font-family:"IBM Plex Mono";font-size:.84rem;margin-top:10px}
+.verdict{font-family:"Instrument Serif";font-size:1.7rem;margin:14px 0 4px}
+.verdict.t{color:var(--true)} .verdict.f{color:var(--false)}
+
+/* ---- the world ---- */
+.worldbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.worldstage{display:flex;gap:18px;justify-content:center;align-items:flex-end;flex-wrap:wrap;padding:24px 12px 14px;background:
+  radial-gradient(circle at 50% 120%, rgba(95,199,212,.10), transparent 60%),var(--bg-2);
+  border:1px solid var(--line);border-radius:14px;margin:6px 0 14px;min-height:150px;position:relative}
+.worldstage::after{content:"";position:absolute;left:18px;right:18px;bottom:34px;border-bottom:1px dashed var(--line)}
+.obj{display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;z-index:1}
+.obj .glyph{filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.obj .lbl{font-family:"IBM Plex Mono";font-size:.86rem;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 9px}
+.obj .props{font-family:"IBM Plex Mono";font-size:.6rem;color:var(--fg-faint);text-align:center;line-height:1.3}
+.breakdown{font-family:"IBM Plex Mono";font-size:.86rem;margin-top:6px}
+.breakdown .row{display:flex;gap:10px;align-items:center;padding:3px 0}
+.breakdown .ob{width:26px;color:var(--cyan)}
+.tag{font-family:"IBM Plex Mono";font-size:.66rem;padding:2px 8px;border-radius:12px;border:1px solid var(--line)}
+.tag.sat{color:var(--true);border-color:rgba(111,207,151,.4)}
+.tag.vio{color:var(--false);border-color:rgba(239,125,107,.4)}
+
+/* reveal cards (translation) */
+.revealgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:1.2em 0}
+.reveal{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:15px 17px;cursor:pointer;transition:.16s}
+.reveal:hover{border-color:var(--cyan)}
+.reveal .en{font-size:1.04rem}
+.reveal .fol{font-family:"IBM Plex Mono";font-size:.92rem;color:var(--amber);margin-top:9px;display:none;border-top:1px dashed var(--line);padding-top:9px}
+.reveal.open .fol{display:block}
+.reveal .tap{font-family:"IBM Plex Mono";font-size:.64rem;color:var(--fg-faint);margin-top:8px;letter-spacing:.1em;text-transform:uppercase}
+.reveal.open .tap{display:none}
+
+/* ---- code ---- */
+.codeblock{background:#0a0e16;border:1px solid var(--line);border-radius:13px;margin:1.3em 0;overflow:hidden;box-shadow:var(--shadow)}
+.codeblock .codehead{display:flex;justify-content:space-between;align-items:center;padding:9px 15px;background:#10172a;border-bottom:1px solid var(--line)}
+.codeblock .fname{font-family:"IBM Plex Mono";font-size:.74rem;color:var(--cyan);letter-spacing:.06em}
+.copybtn{font-family:"IBM Plex Mono";font-size:.68rem;background:transparent;border:1px solid var(--line);color:var(--fg-soft);padding:4px 11px;border-radius:6px;cursor:pointer;transition:.15s}
+.copybtn:hover{background:var(--amber);border-color:var(--amber);color:#1a1206}
+pre{margin:0;padding:17px 19px;overflow-x:auto}
+code,pre{font-family:"IBM Plex Mono",monospace;font-size:.85rem;line-height:1.7}
+pre code{color:#cfd6e4}
+.tok-c{color:#6b89a0;font-style:italic}.tok-k{color:#e8b96a}.tok-f{color:#5fc7d4}.tok-n{color:#c9a0e8}.tok-s{color:#8fd99f}.tok-o{color:#ef9d8b}
+
+/* quiz */
+.quiz-q{border:1px solid var(--line);border-radius:13px;padding:18px 22px;margin:14px 0;background:var(--panel)}
+.quiz-q .qn{font-family:"IBM Plex Mono";font-size:.72rem;color:var(--amber);letter-spacing:.14em}
+.quiz-q .qtext{font-size:1.08rem;margin:6px 0 12px}
+.quiz-opt{display:block;width:100%;text-align:left;font-family:"Newsreader";font-size:1rem;background:var(--bg-2);border:1px solid var(--line);padding:10px 16px;border-radius:9px;margin:7px 0;cursor:pointer;transition:.15s;color:var(--fg)}
+.quiz-opt:hover{border-color:var(--amber)}
+.quiz-opt.correct{background:rgba(111,207,151,.13);border-color:var(--true);color:var(--true)}
+.quiz-opt.wrong{background:rgba(239,125,107,.13);border-color:var(--false);color:var(--false)}
+.quiz-fb{margin-top:9px;font-size:.92rem;color:var(--fg-soft);display:none}
+.quiz-fb.show{display:block}
+.scorebar{font-family:"Instrument Serif";font-size:1.5rem;margin-top:12px;color:var(--amber)}
+
+footer{padding:50px 0 30px;color:var(--fg-faint);font-size:.92rem}
+footer .marque{font-family:"Instrument Serif";font-size:1.5rem;color:var(--fg)}
+
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr}
+  nav.toc{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:2px 6px;padding:18px}
+  nav.toc .brand,nav.toc .sub{width:100%}
+  nav.toc a{font-size:.8rem;padding:4px 8px}
+}
+::selection{background:var(--amber);color:#1a1206}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="layout">
+
+<nav class="toc">
+  <div class="brand"><em>Predicate</em> Logic</div>
+  <div class="sub">First-Order · Interactive</div>
+  <a href="#intro"><span class="num">00</span>Why Predicate Logic</a>
+  <a href="#vocab"><span class="num">01</span>The Vocabulary</a>
+  <a href="#quant"><span class="num">02</span>Quantifiers &amp; Scope</a>
+  <a href="#translate"><span class="num">03</span>Translating English</a>
+  <a href="#models"><span class="num">04</span>Models &amp; Interpretation</a>
+  <a href="#world"><span class="num">05</span>◆ The World Evaluator</a>
+  <a href="#multi"><span class="num">06</span>Multiple Quantifiers</a>
+  <a href="#negation"><span class="num">07</span>Quantifier Negation</a>
+  <a href="#relations"><span class="num">08</span>Properties of Relations</a>
+  <a href="#identity"><span class="num">09</span>Identity &amp; Number</a>
+  <a href="#inference"><span class="num">10</span>Inference Rules</a>
+  <a href="#proofs"><span class="num">11</span>Proofs &amp; Prenex</a>
+  <a href="#octave"><span class="num">12</span>GNU Octave Lab</a>
+  <a href="#quiz"><span class="num">13</span>◆ Self-Test Quiz</a>
+  <a href="#cheat"><span class="num">14</span>Reference</a>
+</nav>
+
+<main>
+<header class="hero" id="top">
+  <div class="quantback">∀∃</div>
+  <div class="eyebrow">A Complete Interactive Course · with GNU Octave</div>
+  <h1>Predicate<br>Logic <span class="q">∀∃</span></h1>
+  <p class="lede">First-order logic — the language of objects, properties, relations, and quantity. Learn it by evaluating real quantified formulas against a visible model you can see and change.</p>
+</header>
+
+<!-- 00 -->
+<section id="intro">
+  <div class="kicker">Chapter 00</div>
+  <h2><span class="n">§0</span>Why We Need Predicate Logic</h2>
+  <p>Propositional logic treats each statement as an indivisible atom — <strong>P</strong>, <strong>Q</strong>, <strong>R</strong>. That's powerful for reasoning about how whole statements combine, but it is <em>blind to internal structure</em>. Consider the most famous argument in logic:</p>
+  <div class="callout cyan">
+    <span class="label">The argument propositional logic cannot validate</span>
+    <em>All humans are mortal. Socrates is human. Therefore, Socrates is mortal.</em>
+  </div>
+  <p>In propositional logic this is just three unrelated atoms, <span class="sym">P, Q, R</span>, and the inference <span class="sym">P, Q ∴ R</span> is plainly invalid. Yet the argument is obviously, undeniably valid. The validity lives <em>inside</em> the sentences — in the objects (Socrates), the properties (being human, being mortal), and the word "all."</p>
+  <p><em class="term">Predicate logic</em> (also <em class="term">first-order logic</em>, FOL, or the <em class="term">predicate calculus</em>) opens the atom. It can name individuals, ascribe properties and relations to them, and — crucially — quantify: say things about <em>all</em> objects or <em>some</em> object. It is expressive enough to formalize essentially all of mathematics, and it is the backbone of databases, AI knowledge representation, program verification, and automated theorem proving.</p>
+  <div class="callout">
+    <span class="label">What you'll be able to do</span>
+    Translate ordinary English into precise formulas; define a model and compute whether a formula is true in it; recognize when two quantified statements are equivalent; and run valid quantifier inferences — all checked live by the engine in Chapter 05.
+  </div>
+</section>
+
+<!-- 01 -->
+<section id="vocab">
+  <div class="kicker">Chapter 01</div>
+  <h2><span class="n">§1</span>The Vocabulary of First-Order Logic</h2>
+  <p>FOL adds several new kinds of symbol to the propositional connectives you already know.</p>
+  <div class="defbox">
+    <span class="deftag">The building blocks</span>
+    <p><strong>Constants</strong> — names for specific individuals: <span class="sym">a, b, c</span>, or <span class="sym">socrates</span>. Each denotes one fixed object.</p>
+    <p><strong>Variables</strong> — placeholders ranging over the domain: <span class="sym">x, y, z</span>. They have no fixed meaning until bound by a quantifier.</p>
+    <p><strong>Predicates</strong> — express properties (one argument) or relations (two or more). <span class="sym">Human(x)</span> is a <em>unary</em> predicate; <span class="sym">Loves(x, y)</span> is a <em>binary</em> relation; <span class="sym">Between(x, y, z)</span> is ternary. We write predicates with a capital letter.</p>
+    <p><strong>Functions</strong> (optional) — map objects to objects: <span class="sym">father(x)</span>, <span class="sym">x + y</span>. A function applied to terms yields another term, not a truth value.</p>
+    <p><strong>Quantifiers</strong> — <span class="sym">∀</span> (for all) and <span class="sym">∃</span> (there exists).</p>
+    <p><strong>Identity</strong> — the special two-place relation <span class="sym">=</span>, meaning "is the very same object as."</p>
+  </div>
+
+  <h3>Terms vs. formulas</h3>
+  <p>A <em class="term">term</em> names an object: a constant, a variable, or a function applied to terms. A <em class="term">formula</em> says something true or false: a predicate applied to terms (an <em class="term">atomic formula</em>), or such atoms combined with connectives and quantifiers. The litmus test: a term <em>refers</em>; a formula <em>asserts</em>.</p>
+  <table class="ref">
+    <thead><tr><th>Expression</th><th>Kind</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sym">socrates</span></td><td>term (constant)</td><td>names an object</td></tr>
+      <tr><td><span class="sym">father(x)</span></td><td>term</td><td>names the father of x</td></tr>
+      <tr><td><span class="sym">Mortal(socrates)</span></td><td>atomic formula</td><td>asserts a property; T or F</td></tr>
+      <tr><td><span class="sym">∀x (Human(x) → Mortal(x))</span></td><td>formula</td><td>a quantified assertion</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 02 -->
+<section id="quant">
+  <div class="kicker">Chapter 02</div>
+  <h2><span class="n">§2</span>Quantifiers, Scope &amp; Binding</h2>
+  <p>The two quantifiers are the heart of FOL.</p>
+  <div class="defbox">
+    <span class="deftag">The two quantifiers</span>
+    <p><strong>Universal <span class="sym">∀</span></strong> — "for all", "every", "each". <span class="sym">∀x P(x)</span> is true exactly when P holds of <em>every</em> object in the domain.</p>
+    <p><strong>Existential <span class="sym">∃</span></strong> — "there exists", "some", "at least one". <span class="sym">∃x P(x)</span> is true exactly when P holds of <em>at least one</em> object.</p>
+  </div>
+  <p>Over a finite domain the quantifiers are just iterated connectives. If the domain is <span class="sym">{a, b, c}</span>, then:</p>
+  <table class="ref">
+    <tbody>
+      <tr><td><span class="sym">∀x P(x)</span></td><td>≡</td><td><span class="sym">P(a) ∧ P(b) ∧ P(c)</span> — a grand conjunction</td></tr>
+      <tr><td><span class="sym">∃x P(x)</span></td><td>≡</td><td><span class="sym">P(a) ∨ P(b) ∨ P(c)</span> — a grand disjunction</td></tr>
+    </tbody>
+  </table>
+  <p>This is precisely why <span class="sym">∀</span> becomes <code>all()</code> and <span class="sym">∃</span> becomes <code>any()</code> when we model logic in Octave.</p>
+
+  <h3>Scope, free &amp; bound variables</h3>
+  <p>The <em class="term">scope</em> of a quantifier is the sub-formula it governs. A variable occurrence is <em class="term">bound</em> if it lies in the scope of a quantifier using that variable, and <em class="term">free</em> otherwise. A formula with no free variables is a <em class="term">sentence</em> — only sentences have a definite truth value in a model.</p>
+  <div class="callout violet">
+    <span class="label">Bound vs. free</span>
+    In <span class="sym">∀x (P(x) → Q(x, y))</span>, every <strong>x</strong> is bound by <span class="sym">∀x</span>, but <strong>y</strong> is <em>free</em>. The formula is an open formula, not a sentence; its truth depends on what y is assigned. The engine below will reject free variables with a clear message.
+  </div>
+  <div class="callout">
+    <span class="label">Scope convention used by this course's engine</span>
+    To keep parsing unambiguous, <span class="sym">∀</span>, <span class="sym">∃</span>, and <span class="sym">¬</span> bind <em>tightly</em> — each governs only the next atom or parenthesized group. So <span class="sym">∀x P(x) ∧ Q(x)</span> reads as <span class="sym">(∀x P(x)) ∧ Q(x)</span>. To give a quantifier wide scope, parenthesize: <span class="sym">∀x (P(x) ∧ Q(x))</span>. When in doubt, add parentheses.
+  </div>
+</section>
+
+<!-- 03 -->
+<section id="translate">
+  <div class="kicker">Chapter 03</div>
+  <h2><span class="n">§3</span>Translating English into FOL</h2>
+  <p>Translation is the skill that takes the most practice. Master four canonical patterns and most sentences fall into place.</p>
+  <div class="defbox">
+    <span class="deftag">The four canonical patterns</span>
+    <p><strong>All A are B:</strong> &nbsp;<span class="sym">∀x (A(x) → B(x))</span> &nbsp;— universal pairs with the <em>conditional</em>.</p>
+    <p><strong>Some A is B:</strong> &nbsp;<span class="sym">∃x (A(x) ∧ B(x))</span> &nbsp;— existential pairs with <em>conjunction</em>.</p>
+    <p><strong>No A is B:</strong> &nbsp;<span class="sym">∀x (A(x) → ¬B(x))</span> &nbsp;or equivalently <span class="sym">¬∃x (A(x) ∧ B(x))</span>.</p>
+    <p><strong>Some A is not B:</strong> &nbsp;<span class="sym">∃x (A(x) ∧ ¬B(x))</span>.</p>
+  </div>
+  <div class="callout">
+    <span class="label">The single most common mistake</span>
+    Never write "all A are B" as <span class="sym">∀x (A(x) ∧ B(x))</span> — that says <em>everything is both an A and a B</em>. And never write "some A is B" as <span class="sym">∃x (A(x) → B(x))</span> — that's vacuously true the moment any non-A exists. Universals take <span class="sym">→</span>; existentials take <span class="sym">∧</span>.
+  </div>
+
+  <h3>Practice — tap a card to reveal the formula</h3>
+  <div class="revealgrid" id="revealGrid"></div>
+</section>
+
+<!-- 04 -->
+<section id="models">
+  <div class="kicker">Chapter 04</div>
+  <h2><span class="n">§4</span>Models, Interpretations &amp; Truth</h2>
+  <p>A propositional formula's truth depends only on a row of T/F values. A first-order formula's truth depends on a richer thing: a <em class="term">model</em> (or <em class="term">structure</em>, or <em class="term">interpretation</em>).</p>
+  <div class="defbox">
+    <span class="deftag">What a model supplies</span>
+    <p><strong>1. A domain (universe) <span class="sym">D</span></strong> — the non-empty set of objects we are talking about. Quantifiers range over exactly this set.</p>
+    <p><strong>2. An interpretation of each constant</strong> — which object in <span class="sym">D</span> each name picks out.</p>
+    <p><strong>3. An interpretation of each predicate</strong> — its <em>extension</em>: the set of objects (or tuples) of which it is true.</p>
+  </div>
+  <p>For example, let <span class="sym">D = {1, 2, 3, 4, 5}</span>, interpret <span class="sym">Even</span> as <span class="sym">{2, 4}</span> and <span class="sym">Prime</span> as <span class="sym">{2, 3, 5}</span>. Then <span class="sym">∃x (Even(x) ∧ Prime(x))</span> is <span class="T">true</span> (witness: 2), while <span class="sym">∀x (Even(x) → Prime(x))</span> is <span class="F">false</span> (4 is even but not prime).</p>
+  <div class="callout cyan">
+    <span class="label">Truth is model-relative</span>
+    There is no such thing as a first-order sentence being "true" full stop — only <em>true in a model</em>. The same sentence flips truth value across different models. A sentence true in <em>every</em> model is <em class="term">logically valid</em>; one true in <em>at least one</em> is <em class="term">satisfiable</em>. The evaluator below lets you switch between two worlds and watch sentences change.
+  </div>
+</section>
+
+<!-- 05 WORLD -->
+<section id="world">
+  <div class="kicker">Chapter 05 · Interactive Tool</div>
+  <h2><span class="n">◆</span>The World Evaluator</h2>
+  <p>Below is a visible model — a little universe of five objects, <span class="sym">a</span> through <span class="sym">e</span>, each with a shape, size, and colour, arranged left to right. Type any first-order sentence and the engine evaluates it <em>against this world</em>, showing the verdict plus which objects act as witnesses or counterexamples. Switch worlds to see truth values change.</p>
+
+  <div class="callout cyan">
+    <span class="label">Available vocabulary</span>
+    <strong>Unary:</strong> <code>Cube Tet Sphere Small Large Red Blue Green</code> · <strong>Binary:</strong> <code>Larger Smaller LeftOf RightOf SameShape SameColor SameSize</code> · <strong>Constants:</strong> <code>a b c d e</code> · <strong>Identity:</strong> <code>x = y</code>, <code>x != y</code>. Quantifiers: <code>∀ ∃</code> or type <code>forall x</code> / <code>exists x</code>.
+  </div>
+
+  <div class="widget" id="worldWidget">
+    <div class="wtitle">First-Order Model Evaluator</div>
+    <div class="worldbar">
+      <span class="hint" id="worldName">Model: World I</span>
+      <button class="btn ghost" id="worldSwap">Switch world ⇄</button>
+    </div>
+    <div class="worldstage" id="worldStage"></div>
+    <div class="palette" id="palette">
+      <div class="pk" data-ins="∀">∀</div><div class="pk" data-ins="∃">∃</div>
+      <div class="pk" data-ins="¬">¬</div><div class="pk" data-ins="∧">∧</div>
+      <div class="pk" data-ins="∨">∨</div><div class="pk" data-ins="→">→</div>
+      <div class="pk" data-ins="↔">↔</div><div class="pk" data-ins="(">(</div><div class="pk" data-ins=")">)</div>
+    </div>
+    <div class="field">
+      <input type="text" id="folInput" value="∀x (Tet(x) → Small(x))" spellcheck="false" autocomplete="off">
+      <button class="btn" id="folGo">Evaluate ▸</button>
+    </div>
+    <div class="chips" id="folChips">
+      <span class="chip" data-f="∃x (Cube(x) ∧ Red(x))">∃ red cube</span>
+      <span class="chip" data-f="∀x (Tet(x) → Small(x))">all tets small</span>
+      <span class="chip" data-f="∀x ∃y Larger(y, x)">everything has a bigger</span>
+      <span class="chip" data-f="∃x ∀y (LeftOf(x, y) ∨ x = y)">a leftmost object</span>
+      <span class="chip" data-f="∀x ∀y (SameColor(x, y) → SameShape(x, y))">colour fixes shape</span>
+      <span class="chip" data-f="¬∃x (Sphere(x) ∧ Large(x))">no large sphere</span>
+    </div>
+    <div id="folResult"></div>
+  </div>
+</section>
+
+<!-- 06 -->
+<section id="multi">
+  <div class="kicker">Chapter 06</div>
+  <h2><span class="n">§6</span>Multiple Quantifiers &amp; Why Order Matters</h2>
+  <p>The real expressive power — and the real subtlety — of FOL appears when quantifiers nest. Reading order is everything: <span class="sym">∀x ∃y</span> and <span class="sym">∃y ∀x</span> say genuinely different things.</p>
+  <div class="callout">
+    <span class="label">The classic contrast</span>
+    <span class="sym">∀x ∃y Loves(x, y)</span> — "everyone loves <em>someone</em>" (each person may love a different someone).<br>
+    <span class="sym">∃y ∀x Loves(x, y)</span> — "there is <em>someone</em> whom everyone loves" (one universally-beloved person).<br>
+    The second implies the first, but not the reverse. Swapping two quantifiers of the same type is harmless; swapping <span class="sym">∀</span> with <span class="sym">∃</span> changes meaning.
+  </div>
+  <p>You can witness this directly in the evaluator. Try <code>∀x ∃y Larger(y, x)</code> ("everything has something larger") versus <code>∃y ∀x Larger(y, x)</code> ("something is larger than everything"). Both are false in our worlds, but for different reasons — and the per-object breakdown shows you exactly which object breaks each one.</p>
+  <table class="ref">
+    <thead><tr><th>Pattern</th><th>Reads as</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sym">∀x ∀y R(x,y)</span></td><td>R holds of every ordered pair</td></tr>
+      <tr><td><span class="sym">∃x ∃y R(x,y)</span></td><td>R holds of at least one pair</td></tr>
+      <tr><td><span class="sym">∀x ∃y R(x,y)</span></td><td>each x relates to some (possibly different) y</td></tr>
+      <tr><td><span class="sym">∃y ∀x R(x,y)</span></td><td>one fixed y is related to by every x</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 07 -->
+<section id="negation">
+  <div class="kicker">Chapter 07</div>
+  <h2><span class="n">§7</span>Quantifier Negation &amp; Equivalences</h2>
+  <p>The quantifiers are <em class="term">duals</em>: each is the negation of the other with a flipped inner negation. This is De Morgan's law lifted to predicate logic.</p>
+  <div class="defbox">
+    <span class="deftag">Quantifier negation (De Morgan for ∀/∃)</span>
+    <p><span class="sym">¬∀x P(x) ≡ ∃x ¬P(x)</span> &nbsp;— "not everything is P" = "something is not P".</p>
+    <p><span class="sym">¬∃x P(x) ≡ ∀x ¬P(x)</span> &nbsp;— "nothing is P" = "everything is not P".</p>
+  </div>
+  <p>To push a negation through a string of quantifiers, flip every quantifier and move the negation inward:</p>
+  <div class="callout cyan">
+    <span class="label">Worked drive-through</span>
+    <span class="sym">¬∀x ∃y Loves(x, y)</span> &nbsp;≡&nbsp; <span class="sym">∃x ¬∃y Loves(x, y)</span> &nbsp;≡&nbsp; <span class="sym">∃x ∀y ¬Loves(x, y)</span><br>
+    "It's not the case that everyone loves someone" = "someone loves no one."
+  </div>
+  <p>Other useful first-order equivalences (provided the swapped variable does not occur free in the displaced part):</p>
+  <table class="ref">
+    <tbody>
+      <tr><td><span class="sym">∀x (P(x) ∧ Q(x))</span></td><td>≡</td><td><span class="sym">∀x P(x) ∧ ∀x Q(x)</span> &nbsp;(∀ distributes over ∧)</td></tr>
+      <tr><td><span class="sym">∃x (P(x) ∨ Q(x))</span></td><td>≡</td><td><span class="sym">∃x P(x) ∨ ∃x Q(x)</span> &nbsp;(∃ distributes over ∨)</td></tr>
+      <tr><td><span class="sym">∀x ∀y P</span></td><td>≡</td><td><span class="sym">∀y ∀x P</span> &nbsp;(like quantifiers commute)</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">⚠ Caution: <span class="sym">∀</span> does <em>not</em> distribute over <span class="sym">∨</span>, and <span class="sym">∃</span> does <em>not</em> distribute over <span class="sym">∧</span>. "Everyone is rich or poor" ≠ "everyone is rich, or everyone is poor."</p>
+</section>
+
+<!-- 08 -->
+<section id="relations">
+  <div class="kicker">Chapter 08</div>
+  <h2><span class="n">§8</span>Properties of Relations</h2>
+  <p>Binary predicates let us define the structural properties that pervade mathematics. Each is a one-line first-order sentence about a relation <span class="sym">R</span>.</p>
+  <table class="ref">
+    <thead><tr><th>Property</th><th>First-order definition</th><th>Idea</th></tr></thead>
+    <tbody>
+      <tr><td>Reflexive</td><td><span class="sym">∀x R(x, x)</span></td><td>everything relates to itself</td></tr>
+      <tr><td>Irreflexive</td><td><span class="sym">∀x ¬R(x, x)</span></td><td>nothing relates to itself</td></tr>
+      <tr><td>Symmetric</td><td><span class="sym">∀x ∀y (R(x,y) → R(y,x))</span></td><td>relation runs both ways</td></tr>
+      <tr><td>Antisymmetric</td><td><span class="sym">∀x ∀y (R(x,y) ∧ R(y,x) → x = y)</span></td><td>both ways only if identical</td></tr>
+      <tr><td>Transitive</td><td><span class="sym">∀x ∀y ∀z (R(x,y) ∧ R(y,z) → R(x,z))</span></td><td>chains collapse</td></tr>
+      <tr><td>Total / connected</td><td><span class="sym">∀x ∀y (R(x,y) ∨ R(y,x) ∨ x = y)</span></td><td>any two are comparable</td></tr>
+    </tbody>
+  </table>
+  <div class="callout violet">
+    <span class="label">Equivalence relations &amp; orderings</span>
+    A relation that is <strong>reflexive, symmetric, and transitive</strong> is an <em class="term">equivalence relation</em> (it carves the domain into classes) — our <span class="sym">SameColor</span> is one. A relation that is reflexive, antisymmetric, and transitive is a <em class="term">partial order</em>. These three-line definitions are doing the work that pages of prose would otherwise require.
+  </div>
+  <p>In the Octave lab you'll test all three properties of a relation by simple matrix operations.</p>
+</section>
+
+<!-- 09 -->
+<section id="identity">
+  <div class="kicker">Chapter 09</div>
+  <h2><span class="n">§9</span>Identity &amp; Counting</h2>
+  <p>Adding the identity relation <span class="sym">=</span> (true exactly when both terms denote the same object) lets first-order logic <em>count</em> — something no predicate alone can do.</p>
+  <div class="defbox">
+    <span class="deftag">Numerical quantifiers built from identity</span>
+    <p><strong>At least two:</strong> <span class="sym">∃x ∃y (P(x) ∧ P(y) ∧ x ≠ y)</span></p>
+    <p><strong>At most one:</strong> <span class="sym">∀x ∀y (P(x) ∧ P(y) → x = y)</span></p>
+    <p><strong>Exactly one</strong> (written <span class="sym">∃!x P(x)</span>): <span class="sym">∃x (P(x) ∧ ∀y (P(y) → y = x))</span> — "there is a P, and anything that is P is that same one."</p>
+  </div>
+  <p>Identity also formalizes <em class="term">definite descriptions</em>. Russell analyzed "the present King of France is bald" as: there exists exactly one king of France, and he is bald — <span class="sym">∃x (King(x) ∧ ∀y(King(y) → y = x) ∧ Bald(x))</span>. Since no such king exists, the sentence is simply false, dissolving a famous puzzle.</p>
+  <div class="callout">
+    <span class="label">Try counting in the evaluator</span>
+    "There are at least two cubes": <code>∃x ∃y (Cube(x) ∧ Cube(y) ∧ x != y)</code>. "There is exactly one green thing": <code>∃x (Green(x) ∧ ∀y (Green(y) → y = x))</code>.
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="inference">
+  <div class="kicker">Chapter 10</div>
+  <h2><span class="n">§10</span>Quantifier Rules of Inference</h2>
+  <p>Natural deduction extends to predicate logic with four rules for introducing and eliminating quantifiers. Each comes with a restriction that prevents fallacies.</p>
+  <table class="ref">
+    <thead><tr><th>Rule</th><th>From → infer</th><th>Restriction</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Universal Instantiation</strong> (UI)</td><td><span class="sym">∀x P(x)</span> → <span class="sym">P(a)</span></td><td>none — true of all, so true of any named a</td></tr>
+      <tr><td><strong>Universal Generalization</strong> (UG)</td><td><span class="sym">P(a)</span> → <span class="sym">∀x P(x)</span></td><td>a must be <em>arbitrary</em>: it appears in no premise/assumption</td></tr>
+      <tr><td><strong>Existential Generalization</strong> (EG)</td><td><span class="sym">P(a)</span> → <span class="sym">∃x P(x)</span></td><td>none — a specific case proves existence</td></tr>
+      <tr><td><strong>Existential Instantiation</strong> (EI)</td><td><span class="sym">∃x P(x)</span> → <span class="sym">P(c)</span></td><td>c must be a <em>fresh</em> name, not used before</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <span class="label">Why the restrictions matter</span>
+    Without the "arbitrary" restriction on UG, you could prove <span class="sym">∀x Even(x)</span> from <span class="sym">Even(2)</span>. Without the "fresh name" restriction on EI, from <span class="sym">∃x Dog(x)</span> and <span class="sym">∃x Cat(x)</span> you could wrongly conclude one object is both a dog and a cat by reusing the same name.
+  </div>
+
+  <h3>The Socrates argument, finally proved</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">derivation</span></div>
+    <pre><code>1.  ∀x (Human(x) → Mortal(x))     (premise)
+2.  Human(socrates)               (premise)
+3.  Human(socrates) → Mortal(socrates)   (1, Universal Instantiation)
+4.  Mortal(socrates)              (2, 3, Modus Ponens)    ∴ proved</code></pre>
+  </div>
+  <p>This is the argument propositional logic could not touch. Predicate logic validates it in four lines.</p>
+</section>
+
+<!-- 11 -->
+<section id="proofs">
+  <div class="kicker">Chapter 11</div>
+  <h2><span class="n">§11</span>Proof Strategy, Prenex Form &amp; Decidability</h2>
+  <p>A typical first-order proof strips quantifiers off the premises (UI / EI), works in propositional logic on the instances, then re-attaches quantifiers on the conclusion (UG / EG). A second worked example — proving <span class="sym">∃x R(x)</span> from <span class="sym">∀x (S(x) → R(x))</span> and <span class="sym">∃x S(x)</span>:</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">derivation</span></div>
+    <pre><code>1.  ∀x (S(x) → R(x))     (premise)
+2.  ∃x S(x)              (premise)
+3.  S(c)                 (2, Existential Instantiation — c fresh)
+4.  S(c) → R(c)          (1, Universal Instantiation)
+5.  R(c)                 (3, 4, Modus Ponens)
+6.  ∃x R(x)              (5, Existential Generalization)   ∴ proved</code></pre>
+  </div>
+
+  <h3>Prenex normal form</h3>
+  <p>Every first-order formula is equivalent to one in <em class="term">prenex normal form</em>: all quantifiers pulled to the front, followed by a quantifier-free matrix, e.g. <span class="sym">∀x ∃y ∀z (… )</span>. The recipe: rename variables apart, push negations in with quantifier-negation laws, then migrate quantifiers outward. <em class="term">Skolemization</em> goes further, replacing each existential with a function of the universals before it — the key preprocessing step for automated theorem provers.</p>
+
+  <div class="callout violet">
+    <span class="label">A profound limit</span>
+    Propositional logic is <em>decidable</em>: a truth table always settles validity. First-order logic is <strong>only semi-decidable</strong> — Church and Turing proved (1936) there is no algorithm that decides validity for every FOL sentence. A prover can confirm every valid sentence eventually, but may run forever on an invalid one. Gödel's completeness theorem (1930) guarantees that every valid sentence <em>has</em> a proof; his incompleteness theorems (1931) show no consistent system rich enough for arithmetic can prove all arithmetical truths. These results are landmarks of twentieth-century thought.
+  </div>
+</section>
+
+<!-- 12 OCTAVE -->
+<section id="octave">
+  <div class="kicker">Chapter 12 · Computational Lab</div>
+  <h2><span class="n">§12</span>The GNU Octave Predicate-Logic Lab</h2>
+  <p><a class="inline" href="https://octave.org" target="_blank" rel="noopener">GNU Octave</a> models first-order logic beautifully over a <em>finite</em> domain. Unary predicates become logical vectors; binary relations become logical matrices. The universal quantifier is <code>all()</code>, the existential is <code>any()</code>, and the conditional is <code>~A | B</code>. Copy any block into Octave (or the free sandbox at octave-online.net) and run it.</p>
+
+  <h3>Lab 1 — Predicates as vectors; ∀ and ∃</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">predicates.m</span><button class="copybtn">Copy</button></div>
+    <pre><code><span class="tok-c">% Domain = {1,2,3,4,5}. Predicates are logical vectors over the domain.</span>
+domain = <span class="tok-n">1</span>:<span class="tok-n">5</span>;
+Cube  = <span class="tok-f">logical</span>([<span class="tok-n">1</span> <span class="tok-n">1</span> <span class="tok-n">0</span> <span class="tok-n">0</span> <span class="tok-n">0</span>]);   <span class="tok-c">% objects 1,2 are cubes</span>
+Small = <span class="tok-f">logical</span>([<span class="tok-n">0</span> <span class="tok-n">1</span> <span class="tok-n">0</span> <span class="tok-n">1</span> <span class="tok-n">1</span>]);
+
+<span class="tok-f">printf</span>(<span class="tok-s">'∃x Cube(x)            : %d\n'</span>, <span class="tok-f">any</span>(Cube));      <span class="tok-c">% exists a cube</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∀x Small(x)           : %d\n'</span>, <span class="tok-f">all</span>(Small));     <span class="tok-c">% all are small</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∀x (Cube(x)->Small(x)): %d\n'</span>, <span class="tok-f">all</span>(~Cube | Small));   <span class="tok-c">% all cubes small?</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∃x (Cube(x)&Small(x)) : %d\n'</span>, <span class="tok-f">any</span>(Cube & Small));   <span class="tok-c">% some small cube?</span></code></pre>
+  </div>
+
+  <h3>Lab 2 — Quantifier negation (the duals)</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">negation.m</span><button class="copybtn">Copy</button></div>
+    <pre><code>P = <span class="tok-f">logical</span>([<span class="tok-n">1</span> <span class="tok-n">1</span> <span class="tok-n">0</span> <span class="tok-n">1</span> <span class="tok-n">1</span>]);
+<span class="tok-f">printf</span>(<span class="tok-s">'¬∀x P(x)  ==  ∃x ¬P(x) ?  %d\n'</span>, (~<span class="tok-f">all</span>(P)) == <span class="tok-f">any</span>(~P));
+<span class="tok-f">printf</span>(<span class="tok-s">'¬∃x P(x)  ==  ∀x ¬P(x) ?  %d\n'</span>, (~<span class="tok-f">any</span>(P)) == <span class="tok-f">all</span>(~P));</code></pre>
+  </div>
+
+  <h3>Lab 3 — Binary relations &amp; nested quantifiers</h3>
+  <p>A relation is a matrix: <code>R(i,j)=1</code> means object i relates to object j. Watch <span class="sym">∀x∃y</span> and <span class="sym">∃y∀x</span> come apart.</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">relations.m</span><button class="copybtn">Copy</button></div>
+    <pre><code><span class="tok-c">% sizes of objects 1..5 (2 = large, 1 = small)</span>
+sz = [<span class="tok-n">2</span> <span class="tok-n">1</span> <span class="tok-n">2</span> <span class="tok-n">1</span> <span class="tok-n">1</span>];
+R  = <span class="tok-f">bsxfun</span>(@gt, sz', sz);       <span class="tok-c">% R(i,j) = Larger(i,j) = sz(i) > sz(j)</span>
+
+<span class="tok-f">printf</span>(<span class="tok-s">'∀x∀y Larger(x,y) : %d\n'</span>, <span class="tok-f">all</span>(<span class="tok-f">all</span>(R)));
+<span class="tok-f">printf</span>(<span class="tok-s">'∃x∃y Larger(x,y) : %d\n'</span>, <span class="tok-f">any</span>(<span class="tok-f">any</span>(R)));
+<span class="tok-c">% ∀x ∃y R(x,y): every object is larger than something? (each ROW has a 1)</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∀x∃y Larger(x,y) : %d\n'</span>, <span class="tok-f">all</span>(<span class="tok-f">any</span>(R, <span class="tok-n">2</span>)));
+<span class="tok-c">% ∃y ∀x R(x,y): something larger than EVERY object? (some COLUMN all 1s)</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∃y∀x Larger(x,y) : %d\n'</span>, <span class="tok-f">any</span>(<span class="tok-f">all</span>(R, <span class="tok-n">1</span>)));</code></pre>
+  </div>
+
+  <h3>Lab 4 — Reflexive, symmetric, transitive</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">properties.m</span><button class="copybtn">Copy</button></div>
+    <pre><code><span class="tok-c">% colour codes for objects 1..5 (1=red, 2=blue, 3=green)</span>
+col = [<span class="tok-n">1</span> <span class="tok-n">2</span> <span class="tok-n">2</span> <span class="tok-n">1</span> <span class="tok-n">3</span>];
+S = <span class="tok-f">bsxfun</span>(@eq, col', col);     <span class="tok-c">% SameColor(i,j)</span>
+
+reflexive  = <span class="tok-f">all</span>(<span class="tok-f">diag</span>(S));            <span class="tok-c">% ∀x R(x,x)</span>
+symmetric  = <span class="tok-f">isequal</span>(S, S');           <span class="tok-c">% ∀x∀y (R(x,y)->R(y,x))</span>
+twostep    = (<span class="tok-f">double</span>(S) * <span class="tok-f">double</span>(S)) &gt; <span class="tok-n">0</span>;   <span class="tok-c">% reachable in 2 steps</span>
+transitive = <span class="tok-f">all</span>(<span class="tok-f">all</span>(~twostep | S));   <span class="tok-c">% ∀x∀y∀z chain rule</span>
+
+<span class="tok-f">printf</span>(<span class="tok-s">'SameColor:  reflexive=%d  symmetric=%d  transitive=%d\n'</span>, ...
+        reflexive, symmetric, transitive);
+<span class="tok-c">% all three true => SameColor is an equivalence relation</span></code></pre>
+  </div>
+
+  <h3>Lab 5 — Identity &amp; numerical quantifiers</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">counting.m</span><button class="copybtn">Copy</button></div>
+    <pre><code>Cube  = <span class="tok-f">logical</span>([<span class="tok-n">1</span> <span class="tok-n">1</span> <span class="tok-n">0</span> <span class="tok-n">0</span> <span class="tok-n">0</span>]);
+Green = <span class="tok-f">logical</span>([<span class="tok-n">0</span> <span class="tok-n">0</span> <span class="tok-n">0</span> <span class="tok-n">0</span> <span class="tok-n">1</span>]);
+
+<span class="tok-f">printf</span>(<span class="tok-s">'∃x P(x)  at least one cube : %d\n'</span>, <span class="tok-f">sum</span>(Cube) &gt;= <span class="tok-n">1</span>);
+<span class="tok-f">printf</span>(<span class="tok-s">'at least TWO cubes         : %d\n'</span>, <span class="tok-f">sum</span>(Cube) &gt;= <span class="tok-n">2</span>);
+<span class="tok-f">printf</span>(<span class="tok-s">'∃!x exactly one green      : %d\n'</span>, <span class="tok-f">sum</span>(Green) == <span class="tok-n">1</span>);
+<span class="tok-c">% Uniqueness as identity:  ∃x(P(x) & ∀y(P(y) -> y=x))  <=>  sum(P)==1</span></code></pre>
+  </div>
+
+  <div class="callout">
+    <span class="label">The bridge to remember</span>
+    <code>all</code> = <span class="sym">∀</span> · <code>any</code> = <span class="sym">∃</span> · <code>~A | B</code> = <span class="sym">→</span> · row-wise <code>any(R,2)</code> = inner <span class="sym">∃y</span> · column-wise <code>all(R,1)</code> = inner <span class="sym">∀x</span> · <code>sum(P)</code> counts witnesses. Finite-domain logic <em>is</em> linear algebra over the booleans.
+  </div>
+</section>
+
+<!-- 13 QUIZ -->
+<section id="quiz">
+  <div class="kicker">Chapter 13 · Interactive Tool</div>
+  <h2><span class="n">◆</span>Self-Test Quiz</h2>
+  <p>Ten questions across the whole course. Click an answer for instant feedback and an explanation.</p>
+  <div id="quizMount"></div>
+  <div class="scorebar" id="quizScore">Score: 0 / 10</div>
+</section>
+
+<!-- 14 CHEAT -->
+<section id="cheat">
+  <div class="kicker">Chapter 14</div>
+  <h2><span class="n">§</span>Symbol &amp; Syntax Reference</h2>
+  <table class="ref">
+    <thead><tr><th>Symbol</th><th>Name</th><th>Reads as</th><th>Engine input / Octave</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sym">∀</span></td><td>Universal</td><td>for all / every</td><td><code>∀</code> or <code>forall x</code> / <code>all()</code></td></tr>
+      <tr><td><span class="sym">∃</span></td><td>Existential</td><td>there exists / some</td><td><code>∃</code> or <code>exists x</code> / <code>any()</code></td></tr>
+      <tr><td><span class="sym">∃!</span></td><td>Unique existential</td><td>there is exactly one</td><td>built from = / <code>sum(P)==1</code></td></tr>
+      <tr><td><span class="sym">¬</span></td><td>Negation</td><td>not</td><td><code>~ ¬</code> / <code>~</code></td></tr>
+      <tr><td><span class="sym">∧</span></td><td>Conjunction</td><td>and</td><td><code>&amp; ∧</code> / <code>&amp;</code></td></tr>
+      <tr><td><span class="sym">∨</span></td><td>Disjunction</td><td>or</td><td><code>| ∨</code> / <code>|</code></td></tr>
+      <tr><td><span class="sym">→</span></td><td>Conditional</td><td>if … then</td><td><code>-&gt; →</code> / <code>~A | B</code></td></tr>
+      <tr><td><span class="sym">↔</span></td><td>Biconditional</td><td>iff</td><td><code>&lt;-&gt; ↔</code> / <code>==</code></td></tr>
+      <tr><td><span class="sym">=</span></td><td>Identity</td><td>is the same as</td><td><code>=</code> / <code>==</code></td></tr>
+      <tr><td><span class="sym">≠</span></td><td>Non-identity</td><td>is not</td><td><code>!= ≠</code> / <code>~=</code></td></tr>
+      <tr><td><span class="sym">P(x)</span></td><td>Predicate</td><td>x has property P</td><td>logical vector</td></tr>
+      <tr><td><span class="sym">R(x,y)</span></td><td>Relation</td><td>x stands in R to y</td><td>logical matrix</td></tr>
+    </tbody>
+  </table>
+  <div class="callout cyan">
+    <span class="label">Where to go next</span>
+    Beyond first-order: <strong>second-order logic</strong> (quantify over predicates and sets), <strong>modal &amp; temporal logics</strong> (necessity, time, knowledge), <strong>type theory</strong> and the Curry–Howard correspondence, and the metatheory — <strong>soundness, completeness, compactness, and Löwenheim–Skolem</strong>.
+  </div>
+</section>
+
+<footer>
+  <p class="marque">Predicate Logic ∀∃</p>
+  <p>A complete interactive course featuring a live first-order model evaluator, English-to-FOL practice, and a GNU Octave computational lab. Everything runs in your browser — nothing leaves your machine. Save this file and it works offline forever.</p>
+</footer>
+
+</main>
+</div></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   FIRST-ORDER LOGIC ENGINE
+   tokenizer -> recursive-descent parser -> model evaluator
+   ============================================================ */
+function tokenize(s){
+  const T=[];let i=0;
+  const isL=c=>/[A-Za-z_]/.test(c), isLN=c=>/[A-Za-z0-9_]/.test(c);
+  while(i<s.length){
+    const c=s[i];
+    if(/\s/.test(c)){i++;continue;}
+    if(s.startsWith('<->',i)||s.startsWith('<=>',i)){T.push({t:'iff'});i+=3;continue;}
+    if(s.startsWith('->',i)||s.startsWith('=>',i)){T.push({t:'imp'});i+=2;continue;}
+    if(s.startsWith('!=',i)){T.push({t:'neq'});i+=2;continue;}
+    if(c==='↔'||c==='≡'){T.push({t:'iff'});i++;continue;}
+    if(c==='→'||c==='⊃'){T.push({t:'imp'});i++;continue;}
+    if(c==='∧'||c==='&'||c==='^'){T.push({t:'and'});i++;continue;}
+    if(c==='∨'||c==='|'){T.push({t:'or'});i++;continue;}
+    if(c==='¬'||c==='~'){T.push({t:'not'});i++;continue;}
+    if(c==='∀'){T.push({t:'q',k:'all'});i++;continue;}
+    if(c==='∃'){T.push({t:'q',k:'ex'});i++;continue;}
+    if(c==='≠'){T.push({t:'neq'});i++;continue;}
+    if(c==='='){T.push({t:'eq'});i++;continue;}
+    if(c==='('){T.push({t:'lp'});i++;continue;}
+    if(c===')'){T.push({t:'rp'});i++;continue;}
+    if(c===','){T.push({t:'comma'});i++;continue;}
+    if(isL(c)){let j=i+1;while(j<s.length&&isLN(s[j]))j++;const w=s.slice(i,j);i=j;
+      if(w==='forall'||w==='all'){T.push({t:'q',k:'all'});continue;}
+      if(w==='exists'||w==='some'){T.push({t:'q',k:'ex'});continue;}
+      T.push({t:'ident',name:w});continue;}
+    throw new Error('Unexpected character: "'+c+'"');
+  }
+  return T;
+}
+function parse(tokens){
+  let p=0;const peek=()=>tokens[p],next=()=>tokens[p++];
+  const expect=t=>{const k=peek();if(!k||k.t!==t)throw new Error('Expected "'+(t==='rp'?')':t==='lp'?'(':t)+'"');return next();};
+  function pIff(){let l=pImp();while(peek()&&peek().t==='iff'){next();l={t:'iff',l:l,r:pImp()};}return l;}
+  function pImp(){let l=pOr();if(peek()&&peek().t==='imp'){next();return{t:'imp',l:l,r:pImp()};}return l;}
+  function pOr(){let l=pAnd();while(peek()&&peek().t==='or'){next();l={t:'or',l:l,r:pAnd()};}return l;}
+  function pAnd(){let l=pUn();while(peek()&&peek().t==='and'){next();l={t:'and',l:l,r:pUn()};}return l;}
+  function pUn(){
+    const k=peek();if(!k)throw new Error('Unexpected end of formula');
+    if(k.t==='not'){next();return{t:'not',e:pUn()};}
+    if(k.t==='q'){next();const v=expect('ident').name;return{t:'quant',k:k.k,v:v,body:pUn()};}
+    return pAtom();
+  }
+  function pTerm(){const k=peek();if(!k||k.t!=='ident')throw new Error('Expected a term (a variable or constant)');next();return{name:k.name};}
+  function pAtom(){
+    const k=peek();if(!k)throw new Error('Unexpected end of formula');
+    if(k.t==='lp'){next();const e=pIff();expect('rp');return e;}
+    if(k.t==='ident'){
+      if(/^[A-Z]/.test(k.name)){next();expect('lp');const args=[pTerm()];
+        while(peek()&&peek().t==='comma'){next();args.push(pTerm());}expect('rp');
+        return{t:'pred',name:k.name,args:args};}
+      const left=pTerm();
+      if(peek()&&peek().t==='eq'){next();return{t:'eq',l:left,r:pTerm()};}
+      if(peek()&&peek().t==='neq'){next();return{t:'not',e:{t:'eq',l:left,r:pTerm()}};}
+      throw new Error('Expected "=" after term "'+left.name+'"');
+    }
+    throw new Error('Unexpected symbol in formula');
+  }
+  const a=pIff();if(p<tokens.length)throw new Error('Trailing symbols after a complete formula');return a;
+}
+
+const SR={large:2,small:1};
+const PRED={
+  Cube:{n:1,f:x=>x.shape==='cube'},Tet:{n:1,f:x=>x.shape==='tet'},Sphere:{n:1,f:x=>x.shape==='sphere'},
+  Small:{n:1,f:x=>x.size==='small'},Large:{n:1,f:x=>x.size==='large'},
+  Red:{n:1,f:x=>x.color==='red'},Blue:{n:1,f:x=>x.color==='blue'},Green:{n:1,f:x=>x.color==='green'},
+  Larger:{n:2,f:(x,y)=>SR[x.size]>SR[y.size]},Smaller:{n:2,f:(x,y)=>SR[x.size]<SR[y.size]},
+  LeftOf:{n:2,f:(x,y)=>x.pos<y.pos},RightOf:{n:2,f:(x,y)=>x.pos>y.pos},
+  SameShape:{n:2,f:(x,y)=>x.shape===y.shape},SameColor:{n:2,f:(x,y)=>x.color===y.color},SameSize:{n:2,f:(x,y)=>x.size===y.size}
+};
+function resolve(term,env,model){
+  if(env[term.name]!==undefined) return env[term.name];
+  const c=model.find(o=>o.id===term.name);
+  if(c) return c;
+  throw new Error('"'+term.name+'" is a free variable — bind it with a quantifier, or use a constant a–e');
+}
+function ev(node,env,model){
+  switch(node.t){
+    case 'pred':{const d=PRED[node.name];if(!d)throw new Error('Unknown predicate "'+node.name+'"');
+      if(d.n!==node.args.length)throw new Error('"'+node.name+'" takes '+d.n+' argument'+(d.n>1?'s':''));
+      return d.f.apply(null,node.args.map(a=>resolve(a,env,model)));}
+    case 'eq': return resolve(node.l,env,model).id===resolve(node.r,env,model).id;
+    case 'not': return !ev(node.e,env,model);
+    case 'and': return ev(node.l,env,model)&&ev(node.r,env,model);
+    case 'or':  return ev(node.l,env,model)||ev(node.r,env,model);
+    case 'imp': return (!ev(node.l,env,model))||ev(node.r,env,model);
+    case 'iff': return ev(node.l,env,model)===ev(node.r,env,model);
+    case 'quant':{
+      const test=d=>{const e2=Object.assign({},env);e2[node.v]=d;return ev(node.body,e2,model);};
+      return node.k==='all'? model.every(test) : model.some(test);
+    }
+  }
+}
+
+/* ---- the two worlds ---- */
+const WORLDS=[
+  [ {id:'a',shape:'cube',size:'large',color:'red',pos:1},
+    {id:'b',shape:'cube',size:'small',color:'blue',pos:2},
+    {id:'c',shape:'tet',size:'large',color:'blue',pos:3},
+    {id:'d',shape:'sphere',size:'small',color:'red',pos:4},
+    {id:'e',shape:'tet',size:'small',color:'green',pos:5} ],
+  [ {id:'a',shape:'tet',size:'small',color:'blue',pos:1},
+    {id:'b',shape:'cube',size:'large',color:'red',pos:2},
+    {id:'c',shape:'sphere',size:'small',color:'green',pos:3},
+    {id:'d',shape:'cube',size:'large',color:'red',pos:4},
+    {id:'e',shape:'cube',size:'small',color:'blue',pos:5} ]
+];
+const COLORHEX={red:'#ef7d6b',blue:'#5fc7d4',green:'#6fcf97'};
+function glyph(o){
+  const big=o.size==='large', s=big?54:38, c=COLORHEX[o.color];
+  if(o.shape==='cube'){
+    const d=s; return '<svg class="glyph" width="'+(d+10)+'" height="'+(d+10)+'" viewBox="0 0 '+(d+10)+' '+(d+10)+'">'+
+      '<rect x="6" y="6" width="'+d+'" height="'+d+'" rx="4" fill="'+c+'" stroke="rgba(255,255,255,.25)"/></svg>';
+  }
+  if(o.shape==='tet'){
+    const w=s+8,h=s+4; return '<svg class="glyph" width="'+(w+8)+'" height="'+(h+8)+'" viewBox="0 0 '+(w+8)+' '+(h+8)+'">'+
+      '<polygon points="'+((w+8)/2)+',6 '+(w+4)+','+(h+4)+' 4,'+(h+4)+'" fill="'+c+'" stroke="rgba(255,255,255,.25)"/></svg>';
+  }
+  const r=(big?30:21); return '<svg class="glyph" width="'+(r*2+10)+'" height="'+(r*2+10)+'" viewBox="0 0 '+(r*2+10)+' '+(r*2+10)+'">'+
+    '<circle cx="'+(r+5)+'" cy="'+(r+5)+'" r="'+r+'" fill="'+c+'" stroke="rgba(255,255,255,.25)"/></svg>';
+}
+
+let worldIdx=0;
+function currentModel(){return WORLDS[worldIdx];}
+function renderWorld(){
+  const stage=document.getElementById('worldStage');
+  const m=currentModel();
+  stage.innerHTML=m.slice().sort((a,b)=>a.pos-b.pos).map(o=>
+    '<div class="obj">'+glyph(o)+'<div class="lbl">'+o.id+'</div>'+
+    '<div class="props">'+o.size+'<br>'+o.color+' '+o.shape+'</div></div>').join('');
+  document.getElementById('worldName').textContent='Model: World '+(worldIdx===0?'I':'II');
+}
+
+function evaluateFormula(){
+  const out=document.getElementById('folResult');
+  const f=document.getElementById('folInput').value.trim();
+  if(!f){out.innerHTML='';return;}
+  const model=currentModel();
+  try{
+    const ast=parse(tokenize(f));
+    const result=ev(ast,{},model);
+    let html='<div class="verdict '+(result?'t':'f')+'">'+(result?'✓ True in this model':'✗ False in this model')+'</div>';
+    // breakdown for outer quantifier
+    if(ast.t==='quant'){
+      const rows=model.slice().sort((a,b)=>a.pos-b.pos).map(o=>{
+        const e2={};e2[ast.v]=o;let b;try{b=ev(ast.body,e2,model);}catch(err){b=null;}
+        return {id:o.id,b:b};
+      });
+      const wantTrue = ast.k==='ex';
+      html+='<div class="breakdown"><div class="hint" style="margin-bottom:4px">Body evaluated for each object ('+ast.v+' := a…e):</div>';
+      rows.forEach(r=>{
+        const sat=r.b;
+        const tag = sat ? '<span class="tag sat">satisfies</span>' : '<span class="tag vio">fails</span>';
+        html+='<div class="row"><span class="ob">'+r.id+'</span>'+tag+'</div>';
+      });
+      const wits=rows.filter(r=>r.b).map(r=>r.id);
+      const viol=rows.filter(r=>!r.b).map(r=>r.id);
+      if(ast.k==='ex'){
+        html+= wits.length? '<div class="hint" style="margin-top:6px">∃ witness'+(wits.length>1?'es':'')+': '+wits.join(', ')+'</div>'
+                          : '<div class="hint" style="margin-top:6px">No witness exists → the existential is false.</div>';
+      }else{
+        html+= viol.length? '<div class="hint" style="margin-top:6px">∀ counterexample'+(viol.length>1?'s':'')+': '+viol.join(', ')+'</div>'
+                          : '<div class="hint" style="margin-top:6px">No counterexample → the universal holds.</div>';
+      }
+      html+='</div>';
+    }
+    out.innerHTML=html;
+  }catch(e){
+    out.innerHTML='<div class="errmsg">⚠ '+e.message+'</div>';
+  }
+}
+
+document.getElementById('folGo').addEventListener('click',evaluateFormula);
+document.getElementById('folInput').addEventListener('keydown',e=>{if(e.key==='Enter')evaluateFormula();});
+document.querySelectorAll('#folChips .chip').forEach(ch=>ch.addEventListener('click',()=>{
+  document.getElementById('folInput').value=ch.dataset.f;evaluateFormula();
+}));
+document.querySelectorAll('#palette .pk').forEach(pk=>pk.addEventListener('click',()=>{
+  const inp=document.getElementById('folInput');
+  const start=inp.selectionStart||inp.value.length;
+  const ins=pk.dataset.ins;
+  inp.value=inp.value.slice(0,start)+ins+inp.value.slice(inp.selectionEnd||start);
+  inp.focus();inp.selectionStart=inp.selectionEnd=start+ins.length;
+}));
+document.getElementById('worldSwap').addEventListener('click',()=>{
+  worldIdx=1-worldIdx;renderWorld();evaluateFormula();
+});
+renderWorld();evaluateFormula();
+
+/* ============================================================
+   TRANSLATION REVEAL CARDS
+   ============================================================ */
+(function(){
+  const data=[
+    {en:'Every dog barks.',fol:'∀x (Dog(x) → Barks(x))'},
+    {en:'Some student passed.',fol:'∃x (Student(x) ∧ Passed(x))'},
+    {en:'No fish can fly.',fol:'∀x (Fish(x) → ¬Flies(x))'},
+    {en:'Not every bird can fly.',fol:'¬∀x (Bird(x) → Flies(x))'},
+    {en:'Everyone loves someone.',fol:'∀x ∃y Loves(x, y)'},
+    {en:'Someone is loved by everyone.',fol:'∃y ∀x Loves(x, y)'},
+    {en:'There is exactly one queen.',fol:'∃x (Queen(x) ∧ ∀y (Queen(y) → y = x))'},
+    {en:'Only the brave are free.',fol:'∀x (Free(x) → Brave(x))'},
+    {en:'Some integer is prime and even.',fol:'∃x (Prime(x) ∧ Even(x))'},
+    {en:'All that glitters is not gold.',fol:'¬∀x (Glitters(x) → Gold(x))'}
+  ];
+  const g=document.getElementById('revealGrid');
+  g.innerHTML=data.map(d=>'<div class="reveal"><div class="en">'+d.en+'</div>'+
+    '<div class="fol">'+d.fol+'</div><div class="tap">tap to reveal</div></div>').join('');
+  g.querySelectorAll('.reveal').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('open')));
+})();
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+(function(){
+  const Q=[
+    {q:'"All cats are mammals" is correctly symbolized as:',
+     opts:['∃x (Cat(x) ∧ Mammal(x))','∀x (Cat(x) ∧ Mammal(x))','∀x (Cat(x) → Mammal(x))','∀x (Mammal(x) → Cat(x))'],a:2,
+     fb:'Universal claims pair with the conditional: for every x, if x is a cat then x is a mammal.'},
+    {q:'"Some prime is even" is correctly symbolized as:',
+     opts:['∃x (Prime(x) ∧ Even(x))','∃x (Prime(x) → Even(x))','∀x (Prime(x) ∧ Even(x))','∀x (Prime(x) → Even(x))'],a:0,
+     fb:'Existential claims pair with conjunction. Using → here would be vacuously true for any non-prime.'},
+    {q:'In ∀x (P(x) → Q(x, y)), the variable y is:',
+     opts:['Bound by ∀x','Free','Both bound and free','Undefined'],a:1,
+     fb:'∀x binds only x. y is free, so the formula is an open formula, not a sentence.'},
+    {q:'¬∃x P(x) is logically equivalent to:',
+     opts:['∃x ¬P(x)','∀x P(x)','∀x ¬P(x)','¬∀x P(x)'],a:2,
+     fb:'Quantifier negation: "nothing is P" means "everything is not P".'},
+    {q:'Which pair says genuinely DIFFERENT things?',
+     opts:['∀x∀y R vs ∀y∀x R','∃x∃y R vs ∃y∃x R','∀x∃y R vs ∃y∀x R','None differ'],a:2,
+     fb:'Swapping ∀ with ∃ changes meaning. ∃y∀x R implies ∀x∃y R but not conversely.'},
+    {q:'The truth value of a first-order sentence is:',
+     opts:['Fixed once and for all','Relative to a model','Always either valid or unsatisfiable','Determined by a truth table'],a:1,
+     fb:'Truth is model-relative: a sentence can be true in one model and false in another.'},
+    {q:'A reflexive, symmetric, and transitive relation is:',
+     opts:['A partial order','A function','An equivalence relation','Antisymmetric'],a:2,
+     fb:'Those three properties define an equivalence relation, which partitions the domain into classes.'},
+    {q:'From ∀x (Human(x) → Mortal(x)) and Human(socrates), which rule first gives Human(socrates) → Mortal(socrates)?',
+     opts:['Existential Generalization','Universal Instantiation','Existential Instantiation','Universal Generalization'],a:1,
+     fb:'Universal Instantiation: what holds for all holds for the named individual socrates.'},
+    {q:'Existential Instantiation requires that the introduced name be:',
+     opts:['Arbitrary','A constant from a premise','Fresh (not used before)','Universally quantified'],a:2,
+     fb:'EI must use a brand-new name; reusing a name would smuggle in unwarranted identities.'},
+    {q:'Validity in full first-order logic is:',
+     opts:['Decidable by truth tables','Decidable by an algorithm','Only semi-decidable','Always undecidable'],a:2,
+     fb:'Church and Turing showed FOL validity is semi-decidable: provable when valid, but no general decision procedure exists.'}
+  ];
+  let score=0;const answered=new Array(Q.length).fill(false);
+  const m=document.getElementById('quizMount');
+  m.innerHTML=Q.map((it,qi)=>'<div class="quiz-q" data-qi="'+qi+'"><div class="qn">QUESTION '+(qi+1)+' / '+Q.length+'</div>'+
+    '<div class="qtext">'+it.q+'</div>'+it.opts.map((o,oi)=>'<button class="quiz-opt" data-oi="'+oi+'">'+o+'</button>').join('')+
+    '<div class="quiz-fb"></div></div>').join('');
+  m.querySelectorAll('.quiz-q').forEach(card=>{
+    const qi=+card.dataset.qi, fb=card.querySelector('.quiz-fb');
+    card.querySelectorAll('.quiz-opt').forEach(btn=>btn.addEventListener('click',()=>{
+      if(answered[qi])return;answered[qi]=true;
+      const oi=+btn.dataset.oi, correct=Q[qi].a;
+      card.querySelectorAll('.quiz-opt').forEach(b=>{const bi=+b.dataset.oi;
+        if(bi===correct)b.classList.add('correct');else if(bi===oi)b.classList.add('wrong');
+        b.style.cursor='default';});
+      if(oi===correct)score++;
+      fb.textContent=(oi===correct?'✓ Correct. ':'✗ ')+Q[qi].fb;fb.classList.add('show');
+      document.getElementById('quizScore').textContent='Score: '+score+' / '+Q.length;
+    }));
+  });
+})();
+
+/* copy buttons */
+document.querySelectorAll('.copybtn').forEach(btn=>btn.addEventListener('click',()=>{
+  const code=btn.closest('.codeblock').querySelector('code').innerText;
+  navigator.clipboard.writeText(code).then(()=>{const o=btn.textContent;btn.textContent='Copied ✓';setTimeout(()=>btn.textContent=o,1400);}).catch(()=>{btn.textContent='Ctrl+C';});
+}));
+
+})();
+</script>
+</body>
+</html>

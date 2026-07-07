@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Mechanics — Physics, Mathematics &amp; Computation</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath:[['\\(','\\)'],['$','$']],
+    displayMath:[['\\[','\\]'],['$$','$$']],
+    tags:'ams',
+    macros:{
+      bra:['\\langle #1 |',1], ket:['| #1 \\rangle',1],
+      braket:['\\langle #1 | #2 \\rangle',2],
+      ev:['\\langle #1 \\rangle',1],
+      comm:['\\left[#1,\\,#2\\right]',2],
+      acomm:['\\left\\{#1,\\,#2\\right\\}',2],
+      half:'\\tfrac{1}{2}',
+      hb:'\\hbar',
+      op:['\\hat{#1}',1],
+      vx:'\\mathbf{x}',
+      vp:'\\mathbf{p}',
+      pd:['\\frac{\\partial #1}{\\partial #2}',2],
+      ii:'\\mathrm{i}',
+      ee:'\\mathrm{e}',
+      dd:'\\mathrm{d}'
+    }
+  },
+  options:{skipHtmlTags:['script','noscript','style','textarea']}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Major+Mono+Display&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════
+   QUANTUM MECHANICS — bioluminescent wave theme
+   Distinct from Newton (parchment) & Einstein (space)
+══════════════════════════════════════════════ */
+:root{
+  --void:      #03030c;
+  --deep:      #050614;
+  --surf:      #080a1e;
+  --surf2:     #0c1028;
+  --panel:     #0a0e22;
+  --border:    #161e40;
+  --border2:   #1e2a58;
+
+  --cyan:      #00e5c8;
+  --cyan2:     #00b8a0;
+  --cyan3:     #007a6a;
+  --purple:    #9966ff;
+  --purple2:   #7744dd;
+  --purple3:   #4422aa;
+  --lime:      #aaff44;
+  --lime2:     #77cc22;
+  --orange:    #ff9900;
+  --orange2:   #cc7700;
+  --pink:      #ff44aa;
+  --pink2:     #cc2288;
+  --gold:      #ffd700;
+
+  --text:      #c0d8f0;
+  --text2:     #7090b8;
+  --text3:     #384878;
+  --head:      #e8f4ff;
+
+  --glow-c:    0 0 16px rgba(0,229,200,0.4);
+  --glow-p:    0 0 16px rgba(153,102,255,0.4);
+  --glow-l:    0 0 16px rgba(170,255,68,0.4);
+
+  --code-bg:   #03040e;
+  --code-text: #90c8a8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:16.5px;}
+body{
+  background:var(--void);
+  color:var(--text);
+  font-family:'Lora',Georgia,serif;
+  display:flex;min-height:100vh;line-height:1.8;
+}
+/* Animated probability wave background */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse at 15% 25%,rgba(153,102,255,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 75%,rgba(0,229,200,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse at 50% 50%,rgba(170,255,68,0.02) 0%,transparent 70%);
+}
+
+/* ── SIDEBAR ──────────────────────────────────── */
+#sb{
+  width:262px;min-width:262px;
+  background:linear-gradient(180deg,#030310 0%,#020208 100%);
+  border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;
+  overflow-y:auto;z-index:100;padding-bottom:3rem;
+}
+#sb::-webkit-scrollbar{width:3px;}
+#sb::-webkit-scrollbar-thumb{background:var(--cyan3);}
+
+.sb-logo{
+  padding:1.3rem 1rem 0.9rem;
+  border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+/* ψ ghost behind logo */
+.sb-logo::after{
+  content:'Ψ';position:absolute;right:-5px;top:50%;transform:translateY(-50%);
+  font-family:'Major Mono Display',monospace;font-size:4rem;
+  color:rgba(0,229,200,0.05);pointer-events:none;
+}
+.sb-brand{
+  font-family:'Major Mono Display',monospace;
+  font-size:0.68rem;letter-spacing:0.08em;
+  color:var(--cyan);text-transform:uppercase;display:block;margin-bottom:0.2rem;
+  text-shadow:var(--glow-c);
+}
+.sb-sub{font-family:'Josefin Sans',sans-serif;font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;}
+
+#sb nav ul{list-style:none;padding:0.3rem 0;}
+#sb nav ul li a{
+  display:block;padding:0.28rem 1.1rem;
+  color:var(--text2);text-decoration:none;
+  font-family:'Josefin Sans',sans-serif;font-size:0.76rem;
+  letter-spacing:0.02em;
+  border-left:2px solid transparent;
+  transition:color 0.15s,border-color 0.15s,background 0.15s;
+}
+#sb nav ul li a:hover{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,229,200,0.04);}
+.sh{padding:0.65rem 1.1rem 0.2rem;font-family:'Major Mono Display',monospace;
+    font-size:0.54rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--border2);}
+.sub{padding-left:2rem !important;font-size:0.71rem !important;font-style:italic;}
+
+/* ── MAIN ─────────────────────────────────────── */
+#main{margin-left:262px;flex:1;max-width:990px;padding:0 2.8rem 6rem;position:relative;z-index:1;}
+
+/* ── HERO ─────────────────────────────────────── */
+#hero{
+  background:linear-gradient(160deg,#05061a 0%,#030415 50%,#08041a 100%);
+  text-align:center;padding:3.8rem 2rem 3.2rem;
+  margin:0 -2.8rem 3.5rem;border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+#hero::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 30% 100%,rgba(0,229,200,0.14) 0%,transparent 50%),
+    radial-gradient(ellipse at 70% 100%,rgba(153,102,255,0.14) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 0%,  rgba(170,255,68,0.06) 0%,transparent 60%);
+}
+.hero-psi{
+  font-family:'Major Mono Display',monospace;
+  font-size:4.5rem;color:var(--cyan);
+  text-shadow:0 0 50px rgba(0,229,200,0.6),0 0 100px rgba(0,229,200,0.2);
+  display:block;margin-bottom:0.3rem;position:relative;
+  animation:pulse 3s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{text-shadow:0 0 40px rgba(0,229,200,0.5),0 0 80px rgba(0,229,200,0.2);}
+  50%{text-shadow:0 0 80px rgba(0,229,200,0.9),0 0 160px rgba(0,229,200,0.4);}}
+.hero-eq{
+  font-family:'Major Mono Display',monospace;
+  font-size:1.0rem;color:var(--purple);
+  letter-spacing:0.06em;
+  text-shadow:0 0 30px rgba(153,102,255,0.5);
+  display:block;margin-bottom:1.1rem;position:relative;
+}
+#hero h1{
+  font-family:'Josefin Sans',sans-serif;
+  font-size:1.0rem;font-weight:300;
+  letter-spacing:0.4em;text-transform:uppercase;
+  color:var(--text2);margin-bottom:0.4rem;position:relative;
+}
+#hero .sub2{
+  font-family:'Lora',serif;font-style:italic;
+  font-size:0.85rem;color:var(--text3);position:relative;
+}
+.hero-wave{
+  display:flex;align-items:center;justify-content:center;gap:0.6rem;margin:0.8rem 0;position:relative;
+}
+.hero-wave::before,.hero-wave::after{
+  content:'';flex:1;max-width:140px;height:1px;
+  background:linear-gradient(to right,transparent,var(--cyan2),transparent);
+}
+.wd{width:5px;height:5px;border-radius:50%;background:var(--cyan);}
+
+/* ── TYPOGRAPHY ───────────────────────────────── */
+h2{
+  font-family:'Josefin Sans',sans-serif;font-weight:600;
+  font-size:1.08rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--cyan);border-bottom:1px solid var(--border2);
+  padding-bottom:0.45rem;margin:3rem 0 1.2rem;
+  text-shadow:var(--glow-c);
+}
+h3{font-family:'Josefin Sans',sans-serif;font-weight:600;font-size:1.0rem;
+   color:var(--purple);margin:2rem 0 0.65rem;letter-spacing:0.04em;text-shadow:var(--glow-p);}
+h4{font-family:'Josefin Sans',sans-serif;font-weight:600;font-size:0.88rem;
+   color:var(--lime);margin:1.4rem 0 0.4rem;letter-spacing:0.04em;}
+p{margin-bottom:0.9rem;}
+a{color:var(--cyan2);}
+section{scroll-margin-top:1.5rem;}
+
+/* ── CONTENT BOXES ────────────────────────────── */
+.postulate,.theorem,.proof,.def,.formula,.derivation{
+  border-radius:3px;padding:0.85rem 1.25rem;margin:1.05rem 0;position:relative;
+}
+.postulate{border-left:3px solid var(--cyan);background:rgba(0,229,200,0.04);}
+.theorem{border-left:3px solid var(--purple);background:rgba(153,102,255,0.05);}
+.proof{border-left:3px solid var(--text3);background:rgba(255,255,255,0.015);font-style:italic;}
+.def{border-left:3px solid var(--lime);background:rgba(170,255,68,0.04);}
+.formula{border:1px solid var(--border2);background:rgba(255,215,0,0.03);text-align:center;padding:1rem;}
+.derivation{border-left:3px solid var(--orange);background:rgba(255,153,0,0.04);}
+
+.lbl{
+  font-family:'Major Mono Display',monospace;font-size:0.56rem;
+  letter-spacing:0.18em;text-transform:uppercase;
+  display:block;margin-bottom:0.3rem;font-style:normal;
+}
+.postulate .lbl{color:var(--cyan);}
+.theorem  .lbl{color:var(--purple);}
+.proof    .lbl{color:var(--text3);}
+.def      .lbl{color:var(--lime);}
+.formula  .lbl{color:var(--orange);}
+.derivation .lbl{color:var(--orange);}
+.qed{text-align:right;color:var(--cyan);font-style:normal;margin-top:0.4rem;font-size:1.1rem;}
+
+.callout{
+  border:1px solid var(--border2);border-radius:3px;
+  background:rgba(0,229,200,0.03);
+  padding:0.75rem 1.1rem;margin:0.9rem 0;font-size:0.91rem;
+}
+.callout strong{color:var(--orange);}
+
+/* ── TABLE ────────────────────────────────────── */
+table{border-collapse:collapse;width:100%;margin:0.9rem 0;font-size:0.86rem;}
+th{background:linear-gradient(135deg,var(--surf),var(--surf2));
+   color:var(--cyan);font-family:'Major Mono Display',monospace;font-size:0.58rem;
+   letter-spacing:0.1em;padding:0.52rem 0.85rem;text-align:left;border-bottom:1px solid var(--border2);}
+td{border-bottom:1px solid var(--border);padding:0.48rem 0.85rem;}
+tr:nth-child(even) td{background:rgba(0,229,200,0.02);}
+
+/* ── CODE ─────────────────────────────────────── */
+.cw{background:var(--code-bg);border:1px solid var(--border);
+    border-top:2px solid var(--cyan3);border-radius:3px;margin:1.15rem 0;overflow:hidden;}
+.ch{background:#020309;padding:0.42rem 0.9rem;
+    display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.ct{font-family:'Major Mono Display',monospace;font-size:0.57rem;letter-spacing:0.15em;color:var(--cyan);text-transform:uppercase;}
+.cl{font-family:'Fira Code',monospace;font-size:0.6rem;color:var(--lime2);
+    background:rgba(170,255,68,0.1);padding:0.08rem 0.45rem;border-radius:2px;}
+pre{padding:0.95rem 1.1rem;overflow-x:auto;font-family:'Fira Code',monospace;
+    font-size:0.755rem;line-height:1.62;color:var(--code-text);background:transparent;}
+pre::-webkit-scrollbar{height:3px;}pre::-webkit-scrollbar-thumb{background:var(--cyan3);}
+.kw{color:#ff7055;}.cm{color:#305050;font-style:italic;}.st{color:#88cc88;}
+.nm{color:#88aaff;}.fn{color:#cc99ff;}.op{color:#ffcc44;}.bi{color:#44ddaa;}
+
+/* ── SIMULATIONS ──────────────────────────────── */
+.sw{border:1px solid var(--border2);border-top:2px solid var(--purple2);
+    border-radius:3px;background:var(--deep);margin:1.4rem 0;overflow:hidden;}
+.sh2{background:#03040e;padding:0.52rem 1rem;
+     display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.st2{font-family:'Major Mono Display',monospace;font-size:0.58rem;letter-spacing:0.14em;
+     color:var(--purple);text-transform:uppercase;text-shadow:var(--glow-p);}
+.sb2{padding:0.85rem 0.85rem;display:flex;flex-direction:column;align-items:center;gap:0.65rem;}
+canvas{border:1px solid var(--border);border-radius:2px;display:block;}
+.sc{display:flex;flex-wrap:wrap;gap:0.65rem;justify-content:center;width:100%;}
+.cg{display:flex;align-items:center;gap:0.4rem;
+    font-family:'Fira Code',monospace;font-size:0.68rem;color:var(--text2);}
+.cg label{color:var(--lime);white-space:nowrap;}
+input[type=range]{width:100px;accent-color:var(--cyan);}
+select{background:var(--deep);border:1px solid var(--border2);color:var(--code-text);
+       padding:0.18rem 0.45rem;font-family:'Fira Code',monospace;font-size:0.67rem;border-radius:2px;}
+.btn{background:transparent;border:1px solid var(--purple);color:var(--purple);
+     font-family:'Major Mono Display',monospace;font-size:0.58rem;letter-spacing:0.1em;
+     padding:0.3rem 0.85rem;cursor:pointer;border-radius:2px;transition:background 0.2s,color 0.2s;}
+.btn:hover{background:var(--purple);color:#000;}
+.btn.c{border-color:var(--cyan);color:var(--cyan);}
+.btn.c:hover{background:var(--cyan);color:#000;}
+.si{font-family:'Fira Code',monospace;font-size:0.67rem;color:var(--cyan3);text-align:center;min-height:1.1rem;}
+
+::-webkit-scrollbar{width:7px;}
+::-webkit-scrollbar-track{background:var(--void);}
+::-webkit-scrollbar-thumb{background:var(--cyan3);border-radius:3px;}
+@media(max-width:900px){#sb{width:215px;min-width:215px;}#main{margin-left:215px;padding:0 1.4rem 4rem;}}
+@media(max-width:660px){#sb{display:none;}#main{margin-left:0;padding:0 0.8rem 4rem;}}
+</style>
+</head>
+<body>
+<!-- ══════════════════ SIDEBAR ══════════════════ -->
+<aside id="sb">
+  <div class="sb-logo">
+    <span class="sb-brand">Quantum Mechanics</span>
+    <span class="sb-sub">Physics · Math · Proofs · Octave · Interactive</span>
+  </div>
+  <nav><ul>
+    <li class="sh">Foundations</li>
+    <li><a href="#hist">Historical Origins</a></li>
+    <li><a href="#postulates">The Six Postulates</a></li>
+    <li><a href="#dirac">Dirac Notation (Bra-Ket)</a></li>
+    <li><a href="#hilbert">Hilbert Spaces</a></li>
+
+    <li class="sh">Wave Mechanics</li>
+    <li><a href="#schrodinger">Schrödinger Equation</a></li>
+    <li><a href="#born">Born Rule &amp; Probability</a></li>
+    <li><a href="#stationary">Stationary States</a></li>
+    <li><a href="#operators">Operators &amp; Observables</a></li>
+    <li><a href="#commutators">Commutators</a></li>
+
+    <li class="sh">Exactly Solvable</li>
+    <li><a href="#freepart">Free Particle &amp; Wavepackets</a></li>
+    <li><a href="#iwell">Infinite Square Well</a></li>
+    <li><a href="#fwell">Finite Square Well</a></li>
+    <li><a href="#harmonic">Harmonic Oscillator</a></li>
+    <li><a href="#delta">Delta Function Potential</a></li>
+    <li><a href="#hydrogen">Hydrogen Atom</a></li>
+
+    <li class="sh">Formal Theory</li>
+    <li><a href="#uncertainty">Uncertainty Principle</a></li>
+    <li><a href="#ehrenfest">Ehrenfest's Theorem</a></li>
+    <li><a href="#angmom">Angular Momentum</a></li>
+    <li><a href="#spin">Spin &amp; Pauli Matrices</a></li>
+    <li><a href="#identical">Identical Particles</a></li>
+    <li><a href="#entangle">Entanglement &amp; Bell</a></li>
+
+    <li class="sh">Advanced Methods</li>
+    <li><a href="#perturb">Perturbation Theory</a></li>
+    <li><a href="#wkb">WKB Approximation</a></li>
+    <li><a href="#variational">Variational Method</a></li>
+    <li><a href="#pathint">Path Integrals (Feynman)</a></li>
+    <li><a href="#qft">Toward QFT</a></li>
+
+    <li class="sh">GNU Octave</li>
+    <li><a href="#oct1">Eigenstates Numerically</a></li>
+    <li><a href="#oct2">Wave Packet FFT</a></li>
+    <li><a href="#oct3">Harmonic Oscillator Matrix</a></li>
+    <li><a href="#oct4">H Atom Radial WF</a></li>
+    <li><a href="#oct5">Perturbation Theory</a></li>
+    <li><a href="#oct6">Tunneling Transfer Matrix</a></li>
+
+    <li class="sh">Interactive Sims</li>
+    <li><a href="#sim1">Infinite Well Levels</a></li>
+    <li><a href="#sim2">Gaussian Wave Packet</a></li>
+    <li><a href="#sim3">Double-Slit Interference</a></li>
+    <li><a href="#sim4">Harmonic Oscillator</a></li>
+    <li><a href="#sim5">Quantum Tunneling</a></li>
+  </ul></nav>
+</aside>
+
+<!-- ══════════════════ MAIN ══════════════════ -->
+<main id="main">
+<div id="hero">
+  <span class="hero-psi">Ψ</span>
+  <span class="hero-eq">iℏ ∂Ψ/∂t = ĤΨ</span>
+  <div class="hero-wave"><span class="wd"></span><span class="wd"></span><span class="wd"></span></div>
+  <h1>Quantum Mechanics</h1>
+  <p class="sub2">Heisenberg 1925 · Schrödinger 1926 · Dirac 1930 · Born Rule · Bell 1964</p>
+</div>
+
+<!-- ══ I. HISTORICAL ORIGINS ══════════════════ -->
+<section id="hist">
+<h2>I. Historical Origins &amp; the Quantum Revolution</h2>
+
+<p>Classical physics failed catastrophically at atomic scales. Three experiments forced a radical rethinking of nature's laws:</p>
+
+<table>
+<tr><th>Year</th><th>Problem</th><th>Classical Failure</th><th>Quantum Resolution</th></tr>
+<tr><td>1900</td><td>Blackbody radiation</td><td>Ultraviolet catastrophe — \(\infty\) energy predicted</td><td>Planck: \(E = n\hbar\omega\), energy quantized</td></tr>
+<tr><td>1905</td><td>Photoelectric effect</td><td>Intensity, not frequency, should eject electrons</td><td>Einstein: photons with \(E = \hbar\omega\)</td></tr>
+<tr><td>1913</td><td>Atomic spectra</td><td>No stable orbits; spiraling collapse</td><td>Bohr: quantized angular momentum \(L = n\hbar\)</td></tr>
+<tr><td>1922</td><td>Stern-Gerlach</td><td>Continuous deflection expected</td><td>Discrete spin states \(m_s = \pm\tfrac{1}{2}\)</td></tr>
+<tr><td>1923</td><td>Compton scattering</td><td>Thomson scattering: no frequency shift</td><td>Photon momentum \(p = \hbar k\)</td></tr>
+<tr><td>1924</td><td>de Broglie hypothesis</td><td>—</td><td>All matter has wavelength \(\lambda = h/p\)</td></tr>
+<tr><td>1925</td><td>Heisenberg matrix mechanics</td><td>—</td><td>Observables are non-commuting matrices</td></tr>
+<tr><td>1926</td><td>Schrödinger equation</td><td>—</td><td>Wave equation for matter; identical to Heisenberg's</td></tr>
+</table>
+
+<p>The <strong>de Broglie relations</strong> unify particle and wave descriptions:</p>
+$$E = \hbar\omega = hf,\qquad \mathbf{p} = \hbar\mathbf{k},\qquad \lambda = \frac{h}{p}$$
+</section>
+
+<!-- ══ II. POSTULATES ══════════════════════════ -->
+<section id="postulates">
+<h2>II. The Six Postulates of Quantum Mechanics</h2>
+
+<div class="postulate">
+<span class="lbl">Postulate I — State Vector</span>
+<p>The complete state of a quantum system is encoded in a normalized vector \(\ket{\psi}\) (or wavefunction \(\psi(\mathbf{x},t)\)) in a complex Hilbert space \(\mathcal{H}\). All physical predictions are derived from \(\ket{\psi}\).</p>
+$$\braket{\psi}{\psi} = 1$$
+</div>
+
+<div class="postulate">
+<span class="lbl">Postulate II — Observables are Hermitian Operators</span>
+<p>Every physical observable \(A\) corresponds to a Hermitian (self-adjoint) operator \(\op{A}\) on \(\mathcal{H}\), satisfying \(\op{A}^\dagger = \op{A}\). Hermiticity guarantees real eigenvalues (physical measurement outcomes).</p>
+</div>
+
+<div class="postulate">
+<span class="lbl">Postulate III — Born Rule (Measurement)</span>
+<p>Measurement of \(\op{A}\) yields eigenvalue \(a_n\) with probability \(P(a_n) = |\braket{a_n}{\psi}|^2\), where \(\ket{a_n}\) is the eigenvector. Immediately after, the state collapses to \(\ket{a_n}\).</p>
+$$\ev{\op{A}} = \braket{\psi}{\op{A}|\psi} = \sum_n a_n |\braket{a_n}{\psi}|^2$$
+</div>
+
+<div class="postulate">
+<span class="lbl">Postulate IV — Schrödinger Equation (Time Evolution)</span>
+<p>Between measurements, the state evolves unitarily according to:</p>
+$$\boxed{i\hbar\frac{\partial}{\partial t}\ket{\psi(t)} = \op{H}\ket{\psi(t)}}$$
+<p>where \(\op{H}\) is the Hamiltonian operator (total energy).</p>
+</div>
+
+<div class="postulate">
+<span class="lbl">Postulate V — Canonical Quantization</span>
+<p>Classical canonical variables \((q_i, p_j)\) become operators with commutation relations:</p>
+$$\comm{\op{q}_i}{\op{p}_j} = i\hbar\delta_{ij},\qquad \comm{\op{q}_i}{\op{q}_j} = \comm{\op{p}_i}{\op{p}_j} = 0$$
+<p>In the position representation: \(\op{x} = x\,\cdot\) and \(\op{p} = -i\hbar\nabla\).</p>
+</div>
+
+<div class="postulate">
+<span class="lbl">Postulate VI — Identical Particles</span>
+<p>The wavefunction of a system of identical particles must be symmetric (bosons) or antisymmetric (fermions) under exchange of any two particles.</p>
+</div>
+</section>
+
+<!-- ══ III. DIRAC NOTATION ══════════════════ -->
+<section id="dirac">
+<h2>III. Dirac (Bra-Ket) Notation</h2>
+
+<h3>Kets, Bras, and Inner Products</h3>
+<table>
+<tr><th>Symbol</th><th>Name</th><th>Meaning</th></tr>
+<tr><td>\(\ket{\psi}\)</td><td>Ket</td><td>State vector in \(\mathcal{H}\)</td></tr>
+<tr><td>\(\bra{\psi}\)</td><td>Bra</td><td>Dual vector (conjugate transpose)</td></tr>
+<tr><td>\(\braket{\phi}{\psi}\)</td><td>Bracket</td><td>Inner product: \(\int\phi^*\psi\,d^3x\)</td></tr>
+<tr><td>\(\ket{\psi}\bra{\phi}\)</td><td>Outer product</td><td>Operator (rank-1 projection)</td></tr>
+<tr><td>\(\braket{\psi|\op{A}|\psi}\)</td><td>Matrix element</td><td>Expectation value of \(\op{A}\)</td></tr>
+</table>
+
+<h3>Completeness (Resolution of Identity)</h3>
+<p>For any orthonormal basis \(\{\ket{n}\}\):</p>
+$$\sum_n \ket{n}\bra{n} = \op{I} \quad\text{(discrete)},\qquad \int\ket{x}\bra{x}\,dx = \op{I}\quad\text{(continuous)}$$
+
+<h3>Position and Momentum Representations</h3>
+$$\psi(x) = \braket{x}{\psi},\qquad \tilde\psi(p) = \braket{p}{\psi} = \frac{1}{\sqrt{2\pi\hbar}}\int_{-\infty}^\infty \psi(x)\,e^{-ipx/\hbar}\,dx$$
+<p>These are Fourier transform pairs. The momentum eigenstate in position space is:</p>
+$$\braket{x}{p} = \frac{1}{\sqrt{2\pi\hbar}}\,e^{ipx/\hbar}$$
+
+<h3>Hermitian Operators</h3>
+<div class="def">
+<span class="lbl">Definition — Hermitian (Self-Adjoint) Operator</span>
+<p>\(\op{A}\) is Hermitian if \(\op{A}^\dagger = \op{A}\), i.e., \(\braket{\phi|\op{A}|\psi} = \braket{\psi|\op{A}|\phi}^*\) for all \(\ket{\phi},\ket{\psi}\in\mathcal{H}\).</p>
+<p><strong>Consequences:</strong> (1) Real eigenvalues. (2) Eigenvectors with different eigenvalues are orthogonal. (3) Eigenvectors form a complete basis.</p>
+</div>
+
+<div class="proof">
+<span class="lbl">Proof — Hermitian operators have real eigenvalues</span>
+<p>Let \(\op{A}\ket{a} = a\ket{a}\). Then \(\braket{a|\op{A}|a} = a\braket{a}{a} = a\). But also \(\braket{a|\op{A}|a} = \braket{a|\op{A}^\dagger|a}^* = \braket{a|\op{A}|a}^* = a^*\). Hence \(a = a^*\), so \(a\in\mathbb{R}\).</p>
+<div class="qed">□</div>
+</div>
+</section>
+
+<!-- ══ IV. HILBERT SPACE ══════════════════════ -->
+<section id="hilbert">
+<h2>IV. Hilbert Spaces &amp; Linear Algebra</h2>
+
+<div class="def">
+<span class="lbl">Hilbert Space</span>
+<p>A Hilbert space \(\mathcal{H}\) is a complete inner product space over \(\mathbb{C}\). For quantum mechanics: \(L^2(\mathbb{R}^3)\) — square-integrable functions with \(\langle f,g\rangle = \int f^*g\,d^3x\).</p>
+</div>
+
+<h3>Spectral Theorem</h3>
+<p>Every Hermitian operator \(\op{A}\) has a spectral decomposition:</p>
+$$\op{A} = \sum_n a_n\ket{a_n}\bra{a_n}\quad\text{or}\quad \op{A} = \int a\,\ket{a}\bra{a}\,da$$
+<p>Functions of operators: \(f(\op{A}) = \sum_n f(a_n)\ket{a_n}\bra{a_n}\).</p>
+
+<h3>Unitary Evolution</h3>
+<p>The time-evolution operator \(\op{U}(t) = e^{-i\op{H}t/\hbar}\) is unitary (\(\op{U}^\dagger\op{U}=\op{I}\)), preserving norms (probability). Formally:</p>
+$$\ket{\psi(t)} = e^{-i\op{H}t/\hbar}\ket{\psi(0)} = \op{U}(t)\ket{\psi(0)}$$
+
+<h3>Change of Basis &amp; Representations</h3>
+$$A_{mn} = \braket{m|\op{A}|n}\quad\text{(matrix elements)},\qquad \op{A}\ket{n} = \sum_m A_{mn}\ket{m}$$
+<p>Two representations of quantum mechanics: <strong>Schrödinger picture</strong> (states evolve, operators fixed) and <strong>Heisenberg picture</strong> (operators evolve, states fixed).</p>
+$$\frac{d\op{A}_H}{dt} = \frac{i}{\hbar}\comm{\op{H}}{\op{A}_H} + \left(\frac{\partial\op{A}}{\partial t}\right)_H$$
+</section>
+
+<!-- ══ V. SCHRÖDINGER EQUATION ══════════════ -->
+<section id="schrodinger">
+<h2>V. The Schrödinger Equation — Derivation &amp; Meaning</h2>
+
+<div class="derivation">
+<span class="lbl">Heuristic Derivation from de Broglie + Classical Energy</span>
+<p><strong>Step 1.</strong> A free particle with definite momentum \(p\) and energy \(E\) has de Broglie wavelength \(\lambda = h/p\), represented by plane wave:</p>
+$$\psi(x,t) = A\exp\!\left(\frac{i(px - Et)}{\hbar}\right)$$
+<p><strong>Step 2.</strong> Compute derivatives:</p>
+$$\frac{\partial\psi}{\partial t} = -\frac{iE}{\hbar}\psi \implies i\hbar\frac{\partial\psi}{\partial t} = E\psi$$
+$$\frac{\partial^2\psi}{\partial x^2} = -\frac{p^2}{\hbar^2}\psi \implies -\frac{\hbar^2}{2m}\frac{\partial^2\psi}{\partial x^2} = \frac{p^2}{2m}\psi = T\psi$$
+<p><strong>Step 3.</strong> Classical energy \(E = T + V = p^2/(2m) + V(x)\) then gives:</p>
+$$\boxed{i\hbar\frac{\partial\psi}{\partial t} = -\frac{\hbar^2}{2m}\frac{\partial^2\psi}{\partial x^2} + V(x)\psi = \op{H}\psi}$$
+<div class="qed">□ (Heuristic — the full postulate requires axiomatic formulation)</div>
+</div>
+
+<h3>In 3D</h3>
+$$i\hbar\frac{\partial\Psi}{\partial t} = \left[-\frac{\hbar^2}{2m}\nabla^2 + V(\mathbf{r},t)\right]\Psi = \op{H}\Psi$$
+
+<h3>Properties of the Schrödinger Equation</h3>
+<ul style="margin-left:1.5rem">
+<li><strong>Linear:</strong> if \(\psi_1,\psi_2\) are solutions, so is \(c_1\psi_1+c_2\psi_2\) (superposition principle)</li>
+<li><strong>First-order in time:</strong> initial state \(\psi(x,0)\) determines all future evolution</li>
+<li><strong>Norm-preserving:</strong> \(d/dt\int|\psi|^2\,dx = 0\) (unitarity)</li>
+<li><strong>Complex:</strong> necessarily complex — real wave equation has real solutions; \(\hbar\) requires complex \(\psi\)</li>
+</ul>
+</section>
+
+<!-- ══ VI. BORN RULE ══════════════════════════ -->
+<section id="born">
+<h2>VI. The Born Rule &amp; Probability Current</h2>
+
+<div class="postulate">
+<span class="lbl">Born Rule (Max Born, 1926)</span>
+$$P(a \le x \le b, t) = \int_a^b |\psi(x,t)|^2\,dx,\qquad \rho(x,t) = |\psi(x,t)|^2$$
+<p>The probability density of finding the particle at position \(x\) at time \(t\) is \(|\psi|^2\). Normalization requires \(\int_{-\infty}^\infty|\psi|^2\,dx = 1\).</p>
+</div>
+
+<h3>Continuity Equation &amp; Probability Current</h3>
+<div class="theorem">
+<span class="lbl">Theorem — Local Conservation of Probability</span>
+$$\frac{\partial\rho}{\partial t} + \nabla\cdot\mathbf{J} = 0,\qquad \mathbf{J} = \frac{\hbar}{2mi}\left(\psi^*\nabla\psi - \psi\nabla\psi^*\right) = \frac{1}{m}\,\mathrm{Re}\!\left(\psi^*\frac{\hbar}{i}\nabla\psi\right)$$
+</div>
+<div class="proof">
+<span class="lbl">Proof</span>
+<p>Compute \(\partial_t|\psi|^2 = \psi^*\partial_t\psi + \psi\partial_t\psi^*\). From TDSE: \(\partial_t\psi = (i\hbar/2m)\nabla^2\psi - (i/\hbar)V\psi\) and its conjugate. Substituting:</p>
+$$\partial_t|\psi|^2 = \frac{i\hbar}{2m}(\psi^*\nabla^2\psi - \psi\nabla^2\psi^*) = \frac{i\hbar}{2m}\nabla\cdot(\psi^*\nabla\psi - \psi\nabla\psi^*)$$
+<p>Identifying \(\mathbf{J} = \frac{\hbar}{2mi}(\psi^*\nabla\psi - \psi\nabla\psi^*)\) gives \(\partial_t\rho + \nabla\cdot\mathbf{J} = 0\). ✓</p>
+<div class="qed">□</div>
+</div>
+</section>
+
+<!-- ══ VII. STATIONARY STATES ══════════════ -->
+<section id="stationary">
+<h2>VII. Stationary States &amp; the TISE</h2>
+<p>For a time-independent Hamiltonian, separate \(\Psi(x,t) = \psi(x)\cdot T(t)\):</p>
+$$i\hbar\frac{T'}{T} = \frac{1}{\psi}\left(-\frac{\hbar^2}{2m}\psi''+V\psi\right) = E = \text{const}$$
+
+<div class="formula">
+<span class="lbl">Time-Independent Schrödinger Equation (TISE)</span>
+$$\boxed{\op{H}\psi = E\psi,\quad -\frac{\hbar^2}{2m}\frac{d^2\psi}{dx^2} + V(x)\psi = E\psi}$$
+<p style="margin-top:0.6rem">Time dependence: \(\quad\Psi_n(x,t) = \psi_n(x)\,e^{-iE_n t/\hbar}\)</p>
+</div>
+
+<h3>Properties of Stationary States</h3>
+<ul style="margin-left:1.5rem">
+<li>They are energy eigenstates: \(\op{H}\psi_n = E_n\psi_n\)</li>
+<li>Probability density \(|\Psi_n|^2 = |\psi_n|^2\) is time-independent</li>
+<li>Every observable expectation is constant in time: \(d\ev{\op{A}}/dt = 0\) if \([\op{A},\op{H}]=0\)</li>
+<li>General solution: \(\Psi(x,t) = \sum_n c_n\psi_n(x)e^{-iE_nt/\hbar}\), with \(\sum_n|c_n|^2=1\)</li>
+</ul>
+</section>
+
+<!-- ══ VIII. OPERATORS ══════════════════════ -->
+<section id="operators">
+<h2>VIII. Operators, Eigenvalues &amp; Expectation Values</h2>
+
+<h3>Key Operators in Quantum Mechanics</h3>
+<table>
+<tr><th>Observable</th><th>Operator (position space)</th><th>Eigenvalue equation</th></tr>
+<tr><td>Position \(x\)</td><td>\(\op{x} = x\cdot\)</td><td>\(x\,\delta(x-x_0) = x_0\,\delta(x-x_0)\)</td></tr>
+<tr><td>Momentum \(p\)</td><td>\(\op{p} = -i\hbar\partial_x\)</td><td>\(-i\hbar\partial_x\,e^{ipx/\hbar} = p\,e^{ipx/\hbar}\)</td></tr>
+<tr><td>Kinetic energy</td><td>\(\op{T} = -\hbar^2\nabla^2/2m\)</td><td>Plane waves \(e^{i\mathbf{k}\cdot\mathbf{r}}\)</td></tr>
+<tr><td>Hamiltonian</td><td>\(\op{H} = \op{T}+V(\op{x})\)</td><td>\(\op{H}\psi_n = E_n\psi_n\)</td></tr>
+<tr><td>Angular momentum \(L_z\)</td><td>\(-i\hbar\partial_\phi\)</td><td>\(e^{im\phi}\), \(m\in\mathbb{Z}\)</td></tr>
+<tr><td>Parity</td><td>\(\op{\Pi}:\psi(x)\to\psi(-x)\)</td><td>\(\pm 1\)</td></tr>
+</table>
+
+<h3>Variance &amp; Standard Deviation</h3>
+$$\sigma_A^2 = \ev{(\op{A}-\ev{\op{A}})^2} = \ev{\op{A}^2} - \ev{\op{A}}^2$$
+</section>
+
+<!-- ══ IX. COMMUTATORS ══════════════════════ -->
+<section id="commutators">
+<h2>IX. Commutators &amp; Compatible Observables</h2>
+
+<div class="def">
+<span class="lbl">Commutator</span>
+$$\comm{\op{A}}{\op{B}} = \op{A}\op{B} - \op{B}\op{A}$$
+<p>If \(\comm{\op{A}}{\op{B}} = 0\): <strong>compatible</strong> — both can be simultaneously measured with definite values; they share a common eigenbasis.</p>
+<p>If \(\comm{\op{A}}{\op{B}} \ne 0\): <strong>incompatible</strong> — cannot both have definite values (uncertainty principle).</p>
+</div>
+
+<h3>Fundamental Commutation Relations</h3>
+$$\comm{\op{x}}{\op{p}} = i\hbar,\qquad\comm{\op{x}^n}{\op{p}} = i\hbar n\op{x}^{n-1},\qquad\comm{\op{x}}{f(\op{p})} = i\hbar f'(\op{p})$$
+$$\comm{\op{L}_x}{\op{L}_y} = i\hbar\op{L}_z,\quad\comm{\op{L}_y}{\op{L}_z} = i\hbar\op{L}_x,\quad\comm{\op{L}_z}{\op{L}_x} = i\hbar\op{L}_y$$
+$$\comm{\op{L}^2}{\op{L}_i} = 0\text{ for all }i \quad\Rightarrow\quad L^2\text{ and }L_z\text{ simultaneously measurable}$$
+
+<div class="proof">
+<span class="lbl">Proof: [x̂, p̂] = iℏ</span>
+<p>Acting on test function \(\phi(x)\):</p>
+$$(\op{x}\op{p} - \op{p}\op{x})\phi = x\left(-i\hbar\frac{d\phi}{dx}\right) - \left(-i\hbar\frac{d}{dx}\right)(x\phi)$$
+$$= -i\hbar x\phi' + i\hbar(\phi + x\phi') = i\hbar\phi$$
+<p>Since this holds for all \(\phi\): \(\comm{\op{x}}{\op{p}} = i\hbar\op{I}\).</p>
+<div class="qed">□</div>
+</div>
+</section>
+
+<!-- ══ X. FREE PARTICLE ══════════════════════ -->
+<section id="freepart">
+<h2>X. Free Particle &amp; Wave Packets</h2>
+<p>With \(V=0\), the TISE gives plane wave solutions \(\psi_k(x)=Ae^{ikx}\) with \(E=\hbar^2k^2/(2m)\). These are not normalizable alone — the physical states are <em>wave packets</em>:</p>
+$$\Psi(x,t) = \frac{1}{\sqrt{2\pi}}\int_{-\infty}^\infty \phi(k)\,e^{i(kx-\omega(k)t)}\,dk,\qquad \omega(k) = \frac{\hbar k^2}{2m}$$
+
+<h3>Gaussian Wave Packet</h3>
+<p>At \(t=0\), centered at \(x_0\) with mean momentum \(p_0 = \hbar k_0\) and width \(\sigma\):</p>
+$$\psi(x,0) = \left(\frac{1}{2\pi\sigma^2}\right)^{1/4}\exp\!\left(-\frac{(x-x_0)^2}{4\sigma^2}\right)\exp(ik_0 x)$$
+<p>At time \(t\), the packet spreads:</p>
+$$|\Psi(x,t)|^2 = \frac{1}{\sqrt{2\pi}\,w(t)}\exp\!\left(-\frac{(x-x_0-v_g t)^2}{2w(t)^2}\right)$$
+$$w(t) = \sigma\sqrt{1+\left(\frac{\hbar t}{2m\sigma^2}\right)^2},\qquad v_g = \frac{\hbar k_0}{m} = \frac{p_0}{m}$$
+
+<div class="callout">
+<strong>Group velocity vs Phase velocity:</strong> The packet travels at the <em>group velocity</em> \(v_g = d\omega/dk = p_0/m\) (classical speed). The crests travel at <em>phase velocity</em> \(v_p = \omega/k = \hbar k_0/(2m) = v_g/2\). The packet spreads due to dispersion — particles with different momenta travel at different speeds.
+</div>
+</section>
+
+<!-- ══ XI. INFINITE SQUARE WELL ══════════════ -->
+<section id="iwell">
+<h2>XI. The Infinite Square Well (Particle in a Box)</h2>
+<p>\(V(x) = 0\) for \(0\le x\le L\), \(V=\infty\) outside. Boundary conditions: \(\psi(0)=\psi(L)=0\).</p>
+
+<div class="derivation">
+<span class="lbl">Full Solution with Normalization</span>
+<p><strong>Inside the well:</strong> TISE gives \(\psi'' = -k^2\psi\) with \(k=\sqrt{2mE}/\hbar\). General solution: \(\psi = A\sin(kx)+B\cos(kx)\).</p>
+<p><strong>BC at \(x=0\):</strong> \(\psi(0)=0 \Rightarrow B=0\).</p>
+<p><strong>BC at \(x=L\):</strong> \(\psi(L)=A\sin(kL)=0 \Rightarrow kL = n\pi\), \(n=1,2,3,\ldots\)</p>
+<p><strong>Energy quantization:</strong></p>
+$$E_n = \frac{\hbar^2\pi^2 n^2}{2mL^2} = \frac{n^2\pi^2\hbar^2}{2mL^2},\quad n=1,2,3,\ldots$$
+<p><strong>Normalization:</strong> \(\int_0^L A^2\sin^2(n\pi x/L)\,dx = A^2 L/2 = 1 \Rightarrow A = \sqrt{2/L}\).</p>
+$$\boxed{\psi_n(x) = \sqrt{\frac{2}{L}}\sin\!\left(\frac{n\pi x}{L}\right),\quad E_n = \frac{n^2\pi^2\hbar^2}{2mL^2}}$$
+<div class="qed">□</div>
+</div>
+
+<h3>Properties</h3>
+<ul style="margin-left:1.5rem">
+<li><strong>Zero-point energy:</strong> \(E_1 = \pi^2\hbar^2/(2mL^2) > 0\) — particle can never be at rest (uncertainty principle)</li>
+<li><strong>Orthonormality:</strong> \(\int_0^L\psi_m^*\psi_n\,dx = \delta_{mn}\)</li>
+<li><strong>Parity:</strong> odd \(n\) → symmetric about center; even \(n\) → antisymmetric</li>
+<li><strong>Nodes:</strong> \(\psi_n\) has \(n-1\) interior nodes</li>
+<li>Spacing between levels: \(E_{n+1}-E_n = (2n+1)E_1\) (non-uniform → non-classical)</li>
+</ul>
+
+<h3>Expectation Values in State \(\psi_n\)</h3>
+$$\ev{\op{x}} = \frac{L}{2},\quad \ev{\op{p}} = 0,\quad \ev{\op{x}^2} = \frac{L^2}{3}\left(1-\frac{3}{2n^2\pi^2}\right),\quad \ev{\op{p}^2} = \frac{n^2\pi^2\hbar^2}{L^2}$$
+$$\sigma_x\sigma_p = \frac{n\pi\hbar}{\sqrt{3}}\sqrt{\frac{1}{3}-\frac{1}{2n^2\pi^2}} \ge \frac{\hbar}{2}\quad\checkmark$$
+</section>
+
+<!-- ══ XII. FINITE SQUARE WELL ══════════════ -->
+<section id="fwell">
+<h2>XII. The Finite Square Well</h2>
+<p>\(V(x) = -V_0\) for \(|x|\le a\), \(V=0\) outside. Bound states (\(-V_0 < E < 0\)) have <em>exponential decay</em> into classically forbidden regions.</p>
+
+<h3>Transcendental Equations for Bound States</h3>
+<p>Let \(\kappa = \sqrt{-2mE}/\hbar\), \(l = \sqrt{2m(E+V_0)}/\hbar\). Matching conditions give:</p>
+$$\text{Even: }\kappa = l\tan(la),\qquad \text{Odd: }\kappa = -l\cot(la)$$
+<p>These are solved graphically or numerically. There is always at least one bound state for any \(V_0 > 0\), but only finitely many. Wide/deep wells → many states approaching the infinite-well limit.</p>
+
+<h3>Tunneling (Evanescent Waves)</h3>
+<p>In the classically forbidden region \(E < V\), the wavefunction doesn't vanish but decays exponentially:</p>
+$$\psi \propto e^{-\kappa x},\quad \kappa = \frac{\sqrt{2m(V-E)}}{\hbar}$$
+<p>This <em>quantum tunneling</em> is responsible for alpha decay, scanning tunneling microscopy (STM), and tunnel diodes.</p>
+</section>
+
+<!-- ══ XIII. HARMONIC OSCILLATOR ══════════════ -->
+<section id="harmonic">
+<h2>XIII. The Quantum Harmonic Oscillator</h2>
+<p>The most important exactly solvable system: \(V = \frac{1}{2}m\omega^2 x^2\), \(\op{H} = \frac{\op{p}^2}{2m} + \frac{1}{2}m\omega^2\op{x}^2\).</p>
+
+<h3>Ladder Operator Method</h3>
+<div class="derivation">
+<span class="lbl">Derivation via Creation/Annihilation Operators</span>
+<p><strong>Define</strong> dimensionless operators:</p>
+$$\op{a} = \sqrt{\frac{m\omega}{2\hbar}}\left(\op{x}+\frac{i\op{p}}{m\omega}\right),\quad \op{a}^\dagger = \sqrt{\frac{m\omega}{2\hbar}}\left(\op{x}-\frac{i\op{p}}{m\omega}\right)$$
+<p><strong>Step 1 — Commutator:</strong></p>
+$$\comm{\op{a}}{\op{a}^\dagger} = \frac{m\omega}{2\hbar}\left[\op{x}+\frac{i\op{p}}{m\omega},\,\op{x}-\frac{i\op{p}}{m\omega}\right] = \frac{m\omega}{2\hbar}\left(-\frac{2i}{m\omega}\comm{\op{x}}{\op{p}}\right) = \frac{m\omega}{2\hbar}\cdot\frac{2\hbar}{m\omega} = 1$$
+<p><strong>Step 2 — Rewrite Hamiltonian:</strong></p>
+$$\op{a}^\dagger\op{a} = \frac{m\omega}{2\hbar}\left(\op{x}^2+\frac{\op{p}^2}{m^2\omega^2}+\frac{i}{m\omega}\comm{\op{x}}{\op{p}}\right) = \frac{\op{H}}{\hbar\omega}-\frac{1}{2}$$
+$$\boxed{\op{H} = \hbar\omega\left(\op{a}^\dagger\op{a}+\half\right) = \hbar\omega\left(\op{N}+\half\right),\quad \op{N} = \op{a}^\dagger\op{a}}$$
+<p><strong>Step 3 — Ladder structure:</strong> From \(\comm{\op{N}}{\op{a}^\dagger} = \op{a}^\dagger\) and \(\comm{\op{N}}{\op{a}} = -\op{a}\):</p>
+$$\op{N}\op{a}^\dagger\ket{n} = (n+1)\op{a}^\dagger\ket{n},\quad \op{N}\op{a}\ket{n} = (n-1)\op{a}\ket{n}$$
+<p>So \(\op{a}^\dagger\ket{n} \propto\ket{n+1}\) (raises energy) and \(\op{a}\ket{n} \propto\ket{n-1}\) (lowers energy).</p>
+<p><strong>Step 4 — Ground state:</strong> Since \(n\ge 0\) (energy \(\ge 0\)), there must exist \(\ket{0}\) with \(\op{a}\ket{0}=0\). Normalized:</p>
+$$\op{a}^\dagger\ket{n} = \sqrt{n+1}\ket{n+1},\quad\op{a}\ket{n} = \sqrt{n}\ket{n-1}$$
+$$\boxed{E_n = \hbar\omega\left(n+\half\right),\quad n=0,1,2,3,\ldots}$$
+<div class="qed">□</div>
+</div>
+
+<h3>Wavefunctions</h3>
+<p>Ground state from \(\op{a}\psi_0 = 0\): \(\psi_0(x) = \left(\frac{m\omega}{\pi\hbar}\right)^{1/4}e^{-m\omega x^2/(2\hbar)}\)</p>
+<p>Excited states via \(\psi_n = (a^\dagger)^n\psi_0/\sqrt{n!}\):</p>
+$$\psi_n(x) = \frac{1}{\sqrt{2^n n!}}\left(\frac{m\omega}{\pi\hbar}\right)^{1/4}H_n\!\left(\sqrt{\frac{m\omega}{\hbar}}\,x\right)e^{-m\omega x^2/(2\hbar)}$$
+<p>where \(H_n\) are Hermite polynomials: \(H_0=1,\;H_1=2\xi,\;H_2=4\xi^2-2,\;H_3=8\xi^3-12\xi,\ldots\)</p>
+
+<h3>Zero-Point Energy and Uncertainty</h3>
+<p>Ground state: \(E_0 = \hbar\omega/2 > 0\). This is required by the uncertainty principle — a particle cannot be at rest at the potential minimum.</p>
+$$\sigma_x = \sqrt{\frac{\hbar}{2m\omega}},\quad\sigma_p = \sqrt{\frac{m\omega\hbar}{2}},\quad\sigma_x\sigma_p = \frac{\hbar}{2}\quad\text{(minimum uncertainty!)}$$
+</section>
+
+<!-- ══ XIV. DELTA FUNCTION ══════════════════ -->
+<section id="delta">
+<h2>XIV. Delta Function Potential</h2>
+<p>\(V(x) = -\alpha\delta(x)\), \(\alpha > 0\). Only one bound state:</p>
+$$\psi(x) = \frac{\sqrt{m\alpha}}{\hbar}\,e^{-m\alpha|x|/\hbar^2},\qquad E = -\frac{m\alpha^2}{2\hbar^2}$$
+<p>Matching conditions at \(x=0\): \(\psi\) is continuous; \(\psi'\) has a finite jump \(\Delta\psi' = -2m\alpha\psi(0)/\hbar^2\) (from integrating TISE across \(x=0\)).</p>
+
+<h3>Scattering off a Delta Barrier (\(\alpha < 0\))</h3>
+$$T = \frac{1}{1 + m\alpha^2/(2\hbar^2 E)},\qquad R = \frac{m\alpha^2/(2\hbar^2 E)}{1+m\alpha^2/(2\hbar^2 E)},\quad R+T=1$$
+</section>
+
+<!-- ══ XV. HYDROGEN ATOM ══════════════════ -->
+<section id="hydrogen">
+<h2>XV. The Hydrogen Atom</h2>
+<p>Central potential \(V(r) = -e^2/(4\pi\varepsilon_0 r)\). In 3D with spherical symmetry, separate \(\psi(r,\theta,\phi) = R_{nl}(r)\,Y_l^m(\theta,\phi)\).</p>
+
+<h3>Spherical Harmonics</h3>
+<p>Angular eigenstates of \(\op{L}^2\) and \(\op{L}_z\):</p>
+$$\op{L}^2 Y_l^m = \hbar^2 l(l+1)Y_l^m,\qquad\op{L}_z Y_l^m = \hbar m Y_l^m$$
+$$Y_0^0 = \frac{1}{\sqrt{4\pi}},\quad Y_1^0 = \sqrt{\frac{3}{4\pi}}\cos\theta,\quad Y_1^{\pm1} = \mp\sqrt{\frac{3}{8\pi}}\sin\theta\,e^{\pm i\phi}$$
+
+<h3>Energy Levels &amp; Quantum Numbers</h3>
+<div class="formula">
+<span class="lbl">Hydrogen Energy Eigenvalues</span>
+$$\boxed{E_n = -\frac{m_e e^4}{2(4\pi\varepsilon_0)^2\hbar^2}\frac{1}{n^2} = -\frac{13.6\text{ eV}}{n^2},\quad n=1,2,3,\ldots}$$
+</div>
+
+<p>The quantum numbers and their ranges:</p>
+<table>
+<tr><th>Symbol</th><th>Name</th><th>Range</th><th>Physical meaning</th></tr>
+<tr><td>\(n\)</td><td>Principal</td><td>\(1,2,3,\ldots\)</td><td>Energy: \(E_n \propto -1/n^2\)</td></tr>
+<tr><td>\(l\)</td><td>Orbital</td><td>\(0,1,\ldots,n-1\)</td><td>Orbital angular momentum \(\sqrt{l(l+1)}\hbar\)</td></tr>
+<tr><td>\(m\)</td><td>Magnetic</td><td>\(-l,\ldots,+l\)</td><td>z-component \(L_z = m\hbar\)</td></tr>
+<tr><td>\(m_s\)</td><td>Spin</td><td>\(\pm\frac{1}{2}\)</td><td>Spin z-component \(S_z = m_s\hbar\)</td></tr>
+</table>
+
+<h3>Radial Wavefunctions</h3>
+$$R_{nl}(r) = -\sqrt{\left(\frac{2}{na_0}\right)^3\frac{(n-l-1)!}{2n[(n+l)!]^3}}\,e^{-r/(na_0)}\left(\frac{2r}{na_0}\right)^l L_{n-l-1}^{2l+1}\!\left(\frac{2r}{na_0}\right)$$
+<p>where \(a_0 = 4\pi\varepsilon_0\hbar^2/(m_e e^2) \approx 0.529\,\)Å is the Bohr radius, and \(L\) are associated Laguerre polynomials. First few:</p>
+$$R_{10} = \frac{2}{a_0^{3/2}}e^{-r/a_0},\quad R_{20} = \frac{1}{\sqrt{2}a_0^{3/2}}\left(1-\frac{r}{2a_0}\right)e^{-r/(2a_0)},\quad R_{21} = \frac{r}{2\sqrt{6}a_0^{5/2}}e^{-r/(2a_0)}$$
+
+<h3>Degeneracy</h3>
+<p>Each energy \(E_n\) has degeneracy \(n^2\) (counting \(l\) from \(0\) to \(n-1\), and \(m\) from \(-l\) to \(l\)). With spin: \(2n^2\) states per shell.</p>
+</section>
+
+<!-- ══ XVI. UNCERTAINTY PRINCIPLE ══════════ -->
+<section id="uncertainty">
+<h2>XVI. The Uncertainty Principle — Robertson Theorem</h2>
+
+<div class="theorem">
+<span class="lbl">Robertson–Schrödinger Uncertainty Relation</span>
+$$\boxed{\sigma_A\sigma_B \ge \frac{1}{2}\left|\ev{\comm{\op{A}}{\op{B}}}\right|}$$
+<p>For position and momentum: \(\sigma_x\sigma_p \ge \hbar/2\).</p>
+</div>
+
+<div class="proof">
+<span class="lbl">Proof via Cauchy-Schwarz Inequality</span>
+<p>Define \(\ket{f} = (\op{A}-\ev{A})\ket{\psi}\) and \(\ket{g} = (\op{B}-\ev{B})\ket{\psi}\). Then \(\sigma_A^2 = \braket{f}{f}\) and \(\sigma_B^2 = \braket{g}{g}\).</p>
+<p>By the Cauchy-Schwarz inequality: \(\braket{f}{f}\braket{g}{g} \ge |\braket{f}{g}|^2\).</p>
+<p>Write \(\braket{f}{g} = \tfrac{1}{2}\braket{f|g+g|f} + \tfrac{1}{2}\braket{f|g-g|f}\). The first term is real (call it \(X\)); the second is \(\tfrac{1}{2}\braket{\psi|\comm{\op{A}}{\op{B}}|\psi} = \tfrac{i}{2}\ev{[\op{A},\op{B}]}\) (imaginary).</p>
+<p>Therefore: \(|\braket{f}{g}|^2 = X^2 + \tfrac{1}{4}|\ev{\comm{\op{A}}{\op{B}}}|^2 \ge \tfrac{1}{4}|\ev{\comm{\op{A}}{\op{B}}}|^2\).</p>
+<p>Taking square roots: \(\sigma_A\sigma_B \ge \tfrac{1}{2}|\ev{\comm{\op{A}}{\op{B}}}|\).</p>
+<div class="qed">□</div>
+</div>
+
+<div class="callout">
+<strong>Energy-time uncertainty:</strong> \(\Delta E\,\Delta t \ge \hbar/2\). Note: time is <em>not</em> an operator in QM — \(\Delta t\) is the characteristic time for the state to change appreciably. This governs the natural linewidth of spectral lines and virtual particle lifetimes in QFT.
+</div>
+
+<h3>Minimum Uncertainty States</h3>
+<p>The inequality is saturated (\(\sigma_x\sigma_p = \hbar/2\)) if and only if \(\ket{g} = i\lambda\ket{f}\) (proportional) and \(X=0\). For position-momentum, this gives exactly the Gaussian wave packet — coherent states of the harmonic oscillator.</p>
+</section>
+
+<!-- ══ XVII. EHRENFEST ══════════════════════ -->
+<section id="ehrenfest">
+<h2>XVII. Ehrenfest's Theorem &amp; Classical Limit</h2>
+
+<div class="theorem">
+<span class="lbl">Ehrenfest's Theorem (1927)</span>
+$$\frac{d\ev{\op{A}}}{dt} = \frac{i}{\hbar}\ev{\comm{\op{H}}{\op{A}}} + \left\langle\frac{\partial\op{A}}{\partial t}\right\rangle$$
+</div>
+
+<div class="proof">
+<span class="lbl">Proof</span>
+$$\frac{d\ev{\op{A}}}{dt} = \frac{d}{dt}\braket{\psi|\op{A}|\psi} = \braket{\dot\psi|\op{A}|\psi}+\braket{\psi|\dot{\op{A}}|\psi}+\braket{\psi|\op{A}|\dot\psi}$$
+<p>Using \(\partial_t\ket\psi = -\frac{i}{\hbar}\op{H}\ket\psi\) and its conjugate:</p>
+$$= \frac{i}{\hbar}\braket{\psi|\op{H}\op{A}-\op{A}\op{H}|\psi}+\left\langle\pd{\op{A}}{t}\right\rangle = \frac{i}{\hbar}\ev{\comm{\op{H}}{\op{A}}}+\left\langle\pd{\op{A}}{t}\right\rangle$$
+<div class="qed">□</div>
+</div>
+
+<h3>Newton's Laws Recovered</h3>
+<p>Apply to position and momentum (no explicit time dependence):</p>
+$$\frac{d\ev{x}}{dt} = \frac{i}{\hbar}\ev{\comm{\op{H}}{\op{x}}} = \frac{\ev{\op{p}}}{m}\quad\checkmark$$
+$$\frac{d\ev{p}}{dt} = \frac{i}{\hbar}\ev{\comm{\op{H}}{\op{p}}} = -\left\langle\frac{dV}{dx}\right\rangle \approx -\frac{dV}{dx}\bigg|_{x=\ev{x}}$$
+<p>The last approximation (valid for slowly varying \(V\)) gives \(m\ddot{\ev{x}} = -dV/dx\) — exactly Newton's second law for the mean position. <em>Quantum mechanics reproduces classical mechanics in the appropriate limit.</em></p>
+</section>
+
+<!-- ══ XVIII. ANGULAR MOMENTUM ════════════ -->
+<section id="angmom">
+<h2>XVIII. Angular Momentum</h2>
+
+<p>The angular momentum operator \(\op{\mathbf{L}} = \op{\mathbf{r}}\times\op{\mathbf{p}}\) with components satisfying \(\comm{L_i}{L_j} = i\hbar\varepsilon_{ijk}L_k\).</p>
+
+<h3>Raising/Lowering Operators</h3>
+$$\op{L}_\pm = \op{L}_x \pm i\op{L}_y,\qquad\comm{\op{L}_z}{\op{L}_\pm} = \pm\hbar\op{L}_\pm,\qquad\comm{\op{L}^2}{\op{L}_\pm}=0$$
+$$\op{L}_+\ket{l,m} = \hbar\sqrt{l(l+1)-m(m+1)}\ket{l,m+1}$$
+$$\op{L}_-\ket{l,m} = \hbar\sqrt{l(l+1)-m(m-1)}\ket{l,m-1}$$
+
+<h3>Eigenvalue Quantization — Proof</h3>
+<div class="proof">
+<span class="lbl">Proof that l ∈ {0, 1/2, 1, 3/2, ...} and |m| ≤ l</span>
+<p>Since \(\op{L}^2 - \op{L}_z^2 = \op{L}_x^2+\op{L}_y^2 \ge 0\), we have \(\hbar^2[l(l+1)-m^2]\ge 0\), so \(|m|\le\sqrt{l(l+1)}\). The ladder \(\op{L}_+^k\ket{l,m}\) must terminate at some \(m_\text{max}\), giving \(\op{L}_+\ket{l,m_\text{max}}=0 \Rightarrow m_\text{max} = l\). Similarly \(m_\text{min}=-l\). The number of steps \(2l\) must be a non-negative integer, so \(l\in\{0,\tfrac{1}{2},1,\tfrac{3}{2},\ldots\}\).</p>
+<div class="qed">□</div>
+</div>
+</section>
+
+<!-- ══ XIX. SPIN ════════════════════════ -->
+<section id="spin">
+<h2>XIX. Spin &amp; Pauli Matrices</h2>
+<p>Spin is an intrinsic quantum property with no classical analog. For spin-\(\tfrac{1}{2}\) particles (electrons, quarks, protons):</p>
+$$\op{S}_i = \frac{\hbar}{2}\sigma_i,\qquad \sigma_x = \begin{pmatrix}0&1\\1&0\end{pmatrix},\quad\sigma_y=\begin{pmatrix}0&-i\\i&0\end{pmatrix},\quad\sigma_z=\begin{pmatrix}1&0\\0&-1\end{pmatrix}$$
+
+<h3>Properties of Pauli Matrices</h3>
+$$\sigma_i\sigma_j = \delta_{ij}I + i\varepsilon_{ijk}\sigma_k,\qquad\sigma_i^2 = I,\qquad\mathrm{Tr}(\sigma_i)=0,\qquad\det(\sigma_i)=-1$$
+$$\{\sigma_i,\sigma_j\} = 2\delta_{ij}I\quad\text{(anticommutator)},\qquad [\sigma_i,\sigma_j] = 2i\varepsilon_{ijk}\sigma_k$$
+
+<h3>Spinors and Spin States</h3>
+$$\ket{+z} = \chi_+ = \begin{pmatrix}1\\0\end{pmatrix},\quad\ket{-z} = \chi_- = \begin{pmatrix}0\\1\end{pmatrix}$$
+$$\ket{+x} = \frac{1}{\sqrt{2}}\begin{pmatrix}1\\1\end{pmatrix},\quad\ket{+y}=\frac{1}{\sqrt{2}}\begin{pmatrix}1\\i\end{pmatrix}$$
+
+<h3>Spin Precession in Magnetic Field</h3>
+<p>Hamiltonian: \(\op{H} = -\boldsymbol{\mu}\cdot\mathbf{B} = \frac{g_s e}{2m_e}\op{\mathbf{S}}\cdot\mathbf{B}\). For \(\mathbf{B}=B\hat{z}\): spin precesses at Larmor frequency \(\omega_L = g_s eB/(2m_e)\).</p>
+</section>
+
+<!-- ══ XX. IDENTICAL PARTICLES ═══════════ -->
+<section id="identical">
+<h2>XX. Identical Particles &amp; Quantum Statistics</h2>
+
+<div class="postulate">
+<span class="lbl">Exchange Symmetry</span>
+$$\psi(1,2) = \begin{cases}+\psi(2,1) & \text{Bosons (integer spin)} \\ -\psi(2,1) & \text{Fermions (half-integer spin)}\end{cases}$$
+</div>
+
+<h3>Pauli Exclusion Principle</h3>
+<p>For fermions, the antisymmetric wavefunction must be written as a Slater determinant:</p>
+$$\psi(1,\ldots,N) = \frac{1}{\sqrt{N!}}\begin{vmatrix}\psi_a(1)&\psi_a(2)&\cdots\\\psi_b(1)&\psi_b(2)&\cdots\\\vdots&&\ddots\end{vmatrix}$$
+<p>If any two fermions are in the same state (\(\psi_a=\psi_b\)), two rows are identical → determinant vanishes → <strong>forbidden</strong>. This is the Pauli exclusion principle, responsible for the periodic table, white dwarf stability, and neutron stars.</p>
+
+<h3>Exchange Interaction and Fermi Pressure</h3>
+<p>Even without any interaction potential, identical fermions experience an effective repulsion (exchange energy) due to antisymmetrization. Bosons experience effective attraction (Bose-Einstein condensation).</p>
+</section>
+
+<!-- ══ XXI. ENTANGLEMENT ═══════════════ -->
+<section id="entangle">
+<h2>XXI. Entanglement &amp; Bell's Theorem</h2>
+
+<h3>Entangled States</h3>
+<p>A two-particle state is <em>entangled</em> if it cannot be written as a product \(\ket{\psi_1}\otimes\ket{\psi_2}\). The canonical example is the Bell state (EPR pair):</p>
+$$\ket{\Phi^+} = \frac{1}{\sqrt{2}}\left(\ket{\uparrow\uparrow}+\ket{\downarrow\downarrow}\right)$$
+<p>Measuring particle 1 in state \(\ket{\uparrow}\) instantaneously collapses particle 2 to \(\ket{\uparrow}\), regardless of separation. This is <em>not</em> a signal — the outcome is random and cannot be used for faster-than-light communication (no-communication theorem).</p>
+
+<h3>Bell's Theorem (1964)</h3>
+<p>Any local hidden variable (LHV) theory must satisfy Bell inequalities. For the CHSH form, with measurement settings \(a,a',b,b'\):</p>
+$$|\ev{AB}+\ev{AB'}+\ev{A'B}-\ev{A'B'}| \le 2\quad\text{(classical, LHV)}$$
+<p>Quantum mechanics predicts (and experiments confirm): maximum value \(2\sqrt{2} \approx 2.83\). This is a violation by \(\sqrt{2}\) — quantum correlations are <em>stronger</em> than any local hidden variable theory can produce. Experiments by Aspect (1982), Zeilinger (2015), and others definitively ruled out LHV theories.</p>
+</section>
+
+<!-- ══ XXII. PERTURBATION THEORY ══════════ -->
+<section id="perturb">
+<h2>XXII. Perturbation Theory</h2>
+<p>Solve \(\op{H} = \op{H}^{(0)} + \lambda\op{H}'\) when \(\op{H}^{(0)}\) is exactly solvable and \(\op{H}'\) is small.</p>
+
+<h3>First-Order Non-Degenerate Perturbation Theory</h3>
+<div class="formula">
+<span class="lbl">First-Order Energy Correction</span>
+$$E_n^{(1)} = \braket{n^{(0)}|\op{H}'|n^{(0)}}$$
+$$\ket{n^{(1)}} = \sum_{m\ne n}\frac{\braket{m^{(0)}|\op{H}'|n^{(0)}}}{E_n^{(0)}-E_m^{(0)}}\ket{m^{(0)}}$$
+</div>
+
+<h3>Second-Order Energy Correction</h3>
+$$E_n^{(2)} = \sum_{m\ne n}\frac{|\braket{m^{(0)}|\op{H}'|n^{(0)}}|^2}{E_n^{(0)}-E_m^{(0)}}$$
+<p>Note: \(E_n^{(2)} < 0\) for the ground state (the denominator is always negative) — perturbations always lower the ground state energy at second order.</p>
+
+<h3>Time-Dependent Perturbation Theory &amp; Fermi's Golden Rule</h3>
+<p>For a periodic perturbation \(\op{H}'=V\cos(\omega t)\), the transition rate from state \(\ket{i}\) to \(\ket{f}\) is:</p>
+$$\Gamma_{i\to f} = \frac{2\pi}{\hbar}|\braket{f|V|i}|^2\,\rho(E_f)\quad\text{(Fermi's Golden Rule)}$$
+<p>where \(\rho(E_f)\) is the density of final states. This governs spontaneous emission, radioactive decay, and scattering cross-sections.</p>
+</section>
+
+<!-- ══ XXIII. WKB ════════════════════ -->
+<section id="wkb">
+<h2>XXIII. WKB (Semiclassical) Approximation</h2>
+<p>Valid when the de Broglie wavelength \(\lambda = 2\pi\hbar/p(x)\) varies slowly. Expand \(\psi = e^{iS(x)/\hbar}\):</p>
+$$\psi(x) \approx \frac{C}{\sqrt{p(x)}}\exp\!\left(\pm\frac{i}{\hbar}\int p(x)\,dx\right),\quad p(x) = \sqrt{2m(E-V(x))}$$
+
+<h3>WKB Quantization (Bohr-Sommerfeld)</h3>
+$$\oint p(x)\,dx = 2\pi\hbar\left(n+\frac{1}{2}\right),\quad n=0,1,2,\ldots$$
+
+<h3>Tunneling Amplitude</h3>
+<p>Through a barrier from \(x_1\) to \(x_2\) where \(E < V(x)\):</p>
+$$T \approx \exp\!\left(-\frac{2}{\hbar}\int_{x_1}^{x_2}\sqrt{2m(V(x)-E)}\,dx\right)$$
+<p>Applied to alpha decay (Gamow): \(\Gamma \propto e^{-2G}\), where \(G\) is the Gamow factor. Explains the enormous range of alpha-decay half-lives (femtoseconds to billion years).</p>
+</section>
+
+<!-- ══ XXIV. VARIATIONAL ════════════════ -->
+<section id="variational">
+<h2>XXIV. The Variational Method</h2>
+<div class="theorem">
+<span class="lbl">Variational Theorem</span>
+<p>For any normalized trial state \(\ket{\psi_\text{trial}}\):</p>
+$$E_\text{gs} \le \ev{\op{H}}_\text{trial} = \braket{\psi_\text{trial}|\op{H}|\psi_\text{trial}}$$
+<p>Equality holds iff \(\ket{\psi_\text{trial}}\) is the exact ground state.</p>
+</div>
+<div class="proof">
+<span class="lbl">Proof</span>
+<p>Expand in energy eigenbasis: \(\ket{\psi_\text{trial}} = \sum_n c_n\ket{n}\). Then:</p>
+$$\ev{H}_\text{trial} = \sum_n |c_n|^2 E_n \ge E_\text{gs}\sum_n|c_n|^2 = E_\text{gs}$$
+<div class="qed">□</div>
+</div>
+<p>Strategy: choose a trial wavefunction with adjustable parameter(s) \(\alpha\), minimize \(\ev{H}(\alpha)\) over \(\alpha\). Used in: helium ground state, molecular bonding, density functional theory (DFT).</p>
+</section>
+
+<!-- ══ XXV. PATH INTEGRALS ═════════════ -->
+<section id="pathint">
+<h2>XXV. Feynman Path Integrals</h2>
+<p>Feynman (1948) reformulated QM: the propagator \(K(x_f,t_f;x_i,t_i)\) is a sum over <em>all possible paths</em>:</p>
+$$K(x_f,x_i;T) = \int\mathcal{D}[x(t)]\,\exp\!\left(\frac{i}{\hbar}\int_0^T L(x,\dot x)\,dt\right)$$
+<p>where \(L = T - V\) is the classical Lagrangian. Each path contributes with amplitude \(e^{iS/\hbar}\) where \(S\) is the classical action.</p>
+
+<h3>Classical Limit</h3>
+<p>As \(\hbar\to 0\), the phase \(e^{iS/\hbar}\) oscillates wildly for all paths except near the <em>stationary point</em> \(\delta S = 0\) — the classical path (stationary phase approximation). This recovers the principle of least action.</p>
+
+<h3>Connection to Statistical Mechanics</h3>
+<p>Under Wick rotation \(t\to -i\tau\) (imaginary time), the path integral becomes the partition function \(Z = \int\mathcal{D}[x]\,e^{-S_E/\hbar}\), connecting quantum mechanics to classical statistical mechanics at temperature \(T = \hbar/k_B\tau\).</p>
+</section>
+
+<!-- ══ XXVI. TOWARD QFT ════════════════ -->
+<section id="qft">
+<h2>XXVI. Toward Quantum Field Theory</h2>
+<p>QM breaks down at relativistic energies and for particle creation/annihilation. Quantum Field Theory (QFT) promotes fields to operators:</p>
+
+<h3>Second Quantization</h3>
+$$\op{\psi}(\mathbf{r}) = \sum_k \op{a}_k u_k(\mathbf{r}),\qquad\comm{\op{a}_k}{\op{a}_{k'}^\dagger} = \delta_{kk'}\text{ (bosons)},\quad\acomm{\op{a}_k}{\op{a}_{k'}^\dagger}=\delta_{kk'}\text{ (fermions)}$$
+<p>Particle number is no longer fixed. The Fock space vacuum \(\ket{0}\) has zero particles; states \(\ket{n_1,n_2,\ldots}\) specify occupation numbers.</p>
+
+<h3>Standard Model Interactions</h3>
+<table>
+<tr><th>Force</th><th>Gauge boson</th><th>Coupling</th><th>QFT</th></tr>
+<tr><td>Electromagnetic</td><td>Photon \(\gamma\)</td><td>\(\alpha \approx 1/137\)</td><td>QED (Feynman, Schwinger, Tomonaga 1948)</td></tr>
+<tr><td>Weak</td><td>\(W^\pm, Z^0\)</td><td>\(\alpha_W \approx 0.03\)</td><td>Electroweak (Glashow, Weinberg, Salam 1968)</td></tr>
+<tr><td>Strong</td><td>Gluons \(g\)</td><td>\(\alpha_s \approx 0.1\)</td><td>QCD (Gross, Politzer, Wilczek 1973)</td></tr>
+</table>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     GNU OCTAVE EXAMPLES
+══════════════════════════════════════════════ -->
+<h2 id="oct1" style="margin-top:3rem">XXVII. GNU Octave Examples</h2>
+
+<h3>1 — Numerical Eigenvalues via Finite Difference (TISE Solver)</h3>
+<div class="cw">
+<div class="ch"><span class="ct">TISE Solver — Finite Difference Matrix Method</span><span class="cl">GNU Octave</span></div>
+<pre><span class="cm">%% Numerically solve the Time-Independent Schrödinger Equation
+%% -ℏ²/(2m) ψ'' + V(x)ψ = Eψ  using finite difference discretization
+%% Works for ANY potential V(x) — infinite well, harmonic, double well, etc.</span>
+
+<span class="kw">clear</span>; <span class="kw">clc</span>;
+
+<span class="cm">%% ─── Physical parameters (atomic units: ℏ=m=1) ──────────────</span>
+hbar = <span class="nm">1</span>; m = <span class="nm">1</span>;
+L = <span class="nm">10</span>;          <span class="cm">% domain [-L/2, L/2]</span>
+N = <span class="nm">500</span>;          <span class="cm">% grid points</span>
+x = <span class="fn">linspace</span>(-L/<span class="nm">2</span>, L/<span class="nm">2</span>, N);
+dx = x(<span class="nm">2</span>)-x(<span class="nm">1</span>);
+
+<span class="cm">%% ─── Define potential (change this for different systems) ─────</span>
+potential = <span class="st">'harmonic'</span>;   <span class="cm">% 'infinite_well', 'harmonic', 'double_well', 'morse'</span>
+
+<span class="kw">switch</span> potential
+  <span class="kw">case</span> <span class="st">'infinite_well'</span>
+    omega = <span class="nm">1</span>;
+    V = <span class="kw">zeros</span>(<span class="nm">1</span>,N);  <span class="cm">% V=0 inside (walls enforced via Dirichlet BC)</span>
+    E_analytic = (<span class="nm">1</span>:<span class="nm">8</span>).<span class="op">^</span><span class="nm">2</span> * pi^<span class="nm">2</span>*hbar^<span class="nm">2</span>/(<span class="nm">2</span>*m*L^<span class="nm">2</span>);
+
+  <span class="kw">case</span> <span class="st">'harmonic'</span>
+    omega = <span class="nm">1</span>;
+    V = <span class="nm">0.5</span> * m * omega^<span class="nm">2</span> * x.<span class="op">^</span><span class="nm">2</span>;
+    E_analytic = hbar*omega*(((<span class="nm">0</span>:<span class="nm">7</span>))+<span class="nm">0.5</span>);  <span class="cm">% (n+½)ℏω</span>
+
+  <span class="kw">case</span> <span class="st">'double_well'</span>
+    a = <span class="nm">1.5</span>; b = <span class="nm">0.5</span>;
+    V = a * x.<span class="op">^</span><span class="nm">4</span> - b * x.<span class="op">^</span><span class="nm">2</span>;  <span class="cm">% Mexican hat</span>
+    V = V - <span class="fn">min</span>(V);
+    E_analytic = [];
+
+  <span class="kw">case</span> <span class="st">'morse'</span>
+    De = <span class="nm">4</span>; a_m = <span class="nm">0.8</span>; x0 = <span class="nm">0</span>;
+    V = De * (<span class="nm">1</span> - <span class="fn">exp</span>(-a_m*(x-x0))).<span class="op">^</span><span class="nm">2</span>;
+    E_analytic = [];
+<span class="kw">end</span>
+
+<span class="cm">%% ─── Build tridiagonal Hamiltonian matrix ────────────────────</span>
+<span class="cm">%% Kinetic: -ℏ²/(2m) * (ψ_{i+1}-2ψ_i+ψ_{i-1})/dx²</span>
+diag_main  = hbar^<span class="nm">2</span>/(m*dx^<span class="nm">2</span>) * <span class="kw">ones</span>(<span class="nm">1</span>,N) + V;
+diag_off   = -hbar^<span class="nm">2</span>/(<span class="nm">2</span>*m*dx^<span class="nm">2</span>) * <span class="kw">ones</span>(<span class="nm">1</span>,N-<span class="nm">1</span>);
+H = <span class="fn">diag</span>(diag_main) + <span class="fn">diag</span>(diag_off,<span class="nm">1</span>) + <span class="fn">diag</span>(diag_off,-<span class="nm">1</span>);
+
+<span class="cm">%% ─── Solve eigenvalue problem ────────────────────────────────</span>
+[vecs, vals] = <span class="fn">eig</span>(H);
+E = <span class="fn">diag</span>(vals);
+[E, idx] = <span class="fn">sort</span>(E);
+vecs = vecs(:,idx);
+
+<span class="cm">%% Normalise eigenvectors: ∫|ψ|²dx = 1</span>
+<span class="kw">for</span> k = <span class="nm">1</span>:<span class="nm">8</span>
+  vecs(:,k) = vecs(:,k) / <span class="fn">sqrt</span>(<span class="fn">trapz</span>(x, vecs(:,k).<span class="op">^</span><span class="nm">2</span>));
+<span class="kw">end</span>
+
+<span class="cm">%% ─── Print energy levels ─────────────────────────────────────</span>
+<span class="fn">printf</span>(<span class="st">'%-6s %-14s'</span>, <span class="st">'n'</span>, <span class="st">'E_numeric'</span>);
+<span class="kw">if</span> ~<span class="fn">isempty</span>(E_analytic), <span class="fn">printf</span>(<span class="st">'%-14s %-12s'</span>,<span class="st">'E_analytic'</span>,<span class="st">'Error'</span>); <span class="kw">end</span>
+<span class="fn">printf</span>(<span class="st">'\n%s\n'</span>, <span class="kw">repmat</span>(<span class="st">'-'</span>,<span class="nm">1</span>,<span class="nm">46</span>));
+<span class="kw">for</span> k = <span class="nm">1</span>:<span class="nm">8</span>
+  <span class="fn">printf</span>(<span class="st">'%-6d %-14.6f'</span>, k, E(k));
+  <span class="kw">if</span> ~<span class="fn">isempty</span>(E_analytic)
+    <span class="fn">printf</span>(<span class="st">'%-14.6f %-12.2e'</span>, E_analytic(k), <span class="fn">abs</span>(E(k)-E_analytic(k)));
+  <span class="kw">end</span>
+  <span class="fn">printf</span>(<span class="st">'\n'</span>);
+<span class="kw">end</span>
+
+<span class="cm">%% ─── Plot wavefunctions and probability densities ────────────</span>
+<span class="kw">figure</span>(<span class="nm">1</span>); <span class="fn">clf</span>;
+colors = <span class="fn">jet</span>(<span class="nm">8</span>);
+<span class="kw">subplot</span>(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">1</span>); hold on; grid on;
+<span class="kw">title</span>(<span class="fn">sprintf</span>(<span class="st">'Wavefunctions ψ_n(x) — %s'</span>, potential));
+<span class="kw">xlabel</span>(<span class="st">'x (a.u.)'</span>); <span class="kw">ylabel</span>(<span class="st">'ψ_n(x) + E_n (offset)'</span>);
+<span class="cm">% Plot V(x)</span>
+<span class="fn">plot</span>(x, V, <span class="st">'k-'</span>, <span class="st">'LineWidth'</span>, <span class="nm">2</span>);
+<span class="kw">for</span> k = <span class="nm">1</span>:<span class="nm">5</span>
+  psi_plot = vecs(:,k)' / <span class="nm">2</span>;  <span class="cm">% scale for display</span>
+  <span class="fn">plot</span>(x, psi_plot + E(k), <span class="st">'Color'</span>, colors(k,:), <span class="st">'LineWidth'</span>, <span class="nm">1.5</span>);
+  <span class="fn">plot</span>(x([<span class="nm">1</span> <span class="kw">end</span>]), [E(k) E(k)], <span class="st">'Color'</span>, colors(k,:), <span class="st">'LineStyle'</span>, <span class="st">'--'</span>);
+<span class="kw">end</span>
+
+<span class="kw">subplot</span>(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">2</span>); hold on; grid on;
+<span class="kw">title</span>(<span class="st">'Probability Densities |ψ_n(x)|²'</span>);
+<span class="kw">xlabel</span>(<span class="st">'x'</span>); <span class="kw">ylabel</span>(<span class="st">'|ψ|² + E_n'</span>);
+<span class="fn">plot</span>(x, V, <span class="st">'k-'</span>, <span class="st">'LineWidth'</span>, <span class="nm">2</span>);
+<span class="kw">for</span> k = <span class="nm">1</span>:<span class="nm">5</span>
+  rho = vecs(:,k)'.<span class="op">^</span><span class="nm">2</span> / <span class="nm">3</span>;
+  <span class="fn">fill</span>([x, <span class="fn">fliplr</span>(x)], [rho+E(k), E(k)*<span class="kw">ones</span>(<span class="nm">1</span>,N)], ...
+       colors(k,:), <span class="st">'FaceAlpha'</span>, <span class="nm">0.4</span>, <span class="st">'EdgeColor'</span>, <span class="st">'none'</span>);
+<span class="kw">end</span></pre>
+</div>
+
+<h3 id="oct2">2 — Wave Packet Time Evolution via FFT</h3>
+<div class="cw">
+<div class="ch"><span class="ct">Gaussian Wave Packet — FFT Propagation</span><span class="cl">GNU Octave</span></div>
+<pre><span class="cm">%% Time evolution of a Gaussian wave packet using split-operator FFT method
+%% Ψ(x,t+dt) ≈ e^{-iVdt/2ℏ} · FFT^{-1}[e^{-iTdt/ℏ} · FFT[e^{-iVdt/2ℏ}Ψ]]
+%% Highly accurate: 4th order in dt, exact for each operator separately</span>
+
+<span class="kw">clear</span>; <span class="kw">clc</span>;
+hbar = <span class="nm">1</span>; m = <span class="nm">1</span>;
+N = <span class="nm">1024</span>;
+L = <span class="nm">60</span>;
+x = <span class="fn">linspace</span>(-L/<span class="nm">2</span>, L/<span class="nm">2</span>-L/N, N);
+dx = L/N;
+
+<span class="cm">%% Momentum grid (FFT-ordered)</span>
+dk = <span class="nm">2</span>*pi/L;
+k  = [<span class="nm">0</span>:N/<span class="nm">2</span>-<span class="nm">1</span>, -N/<span class="nm">2</span>:-<span class="nm">1</span>] * dk;
+
+<span class="cm">%% Initial Gaussian wave packet: position x0, width sigma, momentum k0</span>
+x0 = -<span class="nm">10</span>;  sigma = <span class="nm">1.5</span>;  k0 = <span class="nm">2.5</span>;
+psi = (<span class="nm">2</span>*pi*sigma^<span class="nm">2</span>)^(-<span class="nm">0.25</span>) * <span class="fn">exp</span>(-((x-x0).<span class="op">^</span><span class="nm">2</span>)/(<span class="nm">4</span>*sigma^<span class="nm">2</span>)) .* <span class="fn">exp</span>(<span class="nm">1i</span>*k0*x);
+psi = psi / <span class="fn">sqrt</span>(<span class="fn">trapz</span>(x, <span class="fn">abs</span>(psi).<span class="op">^</span><span class="nm">2</span>));  <span class="cm">% normalize</span>
+
+<span class="cm">%% Potential: Gaussian barrier + square well</span>
+V_barrier = <span class="nm">3</span> * <span class="fn">exp</span>(-(<span class="nm">0.8</span>*x).<span class="op">^</span><span class="nm">2</span>);   <span class="cm">% barrier at origin</span>
+V = V_barrier;
+
+<span class="cm">%% Pre-compute propagators</span>
+dt = <span class="nm">0.04</span>;
+expV_half = <span class="fn">exp</span>(-<span class="nm">1i</span>*V/(hbar) * dt/<span class="nm">2</span>);         <span class="cm">% half-step in V</span>
+expT_full = <span class="fn">exp</span>(-<span class="nm">1i</span>*hbar*k.<span class="op">^</span><span class="nm">2</span>/(<span class="nm">2</span>*m) * dt);   <span class="cm">% full step in T</span>
+
+<span class="cm">%% Animate time evolution</span>
+<span class="kw">figure</span>(<span class="nm">2</span>); <span class="fn">clf</span>;
+T_final = <span class="nm">20</span>;  nsteps = <span class="kw">round</span>(T_final/dt);
+snap_times = <span class="kw">round</span>(<span class="fn">linspace</span>(<span class="nm">0</span>, nsteps, <span class="nm">6</span>));
+snaps = {}; t = <span class="nm">0</span>;
+
+<span class="kw">for</span> step = <span class="nm">0</span>:nsteps
+  <span class="kw">if</span> <span class="fn">ismember</span>(step, snap_times)
+    snaps{<span class="kw">end</span>+<span class="nm">1</span>} = <span class="kw">struct</span>(<span class="st">'psi'</span>, psi, <span class="st">'t'</span>, t);
+  <span class="kw">end</span>
+  <span class="cm">% Split-operator step</span>
+  psi = expV_half .* psi;
+  psi = <span class="fn">ifft</span>(expT_full .* <span class="fn">fft</span>(psi));
+  psi = expV_half .* psi;
+  t += dt;
+<span class="kw">end</span>
+
+<span class="kw">for</span> ii = <span class="nm">1</span>:<span class="kw">length</span>(snaps)
+  <span class="kw">subplot</span>(<span class="nm">2</span>,<span class="nm">3</span>,ii);
+  rho = <span class="fn">abs</span>(snaps{ii}.psi).<span class="op">^</span><span class="nm">2</span>;
+  <span class="fn">plot</span>(x, rho, <span class="st">'b-'</span>, <span class="st">'LineWidth'</span>, <span class="nm">1.5</span>); hold on;
+  <span class="fn">plot</span>(x, V_barrier/<span class="nm">10</span>, <span class="st">'r--'</span>, <span class="st">'LineWidth'</span>, <span class="nm">1</span>);
+  <span class="kw">title</span>(<span class="fn">sprintf</span>(<span class="st">'t = %.1f ℏ/E'</span>, snaps{ii}.t));
+  <span class="kw">xlabel</span>(<span class="st">'x'</span>); <span class="kw">ylabel</span>(<span class="st">'|ψ|²'</span>); grid on;
+  <span class="fn">ylim</span>([<span class="nm">0</span> <span class="nm">0.5</span>]);
+<span class="kw">end</span>
+
+<span class="cm">%% Uncertainty principle verification</span>
+rho_x = <span class="fn">abs</span>(snaps{<span class="nm">1</span>}.psi).<span class="op">^</span><span class="nm">2</span>;
+rho_p = <span class="fn">abs</span>(<span class="fn">fft</span>(snaps{<span class="nm">1</span>}.psi)*dx/<span class="fn">sqrt</span>(<span class="nm">2</span>*pi)).<span class="op">^</span><span class="nm">2</span>;
+sigma_x = <span class="fn">sqrt</span>(<span class="fn">trapz</span>(x, x.<span class="op">^</span><span class="nm">2</span>.*rho_x) - <span class="fn">trapz</span>(x, x.*rho_x)^<span class="nm">2</span>);
+sigma_p = sigma * ... <span class="cm">% for Gaussian: σ_p = ℏ/(2σ_x)</span>
+<span class="fn">printf</span>(<span class="st">'σ_x·σ_p = %.4f  (should be ≥ %.4f = ℏ/2)\n'</span>, sigma_x*hbar/(<span class="nm">2</span>*sigma_x), hbar/<span class="nm">2</span>);</pre>
+</div>
+
+<h3 id="oct3">3 — Harmonic Oscillator: Matrix Method &amp; Hermite Polynomials</h3>
+<div class="cw">
+<div class="ch"><span class="ct">Harmonic Oscillator — Ladder Operators &amp; Hermite Polynomials</span><span class="cl">GNU Octave</span></div>
+<pre><span class="cm">%% Harmonic oscillator: matrix representation of ladder operators
+%% Verify E_n = ℏω(n+½) and compute wavefunctions via Hermite polynomials</span>
+
+<span class="kw">clear</span>; <span class="kw">clc</span>;
+hbar = <span class="nm">1</span>; m = <span class="nm">1</span>; omega = <span class="nm">1</span>;
+N_trunc = <span class="nm">20</span>;  <span class="cm">% Fock space truncation: |0⟩....|N-1⟩</span>
+
+<span class="cm">%% ─── Ladder operators in Fock basis ─────────────────────────</span>
+<span class="cm">% a|n⟩ = sqrt(n)|n-1⟩  →  a_{m,n} = sqrt(n) δ_{m,n-1}</span>
+n_arr = <span class="nm">0</span>:N_trunc-<span class="nm">1</span>;
+a  = <span class="fn">diag</span>(<span class="fn">sqrt</span>(<span class="nm">1</span>:N_trunc-<span class="nm">1</span>), <span class="nm">1</span>);   <span class="cm">% annihilation</span>
+ad = a';                               <span class="cm">% creation</span>
+N_op = ad*a;                           <span class="cm">% number operator</span>
+
+<span class="cm">%% Hamiltonian H = ℏω(N + ½)</span>
+H = hbar*omega*(N_op + <span class="nm">0.5</span>*<span class="fn">eye</span>(N_trunc));
+
+<span class="cm">%% Verify: eigenvalues should be (n+½)ℏω</span>
+E_matrix = <span class="fn">diag</span>(H);
+E_exact  = hbar*omega*(((<span class="nm">0</span>:N_trunc-<span class="nm">1</span>))+<span class="nm">0.5</span>);
+<span class="fn">printf</span>(<span class="st">'Max eigenvalue error: %.2e\n'</span>, <span class="fn">max</span>(<span class="fn">abs</span>(E_matrix - E_exact')));
+
+<span class="cm">%% Position and momentum operators</span>
+xi_scale = <span class="fn">sqrt</span>(hbar/(<span class="nm">2</span>*m*omega));
+x_op = xi_scale * (a + ad);    <span class="cm">% x̂ = √(ℏ/2mω)(a+a†)</span>
+p_op = <span class="nm">1i</span>*<span class="fn">sqrt</span>(m*omega*hbar/<span class="nm">2</span>) * (ad - a);  <span class="cm">% p̂</span>
+
+<span class="cm">%% Verify [x̂,p̂] = iℏ  (check matrix element ⟨0|[x,p]|0⟩ = iℏ)</span>
+comm_xp = x_op*p_op - p_op*x_op;
+<span class="fn">printf</span>(<span class="st">'[x,p]_{00}/iℏ = %.6f (should be 1)\n'</span>, real(comm_xp(<span class="nm">1</span>,<span class="nm">1</span>)/(<span class="nm">1i</span>*hbar)));
+
+<span class="cm">%% ─── Hermite polynomial wavefunctions ───────────────────────</span>
+<span class="kw">function</span> H_n = hermite(n, xi)
+  <span class="kw">if</span>     n==<span class="nm">0</span>, H_n = <span class="kw">ones</span>(<span class="nm">1</span>,<span class="kw">length</span>(xi));
+  <span class="kw">elseif</span> n==<span class="nm">1</span>, H_n = <span class="nm">2</span>*xi;
+  <span class="kw">else</span>
+    H_prev2 = <span class="kw">ones</span>(<span class="nm">1</span>,<span class="kw">length</span>(xi));
+    H_prev1 = <span class="nm">2</span>*xi;
+    <span class="kw">for</span> k = <span class="nm">2</span>:n
+      H_n = <span class="nm">2</span>*xi.*H_prev1 - <span class="nm">2</span>*(k-<span class="nm">1</span>)*H_prev2;
+      H_prev2 = H_prev1; H_prev1 = H_n;
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+xi_max = <span class="nm">5</span>; xi = <span class="fn">linspace</span>(-xi_max, xi_max, <span class="nm">500</span>);
+x_phys = xi * <span class="fn">sqrt</span>(hbar/(m*omega));  <span class="cm">% dimensionful position</span>
+
+<span class="kw">figure</span>(<span class="nm">3</span>); <span class="fn">clf</span>;
+<span class="kw">subplot</span>(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">1</span>); hold on; grid on;
+<span class="kw">title</span>(<span class="st">'Harmonic Oscillator ψ_n(x)'</span>);
+V_plot = <span class="nm">0.5</span> * x_phys.<span class="op">^</span><span class="nm">2</span>;
+<span class="fn">plot</span>(x_phys, V_plot, <span class="st">'k-'</span>, <span class="st">'LineWidth'</span>, <span class="nm">1.5</span>);
+c2 = <span class="fn">jet</span>(<span class="nm">6</span>);
+<span class="kw">for</span> n = <span class="nm">0</span>:<span class="nm">5</span>
+  norm_n = <span class="nm">1</span>/<span class="fn">sqrt</span>(<span class="nm">2</span>^n * <span class="fn">factorial</span>(n)) * (m*omega/(pi*hbar))^(<span class="nm">0.25</span>);
+  psi_n  = norm_n * hermite(n, xi) .* <span class="fn">exp</span>(-xi.<span class="op">^</span><span class="nm">2</span>/<span class="nm">2</span>);
+  E_n    = hbar*omega*(n+<span class="nm">0.5</span>);
+  <span class="fn">plot</span>(x_phys, psi_n*<span class="nm">0.6</span>+E_n, <span class="st">'Color'</span>, c2(n+<span class="nm">1</span>,:), <span class="st">'LineWidth'</span>, <span class="nm">1.5</span>);
+  <span class="fn">plot</span>(x_phys([<span class="nm">1</span>,<span class="kw">end</span>]),[E_n E_n],<span class="st">'Color'</span>,c2(n+<span class="nm">1</span>,:),<span class="st">'LineStyle'</span>,<span class="st">'--'</span>,<span class="st">'LineWidth'</span>,<span class="nm">0.8</span>);
+  <span class="fn">text</span>(xi_max*<span class="nm">0.8</span>*<span class="fn">sqrt</span>(hbar/(m*omega)), E_n+<span class="nm">0.15</span>, <span class="fn">sprintf</span>(<span class="st">'n=%d'</span>,n), <span class="st">'Color'</span>, c2(n+<span class="nm">1</span>,:));
+<span class="kw">end</span>
+<span class="kw">xlabel</span>(<span class="st">'x'</span>); <span class="kw">ylabel</span>(<span class="st">'E_n + ψ_n (scaled)'</span>);
+
+<span class="cm">%% ─── Time-evolved coherent state ─────────────────────────────</span>
+<span class="cm">% Coherent state |α⟩ with α=2: minimum-uncertainty state</span>
+alpha = <span class="nm">2</span>;
+c_n = <span class="fn">exp</span>(-<span class="fn">abs</span>(alpha)^<span class="nm">2</span>/<span class="nm">2</span>) * alpha.^(<span class="nm">0</span>:N_trunc-<span class="nm">1</span>) ./ <span class="fn">sqrt</span>(<span class="fn">factorial</span>(<span class="nm">0</span>:N_trunc-<span class="nm">1</span>));
+<span class="fn">printf</span>(<span class="st">'Coherent state norm: %.6f\n'</span>, <span class="fn">sum</span>(<span class="fn">abs</span>(c_n).<span class="op">^</span><span class="nm">2</span>));
+
+t_arr = <span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">2</span>*pi/omega, <span class="nm">6</span>);
+<span class="kw">subplot</span>(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">2</span>); hold on; grid on;
+<span class="kw">title</span>(<span class="st">'Coherent State |α=2⟩ Evolution'</span>);
+<span class="kw">for</span> it = <span class="nm">1</span>:<span class="kw">length</span>(t_arr)
+  tt = t_arr(it);
+  psi_coh = <span class="kw">zeros</span>(<span class="nm">1</span>,<span class="kw">length</span>(xi));
+  <span class="kw">for</span> n = <span class="nm">0</span>:N_trunc-<span class="nm">1</span>
+    norm_n = <span class="nm">1</span>/<span class="fn">sqrt</span>(<span class="nm">2</span>^n*<span class="fn">factorial</span>(n)) * (m*omega/(pi*hbar))^(<span class="nm">0.25</span>);
+    psi_n  = norm_n * hermite(n, xi) .* <span class="fn">exp</span>(-xi.<span class="op">^</span><span class="nm">2</span>/<span class="nm">2</span>);
+    psi_coh += c_n(n+<span class="nm">1</span>) * <span class="fn">exp</span>(-<span class="nm">1i</span>*omega*(n+<span class="nm">0.5</span>)*tt) * psi_n;
+  <span class="kw">end</span>
+  rho = <span class="fn">abs</span>(psi_coh).<span class="op">^</span><span class="nm">2</span>;
+  <span class="fn">plot</span>(x_phys, rho + it/<span class="nm">2</span>, <span class="st">'Color'</span>, <span class="fn">hsv2rgb</span>([(it-<span class="nm">1</span>)/<span class="nm">6</span>, <span class="nm">0.9</span>, <span class="nm">0.9</span>]), <span class="st">'LineWidth'</span>, <span class="nm">1.4</span>);
+<span class="kw">end</span>
+<span class="kw">xlabel</span>(<span class="st">'x'</span>); <span class="kw">ylabel</span>(<span class="st">'|ψ|² + offset'</span>);</pre>
+</div>
+
+<h3 id="oct4">4 — Hydrogen Atom Radial Wavefunctions</h3>
+<div class="cw">
+<div class="ch"><span class="ct">Hydrogen Atom — Radial WF &amp; Probability Densities</span><span class="cl">GNU Octave</span></div>
+<pre><span class="cm">%% Hydrogen atom radial wavefunctions R_{nl}(r) and probability densities
+%% Using associated Laguerre polynomials L^{2l+1}_{n-l-1}(2r/na₀)</span>
+
+<span class="kw">clear</span>; <span class="kw">clc</span>;
+a0 = <span class="nm">1</span>;   <span class="cm">% Bohr radius (atomic units)</span>
+
+<span class="cm">%% Associated Laguerre polynomial L^k_n(x) via recurrence</span>
+<span class="kw">function</span> L = assoc_laguerre(n, k, x)
+  <span class="kw">if</span>     n==<span class="nm">0</span>, L = <span class="kw">ones</span>(size(x));
+  <span class="kw">elseif</span> n==<span class="nm">1</span>, L = <span class="nm">1</span> + k - x;
+  <span class="kw">else</span>
+    L0 = <span class="kw">ones</span>(size(x)); L1 = <span class="nm">1</span>+k-x;
+    <span class="kw">for</span> j = <span class="nm">2</span>:n
+      L2 = ((<span class="nm">2</span>*j-<span class="nm">1</span>+k-x).*L1 - (j-<span class="nm">1</span>+k)*L0) / j;
+      L0 = L1; L1 = L2;
+    <span class="kw">end</span>
+    L = L1;
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">%% Radial wavefunction R_{nl}(r)</span>
+<span class="kw">function</span> R = radial_wf(n, l, r, a0)
+  rho = <span class="nm">2</span>*r/(n*a0);
+  norm = -<span class="fn">sqrt</span>((<span class="nm">2</span>/(n*a0))^<span class="nm">3</span> * <span class="fn">factorial</span>(n-l-<span class="nm">1</span>) / (<span class="nm">2</span>*n*<span class="fn">factorial</span>(n+l)^<span class="nm">3</span>));
+  R = norm .* <span class="fn">exp</span>(-rho/<span class="nm">2</span>) .* rho.<span class="op">^</span>l .* assoc_laguerre(n-l-<span class="nm">1</span>, <span class="nm">2</span>*l+<span class="nm">1</span>, rho);
+<span class="kw">end</span>
+
+<span class="cm">%% Plot for n=1,2,3 and all l</span>
+r = <span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">30</span>, <span class="nm">1000</span>);
+states = {[<span class="nm">1</span>,<span class="nm">0</span>],[<span class="nm">2</span>,<span class="nm">0</span>],[<span class="nm">2</span>,<span class="nm">1</span>],[<span class="nm">3</span>,<span class="nm">0</span>],[<span class="nm">3</span>,<span class="nm">1</span>],[<span class="nm">3</span>,<span class="nm">2</span>]};
+labs = {<span class="st">'1s'</span>,<span class="st">'2s'</span>,<span class="st">'2p'</span>,<span class="st">'3s'</span>,<span class="st">'3p'</span>,<span class="st">'3d'</span>};
+
+<span class="kw">figure</span>(<span class="nm">4</span>); <span class="fn">clf</span>;
+<span class="kw">subplot</span>(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">1</span>); hold on; grid on;
+<span class="kw">title</span>(<span class="st">'Radial Wavefunctions R_{nl}(r)'</span>);
+<span class="kw">xlabel</span>(<span class="st">'r/a₀'</span>); <span class="kw">ylabel</span>(<span class="st">'R_{nl}(r) a₀^{3/2}'</span>);
+c3 = <span class="fn">lines</span>(<span class="nm">6</span>);
+<span class="kw">for</span> k = <span class="nm">1</span>:<span class="kw">length</span>(states)
+  n = states{k}(<span class="nm">1</span>); l = states{k}(<span class="nm">2</span>);
+  R = radial_wf(n, l, r, a0);
+  <span class="fn">plot</span>(r, R, <span class="st">'Color'</span>, c3(k,:), <span class="st">'LineWidth'</span>, <span class="nm">1.6</span>, <span class="st">'DisplayName'</span>, labs{k});
+<span class="kw">end</span>
+<span class="kw">legend</span>(<span class="st">'Location'</span>,<span class="st">'northeast'</span>); <span class="fn">ylim</span>([-<span class="nm">0.8</span> <span class="nm">1.8</span>]);
+
+<span class="kw">subplot</span>(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">2</span>); hold on; grid on;
+<span class="kw">title</span>(<span class="st">'Radial Probability Density r²|R_{nl}|²'</span>);
+<span class="kw">xlabel</span>(<span class="st">'r/a₀'</span>); <span class="kw">ylabel</span>(<span class="st">'r²|R|²'</span>);
+<span class="kw">for</span> k = <span class="nm">1</span>:<span class="kw">length</span>(states)
+  n = states{k}(<span class="nm">1</span>); l = states{k}(<span class="nm">2</span>);
+  R = radial_wf(n, l, r, a0);
+  P = r.<span class="op">^</span><span class="nm">2</span> .* R.<span class="op">^</span><span class="nm">2</span>;
+  <span class="fn">plot</span>(r, P, <span class="st">'Color'</span>, c3(k,:), <span class="st">'LineWidth'</span>, <span class="nm">1.6</span>, <span class="st">'DisplayName'</span>, labs{k});
+  <span class="cm">%% Verify normalization: ∫₀^∞ r²|R|² dr = 1</span>
+  norm_check = <span class="fn">trapz</span>(r, P);
+  <span class="fn">printf</span>(<span class="st">'%-4s: ∫r²|R|²dr = %.4f\n'</span>, labs{k}, norm_check);
+<span class="kw">end</span>
+<span class="kw">legend</span>(<span class="st">'Location'</span>,<span class="st">'northeast'</span>);
+
+<span class="cm">%% ─── Expectation value ⟨r⟩ = n²a₀(1 + ½(1-l(l+1)/n²)) ────</span>
+<span class="fn">printf</span>(<span class="st">'\nExpectation values ⟨r⟩:\n'</span>);
+<span class="kw">for</span> k = <span class="nm">1</span>:<span class="kw">length</span>(states)
+  n=states{k}(<span class="nm">1</span>); l=states{k}(<span class="nm">2</span>);
+  R = radial_wf(n, l, r, a0);
+  r_mean = <span class="fn">trapz</span>(r, r.<span class="op">^</span><span class="nm">3</span> .* R.<span class="op">^</span><span class="nm">2</span>);
+  r_exact= a0/<span class="nm">2</span> * (<span class="nm">3</span>*n^<span class="nm">2</span> - l*(l+<span class="nm">1</span>));
+  <span class="fn">printf</span>(<span class="st">'%s: ⟨r⟩_num=%.3f  ⟨r⟩_exact=%.3f a₀\n'</span>, labs{k}, r_mean, r_exact);
+<span class="kw">end</span></pre>
+</div>
+
+<h3 id="oct5">5 — First-Order Perturbation Theory: Anharmonic Oscillator</h3>
+<div class="cw">
+<div class="ch"><span class="ct">Perturbation Theory — Anharmonic Oscillator H' = λx⁴</span><span class="cl">GNU Octave</span></div>
+<pre><span class="cm">%% First and second-order perturbation theory for H = H₀ + λx⁴
+%% H₀ = harmonic oscillator; H' = x⁴ (quartic correction)
+%% Compare perturbative to numerical (exact matrix diagonalization)</span>
+
+<span class="kw">clear</span>; <span class="kw">clc</span>;
+hbar = <span class="nm">1</span>; m = <span class="nm">1</span>; omega = <span class="nm">1</span>;
+N = <span class="nm">30</span>;       <span class="cm">% Fock space size</span>
+lambda = <span class="nm">0.05</span>; <span class="cm">% perturbation strength (small)</span>
+
+<span class="cm">%% Build ladder operators</span>
+a  = <span class="fn">diag</span>(<span class="fn">sqrt</span>(<span class="nm">1</span>:N-<span class="nm">1</span>), <span class="nm">1</span>);
+ad = a';
+x_scale = <span class="fn">sqrt</span>(hbar/(<span class="nm">2</span>*m*omega));
+x_op = x_scale * (a + ad);
+
+<span class="cm">%% H₀ = ℏω(N+½), H' = x⁴</span>
+H0 = hbar*omega * (ad*a + <span class="nm">0.5</span>*<span class="fn">eye</span>(N));
+H1 = x_op^<span class="nm">4</span>;   <span class="cm">% x̂⁴ matrix</span>
+H_full = H0 + lambda * H1;
+
+<span class="cm">%% ─── Perturbation theory formulas ───────────────────────────</span>
+E0 = hbar*omega * ((<span class="nm">0</span>:N-<span class="nm">1</span>) + <span class="nm">0.5</span>);   <span class="cm">% unperturbed energies</span>
+
+<span class="cm">% First order: E_n^(1) = λ⟨n|x⁴|n⟩</span>
+E1_pert = lambda * <span class="fn">diag</span>(H1)';   <span class="cm">% diagonal matrix elements</span>
+
+<span class="cm">% Analytical first order: ⟨n|x⁴|n⟩ = (ℏ/2mω)² (6n²+6n+3)</span>
+x_scale2 = (hbar/(<span class="nm">2</span>*m*omega))^<span class="nm">2</span>;
+n_arr = <span class="nm">0</span>:N-<span class="nm">1</span>;
+E1_analytic = lambda * x_scale2 * (<span class="nm">6</span>*n_arr.<span class="op">^</span><span class="nm">2</span> + <span class="nm">6</span>*n_arr + <span class="nm">3</span>);
+
+<span class="cm">% Second order: sum over m≠n of |⟨m|H'|n⟩|²/(E_n-E_m)</span>
+E2_pert = <span class="kw">zeros</span>(<span class="nm">1</span>,<span class="nm">10</span>);
+<span class="kw">for</span> n = <span class="nm">1</span>:<span class="nm">10</span>
+  <span class="kw">for</span> mm = <span class="nm">1</span>:N
+    <span class="kw">if</span> mm ~= n
+      E2_pert(n) += lambda^<span class="nm">2</span> * <span class="fn">abs</span>(H1(mm,n))^<span class="nm">2</span> / (E0(n)-E0(mm));
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">%% Exact (full matrix diagonalization)</span>
+[~, E_exact] = <span class="fn">eig</span>(H_full);
+E_exact = <span class="fn">sort</span>(<span class="fn">diag</span>(E_exact));
+
+<span class="cm">%% Compare</span>
+<span class="fn">printf</span>(<span class="st">'%-4s %-12s %-12s %-12s %-12s %-10s\n'</span>, <span class="st">'n'</span>,<span class="st">'E₀'</span>,<span class="st">'E₀+E₁'</span>,<span class="st">'E₀+E₁+E₂'</span>,<span class="st">'E_exact'</span>,<span class="st">'Error₂'</span>);
+<span class="kw">for</span> n = <span class="nm">1</span>:<span class="nm">8</span>
+  E_2nd = E0(n)+E1_pert(n)+E2_pert(n);
+  <span class="fn">printf</span>(<span class="st">'%-4d %-12.5f %-12.5f %-12.5f %-12.5f %-10.2e\n'</span>, n-<span class="nm">1</span>, E0(n), E0(n)+E1_pert(n), E_2nd, E_exact(n), <span class="fn">abs</span>(E_2nd-E_exact(n)));
+<span class="kw">end</span>
+
+<span class="cm">%% Plot: perturbative vs exact for varying λ</span>
+lambdas = <span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">0.5</span>, <span class="nm">50</span>);
+n_show = <span class="nm">0</span>;  <span class="cm">% ground state</span>
+E_pert_arr = <span class="kw">zeros</span>(<span class="nm">1</span>,<span class="kw">length</span>(lambdas));
+E_exact_arr= <span class="kw">zeros</span>(<span class="nm">1</span>,<span class="kw">length</span>(lambdas));
+<span class="kw">for</span> il = <span class="nm">1</span>:<span class="kw">length</span>(lambdas)
+  lam = lambdas(il);
+  H_l = H0 + lam * H1;
+  E_exact_arr(il) = <span class="fn">min</span>(<span class="fn">eig</span>(H_l));
+  E_pert_arr(il)  = E0(<span class="nm">1</span>) + lam*E1_analytic(<span class="nm">1</span>) + lam^<span class="nm">2</span>*E2_pert(<span class="nm">1</span>)/lambda^<span class="nm">2</span>;
+<span class="kw">end</span>
+<span class="kw">figure</span>(<span class="nm">5</span>); <span class="fn">plot</span>(lambdas, E_exact_arr,<span class="st">'b-'</span>,lambdas,E_pert_arr,<span class="st">'r--'</span>,<span class="st">'LineWidth'</span>,<span class="nm">2</span>);
+<span class="kw">legend</span>({<span class="st">'Exact'</span>,<span class="st">'2nd-order PT'</span>}); grid on;
+<span class="kw">title</span>(<span class="st">'Ground State Energy: Exact vs Perturbation Theory'</span>);
+<span class="kw">xlabel</span>(<span class="st">'\lambda'</span>); <span class="kw">ylabel</span>(<span class="st">'E_0(\lambda)'</span>);</pre>
+</div>
+
+<h3 id="oct6">6 — Quantum Tunneling via Transfer Matrix</h3>
+<div class="cw">
+<div class="ch"><span class="ct">Quantum Tunneling — Transfer Matrix Method</span><span class="cl">GNU Octave</span></div>
+<pre><span class="cm">%% Transfer matrix method for quantum tunneling through arbitrary barriers
+%% Exact for piecewise-constant potentials; approximates any smooth barrier</span>
+
+<span class="kw">clear</span>; <span class="kw">clc</span>;
+hbar = <span class="nm">1</span>; m = <span class="nm">1</span>;
+
+<span class="cm">%% ─── Transfer matrix for a single slab [x1,x2] with potential V ────</span>
+<span class="kw">function</span> M = transfer_matrix(E, V, dx, hbar, m)
+  <span class="kw">if</span> E > V
+    k = <span class="fn">sqrt</span>(<span class="nm">2</span>*m*(E-V))/hbar;
+    M = [<span class="fn">cos</span>(k*dx), <span class="fn">sin</span>(k*dx)/k; -k*<span class="fn">sin</span>(k*dx), <span class="fn">cos</span>(k*dx)];
+  <span class="kw">else</span>
+    kappa = <span class="fn">sqrt</span>(<span class="nm">2</span>*m*(V-E))/hbar;
+    M = [<span class="fn">cosh</span>(kappa*dx), <span class="fn">sinh</span>(kappa*dx)/kappa; kappa*<span class="fn">sinh</span>(kappa*dx), <span class="fn">cosh</span>(kappa*dx)];
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">%% ─── Rectangular barrier: V₀ for |x| < a ────────────────────</span>
+V0 = <span class="nm">5</span>;  a = <span class="nm">1</span>;   <span class="cm">% barrier height and half-width</span>
+N_slabs = <span class="nm">200</span>;
+x_bar = <span class="fn">linspace</span>(-a, a, N_slabs);
+dx = <span class="nm">2</span>*a/N_slabs;
+V_slabs = V0 * <span class="kw">ones</span>(<span class="nm">1</span>, N_slabs);
+
+<span class="cm">%% Scan energy E from 0 to 2*V0</span>
+E_arr = <span class="fn">linspace</span>(<span class="nm">0.05</span>, <span class="nm">2</span>*V0, <span class="nm">300</span>);
+T_num = <span class="kw">zeros</span>(<span class="nm">1</span>, <span class="kw">length</span>(E_arr));
+T_wkb = <span class="kw">zeros</span>(<span class="nm">1</span>, <span class="kw">length</span>(E_arr));
+
+<span class="kw">for</span> iE = <span class="nm">1</span>:<span class="kw">length</span>(E_arr)
+  E = E_arr(iE);
+  M_total = <span class="fn">eye</span>(<span class="nm">2</span>);
+  <span class="kw">for</span> j = <span class="nm">1</span>:N_slabs
+    M_total = transfer_matrix(E, V_slabs(j), dx, hbar, m) * M_total;
+  <span class="kw">end</span>
+  <span class="cm">% T = 1/|M(2,2)|² (via M matrix extraction)</span>
+  k_out = <span class="fn">sqrt</span>(<span class="nm">2</span>*m*<span class="fn">max</span>(E,<span class="nm">0.01</span>))/hbar;
+  T_num(iE) = <span class="nm">1</span>/(<span class="nm">1</span> + (<span class="fn">abs</span>(M_total(<span class="nm">2</span>,<span class="nm">1</span>))/k_out)^<span class="nm">2</span>);
+
+  <span class="cm">% WKB formula (for E < V0)</span>
+  <span class="kw">if</span> E < V0
+    kappa_avg = <span class="fn">sqrt</span>(<span class="nm">2</span>*m*(V0-E))/hbar;
+    T_wkb(iE) = <span class="fn">exp</span>(-<span class="nm">2</span>*kappa_avg*<span class="nm">2</span>*a);
+  <span class="kw">else</span>
+    T_wkb(iE) = <span class="nm">NaN</span>;
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% Analytic result for rectangular barrier (E < V0):</span>
+<span class="cm">% T = 1/(1 + V₀²sinh²(2κa)/(4E(V₀-E)))</span>
+T_analytic = <span class="kw">zeros</span>(size(E_arr));
+<span class="kw">for</span> iE = <span class="nm">1</span>:<span class="kw">length</span>(E_arr)
+  E = E_arr(iE);
+  <span class="kw">if</span> E < V0
+    kappa = <span class="fn">sqrt</span>(<span class="nm">2</span>*m*(V0-E))/hbar;
+    T_analytic(iE) = (<span class="nm">1</span> + V0^<span class="nm">2</span>*<span class="fn">sinh</span>(kappa*<span class="nm">2</span>*a)^<span class="nm">2</span>/(<span class="nm">4</span>*E*(V0-E)))^-<span class="nm">1</span>;
+  <span class="kw">else</span>
+    k = <span class="fn">sqrt</span>(<span class="nm">2</span>*m*(E-V0))/hbar; k0 = <span class="fn">sqrt</span>(<span class="nm">2</span>*m*E)/hbar;
+    T_analytic(iE) = (<span class="nm">1</span> + V0^<span class="nm">2</span>*<span class="fn">sin</span>(k*<span class="nm">2</span>*a)^<span class="nm">2</span>/(<span class="nm">4</span>*E*(E-V0)))^-<span class="nm">1</span>;
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">figure</span>(<span class="nm">6</span>); <span class="fn">semilogy</span>(E_arr, T_num, <span class="st">'b-'</span>, E_arr, T_analytic, <span class="st">'r--'</span>, ...
+  E_arr, T_wkb, <span class="st">'g:'</span>, <span class="st">'LineWidth'</span>, <span class="nm">2</span>);
+<span class="fn">xline</span>(V0, <span class="st">'k--'</span>, <span class="st">'V₀'</span>);
+<span class="kw">legend</span>({<span class="st">'Transfer Matrix'</span>,<span class="st">'Analytic'</span>,<span class="st">'WKB'</span>});
+<span class="kw">title</span>(<span class="st">'Transmission Coefficient vs Energy'</span>);
+<span class="kw">xlabel</span>(<span class="st">'E/V₀'</span>); <span class="kw">ylabel</span>(<span class="st">'T(E)'</span>); grid on;
+<span class="cm">%% Note resonances at E > V₀ where 2ka = nπ (Ramsauer-Townsend effect)</span></pre>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     INTERACTIVE SIMULATIONS
+══════════════════════════════════════════════ -->
+<h2 style="margin-top:3rem">XXVIII. Interactive Simulations</h2>
+
+<!-- SIM 1: INFINITE SQUARE WELL -->
+<section id="sim1">
+<h3>Simulation I — Infinite Square Well: Energy Levels &amp; Wavefunctions</h3>
+<p>Adjust \(n\) to see \(\psi_n(x)\), \(|\psi_n|^2\), and energy \(E_n = n^2 E_1\). The energy level diagram shows quantization. Toggle superposition of two states to see beating.</p>
+<div class="sw">
+  <div class="sh2"><span class="st2">Infinite Square Well — ψ_n(x) &amp; Probability Density</span></div>
+  <div class="sb2">
+    <canvas id="wellCanvas" width="600" height="380"></canvas>
+    <div class="sc">
+      <div class="cg"><label>n₁:</label><input type="range" id="wellN1" min="1" max="10" value="1"><span id="wellN1Val">1</span></div>
+      <div class="cg"><label>n₂:</label><input type="range" id="wellN2" min="1" max="10" value="2"><span id="wellN2Val">2</span></div>
+      <div class="cg"><label>Mix α:</label><input type="range" id="wellMix" min="0" max="100" value="0"><span id="wellMixVal">0</span></div>
+      <div class="cg"><label>Show:</label>
+        <select id="wellShow">
+          <option value="psi">ψ(x)</option>
+          <option value="rho">|ψ|²</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <button class="btn c" onclick="toggleWellTime()">▶ Animate</button>
+    </div>
+    <div class="si" id="wellInfo">E₁ = ℏ²π²/(2mL²) = 1 (a.u.) | E_n = n²E₁</div>
+  </div>
+</div>
+</section>
+
+<!-- SIM 2: WAVE PACKET -->
+<section id="sim2">
+<h3>Simulation II — Gaussian Wave Packet: Spreading &amp; Uncertainty</h3>
+<p>Watch the wave packet propagate and spread. The width \(w(t) = \sigma\sqrt{1+(ℏt/2mσ²)²}\) grows — a direct consequence of \(\sigma_x\sigma_p \ge ℏ/2\).</p>
+<div class="sw">
+  <div class="sh2"><span class="st2">Wave Packet — Dispersion &amp; Uncertainty</span></div>
+  <div class="sb2">
+    <canvas id="waveCanvas" width="600" height="360"></canvas>
+    <div class="sc">
+      <div class="cg"><label>σ₀ (width):</label><input type="range" id="wpSigma" min="5" max="50" value="15"><span id="wpSigmaVal">15</span></div>
+      <div class="cg"><label>k₀ (momentum):</label><input type="range" id="wpK0" min="1" max="20" value="8"><span id="wpK0Val">8</span></div>
+      <div class="cg"><label>Speed:</label><input type="range" id="wpSpeed" min="1" max="5" value="2"><span id="wpSpeedVal">2</span></div>
+      <button class="btn c" onclick="startWavePacket()">▶ Launch</button>
+      <button class="btn" onclick="resetWavePacket()">Reset</button>
+    </div>
+    <div class="si" id="waveInfo">σ_x·σ_p = ℏ/2 (minimum uncertainty at t=0)</div>
+  </div>
+</div>
+</section>
+
+<!-- SIM 3: DOUBLE SLIT -->
+<section id="sim3">
+<h3>Simulation III — Double-Slit Interference</h3>
+<p>Young's double slit with a quantum particle. The probability distribution \(|\psi|^2 \propto \cos^2(\pi d\sin\theta/\lambda)\cdot(\sin(\pi a\sin\theta/\lambda)/(\pi a\sin\theta/\lambda))^2\) shows interference × diffraction.</p>
+<div class="sw">
+  <div class="sh2"><span class="st2">Double-Slit — Quantum Interference Pattern</span></div>
+  <div class="sb2">
+    <canvas id="slitCanvas" width="600" height="380"></canvas>
+    <div class="sc">
+      <div class="cg"><label>Slit sep. d:</label><input type="range" id="slitD" min="20" max="120" value="60"><span id="slitDVal">60</span></div>
+      <div class="cg"><label>Slit width a:</label><input type="range" id="slitA" min="5" max="40" value="12"><span id="slitAVal">12</span></div>
+      <div class="cg"><label>λ (wavelength):</label><input type="range" id="slitLam" min="10" max="60" value="25"><span id="slitLamVal">25</span></div>
+      <div class="cg"><label>Mode:</label>
+        <select id="slitMode">
+          <option value="double">Double slit</option>
+          <option value="single">Single slit</option>
+          <option value="which">Which-path (no interference)</option>
+        </select>
+      </div>
+      <button class="btn c" onclick="drawSlit()">Draw</button>
+    </div>
+    <div class="si" id="slitInfo">Interference fringes spaced by λL/d</div>
+  </div>
+</div>
+</section>
+
+<!-- SIM 4: HARMONIC OSCILLATOR -->
+<section id="sim4">
+<h3>Simulation IV — Harmonic Oscillator Eigenstates &amp; Coherent States</h3>
+<p>View eigenstates \(\psi_n\) built from Hermite polynomials, or animate the <em>coherent state</em> — a minimum uncertainty wavepacket that oscillates classically without spreading.</p>
+<div class="sw">
+  <div class="sh2"><span class="st2">Quantum Harmonic Oscillator — ψ_n and Coherent States</span></div>
+  <div class="sb2">
+    <canvas id="hoCanvas" width="600" height="380"></canvas>
+    <div class="sc">
+      <div class="cg"><label>State n:</label><input type="range" id="hoN" min="0" max="8" value="0"><span id="hoNVal">0</span></div>
+      <div class="cg"><label>Mode:</label>
+        <select id="hoMode">
+          <option value="eigen">Eigenstate ψ_n</option>
+          <option value="coherent">Coherent state |α|</option>
+          <option value="levels">Energy level diagram</option>
+        </select>
+      </div>
+      <div class="cg"><label>|α| (coherent):</label><input type="range" id="hoAlpha" min="5" max="25" value="15"><span id="hoAlphaVal">1.5</span></div>
+      <button class="btn c" onclick="toggleHO()">▶ Animate</button>
+      <button class="btn" onclick="resetHO()">Reset</button>
+    </div>
+    <div class="si" id="hoInfo">E_n = ℏω(n + ½) | Zero-point energy: E₀ = ℏω/2</div>
+  </div>
+</div>
+</section>
+
+<!-- SIM 5: TUNNELING -->
+<section id="sim5">
+<h3>Simulation V — Quantum Tunneling Through a Barrier</h3>
+<p>Shows transmitted and reflected probability amplitudes as a function of energy. The tunneling probability decays exponentially with barrier width and height — the WKB approximation \(T\approx e^{-2\kappa a}\).</p>
+<div class="sw">
+  <div class="sh2"><span class="st2">Quantum Tunneling — Transmission Coefficient T(E)</span></div>
+  <div class="sb2">
+    <canvas id="tunnelCanvas" width="600" height="380"></canvas>
+    <div class="sc">
+      <div class="cg"><label>V₀ (barrier ht.):</label><input type="range" id="tunV0" min="1" max="20" value="8"><span id="tunV0Val">8</span></div>
+      <div class="cg"><label>Barrier width 2a:</label><input type="range" id="tunA" min="1" max="10" value="3"><span id="tunAVal">3</span></div>
+      <div class="cg"><label>Show wavefunction:</label><input type="checkbox" id="tunShowWF" checked style="width:auto"></div>
+      <div class="cg"><label>E / V₀:</label><input type="range" id="tunE" min="1" max="199" value="60"><span id="tunEVal">0.60</span></div>
+      <button class="btn c" onclick="drawTunneling()">Draw</button>
+    </div>
+    <div class="si" id="tunInfo">T = —, R = —, T+R = 1.000</div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════
+     ALL JAVASCRIPT SIMULATIONS
+══════════════════════════════════════════════ -->
+<script>
+/* ════════ SIM 1 — INFINITE SQUARE WELL ════════ */
+(function(){
+  const cv=document.getElementById('wellCanvas'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const L_plot=W*0.55,L_start=40,FLOOR=H-30,CEIL=30;
+  const PH=FLOOR-CEIL;
+  let t=0,running=false,animID=null;
+
+  document.getElementById('wellN1').addEventListener('input',e=>{document.getElementById('wellN1Val').textContent=e.target.value;draw();});
+  document.getElementById('wellN2').addEventListener('input',e=>{document.getElementById('wellN2Val').textContent=e.target.value;draw();});
+  document.getElementById('wellMix').addEventListener('input',e=>{document.getElementById('wellMixVal').textContent=e.target.value;draw();});
+  document.getElementById('wellShow').addEventListener('change',draw);
+
+  window.toggleWellTime=function(){
+    running=!running;
+    document.querySelector('#sim1 .btn.c').textContent=running?'⏸ Stop':'▶ Animate';
+    if(running) animate();
+  };
+
+  function animate(){
+    t+=0.04;draw();
+    if(running) animID=requestAnimationFrame(animate);
+  }
+
+  function psi(n,x){// x in [0,1]
+    return Math.sqrt(2)*Math.sin(n*Math.PI*x);
+  }
+
+  function draw(){
+    const n1=+document.getElementById('wellN1').value;
+    const n2=+document.getElementById('wellN2').value;
+    const alpha=document.getElementById('wellMix').value/100;
+    const beta=Math.sqrt(1-alpha*alpha);
+    const mode=document.getElementById('wellShow').value;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#020410';ctx.fillRect(0,0,W,H);
+
+    // Energy level diagram (right side)
+    const EX=L_start+L_plot+25,EW=W-EX-15;
+    const maxLvl=12, E1=1;
+    const mapE=E=>FLOOR-(E/((maxLvl*maxLvl+1)*E1))*PH*0.95;
+
+    ctx.fillStyle='rgba(0,229,200,0.06)';ctx.fillRect(EX,CEIL,EW,PH);
+    ctx.strokeStyle='rgba(0,229,200,0.2)';ctx.lineWidth=1;
+    ctx.strokeRect(EX,CEIL,EW,PH);
+    ctx.fillStyle='rgba(0,229,200,0.5)';ctx.font='9px Fira Code';ctx.fillText('Energy levels',EX+5,CEIL+12);
+
+    for(let n=1;n<=maxLvl;n++){
+      const E=n*n*E1, y=mapE(E);
+      const isN1=(n===n1),isN2=(n===n2);
+      ctx.strokeStyle=isN1?'#00e5c8':isN2?'#9966ff':'rgba(80,120,100,0.4)';
+      ctx.lineWidth=isN1||isN2?2:0.8;
+      ctx.beginPath();ctx.moveTo(EX+5,y);ctx.lineTo(EX+EW-5,y);ctx.stroke();
+      ctx.fillStyle=isN1?'#00e5c8':isN2?'#9966ff':'rgba(80,120,100,0.5)';
+      ctx.font=isN1||isN2?'bold 9px Fira Code':'9px Fira Code';
+      ctx.fillText(`n=${n}`,EX+EW-32,y-2);
+    }
+
+    // Well walls
+    ctx.strokeStyle='rgba(100,200,160,0.6)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(L_start,CEIL-20);ctx.lineTo(L_start,FLOOR);
+    ctx.lineTo(L_start+L_plot,FLOOR);ctx.lineTo(L_start+L_plot,CEIL-20);ctx.stroke();
+
+    // V=0 baseline
+    const E_n1=n1*n1*E1, E_n2=n2*n2*E1;
+    const E_draw=beta*beta<0.01?E_n1:alpha*alpha<0.01?E_n2:(E_n1+E_n2)/2;
+
+    const N=400;
+    function mapX(xi){return L_start+xi*L_plot;}
+    function mapY(v,E_ref,scale){return FLOOR-PH*0.4-(v)*PH*0.12-E_ref*PH*0.012;}
+
+    // Draw potential energy reference line at E_n1
+    const yE1=FLOOR-(E_n1/(maxLvl*maxLvl*E1))*PH*0.95;
+    ctx.strokeStyle='rgba(0,229,200,0.25)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(L_start,yE1);ctx.lineTo(L_start+L_plot,yE1);ctx.stroke();
+    if(alpha>0.01){
+      const yE2=FLOOR-(E_n2/(maxLvl*maxLvl*E1))*PH*0.95;
+      ctx.strokeStyle='rgba(153,102,255,0.25)';ctx.beginPath();ctx.moveTo(L_start,yE2);ctx.lineTo(L_start+L_plot,yE2);ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    function drawWaveFunc(showPsi,showRho){
+      // psi_mix = beta*psi_n1 e^{-iE_n1 t} + alpha*psi_n2 e^{-iE_n2 t}
+      const scaleY=PH*0.19;
+      const scaleRho=PH*0.28;
+      const yBase=FLOOR-PH*0.5;
+
+      // Collect points
+      const xs=[],psiR=[],psiI=[],rhoVals=[];
+      for(let i=0;i<=N;i++){
+        const xi=i/N;
+        const p1=psi(n1,xi),p2=psi(n2,xi);
+        const phaseR=Math.cos(-E_n1*t),phaseI=Math.sin(-E_n1*t);
+        const phase2R=Math.cos(-E_n2*t),phase2I=Math.sin(-E_n2*t);
+        const re=beta*p1*phaseR+alpha*p2*phase2R;
+        const im=beta*p1*phaseI+alpha*p2*phase2I;
+        xs.push(mapX(xi));psiR.push(re);psiI.push(im);
+        rhoVals.push(re*re+im*im);
+      }
+
+      if(showRho){
+        // Filled probability density
+        ctx.beginPath();ctx.moveTo(xs[0],yBase);
+        for(let i=0;i<=N;i++) ctx.lineTo(xs[i],yBase-rhoVals[i]*scaleRho);
+        ctx.lineTo(xs[N],yBase);ctx.closePath();
+        ctx.fillStyle='rgba(153,102,255,0.25)';ctx.fill();
+        // Outline
+        ctx.beginPath();ctx.moveTo(xs[0],yBase);
+        for(let i=0;i<=N;i++) ctx.lineTo(xs[i],yBase-rhoVals[i]*scaleRho);
+        ctx.strokeStyle='#9966ff';ctx.lineWidth=1.8;ctx.stroke();
+      }
+      if(showPsi){
+        // Real part of ψ
+        ctx.beginPath();
+        for(let i=0;i<=N;i++){
+          const y=yBase-psiR[i]*scaleY;
+          i===0?ctx.moveTo(xs[i],y):ctx.lineTo(xs[i],y);
+        }
+        ctx.strokeStyle='#00e5c8';ctx.lineWidth=2;ctx.stroke();
+        // Imaginary part (dashed)
+        if(alpha>0.01){
+          ctx.beginPath();
+          for(let i=0;i<=N;i++){
+            const y=yBase-psiI[i]*scaleY;
+            i===0?ctx.moveTo(xs[i],y):ctx.lineTo(xs[i],y);
+          }
+          ctx.strokeStyle='rgba(0,229,200,0.4)';ctx.lineWidth=1.2;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+        }
+      }
+
+      // Baseline
+      ctx.strokeStyle='rgba(80,120,100,0.3)';ctx.lineWidth=0.8;
+      ctx.beginPath();ctx.moveTo(L_start,yBase);ctx.lineTo(L_start+L_plot,yBase);ctx.stroke();
+    }
+
+    const m=document.getElementById('wellShow').value;
+    drawWaveFunc(m==='psi'||m==='both',m==='rho'||m==='both');
+
+    // Labels
+    ctx.fillStyle='#00e5c8';ctx.font='11px Josefin Sans';
+    ctx.fillText(`ψ(x,t) — n₁=${n1}, n₂=${n2}`,L_start,CEIL+14);
+    ctx.fillStyle='rgba(0,229,200,0.6)';ctx.font='9px Fira Code';
+    const E1_disp=n1*n1;
+    document.getElementById('wellInfo').textContent=`E_${n1}=${E1_disp}·E₁  E_${n2}=${n2*n2}·E₁  |  t=${t.toFixed(2)} ℏ/E₁`;
+  }
+  draw();
+})();
+
+/* ════════ SIM 2 — WAVE PACKET ════════ */
+(function(){
+  const cv=document.getElementById('waveCanvas'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  let animID=null,running=false,t=0;
+  const N=512;
+
+  document.getElementById('wpSigma').addEventListener('input',e=>{document.getElementById('wpSigmaVal').textContent=e.target.value;});
+  document.getElementById('wpK0').addEventListener('input',e=>{document.getElementById('wpK0Val').textContent=e.target.value;});
+  document.getElementById('wpSpeed').addEventListener('input',e=>{document.getElementById('wpSpeedVal').textContent=e.target.value;});
+
+  window.startWavePacket=function(){
+    running=true;t=0;
+    document.querySelector('#sim2 .btn.c').textContent='⏸ Pause';
+    cancelAnimationFrame(animID);loop();
+  };
+  window.resetWavePacket=function(){
+    running=false;t=0;cancelAnimationFrame(animID);
+    draw(0);
+  };
+
+  function loop(){
+    if(!running) return;
+    const spd=+document.getElementById('wpSpeed').value;
+    t+=0.015*spd;
+    draw(t);
+    animID=requestAnimationFrame(loop);
+  }
+
+  function draw(t2){
+    const sigma=document.getElementById('wpSigma').value/20;
+    const k0=document.getElementById('wpK0').value/5;
+    const hbar=1,m=1;
+    const x0=0.15;// start position (fraction of W)
+    const vg=hbar*k0/m;
+    const xt=x0+vg*t2/W;
+    const w=sigma*Math.sqrt(1+(hbar*t2/(2*m*sigma*sigma*W))*(hbar*t2/(2*m*sigma*sigma*W)));
+    const sigmaP=0.5*hbar/sigma;
+
+    ctx.clearRect(0,0,W,H);ctx.fillStyle='#020410';ctx.fillRect(0,0,W,H);
+
+    // Grid
+    ctx.strokeStyle='#0a1830';ctx.lineWidth=0.5;
+    for(let gy=0;gy<H;gy+=40){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+    for(let gx=0;gx<W;gx+=50){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+
+    const CY=H/2,AMP=H*0.32;
+    // Zero line
+    ctx.strokeStyle='rgba(80,120,100,0.3)';ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.moveTo(0,CY);ctx.lineTo(W,CY);ctx.stroke();
+
+    // Gaussian envelope
+    ctx.strokeStyle='rgba(0,229,200,0.3)';ctx.lineWidth=1.2;ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    for(let i=0;i<W;i++){
+      const xf=i/W;
+      const env=AMP*Math.exp(-(xf-xt)*(xf-xt)/(2*w*w));
+      if(i===0){ctx.moveTo(i,CY-env);} else ctx.lineTo(i,CY-env);
+    }
+    ctx.stroke();
+    ctx.beginPath();
+    for(let i=0;i<W;i++){
+      const xf=i/W;
+      const env=AMP*Math.exp(-(xf-xt)*(xf-xt)/(2*w*w));
+      if(i===0){ctx.moveTo(i,CY+env);} else ctx.lineTo(i,CY+env);
+    }
+    ctx.stroke();ctx.setLineDash([]);
+
+    // Real part of ψ
+    ctx.strokeStyle='#00e5c8';ctx.lineWidth=2;ctx.beginPath();
+    for(let i=0;i<W;i++){
+      const xf=i/W;
+      const env=Math.exp(-(xf-xt)*(xf-xt)/(2*w*w));
+      // phase: k0*x - ω*t  (phase velocity = hbar k0/2m for free particle)
+      const phi=k0*W*xf-hbar*k0*k0/(2*m)*t2*W;
+      const re=env*Math.cos(phi);
+      const py=CY-re*AMP;
+      i===0?ctx.moveTo(i,py):ctx.lineTo(i,py);
+    }
+    ctx.stroke();
+
+    // |ψ|² filled
+    ctx.beginPath();ctx.moveTo(0,CY);
+    for(let i=0;i<W;i++){
+      const xf=i/W;
+      const rho=AMP*0.8*Math.exp(-(xf-xt)*(xf-xt)/(w*w));
+      ctx.lineTo(i,CY-rho);
+    }
+    ctx.lineTo(W,CY);ctx.closePath();
+    ctx.fillStyle='rgba(153,102,255,0.18)';ctx.fill();
+
+    // Uncertainty bands
+    const xL=(xt-w)*W,xR=(xt+w)*W;
+    ctx.fillStyle='rgba(0,229,200,0.07)';ctx.fillRect(xL,0,xR-xL,H);
+    ctx.strokeStyle='rgba(0,229,200,0.35)';ctx.lineWidth=1;ctx.setLineDash([2,3]);
+    ctx.beginPath();ctx.moveTo(xL,0);ctx.lineTo(xL,H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(xR,0);ctx.lineTo(xR,H);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.fillStyle='#00e5c8';ctx.font='11px Josefin Sans';
+    ctx.fillText('Re[ψ(x,t)]',8,20);
+    ctx.fillStyle='rgba(153,102,255,0.8)';ctx.fillText('|ψ|²',8,34);
+    ctx.fillStyle='rgba(0,229,200,0.6)';ctx.fillText('±σ_x bounds',8,48);
+    const sigX=w*W;
+    document.getElementById('waveInfo').textContent=
+      `σ_x=${(w*100).toFixed(2)}%  σ_p=${sigmaP.toFixed(3)}  σ_x·σ_p=${(w*sigmaP*100).toFixed(3)} (≥0.5ℏ)  v_g=${(vg*100).toFixed(1)}%W/unit`;
+  }
+  draw(0);
+})();
+
+/* ════════ SIM 3 — DOUBLE SLIT ════════ */
+window.drawSlit=function(){
+  const cv=document.getElementById('slitCanvas'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#020410';ctx.fillRect(0,0,W,H);
+
+  const d=+document.getElementById('slitD').value;
+  const a=+document.getElementById('slitA').value;
+  const lam=+document.getElementById('slitLam').value;
+  const mode=document.getElementById('slitMode').value;
+
+  document.getElementById('slitDVal').textContent=d;
+  document.getElementById('slitAVal').textContent=a;
+  document.getElementById('slitLamVal').textContent=lam;
+
+  const CX=W*0.55,CY=H/2;
+  const SCREEN_X=W*0.9,SLIT_X=W*0.38;
+  const L=SCREEN_X-SLIT_X;
+
+  // Compute intensity pattern
+  const nY=H;
+  const intens=new Float64Array(nY);
+  let maxI=0;
+  for(let i=0;i<nY;i++){
+    const y=(i-CY);
+    const theta=Math.atan2(y,L);
+    const sinT=Math.sin(theta);
+    let I=0;
+    if(mode==='double'){
+      const phiD=Math.PI*d*sinT/lam;
+      const phiA=Math.PI*a*sinT/lam;
+      const diff=Math.abs(phiA)<1e-8?1:Math.sin(phiA)/phiA;
+      I=Math.cos(phiD)*Math.cos(phiD)*diff*diff;
+    } else if(mode==='single'){
+      const phiA=Math.PI*a*sinT/lam;
+      const diff=Math.abs(phiA)<1e-8?1:Math.sin(phiA)/phiA;
+      I=diff*diff;
+    } else {// which-path: no interference, just two diffraction lobes
+      const phiA=Math.PI*a*sinT/lam;
+      const diff=Math.abs(phiA)<1e-8?1:Math.sin(phiA)/phiA;
+      const g1=Math.exp(-(y-d/2)*(y-d/2)/(2*(L*lam/(2*Math.PI*d))*(L*lam/(2*Math.PI*d))));
+      const g2=Math.exp(-(y+d/2)*(y+d/2)/(2*(L*lam/(2*Math.PI*d))*(L*lam/(2*Math.PI*d))));
+      I=(g1+g2)*diff*diff;
+    }
+    intens[i]=I;
+    if(I>maxI) maxI=I;
+  }
+
+  // Screen background
+  ctx.fillStyle='rgba(0,20,40,0.8)';ctx.fillRect(SCREEN_X-2,0,40,H);
+
+  // Intensity glow on screen
+  for(let i=0;i<nY;i++){
+    const val=intens[i]/maxI;
+    if(val<0.005) continue;
+    const alpha=Math.min(val,1);
+    const r=Math.round(alpha*0+0),g=Math.round(alpha*229),b=Math.round(alpha*200);
+    ctx.fillStyle=`rgba(${r},${g},${b},${alpha*0.9})`;
+    ctx.fillRect(SCREEN_X,i,35,1);
+  }
+
+  // Plot intensity curve
+  const CURVE_W=130,CURVE_X=SCREEN_X-CURVE_W-10;
+  ctx.strokeStyle='rgba(0,229,200,0.3)';ctx.lineWidth=0.5;
+  ctx.strokeRect(CURVE_X,20,CURVE_W,H-40);
+  ctx.strokeStyle='#00e5c8';ctx.lineWidth=1.5;ctx.beginPath();
+  for(let i=0;i<nY;i++){
+    const px=CURVE_X+CURVE_W*(intens[i]/maxI);
+    i===0?ctx.moveTo(px,i):ctx.lineTo(px,i);
+  }
+  ctx.stroke();
+
+  // Barrier with slits
+  ctx.fillStyle='#1a3a28';ctx.fillRect(SLIT_X-8,0,16,H);
+  ctx.fillStyle='#020410';// clear slit openings
+  if(mode==='single'){
+    ctx.fillRect(SLIT_X-8,CY-a/2,16,a);
+  } else {
+    ctx.fillRect(SLIT_X-8,CY-d/2-a/2,16,a);
+    ctx.fillRect(SLIT_X-8,CY+d/2-a/2,16,a);
+  }
+
+  // Incoming wave
+  ctx.strokeStyle='rgba(0,229,200,0.25)';ctx.lineWidth=1;
+  for(let wx=20;wx<SLIT_X-8;wx+=lam*0.5){
+    ctx.beginPath();ctx.arc(20,CY,wx-20,Math.PI/2,3*Math.PI/2);ctx.stroke();
+  }
+
+  // Labels
+  ctx.fillStyle='#00e5c8';ctx.font='11px Josefin Sans';
+  ctx.fillText(mode==='double'?'Double slit':mode==='single'?'Single slit':'Which-path (incoherent)',SLIT_X+10,20);
+  ctx.fillStyle='rgba(0,229,200,0.5)';ctx.font='9px Fira Code';
+  ctx.fillText(`d=${d}  a=${a}  λ=${lam}`,SLIT_X+10,34);
+  ctx.fillText('λL/d='+(lam*L/d).toFixed(0)+'px spacing',SLIT_X+10,46);
+  document.getElementById('slitInfo').textContent=
+    mode==='double'?`Fringe spacing λL/d = ${(lam*L/d).toFixed(1)} px | Diffraction envelope: central width 2λL/a = ${(2*lam*L/a).toFixed(1)} px`:
+    mode==='single'?`Central maximum width 2λL/a = ${(2*lam*L/a).toFixed(1)} px`:'No interference — |ψ₁|² + |ψ₂|² only';
+};
+drawSlit();
+document.getElementById('slitD').addEventListener('input',e=>{document.getElementById('slitDVal').textContent=e.target.value;drawSlit();});
+document.getElementById('slitA').addEventListener('input',e=>{document.getElementById('slitAVal').textContent=e.target.value;drawSlit();});
+document.getElementById('slitLam').addEventListener('input',e=>{document.getElementById('slitLamVal').textContent=e.target.value;drawSlit();});
+document.getElementById('slitMode').addEventListener('change',drawSlit);
+
+/* ════════ SIM 4 — HARMONIC OSCILLATOR ════════ */
+(function(){
+  const cv=document.getElementById('hoCanvas'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  let t=0,running=false,animID=null;
+
+  function hermite(n,xi){
+    if(n===0) return xi.map(()=>1);
+    if(n===1) return xi.map(x=>2*x);
+    let H0=xi.map(()=>1),H1=xi.map(x=>2*x);
+    for(let k=2;k<=n;k++){
+      const H2=xi.map((x,i)=>2*x*H1[i]-2*(k-1)*H0[i]);
+      H0=H1;H1=H2;
+    }
+    return H1;
+  }
+
+  function factorial(n){let f=1;for(let i=2;i<=n;i++)f*=i;return f;}
+
+  function psiHO(n,xi){// xi = dimensionless coord
+    const norm=1/Math.sqrt(Math.pow(2,n)*factorial(n)*Math.sqrt(Math.PI));
+    const H=hermite(n,xi);
+    return xi.map((x,i)=>norm*H[i]*Math.exp(-x*x/2));
+  }
+
+  document.getElementById('hoN').addEventListener('input',e=>{
+    document.getElementById('hoNVal').textContent=e.target.value;
+    if(!running) draw(0);
+  });
+  document.getElementById('hoMode').addEventListener('change',()=>{if(!running)draw(0);});
+  document.getElementById('hoAlpha').addEventListener('input',e=>{
+    document.getElementById('hoAlphaVal').textContent=(e.target.value/10).toFixed(1);
+    if(!running)draw(0);
+  });
+
+  window.toggleHO=function(){
+    running=!running;
+    document.querySelector('#sim4 .btn.c').textContent=running?'⏸ Pause':'▶ Animate';
+    if(running) loop();
+  };
+  window.resetHO=function(){running=false;t=0;cancelAnimationFrame(animID);draw(0);};
+
+  function loop(){if(!running)return;t+=0.04;draw(t);animID=requestAnimationFrame(loop);}
+
+  function draw(t2){
+    const n=+document.getElementById('hoN').value;
+    const mode=document.getElementById('hoMode').value;
+    const alpha=document.getElementById('hoAlpha').value/10;
+    ctx.clearRect(0,0,W,H);ctx.fillStyle='#020410';ctx.fillRect(0,0,W,H);
+
+    const CX=W/2,CY=H/2;
+    const xMax=5.5,AMP=H*0.33;
+    const xiArr=Array.from({length:400},(_,i)=>(i/399-0.5)*2*xMax);
+    const mapX=xi=>(xi/xMax*0.45+0.5)*W;
+    const mapY=(v,base=CY)=>base-v;
+
+    if(mode==='levels'){
+      // Energy level diagram with transitions
+      ctx.fillStyle='rgba(0,229,200,0.05)';ctx.fillRect(CX-W*0.35,CEIL2=60,W*0.7,H-80);
+      const maxN2=8,omega=1,hbar=1;
+      const CEIL2=50;
+      for(let nn=0;nn<=maxN2;nn++){
+        const E=(nn+0.5)*hbar*omega;
+        const y=H-40-(E/(maxN2+0.5+0.5))*(H-90);
+        const isActive=nn===n;
+        ctx.strokeStyle=isActive?'#00e5c8':`rgba(100,160,130,${0.3+nn/maxN2*0.4})`;
+        ctx.lineWidth=isActive?2.5:1;
+        ctx.beginPath();ctx.moveTo(CX-W*0.3,y);ctx.lineTo(CX+W*0.3,y);ctx.stroke();
+        ctx.fillStyle=isActive?'#00e5c8':'rgba(100,160,130,0.6)';
+        ctx.font=isActive?'bold 10px Fira Code':'9px Fira Code';
+        ctx.fillText(`n=${nn}: E=${(nn+0.5).toFixed(1)}ℏω`,CX+W*0.32,y+3);
+        if(isActive){
+          ctx.fillStyle='rgba(0,229,200,0.3)';ctx.fillRect(CX-W*0.3,y-2,W*0.6,4);
+        }
+      }
+      // Parabola
+      ctx.strokeStyle='rgba(0,229,200,0.3)';ctx.lineWidth=1.5;ctx.beginPath();
+      for(let i=0;i<=200;i++){
+        const xi=-5+10*i/200;
+        const E2=0.5*xi*xi;
+        const y2=H-40-(E2/(maxN2+0.5+0.5))*(H-90);
+        const px=CX+xi*(W*0.3)/5;
+        i===0?ctx.moveTo(px,y2):ctx.lineTo(px,y2);
+      }
+      ctx.stroke();
+      ctx.fillStyle='#00e5c8';ctx.font='11px Josefin Sans';
+      ctx.fillText(`E_n = ℏω(n + ½),  selected n=${n}`,10,20);
+      ctx.fillStyle='rgba(170,255,68,0.7)';ctx.font='10px Josefin Sans';
+      ctx.fillText(`E_${n} = ${(n+0.5).toFixed(1)} ℏω  (zero-point = 0.5ℏω)`,10,34);
+    } else if(mode==='eigen'){
+      // V(x) parabola
+      const VScale=AMP*0.55/(xMax*xMax/2);
+      ctx.strokeStyle='rgba(0,229,200,0.25)';ctx.lineWidth=1.5;ctx.beginPath();
+      xiArr.forEach((xi,i)=>{
+        const V=0.5*xi*xi,y=CY-V*VScale;
+        i===0?ctx.moveTo(mapX(xi),y):ctx.lineTo(mapX(xi),y);
+      });
+      ctx.stroke();
+
+      // Classical turning points
+      const E_n=(n+0.5);
+      const xiTP=Math.sqrt(2*E_n);
+      const yE=CY-E_n*VScale;
+      ctx.strokeStyle='rgba(153,102,255,0.4)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(0,yE);ctx.lineTo(W,yE);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='rgba(153,102,255,0.7)';ctx.font='9px Fira Code';
+      ctx.fillText(`E_${n}=${E_n.toFixed(1)}ℏω`,mapX(xiTP)+5,yE-3);
+
+      // Plot ψ_n (static) or time-evolved coherent
+      const psiVals=psiHO(n,xiArr);
+
+      // ψ_n(x) with phase e^{-iEt}
+      const phase=t2*(n+0.5);
+      const scaleY=AMP*0.6;
+
+      // Probability density (filled)
+      ctx.beginPath();ctx.moveTo(mapX(xiArr[0]),CY);
+      psiVals.forEach((p,i)=>{ctx.lineTo(mapX(xiArr[i]),CY-p*p*scaleY*1.8);});
+      ctx.lineTo(mapX(xiArr[xiArr.length-1]),CY);ctx.closePath();
+      ctx.fillStyle='rgba(153,102,255,0.2)';ctx.fill();
+
+      // Re[ψ e^{-iEt}]
+      ctx.strokeStyle='#00e5c8';ctx.lineWidth=2;ctx.beginPath();
+      psiVals.forEach((p,i)=>{
+        const re=p*Math.cos(-phase);
+        const y=CY+yE-CY-E_n*VScale-re*scaleY+AMP*0.0;
+        // simpler: center around the energy level
+        const y2=yE-re*scaleY*0.6;
+        i===0?ctx.moveTo(mapX(xiArr[i]),y2):ctx.lineTo(mapX(xiArr[i]),y2);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle='#00e5c8';ctx.font='11px Josefin Sans';
+      ctx.fillText(`ψ_${n}(x) — Hermite polynomial H_${n}`,10,20);
+      ctx.fillStyle='rgba(153,102,255,0.7)';ctx.fillText(`|ψ_${n}|² (probability density)`,10,34);
+      ctx.fillStyle='rgba(100,200,150,0.5)';ctx.font='9px Fira Code';
+      ctx.fillText(`Nodes: ${n} | Parity: ${n%2===0?'even':'odd'} | E=${E_n.toFixed(1)}ℏω`,10,H-12);
+
+      document.getElementById('hoInfo').textContent=`n=${n} | E_${n}=${E_n.toFixed(2)}ℏω | ${n} nodes | turning points: ±${xiTP.toFixed(2)} l₀`;
+
+    } else { // coherent state
+      const Nmax=20;
+      const VScale=AMP*0.55/(xMax*xMax/2);
+      ctx.strokeStyle='rgba(0,229,200,0.2)';ctx.lineWidth=1;ctx.beginPath();
+      xiArr.forEach((xi,i)=>{
+        const V=0.5*xi*xi,y=CY-V*VScale;
+        i===0?ctx.moveTo(mapX(xi),y):ctx.lineTo(mapX(xi),y);
+      });
+      ctx.stroke();
+
+      // Coherent state |α⟩ = e^{-|α|²/2} Σ_n α^n/√n! |n⟩
+      // ψ(x,t) = Σ_n c_n e^{-i(n+½)t} ψ_n(x)
+      const rhoArr=new Float64Array(xiArr.length);
+      const reArr=new Float64Array(xiArr.length);
+      // Pre-compute c_n
+      const cn=[];
+      const norm2=Math.exp(-alpha*alpha);
+      let alphan=1;
+      for(let nn=0;nn<Nmax;nn++){
+        cn.push(Math.sqrt(norm2)*alphan/Math.sqrt(factorial(nn)));
+        alphan*=alpha;
+      }
+      for(let nn=0;nn<Nmax;nn++){
+        const psiN=psiHO(nn,xiArr);
+        const phase=(nn+0.5)*t2;
+        const cnRe=cn[nn]*Math.cos(-phase);
+        const cnIm=cn[nn]*Math.sin(-phase);
+        for(let i=0;i<xiArr.length;i++){
+          reArr[i]+=cnRe*psiN[i];
+        }
+      }
+      // Compute |ψ|² (need Im part too for full coherent state)
+      for(let i=0;i<xiArr.length;i++) rhoArr[i]=reArr[i]*reArr[i];
+
+      ctx.beginPath();ctx.moveTo(mapX(xiArr[0]),CY);
+      for(let i=0;i<xiArr.length;i++) ctx.lineTo(mapX(xiArr[i]),CY-rhoArr[i]*AMP*1.5);
+      ctx.lineTo(mapX(xiArr[xiArr.length-1]),CY);ctx.closePath();
+      ctx.fillStyle='rgba(153,102,255,0.22)';ctx.fill();
+
+      ctx.strokeStyle='#00e5c8';ctx.lineWidth=2;ctx.beginPath();
+      for(let i=0;i<xiArr.length;i++) ctx.lineTo(mapX(xiArr[i]),CY-reArr[i]*AMP*0.9);
+      ctx.stroke();
+
+      // Classical trajectory
+      const xCl=alpha*Math.sqrt(2)*Math.cos(t2)*xMax*0.45;
+      ctx.fillStyle='rgba(255,153,0,0.8)';ctx.beginPath();ctx.arc(CX+xCl,CY+10,5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,153,0,0.4)';ctx.font='9px Fira Code';ctx.fillText('classical',CX+xCl+7,CY+14);
+
+      ctx.fillStyle='#00e5c8';ctx.font='11px Josefin Sans';ctx.fillText(`Coherent state |α=${alpha.toFixed(1)}⟩`,10,20);
+      ctx.fillStyle='rgba(0,229,200,0.5)';ctx.font='9px Fira Code';
+      ctx.fillText('⟨x⟩ = √2 |α| cos(ωt) — oscillates classically',10,34);
+      document.getElementById('hoInfo').textContent=`Coherent state |α=${alpha.toFixed(1)}⟩ | ⟨E⟩=(|α|²+½)ℏω=${(alpha*alpha+0.5).toFixed(2)}ℏω | Poisson distribution over n`;
+    }
+  }
+  draw(0);
+})();
+
+/* ════════ SIM 5 — TUNNELING ════════ */
+window.drawTunneling=function(){
+  const cv=document.getElementById('tunnelCanvas'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#020410';ctx.fillRect(0,0,W,H);
+
+  const V0=+document.getElementById('tunV0').value;
+  const a=+document.getElementById('tunA').value;
+  const Efrac=document.getElementById('tunE').value/200;
+  const E=Efrac*V0;
+  const showWF=document.getElementById('tunShowWF').checked;
+
+  document.getElementById('tunV0Val').textContent=V0;
+  document.getElementById('tunAVal').textContent=a;
+  document.getElementById('tunEVal').textContent=Efrac.toFixed(2);
+
+  const hbar=1,m=1;
+  const k=Math.sqrt(2*m*E)/hbar;// wave vector outside
+  const kappa=E<V0?Math.sqrt(2*m*(V0-E))/hbar:Math.sqrt(2*m*(E-V0))/hbar;// inside
+
+  // Transmission coefficient (exact rectangular barrier)
+  let T,R;
+  if(E<V0&&kappa>0.001){
+    const sh=Math.sinh(kappa*a);
+    T=1/(1+V0*V0*sh*sh/(4*E*(V0-E)));
+  } else if(E>V0){
+    const sin2=(Math.sin(kappa*a));
+    T=1/(1+V0*V0*sin2*sin2/(4*E*(E-V0)+1e-10));
+  } else {
+    T=1/(1+(a*a*m*V0)/(2*hbar*hbar));
+  }
+  R=1-T;
+
+  // WKB approximation (for E < V0)
+  const T_wkb=E<V0?Math.exp(-2*kappa*a):1;
+
+  // Layout
+  const PAD=50,PW=W-PAD-20,PH=H-PAD-50;
+  // x in physical units (0=left, a=barrier start, 2a=barrier end, 3a=right end)
+  const xTotal=8;// units
+  const barL=a*0.5*xTotal/8+xTotal*0.3;
+  const barR=barL+a*xTotal/8;
+
+  function mapPx(x){return PAD+x/xTotal*PW;}
+  function mapPy(v,vMax){return 50+PH-(v/vMax)*PH;}
+  const vMax=V0*1.35;
+
+  // Grid
+  ctx.strokeStyle='#0a1830';ctx.lineWidth=0.5;
+  for(let gv=0;gv<=vMax;gv+=vMax/5){ctx.beginPath();ctx.moveTo(PAD,mapPy(gv,vMax));ctx.lineTo(PAD+PW,mapPy(gv,vMax));ctx.stroke();}
+
+  // Barrier
+  ctx.fillStyle='rgba(153,102,255,0.12)';
+  ctx.fillRect(mapPx(barL),mapPy(V0,vMax),mapPx(barR)-mapPx(barL),mapPy(0,vMax)-mapPy(V0,vMax));
+  ctx.strokeStyle='rgba(153,102,255,0.6)';ctx.lineWidth=2;
+  ctx.strokeRect(mapPx(barL),mapPy(V0,vMax),mapPx(barR)-mapPx(barL),mapPy(0,vMax)-mapPy(V0,vMax));
+
+  // Energy line
+  const yE=mapPy(E,vMax);
+  ctx.strokeStyle=E<V0?'#00e5c8':'#aaff44';ctx.lineWidth=2;ctx.setLineDash([5,3]);
+  ctx.beginPath();ctx.moveTo(PAD,yE);ctx.lineTo(PAD+PW,yE);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=E<V0?'#00e5c8':'#aaff44';ctx.font='10px Fira Code';
+  ctx.fillText(`E=${E.toFixed(2)}`,PAD+PW+3,yE+3);
+
+  // Wavefunction
+  if(showWF){
+    const N2=600;
+    // Incident + reflected (left region)
+    const A=1,kx_inc=k;
+    // Compute r (reflection amplitude) for rectangular barrier
+    let r_amp,t_amp;
+    if(E<V0&&kappa>0.001){
+      const e_ka=Math.exp(kappa*a);
+      const e_mka=1/e_ka;
+      const num_r=new Array(2);// complex computation
+      // r = (k²+kappa²)sinh(κa) / (2kkappa*cosh(κa) - i(k²-kappa²)sinh(κa))
+      // |r|² = R, use R directly
+      r_amp=Math.sqrt(R);
+      t_amp=Math.sqrt(T);
+    } else {
+      r_amp=Math.sqrt(R);t_amp=Math.sqrt(T);
+    }
+
+    const WFscale=(mapPy(0,vMax)-yE)*0.45;
+    const dx2=xTotal/N2;
+
+    ctx.strokeStyle='#00e5c8';ctx.lineWidth=1.8;ctx.beginPath();
+    let first=true;
+    for(let i=0;i<=N2;i++){
+      const xv=i*dx2;
+      let re=0;
+      const barLv=barL,barRv=barR;
+      if(xv<barLv){
+        // incident + reflected wave (standing wave superposition)
+        re=Math.cos(k*xv*W/PW*2)+r_amp*Math.cos(-k*xv*W/PW*2+Math.PI*0.3);
+      } else if(xv<=barRv){
+        if(E<V0){// evanescent
+          const x2=xv-barLv;
+          re=t_amp*Math.exp(-kappa*x2*0.8)*(0.8+0.2*Math.cos(k*x2));
+        } else {// oscillatory inside
+          re=t_amp*Math.cos(kappa*(xv-barLv)*W/PW*2);
+        }
+      } else {// transmitted
+        re=t_amp*Math.cos(k*(xv-barRv)*W/PW*2)*0.95;
+      }
+      const py=yE-re*WFscale;
+      if(py<20||py>H-20){first=true;continue;}
+      first?(ctx.moveTo(mapPx(xv),py),first=false):ctx.lineTo(mapPx(xv),py);
+    }
+    ctx.stroke();
+  }
+
+  // T(E) curve (mini plot, bottom quarter)
+  const MP_Y=H-PAD+5,MP_H=PAD-10;
+  ctx.strokeStyle='#1a2848';ctx.lineWidth=0.5;ctx.strokeRect(PAD,MP_Y-MP_H,PW,MP_H);
+  ctx.fillStyle='rgba(0,229,200,0.5)';ctx.font='8px Fira Code';ctx.fillText('T(E/V₀)',PAD+3,MP_Y-MP_H+10);
+
+  ctx.strokeStyle='#00e5c8';ctx.lineWidth=1.5;ctx.beginPath();
+  const NE=300;
+  for(let i=1;i<=NE;i++){
+    const Ei=V0*(i/NE)*2;
+    let Ti;
+    if(Ei<V0&&kappa>1e-5){
+      const kap=Math.sqrt(2*m*(V0-Ei))/hbar;
+      const sh=Math.sinh(kap*a);
+      Ti=1/(1+V0*V0*sh*sh/(4*Ei*(V0-Ei)+1e-10));
+    } else if(Ei>V0){
+      const kap=Math.sqrt(2*m*(Ei-V0))/hbar;
+      const sn=Math.sin(kap*a);
+      Ti=1/(1+V0*V0*sn*sn/(4*Ei*(Ei-V0)+1e-10));
+    } else Ti=0.5;
+    const px=PAD+i/NE*PW;
+    const py=MP_Y-Ti*MP_H;
+    i===1?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  // Current E marker
+  ctx.fillStyle='#00e5c8';ctx.beginPath();
+  ctx.arc(PAD+Efrac*PW*0.5,MP_Y-T*MP_H,4,0,Math.PI*2);ctx.fill();
+
+  // Axis border
+  ctx.strokeStyle='rgba(0,229,200,0.3)';ctx.lineWidth=1;ctx.strokeRect(PAD,50,PW,PH);
+
+  // Labels
+  ctx.fillStyle='#00e5c8';ctx.font='11px Josefin Sans';
+  ctx.fillText(`V₀=${V0}  2a=${a}  E=${E.toFixed(2)} (${(Efrac*100).toFixed(0)}% of V₀)`,PAD,40);
+  ctx.fillStyle='rgba(153,102,255,0.8)';ctx.font='10px Josefin Sans';
+  ctx.fillText(`Potential barrier`,mapPx((barL+barR)/2)-30,mapPy(V0,vMax)-8);
+
+  const infoStr=`T=${T.toFixed(5)}, R=${R.toFixed(5)}, T+R=${(T+R).toFixed(4)}` +
+    (E<V0?`  |  WKB: T≈${T_wkb.toFixed(5)}  |  Decay: e^{-2κa}=e^{-${(2*kappa*a).toFixed(2)}}`:
+     `  |  Resonances at a=nπ/κ (Ramsauer-Townsend)`);
+  document.getElementById('tunInfo').textContent=infoStr;
+};
+drawTunneling();
+['tunV0','tunA','tunE','tunShowWF'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener(el.type==='checkbox'?'change':'input',()=>{
+    if(id==='tunV0') document.getElementById('tunV0Val').textContent=el.value;
+    if(id==='tunA') document.getElementById('tunAVal').textContent=el.value;
+    if(id==='tunE') document.getElementById('tunEVal').textContent=(el.value/200).toFixed(2);
+    drawTunneling();
+  });
+});
+</script>
+</body>
+</html>

@@ -184,6 +184,22 @@ canvas{max-width:100%;display:block}
 .mt-result{font-family:"JetBrains Mono",monospace;font-size:15px;background:var(--term-bg);color:var(--term-fg);padding:16px;border-radius:8px;margin-top:14px;line-height:1.7}
 .mt-result .hl{color:var(--term-kw)}
 
+/* hash table lab */
+.htrow{display:flex;align-items:center;gap:10px;margin:5px 0}
+.htidx{width:58px;flex:none;text-align:right;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft)}
+.htchain{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-height:30px;align-items:center;background:var(--paper2);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.htchip{background:var(--teal);color:#fff;border-radius:5px;padding:3px 9px;font-family:"JetBrains Mono",monospace;font-size:12.5px;animation:htpop .2s ease}
+.htchip.coll{background:var(--rust)}
+@keyframes htpop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+/* exercises */
+.exq .qhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.exq .qnum{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--rust);font-weight:700}
+.exq .topic{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9a917f;white-space:nowrap}
+.ex-toggle{margin-top:10px}
+.exsol{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.exsol.open{display:block}
+.exsol p:first-child{margin-top:0}
+
 /* footer */
 footer{border-top:2px solid var(--ink);margin-top:80px;padding-top:30px;font-size:15px;color:var(--ink-soft)}
 footer .big{font-family:"Fraunces",serif;font-size:24px;color:var(--ink);font-weight:600;margin-bottom:6px}
@@ -231,8 +247,13 @@ footer .big{font-family:"Fraunces",serif;font-size:24px;color:var(--ink);font-we
     <a href="#dp">7 · Dynamic Programming</a>
     <a href="#greedy">8 · Greedy Algorithms</a>
     <div class="grp">Close</div>
-    <a href="#complexity">9 · P, NP &amp; Beyond</a>
-    <a href="#reference">10 · Quick Reference</a>
+    <a href="#hashing">9 · Hashing &amp; Hash Tables</a>
+    <a href="#hashing" class="sub">▶ Hash table explorer</a>
+    <a href="#amortized">10 · Amortized Analysis</a>
+    <a href="#amortized" class="sub">▶ Amortized cost lab</a>
+    <a href="#complexity">11 · P, NP &amp; Beyond</a>
+    <a href="#reference">12 · Quick Reference</a>
+    <a href="#exercises">13 · Practice Exercises</a>
   </nav>
 </aside>
 
@@ -945,8 +966,169 @@ endfunction</code></pre>
   </div>
 </section>
 
+<section id="hashing">
+  <h2><span class="num">SECTION 9</span>Hashing &amp; Hash Tables</h2>
+  <p class="lead">Binary search bought us \(O(\log n)\) by demanding sorted data. Hashing strikes a bolder bargain: give up order entirely, and lookups, inserts, and deletes all become \(O(1)\) — on average. It is the structure quietly powering nearly every dictionary, set, and database index you have ever touched.</p>
+
+  <div class="box def">
+    <span class="label">Definition · Hash table</span>
+    <p>A <strong>hash table</strong> stores key–value pairs in an array of \(m\) <em>buckets</em>. A <strong>hash function</strong> \(h:\text{keys}\to\{0,1,\dots,m-1\}\) maps each key to a bucket index. To store a key we compute \(h(k)\) and place it there; to look it up we recompute \(h(k)\) and inspect only that one bucket — never scanning the whole table.</p>
+    <p>The <strong>load factor</strong> \(\alpha = n/m\) is the average number of keys per bucket, where \(n\) is the number of stored keys. It is the single dial that governs performance.</p>
+  </div>
+
+  <p>Because we are squeezing a huge key space into \(m\) slots, two keys can map to the same bucket — a <strong>collision</strong>. The pigeonhole principle guarantees this once \(n &gt; m\), so every real implementation needs a resolution strategy.</p>
+
+  <div class="box note">
+    <span class="label">Two ways to resolve collisions</span>
+    <p><strong>Separate chaining.</strong> Each bucket holds a list of every key that hashed to it. Insert appends to the list; search walks it. Simple, and it degrades gracefully as \(\alpha\) grows past 1.</p>
+    <p><strong>Open addressing.</strong> Keep everything inside the array; on collision, probe a deterministic sequence of other slots (linear probing tries \(h(k)+1, h(k)+2,\dots\)) until an empty one appears. No side lists and excellent cache behavior, but it requires \(\alpha &lt; 1\) and careful deletion.</p>
+  </div>
+
+  <h3>A chaining hash table in Octave</h3>
+  <p>Octave ships a real map as <code>containers.Map</code>, but building one by hand makes the mechanics concrete. We use a cell array of buckets, each bucket a matrix of <code>[key, value]</code> rows.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function T = ht_new(m)
+  % create a hash table with m empty buckets
+  T.m = m;
+  T.buckets = cell(1, m);          % each cell holds a k-by-2 matrix of [key value] rows
+endfunction
+
+function h = ht_hash(T, key)
+  % division method, shifted into Octave's 1-based index range
+  h = mod(key, T.m) + 1;
+endfunction
+
+function T = ht_put(T, key, value)
+  h = ht_hash(T, key);
+  B = T.buckets{h};
+  if ~isempty(B)
+    row = find(B(:,1) == key, 1);  % key already stored in this bucket?
+    if ~isempty(row)
+      B(row, 2) = value;           % update in place
+      T.buckets{h} = B;
+      return;
+    endif
+  endif
+  T.buckets{h} = [B; key, value];  % otherwise chain the new pair on
+endfunction
+
+function [found, value] = ht_get(T, key)
+  h = ht_hash(T, key);
+  B = T.buckets{h};
+  found = false; value = nan;
+  if ~isempty(B)
+    row = find(B(:,1) == key, 1);  % scan only this one chain
+    if ~isempty(row)
+      found = true; value = B(row, 2);
+    endif
+  endif
+endfunction</code></pre>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 9.1</span>
+    <p class="stmt">Under the simple uniform hashing assumption, a search in a chaining hash table takes expected time \(\Theta(1+\alpha)\). With \(m=\Theta(n)\) the expected cost of every operation is therefore \(\Theta(1)\).</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p><strong>Simple uniform hashing</strong> assumes each key is equally likely to land in any of the \(m\) buckets, independently of the others. Consider an unsuccessful search for a key \(k\): it must scan every element of bucket \(h(k)\). For each of the \(n\) stored keys define an indicator \(X_i=1\) when key \(i\) hashes to \(h(k)\). Then \(\mathbb{E}[X_i]=1/m\), and by linearity of expectation the expected length of the scanned chain is
+    \[\mathbb{E}\!\left[\sum_{i=1}^{n}X_i\right]=\sum_{i=1}^{n}\frac1m=\frac nm=\alpha.\]
+    Computing \(h(k)\) costs \(O(1)\); scanning the chain costs \(\Theta(\alpha)\) in expectation; the total is \(\Theta(1+\alpha)\). The successful-search bound is identical up to constants. Choosing \(m=\Theta(n)\) makes \(\alpha=O(1)\), giving \(\Theta(1)\) expected per operation. ∎</p>
+  </div>
+
+  <div class="box note">
+    <span class="label">The fine print</span>
+    <p>That \(O(1)\) is an <em>expectation</em>, not a guarantee. The worst case is \(O(n)\): an adversary who knows \(h\) can choose keys that all collide into one bucket, collapsing the table into a single linked list. Production systems defend with <strong>universal hashing</strong> — drawing \(h\) at random from a carefully built family — or with randomized seeds, so that no fixed input is reliably catastrophic.</p>
+  </div>
+
+  <div class="widget" id="hashlab">
+    <div class="whead"><span class="tagi">▶ Interactive Lab 5</span><h4>Hash Table Explorer</h4></div>
+    <p class="wdesc">Insert integer keys and watch them scatter across \(m\) buckets via \(h(k)=k \bmod m\). Collisions stack into chains (the most recent collision flashes <span style="color:var(--rust)">red</span>). Watch the load factor \(\alpha\) and the longest chain grow as the table fills — then slide \(m\) to rehash the same keys and see more buckets flatten the chains.</p>
+    <div class="controls">
+      <div class="ctl"><label>buckets m = <span id="ht-m-val">11</span></label><input type="range" id="ht-m" min="5" max="17" value="11"></div>
+      <div class="ctl"><label>key (integer)</label><input type="number" id="ht-key" placeholder="e.g. 42" style="width:110px"></div>
+      <button class="btn" id="ht-insert">insert ▸</button>
+      <button class="btn alt" id="ht-rand">+ random</button>
+      <button class="btn ghost" id="ht-reset">⤮ reset</button>
+    </div>
+    <div id="ht-buckets"></div>
+    <div class="readout" id="ht-stats"></div>
+  </div>
+</section>
+
+<section id="amortized">
+  <h2><span class="num">SECTION 10</span>Amortized Analysis</h2>
+  <p class="lead">Some operations are usually cheap but occasionally expensive. <em>Amortized analysis</em> asks the honest question: averaged over a worst-case <strong>sequence</strong> of operations, what does each one cost? No probability is involved — the averaging is over time, not over random inputs.</p>
+
+  <div class="box def">
+    <span class="label">Definition · Amortized cost</span>
+    <p>The <strong>amortized cost</strong> of an operation is the total cost of a sequence of \(n\) operations divided by \(n\). If any such sequence costs \(O(T)\) in total, each operation has amortized cost \(O(T/n)\) — even when individual operations are far more expensive. Three classic techniques establish such bounds: the <strong>aggregate</strong>, <strong>accounting</strong>, and <strong>potential</strong> methods.</p>
+  </div>
+
+  <h3>The motivating example: a growing array</h3>
+  <p>Octave's convenient <code>A(end+1) = x</code> hides a trap. If the array is reallocated and fully copied on <em>every</em> append, \(n\) appends cost \(1+2+\dots+n=\Theta(n^2)\). The cure is to <strong>double</strong> the capacity whenever the array fills, so copying happens only rarely.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function S = darray_new()
+  S.data = zeros(1, 1);            % backing store with spare capacity
+  S.cap  = 1;                      % current capacity
+  S.n    = 0;                      % number of elements actually used
+endfunction
+
+function S = darray_push(S, x)
+  if S.n == S.cap                  % full: grow by doubling
+    S.cap = 2 * S.cap;
+    bigger = zeros(1, S.cap);
+    bigger(1:S.n) = S.data(1:S.n); % copy old contents -- the costly step
+    S.data = bigger;
+  endif
+  S.n = S.n + 1;
+  S.data(S.n) = x;                 % cheap: write into existing capacity
+endfunction</code></pre>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 10.1</span>
+    <p class="stmt">Starting from an empty array that doubles its capacity whenever full, any sequence of \(n\) <code>push</code> operations runs in \(O(n)\) total time — an amortized cost of \(O(1)\) per push.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof · aggregate method</span>
+    <p>Each push does \(1\) unit of work to write the new element, plus the cost of copying when a resize fires. A resize occurs exactly when the size hits a power of two, and the resize copies the elements already present. Across \(n\) pushes those copy counts are \(1,2,4,\dots,2^{t}\) with the largest satisfying \(2^{t} &lt; n\), so the total copying work is
+    \[\sum_{j=0}^{t} 2^{j} \;=\; 2^{t+1}-1 \;&lt;\; 2n.\]
+    Adding the \(n\) element-writes, the entire sequence costs less than \(3n=O(n)\). Dividing by the \(n\) operations gives amortized cost \(O(1)\) per push. ∎</p>
+  </div>
+
+  <div class="box note">
+    <span class="label">Two more lenses on the same fact</span>
+    <p><strong>Accounting method.</strong> Charge each push \(3\) credits: \(1\) pays to write the element now, and \(2\) are banked on it. When a resize copies a full array of \(c\) elements, each element in the freshly-filled upper half still carries its \(2\) saved credits — enough to pay \(1\) to copy itself and \(1\) to copy an older partner. The bank never goes negative, so the true cost never exceeds the \(3\) charged: amortized \(O(1)\).</p>
+    <p><strong>Potential method.</strong> Define \(\Phi = 2(\text{size}) - (\text{capacity})\ge 0\). A push with no resize raises size by \(1\), so \(\Delta\Phi=2\) and the amortized cost is \(1+2=3\). A push that triggers a resize copies \(c=\text{size}\) elements (actual cost \(c+1\)) but the doubling drops \(\Phi\) from \(c\) to \(2\), so \(\Delta\Phi=2-c\) and the amortized cost is \((c+1)+(2-c)=3\). Either way, \(O(1)\).</p>
+  </div>
+
+  <div class="box keytake">
+    <span class="label">Why this matters in Octave</span>
+    <p>This is exactly why the survival kit warns against growing a vector with <code>A(end+1)=x</code> inside a hot loop and recommends <code>v = zeros(1,n)</code> preallocation. An interpreter that copies on every append hands you \(\Theta(n^2)\) behavior; a doubling strategy keeps you at \(\Theta(n)\). The lab below lets you watch the two strategies diverge in real time.</p>
+  </div>
+
+  <div class="widget" id="amlab">
+    <div class="whead"><span class="tagi">▶ Interactive Lab 6</span><h4>Amortized Cost Visualizer</h4></div>
+    <p class="wdesc">Each bar is the <em>actual</em> cost of one push (1 to write, plus any copies a resize forces). The <span style="color:var(--gold)">gold line</span> is the running average — the amortized cost. With doubling it settles near a small constant; switch to "grow by one" and watch the same average climb without bound, the signature of \(\Theta(n)\) per push.</p>
+    <div class="controls">
+      <div class="ctl"><label>strategy</label><select id="am-strat"><option value="dbl">double capacity</option><option value="one">grow by one</option></select></div>
+      <button class="btn" id="am-push">push ▸</button>
+      <button class="btn alt" id="am-push10">push ×10</button>
+      <button class="btn ghost" id="am-reset">⤮ reset</button>
+    </div>
+    <canvas id="am-canvas" width="660" height="260"></canvas>
+    <div class="readout" id="am-stats"></div>
+  </div>
+</section>
+
+
 <section id="complexity">
-  <h2><span class="num">SECTION 9</span>P, NP &amp; the Edge of the Map</h2>
+  <h2><span class="num">SECTION 11</span>P, NP &amp; the Edge of the Map</h2>
   <p class="lead">Some problems we can solve quickly; some we can only <em>check</em> quickly; and for a vast, important class, nobody knows which it is. This is the deepest open question in computer science.</p>
 
   <div class="box def">
@@ -964,7 +1146,7 @@ endfunction</code></pre>
 </section>
 
 <section id="reference">
-  <h2><span class="num">SECTION 10</span>Quick Reference</h2>
+  <h2><span class="num">SECTION 12</span>Quick Reference</h2>
   <p class="lead">A pocket card for the road. Octave idioms on the left, complexity facts on the right.</p>
 
   <h3>Octave survival kit</h3>
@@ -992,6 +1174,8 @@ endfunction</code></pre>
       <thead><tr><th>Operation</th><th>Time</th></tr></thead>
       <tbody>
         <tr><td>Array index / hash lookup</td><td>O(1)</td></tr>
+        <tr><td>Hash insert / search (expected)</td><td>O(1), worst O(n)</td></tr>
+        <tr><td>Dynamic-array push (amortized)</td><td>O(1)</td></tr>
         <tr><td>Binary search (sorted)</td><td>O(log n)</td></tr>
         <tr><td>Linear scan</td><td>O(n)</td></tr>
         <tr><td>Optimal comparison sort</td><td>O(n log n)</td></tr>
@@ -1009,6 +1193,109 @@ endfunction</code></pre>
     <p>1 · Always state the input size your bound is in terms of. &nbsp; 2 · Prove correctness with an invariant before you optimize. &nbsp; 3 · Write the recurrence, then reach for the Master Theorem. &nbsp; 4 · A loose upper bound is honest; a wrong tight bound is not. &nbsp; 5 · The best optimization is almost always a better asymptotic class, not a faster constant.</p>
   </div>
 </section>
+
+<section id="exercises">
+  <h2><span class="num">SECTION 13</span>Practice Exercises</h2>
+  <p class="lead">Theory sticks when you wrestle with it. Try each problem with pencil first; the worked solution is one click away. They span the whole guide — asymptotics, recurrences, invariants, hashing, amortization, and graphs.</p>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 1</span><span class="topic">Asymptotics</span></div>
+    <p>Using only the definition of \(O\), prove that \(2^{n+1}=O(2^n)\), and prove that \(2^{2n}\neq O(2^n)\).</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p><strong>Upper bound.</strong> Since \(2^{n+1}=2\cdot 2^n\), take \(c=2,\ n_0=1\): for all \(n\ge 1\), \(2^{n+1}=2\cdot 2^n\le c\cdot 2^n\). Hence \(2^{n+1}=O(2^n)\). An <em>additive</em> shift in the exponent is just a constant multiplier.</p>
+      <p><strong>Separation.</strong> Suppose \(2^{2n}=O(2^n)\). Then there exist \(c,n_0\) with \(2^{2n}\le c\,2^n\) for all \(n\ge n_0\). Dividing by \(2^n\) gives \(2^{n}\le c\). But \(2^n\to\infty\), so any \(n>\log_2 c\) breaks the inequality — a contradiction. So \(2^{2n}=(2^n)^2\neq O(2^n)\): a <em>multiplicative</em> factor in the exponent is not a constant.</p>
+    </div>
+  </div>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 2</span><span class="topic">Asymptotics</span></div>
+    <p>Order these functions by asymptotic growth, slowest first: \(\;n!,\quad n\log n,\quad \sqrt n,\quad 2^{\log_2 n},\quad \log^2 n,\quad n^{1.5}.\)</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>First simplify: \(2^{\log_2 n}=n\). The ordering is
+      \[\log^2 n \;\prec\; \sqrt n \;\prec\; n \;(=2^{\log_2 n}) \;\prec\; n\log n \;\prec\; n^{1.5} \;\prec\; n!.\]</p>
+      <p><strong>Why.</strong> Any positive power of \(n\) dominates any power of \(\log n\), so \(\log^2 n\prec\sqrt n=n^{0.5}\prec n\). The term \(2^{\log_2 n}\) is exactly \(n\), so it ties with \(n\). Then \(n\prec n\log n\prec n^{1.5}\), because comparing \(n\log n\) with \(n^{1.5}=n\cdot n^{0.5}\) reduces to \(\log n\prec n^{0.5}\). Finally the factorial outgrows every polynomial, so \(n^{1.5}\prec n!\).</p>
+    </div>
+  </div>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 3</span><span class="topic">Recurrences</span></div>
+    <p>Solve \(T(n)=3T(n/2)+n\) with the Master Theorem, and say in one line what kind of algorithm produces it.</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>Here \(a=3,\ b=2,\ f(n)=n=n^1\). The critical exponent is \(\log_b a=\log_2 3\approx 1.585\). Since \(f(n)=n^{1}=O\!\left(n^{\log_2 3-\varepsilon}\right)\) for \(\varepsilon\approx 0.585>0\), this is <strong>Case 1</strong>:
+      \[T(n)=\Theta\!\left(n^{\log_2 3}\right)\approx\Theta\!\left(n^{1.585}\right).\]
+      It arises when an algorithm splits into <em>three</em> half-size subproblems with only linear combine work — the leaves of the recursion tree dominate (the same flavor as Karatsuba multiplication).</p>
+    </div>
+  </div>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 4</span><span class="topic">Recurrences</span></div>
+    <p>Solve \(T(n)=T(n-1)+n\) with \(T(1)=1\). Why can't the Master Theorem be used here?</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>The Master Theorem needs the form \(aT(n/b)+f(n)\), where the subproblem shrinks by a <em>factor</em> \(b>1\). Here the subproblem shrinks only by a constant <em>amount</em> \((n\to n-1)\), so the theorem does not apply. Unroll instead:
+      \[T(n)=n+(n-1)+\dots+2+1=\sum_{k=1}^{n}k=\frac{n(n+1)}{2}=\Theta(n^2).\]
+      This is precisely the cost of selection sort, and of the naive \(A(\text{end}+1)=x\) growth loop from Section 10.</p>
+    </div>
+  </div>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 5</span><span class="topic">Correctness</span></div>
+    <p>The code below finds the maximum of a non-empty array. State a loop invariant and use it to prove correctness.</p>
+    <div class="code">
+      <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+      <pre><code class="octave">m = A(1);
+for i = 2:numel(A)
+  if A(i) > m
+    m = A(i);
+  endif
+endfor</code></pre>
+    </div>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p><strong>Invariant.</strong> At the start of the iteration for index \(i\), \(m=\max\big(A[1..i-1]\big)\).</p>
+      <p><strong>Initialization.</strong> Before the loop runs (\(i=2\)), \(m=A(1)=\max(A[1..1])\). ✓</p>
+      <p><strong>Maintenance.</strong> If \(m=\max(A[1..i-1])\), the body sets \(m\leftarrow\max(m,A[i])=\max(A[1..i])\), which is the invariant for the next index \(i+1\). ✓</p>
+      <p><strong>Termination.</strong> The loop ends after processing \(i=\text{numel}(A)\), so \(m=\max(A[1..\text{numel}(A)])\) — the maximum of the whole array. ✓ The work is one comparison per element, \(\Theta(n)\).</p>
+    </div>
+  </div>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 6</span><span class="topic">Hashing</span></div>
+    <p>Insert the keys \(22,\,1,\,13,\,11,\,24,\,33\) into an 11-bucket chaining table using \(h(k)=k\bmod 11\). Show the chains and give the load factor.</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>Compute each hash: \(22\bmod 11=0\), \(1\bmod 11=1\), \(13\bmod 11=2\), \(11\bmod 11=0\), \(24\bmod 11=2\), \(33\bmod 11=0\). The resulting chains:</p>
+      <p>bucket 0: \(22\to 11\to 33\) &nbsp;·&nbsp; bucket 1: \(1\) &nbsp;·&nbsp; bucket 2: \(13\to 24\) &nbsp;·&nbsp; all other buckets empty.</p>
+      <p>Load factor \(\alpha=n/m=6/11\approx 0.55\); the longest chain has length \(3\). Reproduce it in Lab 5 with \(m=11\).</p>
+    </div>
+  </div>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 7</span><span class="topic">Amortized</span></div>
+    <p>A stack supports <code>push</code>, <code>pop</code>, and <code>multipop(k)</code> (pop the top \(\min(k,\text{size})\) items). A single <code>multipop</code> can cost \(\Theta(k)\). Prove that any sequence of \(n\) operations on an initially empty stack costs \(O(n)\) total.</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p><strong>Accounting method.</strong> Charge \(2\) credits per <code>push</code>: \(1\) pays for the push itself, and \(1\) is banked on the pushed element. Charge \(0\) for <code>pop</code> and <code>multipop</code>. Every element that is ever removed — whether by <code>pop</code> or inside a <code>multipop</code> — was pushed exactly once and carries exactly \(1\) banked credit, which pays for its own removal.</p>
+      <p>The bank therefore never goes negative, so the true total cost is at most the total charged: \(2\cdot(\#\text{pushes})\le 2n=O(n)\). Amortized costs: <code>push</code> \(=2\), <code>pop</code> and <code>multipop</code> \(=0\) — all \(O(1)\). The intuition in one line: you can never pop more than you pushed.</p>
+    </div>
+  </div>
+
+  <div class="box note exq">
+    <div class="qhead"><span class="qnum">Exercise 8</span><span class="topic">Graphs</span></div>
+    <p>Give a three-vertex graph with a single negative edge on which Dijkstra returns a wrong shortest distance, and explain the failure.</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>Take vertices \(s,u,v\) with edges \(s\to u=2\), \(s\to v=1\), and \(u\to v=-3\).</p>
+      <p><strong>True answer.</strong> The path \(s\to u\to v\) costs \(2+(-3)=-1\), beating the direct edge \(s\to v=1\). So the real \(\operatorname{dist}(v)=-1\).</p>
+      <p><strong>What Dijkstra does.</strong> After relaxing \(s\) it holds tentative \(v=1,\ u=2\). It extracts the minimum, \(v=1\), and <em>finalizes</em> it. Only later does it extract \(u\) and relax \(u\to v\) to \(2+(-3)=-1\) — but \(v\) is already finalized and never lowered. Dijkstra reports \(\operatorname{dist}(v)=1\), which is wrong.</p>
+      <p><strong>Why.</strong> Dijkstra's greedy proof (Section 6) assumes that once a vertex is extracted at minimum tentative distance, no cheaper path can exist — valid only when all edges are non-negative. A negative edge can make a later path cheaper, so reach for <strong>Bellman–Ford</strong> when negative weights are possible.</p>
+    </div>
+  </div>
+</section>
+
 
 <footer>
   <div class="big">Now go run the code.</div>
@@ -1336,6 +1623,108 @@ document.querySelectorAll('.copy').forEach(btn => {
   targetIn.addEventListener('change', reset);
   newArray();
 })();
+
+/* ================= LAB 5 — Hash table explorer ================= */
+(function(){
+  const wrap = document.getElementById('ht-buckets'); if(!wrap) return;
+  const mSlider = document.getElementById('ht-m'), mVal = document.getElementById('ht-m-val');
+  const keyIn = document.getElementById('ht-key'), stats = document.getElementById('ht-stats');
+  let m = +mSlider.value, keys = [], lastKey = null;
+  function rebuild(){
+    m = +mSlider.value; mVal.textContent = m;
+    const buckets = Array.from({length:m}, () => []);
+    keys.forEach(k => { const h = ((k % m) + m) % m; if(!buckets[h].includes(k)) buckets[h].push(k); });
+    let n = 0, maxc = 0; wrap.innerHTML = '';
+    buckets.forEach((ch, i) => {
+      n += ch.length; maxc = Math.max(maxc, ch.length);
+      const row = document.createElement('div'); row.className = 'htrow';
+      const idx = document.createElement('div'); idx.className = 'htidx'; idx.textContent = 'h=' + i;
+      const chain = document.createElement('div'); chain.className = 'htchain';
+      ch.forEach(k => {
+        const c = document.createElement('span');
+        c.className = 'htchip' + (k === lastKey && ch.length > 1 ? ' coll' : '');
+        c.textContent = k; chain.appendChild(c);
+      });
+      row.appendChild(idx); row.appendChild(chain); wrap.appendChild(row);
+    });
+    const a = n / m;
+    stats.innerHTML = `<span><b>n</b> = ${n} keys</span><span><b>m</b> = ${m} buckets</span>` +
+      `<span><b>&alpha; = n/m</b> = ${a.toFixed(2)}</span><span><b>longest chain</b> = ${maxc}</span>` +
+      `<span><b>expected probe &asymp; 1+&alpha;</b> = ${(1 + a).toFixed(2)}</span>`;
+  }
+  function insert(k){ if(!Number.isFinite(k)) return; if(!keys.includes(k)) keys.push(k); lastKey = k; rebuild(); }
+  document.getElementById('ht-insert').addEventListener('click', () => { insert(parseInt(keyIn.value, 10)); keyIn.value = ''; keyIn.focus(); });
+  document.getElementById('ht-rand').addEventListener('click', () => insert(Math.floor(Math.random() * 90) + 1));
+  document.getElementById('ht-reset').addEventListener('click', () => { keys = []; lastKey = null; rebuild(); });
+  mSlider.addEventListener('input', rebuild);
+  keyIn.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('ht-insert').click(); });
+  keys = [22, 1, 13, 11, 24, 33]; lastKey = 33; rebuild();
+})();
+
+/* ================= LAB 6 — Amortized cost visualizer ================= */
+(function(){
+  const cv = document.getElementById('am-canvas'); if(!cv) return;
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  const strat = document.getElementById('am-strat'), stats = document.getElementById('am-stats');
+  const css = getComputedStyle(document.documentElement);
+  const col = v => css.getPropertyValue(v).trim() || '#888';
+  let cap, n, costs, total;
+  function reset(){ n = 0; cap = 0; costs = []; total = 0; draw(); update(); }
+  function push(){
+    let copy = 0;
+    if(strat.value === 'dbl'){ if(n === cap){ copy = cap; cap = cap ? cap * 2 : 1; } }
+    else { if(n === cap){ copy = n; cap = cap + 1; } }
+    n++; const c = 1 + copy; costs.push(c); total += c; draw(); update();
+  }
+  function update(){
+    const amort = n ? total / n : 0;
+    stats.innerHTML = `<span><b>pushes</b> = ${n}</span><span><b>total cost</b> = ${total}</span>` +
+      `<span><b>amortized = total/n</b> = ${amort.toFixed(2)}</span><span><b>capacity</b> = ${cap}</span>`;
+  }
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    const pad = 32, plotW = W - pad - 8, plotH = H - pad - 12, x0 = pad, y0 = H - pad;
+    ctx.strokeStyle = col('--line'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, 10); ctx.lineTo(x0, y0); ctx.lineTo(W - 4, y0); ctx.stroke();
+    if(costs.length === 0){
+      ctx.fillStyle = col('--ink-soft'); ctx.font = '13px "JetBrains Mono",monospace';
+      ctx.fillText('press \u201Cpush\u201D to begin', x0 + 16, H / 2); return;
+    }
+    const maxCost = Math.max(...costs, 3);
+    const bw = Math.max(1, plotW / costs.length);
+    costs.forEach((c, i) => {
+      const h = (c / maxCost) * plotH, x = x0 + i * bw, y = y0 - h;
+      ctx.fillStyle = col('--teal-soft'); ctx.fillRect(x, y, Math.max(1, bw - 1), h);
+    });
+    ctx.strokeStyle = col('--gold'); ctx.lineWidth = 2; ctx.beginPath();
+    let run = 0;
+    costs.forEach((c, i) => {
+      run += c; const avg = run / (i + 1);
+      const x = x0 + i * bw + bw / 2, y = y0 - (avg / maxCost) * plotH;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    });
+    ctx.stroke();
+    ctx.fillStyle = col('--ink-soft'); ctx.font = '10px "JetBrains Mono",monospace';
+    ctx.fillText(String(maxCost), 5, 14); ctx.fillText('0', 20, y0 - 2);
+    ctx.fillStyle = col('--gold'); ctx.fillText('avg', x0 + 6, 22);
+  }
+  document.getElementById('am-push').addEventListener('click', push);
+  document.getElementById('am-push10').addEventListener('click', () => { for(let i = 0; i < 10; i++) push(); });
+  document.getElementById('am-reset').addEventListener('click', reset);
+  strat.addEventListener('change', reset);
+  reset();
+})();
+
+/* ================= exercise solution toggles ================= */
+document.querySelectorAll('.ex-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const sol = btn.parentElement.querySelector('.exsol');
+    const open = sol.classList.toggle('open');
+    btn.textContent = open ? 'hide solution' : 'show solution';
+    if(open && window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([sol]);
+  });
+});
+
 </script>
 </body>
 </html>

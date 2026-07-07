@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<!-- Playables SDK -->
+<script>// Playables SDK v1.0.0
+// Game lifecycle bridge: rAF-based game-ready detection + event communication
+(function() {
+  'use strict';
+
+  var HANDLER_NAME = 'playablesGameEventHandler';
+  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
+  var RAF_FRAME_THRESHOLD = 3;
+
+  var gameReadySent = false;
+  var firstInteractionSent = false;
+  var errorSent = false;
+  var frameCount = 0;
+  var originalRAF = window.requestAnimationFrame;
+
+  // --- Transport Layer ---
+
+  function hasIOSBridge() {
+    return !!(window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers[HANDLER_NAME]);
+  }
+
+  function hasAndroidBridge() {
+    return !!(window[ANDROID_BRIDGE_NAME] &&
+              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
+  }
+
+  function isInIframe() {
+    return !!(window.parent && window.parent !== window);
+  }
+
+  function sendEvent(eventName, payload) {
+    var message = {
+      type: eventName,
+      payload: payload || {},
+      timestamp: Date.now()
+    };
+
+    if (hasIOSBridge()) {
+      try {
+        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (hasAndroidBridge()) {
+    try {
+      var p = payload || {};
+      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
+      window[ANDROID_BRIDGE_NAME].postEvent(
+        eventName,
+        JSON.stringify(p)
+      );
+    } catch (e) { /* ignore */ }
+    return;
+  }
+
+    if (isInIframe()) {
+      try {
+        window.parent.postMessage(message, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+  }
+
+  // --- rAF Game-Ready Detection ---
+
+  function onFrame() {
+    if (gameReadySent) return;
+
+    frameCount++;
+    if (frameCount >= RAF_FRAME_THRESHOLD) {
+      gameReadySent = true;
+      sendEvent('game_ready', {
+        frame_count: frameCount,
+        detected_at: Date.now()
+      });
+      return;
+    }
+
+    originalRAF.call(window, onFrame);
+  }
+
+  if (originalRAF) {
+    window.requestAnimationFrame = function(callback) {
+      if (!gameReadySent) {
+        return originalRAF.call(window, function(timestamp) {
+          frameCount++;
+          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
+            gameReadySent = true;
+            sendEvent('game_ready', {
+              frame_count: frameCount,
+              detected_at: Date.now()
+            });
+          }
+          callback(timestamp);
+        });
+      }
+      return originalRAF.call(window, callback);
+    };
+  }
+
+  // --- First User Interaction Detection ---
+
+  function setupFirstInteractionDetection() {
+    var events = ['touchstart', 'mousedown', 'keydown'];
+
+    function onFirstInteraction() {
+      if (firstInteractionSent) return;
+      firstInteractionSent = true;
+      sendEvent('user_interaction_start', null);
+
+      for (var i = 0; i < events.length; i++) {
+        document.removeEventListener(events[i], onFirstInteraction, true);
+      }
+    }
+
+    for (var i = 0; i < events.length; i++) {
+      document.addEventListener(events[i], onFirstInteraction, true);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
+  } else {
+    setupFirstInteractionDetection();
+  }
+
+  // --- Auto Error Capture ---
+
+  window.addEventListener('error', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    sendEvent('error', {
+      message: event.message || 'Unknown error',
+      source: event.filename || '',
+      lineno: event.lineno || 0,
+      colno: event.colno || 0,
+      auto_captured: true
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    var reason = event.reason;
+    sendEvent('error', {
+      message: (reason instanceof Error) ? reason.message : String(reason),
+      type: 'unhandled_promise_rejection',
+      auto_captured: true
+    });
+  });
+
+  // --- Public API ---
+
+  window.playablesSDK = {
+    complete: function(score) {
+      sendEvent('game_ended', {
+        score: score,
+        completed: true
+      });
+    },
+
+    error: function(message) {
+      if (errorSent) return;
+      errorSent = true;
+      sendEvent('error', {
+        message: message || 'Unknown error',
+        auto_captured: false
+      });
+    },
+
+    sendEvent: function(eventName, payload) {
+      if (!eventName || typeof eventName !== 'string') return;
+      sendEvent(eventName, payload);
+    }
+  };
+
+  // Kick off rAF detection in case no game code calls rAF immediately
+  if (originalRAF) {
+    originalRAF.call(window, onFrame);
+  }
+})();</script>
+<script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Référentiel – Conjugaisons & Déclinaisons (stems only)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1116; --card:#1a1f29; --text:#e6e8ef; --muted:#9aa3b2; --border:#2a3240;
+  --blue:#3b82f6; --green:#10b981; --amber:#f59e0b; --purple:#8b5cf6;
+  --gold:#d4af37; --rose:#ec4899; --olive:#8a9a5b; --terra:#e2725b; --teal:#14b8a6;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+header{max-width:1200px;margin:0 auto;padding:28px 16px 8px}
+.title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.9rem;letter-spacing:.2px}
+.subtitle{color:var(--muted);margin-top:4px}
+.tabs{max-width:1200px;margin:8px auto 0;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap}
+.tab-btn{appearance:none;background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:999px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;transition:.15s}
+.tab-btn.active,.tab-btn:hover{color:var(--text);border-color:var(--text);background:rgba(255,255,255,.04)}
+main{max-width:1200px;margin:0 auto;padding:16px 16px 56px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border-radius:14px;padding:14px 14px 12px;border:1px solid var(--border);border-top:3px solid var(--cat,#555);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.card-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px}
+.card-header h3{font-family:'Syne',sans-serif;font-size:1.12rem;margin:0}
+.card-header .en{color:var(--muted);font-size:.85rem;font-weight:500}
+.formula{font-family:'Source Code Pro',monospace;color:var(--muted);font-size:.9rem;margin:4px 0 10px}
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:260px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.01)}
+td{font-family:'Source Code Pro',monospace}
+tbody tr:last-child td{border-bottom:none}
+.note{margin-top:10px;color:var(--muted);font-size:.84rem;font-family:'Source Code Pro',monospace}
+.badge{display:inline-block;padding:2px 6px;border:1px solid var(--border);border-radius:6px;margin-right:6px;color:var(--muted);font-size:.75rem}
+footer{max-width:1200px;margin:24px auto 0;padding:0 16px;color:var(--muted);font-size:.8rem}
+@media (max-width:640px){.card-header{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">Français — stems & endings only</div>
+  <div class="subtitle">Dark reference for memorization. No full conjugated forms, just patterns.</div>
+</header>
+
+<div class="tabs" role="tablist" aria-label="Sections">
+  <button class="tab-btn active" data-target="conjugaisons" role="tab" aria-selected="true">Conjugaisons</button>
+  <button class="tab-btn" data-target="subjcond" role="tab" aria-selected="false">Subjonctif & Conditionnel</button>
+  <button class="tab-btn" data-target="declinaisons" role="tab" aria-selected="false">Déclinaisons</button>
+</div>
+
+<main>
+  <!-- CONJUGAISONS -->
+  <section id="conjugaisons" class="tab-panel active">
+    <div class="grid">
+
+      <article class="card" style="--cat:var(--blue)">
+        <div class="card-header"><h3>Présent</h3><span class="en">Present</span></div>
+        <div class="formula">stem = infinitif − er / ir / re</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>-er</th><th>-ir (finir)</th><th>-re</th></tr></thead>
+          <tbody>
+            <tr><td>je</td><td>-e</td><td>-is</td><td>-s</td></tr>
+            <tr><td>tu</td><td>-es</td><td>-is</td><td>-s</td></tr>
+            <tr><td>il/elle</td><td>-e</td><td>-it</td><td>-</td></tr>
+            <tr><td>nous</td><td>-ons</td><td>-issons</td><td>-ons</td></tr>
+            <tr><td>vous</td><td>-ez</td><td>-issez</td><td>-ez</td></tr>
+            <tr><td>ils/elles</td><td>-ent</td><td>-issent</td><td>-ent</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">stems irréguliers: être → s- / es- / ét- ; avoir → a- / av- ; aller → v- / all- ; faire → fais- / f- ; pouvoir → pouv- / peuv- / puiss- ; vouloir → voul- / veuill- ; savoir → sav- / sach-</div>
+      </article>
+
+      <article class="card" style="--cat:var(--green)">
+        <div class="card-header"><h3>Imparfait</h3><span class="en">Imperfect</span></div>
+        <div class="formula">stem = nous présent − ons</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>ending</th></tr></thead>
+          <tbody>
+            <tr><td>je</td><td>-ais</td></tr>
+            <tr><td>tu</td><td>-ais</td></tr>
+            <tr><td>il/elle</td><td>-ait</td></tr>
+            <tr><td>nous</td><td>-ions</td></tr>
+            <tr><td>vous</td><td>-iez</td></tr>
+            <tr><td>ils/elles</td><td>-aient</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">être stem → ét-</div>
+      </article>
+
+      <article class="card" style="--cat:var(--amber)">
+        <div class="card-header"><h3>Passé simple</h3><span class="en">Preterite</span></div>
+        <div class="formula">stem = base du passé simple</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>-er</th><th>-ir / -re</th><th>-u</th></tr></thead>
+          <tbody>
+            <tr><td>je</td><td>-ai</td><td>-is</td><td>-us</td></tr>
+            <tr><td>tu</td><td>-as</td><td>-is</td><td>-us</td></tr>
+            <tr><td>il/elle</td><td>-a</td><td>-it</td><td>-ut</td></tr>
+            <tr><td>nous</td><td>-âmes</td><td>-îmes</td><td>-ûmes</td></tr>
+            <tr><td>vous</td><td>-âtes</td><td>-îtes</td><td>-ûtes</td></tr>
+            <tr><td>ils/elles</td><td>-èrent</td><td>-irent</td><td>-urent</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">stems: avoir e- ; être f- ; voir v- ; savoir s- ; pouvoir p- ; vouloir voul- ; boire b- ; lire l- ; venir vin- ; tenir tin-</div>
+      </article>
+
+      <article class="card" style="--cat:var(--purple)">
+        <div class="card-header"><h3>Futur simple</h3><span class="en">Future</span></div>
+        <div class="formula">stem = infinitif (−e pour -re)</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>ending</th></tr></thead>
+          <tbody>
+            <tr><td>je</td><td>-ai</td></tr>
+            <tr><td>tu</td><td>-as</td></tr>
+            <tr><td>il/elle</td><td>-a</td></tr>
+            <tr><td>nous</td><td>-ons</td></tr>
+            <tr><td>vous</td><td>-ez</td></tr>
+            <tr><td>ils/elles</td><td>-ont</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">stems irréguliers: aller ir- ; avoir aur- ; être ser- ; faire fer- ; pouvoir pourr- ; vouloir voudr- ; venir viendr- ; devoir devr- ; savoir saur- ; voir verr- ; envoyer enverr-</div>
+      </article>
+
+      <article class="card" style="--cat:var(--olive)">
+        <div class="card-header"><h3>Impératif présent</h3><span class="en">Imperative</span></div>
+        <div class="formula">sans sujet</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>-er</th><th>-ir / -re</th></tr></thead>
+          <tbody>
+            <tr><td>tu</td><td>-e</td><td>-s</td></tr>
+            <tr><td>nous</td><td>-ons</td><td>-issons / -ons</td></tr>
+            <tr><td>vous</td><td>-ez</td><td>-issez / -ez</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">stems irréguliers: être soi- / soy- ; avoir ai- / ay- ; savoir sach- ; vouloir veuill-</div>
+      </article>
+
+      <article class="card" style="--cat:var(--terra)">
+        <div class="card-header"><h3>Passé composé</h3><span class="en">Present Perfect</span></div>
+        <div class="formula">avoir/être (présent) + participe</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>infinitif</th><th>participe</th></tr></thead>
+          <tbody>
+            <tr><td>-er</td><td>-é</td></tr>
+            <tr><td>-ir</td><td>-i</td></tr>
+            <tr><td>-re</td><td>-u</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">référer aux endings du présent pour avoir/être</div>
+      </article>
+
+      <article class="card" style="--cat:var(--terra)">
+        <div class="card-header"><h3>Plus-que-parfait</h3><span class="en">Pluperfect</span></div>
+        <div class="formula">avoir/être (imparfait) + participe</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>infinitif</th><th>participe</th></tr></thead>
+          <tbody>
+            <tr><td>-er</td><td>-é</td></tr>
+            <tr><td>-ir</td><td>-i</td></tr>
+            <tr><td>-re</td><td>-u</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--terra)">
+        <div class="card-header"><h3>Futur antérieur</h3><span class="en">Future Perfect</span></div>
+        <div class="formula">avoir/être (futur) + participe</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>infinitif</th><th>participe</th></tr></thead>
+          <tbody>
+            <tr><td>-er</td><td>-é</td></tr>
+            <tr><td>-ir</td><td>-i</td></tr>
+            <tr><td>-re</td><td>-u</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- SUBJONCTIF & CONDITIONNEL -->
+  <section id="subjcond" class="tab-panel">
+    <div class="grid">
+
+      <article class="card" style="--cat:var(--gold)">
+        <div class="card-header"><h3>Conditionnel présent</h3><span class="en">Conditional</span></div>
+        <div class="formula">stem = futur ; endings = imparfait</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>ending</th></tr></thead>
+          <tbody>
+            <tr><td>je</td><td>-ais</td></tr>
+            <tr><td>tu</td><td>-ais</td></tr>
+            <tr><td>il/elle</td><td>-ait</td></tr>
+            <tr><td>nous</td><td>-ions</td></tr>
+            <tr><td>vous</td><td>-iez</td></tr>
+            <tr><td>ils/elles</td><td>-aient</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--terra)">
+        <div class="card-header"><h3>Conditionnel passé</h3><span class="en">Conditional Perfect</span></div>
+        <div class="formula">avoir/être (conditionnel) + participe</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>infinitif</th><th>participe</th></tr></thead>
+          <tbody>
+            <tr><td>-er</td><td>-é</td></tr>
+            <tr><td>-ir</td><td>-i</td></tr>
+            <tr><td>-re</td><td>-u</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--rose)">
+        <div class="card-header"><h3>Subjonctif présent</h3><span class="en">Present Subjunctive</span></div>
+        <div class="formula">stem = ils présent − ent (je/tu/il/ils) ; nous présent − ons (nous/vous)</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>ending</th></tr></thead>
+          <tbody>
+            <tr><td>je</td><td>-e</td></tr>
+            <tr><td>tu</td><td>-es</td></tr>
+            <tr><td>il/elle</td><td>-e</td></tr>
+            <tr><td>nous</td><td>-ions</td></tr>
+            <tr><td>vous</td><td>-iez</td></tr>
+            <tr><td>ils/elles</td><td>-ent</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">stems irréguliers: être soi- / soy- ; avoir ai- / ay- ; aller aill- / all- ; faire fass- ; pouvoir puiss- ; vouloir veuill- / voul- ; savoir sach-</div>
+      </article>
+
+      <article class="card" style="--cat:var(--rose)">
+        <div class="card-header"><h3>Subjonctif imparfait</h3><span class="en">Imperfect Subjunctive (literary)</span></div>
+        <div class="formula">stem = passé simple</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>-er</th><th>-ir / -re</th><th>-u</th></tr></thead>
+          <tbody>
+            <tr><td>je</td><td>-asse</td><td>-isse</td><td>-usse</td></tr>
+            <tr><td>tu</td><td>-asses</td><td>-isses</td><td>-usses</td></tr>
+            <tr><td>il/elle</td><td>-ât</td><td>-ît</td><td>-ût</td></tr>
+            <tr><td>nous</td><td>-assions</td><td>-issions</td><td>-ussions</td></tr>
+            <tr><td>vous</td><td>-assiez</td><td>-issiez</td><td>-ussiez</td></tr>
+            <tr><td>ils/elles</td><td>-assent</td><td>-issent</td><td>-ussent</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--terra)">
+        <div class="card-header"><h3>Subjonctif passé</h3><span class="en">Past Subjunctive</span></div>
+        <div class="formula">avoir/être (subjonctif présent) + participe</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>infinitif</th><th>participe</th></tr></thead>
+          <tbody>
+            <tr><td>-er</td><td>-é</td></tr>
+            <tr><td>-ir</td><td>-i</td></tr>
+            <tr><td>-re</td><td>-u</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- DECLINAISONS -->
+  <section id="declinaisons" class="tab-panel">
+    <div class="grid">
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Articles définis</h3><span class="en">Definite Articles</span></div>
+        <div class="formula">base l- + désinence</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>forme</th><th>décomposition</th></tr></thead>
+          <tbody>
+            <tr><td>le</td><td>l- + e</td></tr>
+            <tr><td>la</td><td>l- + a</td></tr>
+            <tr><td>l'</td><td>l- + ’</td></tr>
+            <tr><td>les</td><td>l- + es</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Articles indéfinis & partitifs</h3><span class="en">Indefinite & Partitive</span></div>
+        <div class="formula">patterns seulement</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>type</th><th>formes</th></tr></thead>
+          <tbody>
+            <tr><td>indéfinis</td><td>un / une / des</td></tr>
+            <tr><td>partitifs</td><td>du / de la / de l' / des</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">du = de + le ; des = de + les</div>
+      </article>
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Adjectifs qualificatifs</h3><span class="en">Adjective Agreement</span></div>
+        <div class="formula">base + désinence</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>genre/nombre</th><th>ending</th></tr></thead>
+          <tbody>
+            <tr><td>masc sg</td><td>-</td></tr>
+            <tr><td>fém sg</td><td>-e</td></tr>
+            <tr><td>masc pl</td><td>-s</td></tr>
+            <tr><td>fém pl</td><td>-es</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">stems irréguliers: beau / bel / belle ; nouveau / nouvel / nouvelle ; vieux / vieil / vieille</div>
+      </article>
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Possessifs</h3><span class="en">Possessives</span></div>
+        <div class="formula">base + genre/nombre du possédé</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>personne</th><th>masc sg</th><th>fém sg</th><th>pl</th></tr></thead>
+          <tbody>
+            <tr><td>1sg</td><td>mon</td><td>ma</td><td>mes</td></tr>
+            <tr><td>2sg</td><td>ton</td><td>ta</td><td>tes</td></tr>
+            <tr><td>3sg</td><td>son</td><td>sa</td><td>ses</td></tr>
+            <tr><td>1pl</td><td>notre</td><td>notre</td><td>nos</td></tr>
+            <tr><td>2pl</td><td>votre</td><td>votre</td><td>vos</td></tr>
+            <tr><td>3pl</td><td>leur</td><td>leur</td><td>leurs</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Démonstratifs</h3><span class="en">Demonstratives</span></div>
+        <div class="formula">adjectifs & pronoms</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>type</th><th>formes</th></tr></thead>
+          <tbody>
+            <tr><td>adj.</td><td>ce / cet / cette / ces</td></tr>
+            <tr><td>pron.</td><td>celui / celle / ceux / celles</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Interrogatifs</h3><span class="en">Interrogatives</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>forme</th></tr></thead>
+          <tbody>
+            <tr><td>quel / quelle / quels / quelles</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Pronoms personnels</h3><span class="en">Personal Pronouns</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>fonction</th><th>formes</th></tr></thead>
+          <tbody>
+            <tr><td>sujets</td><td>je / tu / il / elle / nous / vous / ils / elles</td></tr>
+            <tr><td>COD</td><td>me / te / le / la / nous / vous / les</td></tr>
+            <tr><td>COI</td><td>me / te / lui / nous / vous / leur</td></tr>
+            <tr><td>réfléchis</td><td>me / te / se / nous / vous / se</td></tr>
+            <tr><td>toniques</td><td>moi / toi / lui / elle / nous / vous / eux / elles</td></tr>
+            <tr><td>y</td><td>à + chose/lieu</td></tr>
+            <tr><td>en</td><td>de + chose/quantité</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+      <article class="card" style="--cat:var(--teal)">
+        <div class="card-header"><h3>Relatifs</h3><span class="en">Relative Pronouns</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>formes</th></tr></thead>
+          <tbody>
+            <tr><td>qui / que / quoi / dont / où</td></tr>
+            <tr><td>lequel / laquelle / lesquels / lesquelles</td></tr>
+            <tr><td>auquel / à laquelle / auxquels / auxquelles</td></tr>
+            <tr><td>duquel / de laquelle / desquels / desquelles</td></tr>
+          </tbody>
+        </table></div>
+      </article>
+
+    </div>
+  </section>
+</main>
+
+<footer>Tip: mémorisez les stems, puis appliquez les endings. Aucune forme conjuguée complète n’apparaît ici.</footer>
+
+<script>
+const btns = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.tab-panel');
+btns.forEach(b=>{
+  b.addEventListener('click',()=>{
+    btns.forEach(x=>x.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById(b.dataset.target).classList.add('active');
+    btns.forEach(x=>x.setAttribute('aria-selected', x===b ? 'true':'false'));
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imaginary Numbers in Cryptography</title>
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────── */
+:root {
+  --bg:      #05080f;
+  --bg2:     #0a0e1a;
+  --bg3:     #0f1525;
+  --bg4:     #162035;
+  --surface: #1b2540;
+  --border:  #1e2d4a;
+  --border2: #2a3f60;
+
+  --im:      #7ec8e3;   /* imaginary blue-cyan  */
+  --im-dim:  #3a6e82;
+  --im-glow: rgba(126,200,227,0.10);
+  --re:      #f0c060;   /* real gold            */
+  --re-dim:  #8a6820;
+  --re-glow: rgba(240,192,96,0.10);
+  --mag:     #c07af0;   /* complex-plane purple */
+  --mag-dim: #6030a0;
+  --green:   #50d890;
+  --coral:   #f06060;
+  --teal:    #30c8b0;
+  --muted:   #6070a0;
+  --text:    #d8e2f8;
+
+  --mono: 'Courier New', Courier, monospace;
+  --serif: Georgia, 'Times New Roman', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.82;
+}
+
+/* ── ANIMATED HEADER ───────────────────────────────── */
+header {
+  position: relative;
+  padding: 5.5rem 2rem 3.5rem;
+  text-align: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+header canvas#bg-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: .55;
+  pointer-events: none;
+}
+.hdr-inner { position: relative; z-index: 2; }
+.hdr-pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: .68rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  border: 1px solid var(--im-dim);
+  color: var(--im);
+  padding: .28rem 1rem;
+  border-radius: 2px;
+  margin-bottom: 1.2rem;
+}
+header h1 {
+  font-size: clamp(2rem, 5.5vw, 3.6rem);
+  font-weight: 700;
+  color: #eef2ff;
+  line-height: 1.18;
+  letter-spacing: -.02em;
+}
+header h1 .im { color: var(--im); font-style: italic; }
+header h1 .re { color: var(--re); }
+header p.sub {
+  margin-top: .75rem;
+  color: var(--muted);
+  font-size: 1.05rem;
+  font-style: italic;
+}
+.complex-plane-hint {
+  margin-top: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4rem;
+  font-family: var(--mono);
+  font-size: .78rem;
+  color: var(--muted);
+}
+.cpx { color: var(--im); }
+.rp  { color: var(--re); }
+.mg  { color: var(--mag); }
+
+/* ── NAV ───────────────────────────────────────────── */
+nav {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: .55rem 1.2rem;
+  position: sticky; top: 0; z-index: 200;
+  display: flex; flex-wrap: wrap; gap: .2rem;
+}
+nav a {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .025em;
+  color: var(--muted);
+  text-decoration: none;
+  padding: .3rem .6rem;
+  border-radius: 4px;
+  transition: all .18s;
+  white-space: nowrap;
+}
+nav a:hover { color: var(--im); background: var(--im-glow); }
+
+/* ── MAIN ──────────────────────────────────────────── */
+main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+
+section { margin-bottom: 4.5rem; padding-top: .5rem; }
+.sec-label {
+  font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--im-dim); margin-bottom: .45rem;
+}
+section > h2 {
+  font-size: 1.75rem; font-weight: 700; color: #eef2ff;
+  border-bottom: 1px solid var(--border); padding-bottom: .55rem;
+  margin-bottom: 1.5rem;
+}
+h3 { font-size: 1.1rem; font-weight: 700; color: var(--re); margin: 2rem 0 .6rem; }
+h4 { font-size: 1rem; font-weight: 700; color: var(--im); margin: 1.3rem 0 .45rem; }
+p  { color: #b8c8e0; margin-bottom: .9rem; }
+p strong { color: #dce8ff; }
+p em { color: var(--im); font-style: italic; }
+
+/* ── MATH BLOCKS ───────────────────────────────────── */
+.math {
+  background: var(--bg2);
+  border-left: 3px solid var(--im);
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.5rem;
+  margin: 1.2rem 0;
+  font-family: var(--mono);
+  font-size: .9rem;
+  line-height: 2.1;
+  overflow-x: auto;
+}
+.math .lbl {
+  font-size: .66rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--im-dim); display: block; margin-bottom: .35rem;
+}
+.math .eq  { display: block; }
+.math .v   { color: #89c4ff; }   /* variable   */
+.math .i   { color: var(--im); } /* imaginary  */
+.math .r   { color: var(--re); } /* real/const */
+.math .f   { color: var(--mag); }/* function   */
+.math .op  { color: #d0a060; }   /* operator   */
+.math .cm  { color: #3a4870; font-style: italic; }
+.math .hi  { color: var(--green); }
+
+/* ── THEOREM / DEF / PROOF BOXES ───────────────────── */
+.box { border-radius: 8px; padding: .95rem 1.2rem; margin: 1.1rem 0; border: 1px solid; }
+.box .bt { font-family: var(--mono); font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; margin-bottom: .4rem; }
+.box p { margin: 0; font-size: .91rem; }
+.thm  { background: rgba(192,122,240,.06); border-color: rgba(192,122,240,.3); }
+.thm  .bt { color: var(--mag); }
+.defn { background: rgba(126,200,227,.06); border-color: rgba(126,200,227,.28); }
+.defn .bt { color: var(--im); }
+.proof{ background: rgba(240,192,96,.05); border-color: rgba(240,192,96,.22); }
+.proof .bt{ color: var(--re); }
+.note { background: rgba(80,216,144,.05); border-color: rgba(80,216,144,.22); }
+.note .bt { color: var(--green); }
+.warn { background: rgba(240,96,96,.06); border-color: rgba(240,96,96,.28); }
+.warn .bt { color: var(--coral); }
+
+/* ── CODE BLOCKS ───────────────────────────────────── */
+.code-wrap { margin: 1.3rem 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.code-hdr  {
+  background: var(--bg3); padding: .5rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.code-lang { font-family: var(--mono); font-size: .68rem; letter-spacing: .15em; text-transform: uppercase; color: var(--green); }
+.code-desc { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+.copy-btn  {
+  font-family: var(--mono); font-size: .68rem;
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); padding: .18rem .6rem;
+  border-radius: 4px; cursor: pointer; transition: all .18s;
+}
+.copy-btn:hover { border-color: var(--green); color: var(--green); }
+pre {
+  background: #04070e; padding: 1.2rem 1.4rem;
+  overflow-x: auto; font-family: var(--mono);
+  font-size: .81rem; line-height: 1.72; margin: 0;
+}
+.kw  { color: #c084fc; }
+.fn  { color: #7dd3fc; }
+.str { color: #86efac; }
+.cm  { color: #334466; font-style: italic; }
+.num { color: #fdba74; }
+.op2 { color: #f0c060; }
+.vv  { color: #93c5fd; }
+
+/* ── GRID / TABLE / MISC ───────────────────────────── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+.card  { background: var(--bg2); border: 1px solid var(--border); border-radius: 9px; padding: 1rem 1.2rem; }
+.card h4 { margin-top: 0; }
+.card p  { font-size: .87rem; margin: 0; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .88rem; }
+th {
+  background: var(--bg3); color: var(--muted); font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+  padding: .55rem .9rem; text-align: left; border-bottom: 1px solid var(--border);
+}
+td { padding: .5rem .9rem; border-bottom: 1px solid var(--bg3); color: #a8b8d8; }
+tr:hover td { background: var(--bg2); }
+
+code {
+  font-family: var(--mono); background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: .08rem .38rem; font-size: .82rem; color: var(--im);
+}
+
+.m { font-family: var(--mono); color: #d8c090; font-style: normal; }
+
+/* ── COMPLEX PLANE CANVAS ──────────────────────────── */
+.plane-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem; margin: 1.2rem 0;
+  display: flex; flex-direction: column; align-items: center; gap: .6rem;
+}
+.plane-wrap canvas { border-radius: 6px; }
+.plane-legend {
+  display: flex; gap: 1.2rem; font-family: var(--mono); font-size: .74rem; color: var(--muted);
+}
+.leg-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+/* ── FLOW ──────────────────────────────────────────── */
+.flow { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin: .9rem 0; font-family: var(--mono); font-size: .85rem; }
+.fbox { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: .35rem .85rem; }
+.fbox.im { border-color: var(--im-dim); color: var(--im); background: var(--im-glow); }
+.fbox.re { border-color: var(--re-dim); color: var(--re); background: var(--re-glow); }
+.farr { color: var(--muted); }
+
+/* ── INTERACTIVE NTT DEMO ──────────────────────────── */
+.demo {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.3rem 1.5rem; margin: 1.2rem 0;
+}
+.demo label { font-family: var(--mono); font-size: .78rem; color: var(--muted); display: block; margin-bottom: .35rem; }
+.demo input[type=text] {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 6px; padding: .5rem .9rem; color: var(--text);
+  font-family: var(--mono); font-size: .85rem; outline: none; transition: border .18s;
+}
+.demo input[type=text]:focus { border-color: var(--im); }
+.demo .dbtn {
+  margin-top: .7rem;
+  background: rgba(126,200,227,.12);
+  border: 1px solid var(--im-dim);
+  color: var(--im);
+  font-family: var(--mono); font-size: .78rem;
+  padding: .4rem 1.1rem; border-radius: 6px; cursor: pointer; transition: all .18s;
+}
+.demo .dbtn:hover { background: rgba(126,200,227,.22); }
+.demo .out {
+  margin-top: .75rem; background: #03060d;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: .7rem 1rem; font-family: var(--mono); font-size: .8rem;
+  color: var(--green); min-height: 36px; word-break: break-all; line-height: 1.8;
+}
+.demo .out .label { color: var(--muted); display: inline-block; width: 110px; }
+
+/* ── STEPS ──────────────────────────────────────────── */
+.steps { list-style: none; counter-reset: s; }
+.steps li {
+  counter-increment: s;
+  padding: .6rem .7rem .6rem 2.7rem;
+  position: relative; border-left: 1px solid var(--border);
+  margin-left: 1rem; margin-bottom: .3rem;
+  font-size: .91rem; color: #a8b8d8;
+}
+.steps li::before {
+  content: counter(s);
+  position: absolute; left: -.95rem; top: .55rem;
+  width: 1.9rem; height: 1.9rem;
+  background: var(--bg3); border: 1px solid var(--im-dim);
+  color: var(--im); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: .72rem; font-weight: 700;
+}
+
+@media(max-width:680px){ .grid2,.grid3{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     HEADER
+     ════════════════════════════════════════ -->
+<header>
+  <canvas id="bg-canvas"></canvas>
+  <div class="hdr-inner">
+    <div class="hdr-pill">Advanced Cryptography</div>
+    <h1>
+      <span class="im">i</span> = <span class="re">√−1</span><br>
+      in Cryptography
+    </h1>
+    <p class="sub">Gaussian integers · Cyclotomic rings · NTT · Complex multiplication · Pairings</p>
+    <div class="complex-plane-hint">
+      <span><span class="rp">ℜ</span> Real axis</span>
+      <span><span class="cpx">𝒊</span> Imaginary axis</span>
+      <span><span class="mg">|z|</span> Magnitude</span>
+      <span>arg(z) = θ</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <a href="#intro">Why i?</a>
+  <a href="#gaussian">Gaussian Integers</a>
+  <a href="#sqrtmod">√−1 mod p</a>
+  <a href="#gauss-rsa">Gaussian RSA</a>
+  <a href="#cyclo">Cyclotomic Polynomials</a>
+  <a href="#ntt">NTT</a>
+  <a href="#cm">Complex Multiplication</a>
+  <a href="#glv">GLV Speedup</a>
+  <a href="#pairings">Pairings</a>
+  <a href="#ringlwe">Ring-LWE</a>
+</nav>
+
+<main>
+
+<!-- ════════════════════════════════════════
+     §1  WHY IMAGINARY NUMBERS?
+     ════════════════════════════════════════ -->
+<section id="intro">
+  <div class="sec-label">§ 1</div>
+  <h2>Why Do Imaginary Numbers Appear in Cryptography?</h2>
+
+  <p>At first glance, cryptography seems to live entirely in the world of integers — modular arithmetic, prime factorization, discrete logarithms. But imaginary and complex numbers weave through it at every level: as the underlying algebraic structure of the fastest algorithms, as the language of elliptic curve theory, and as the foundation of post-quantum cryptography.</p>
+
+  <p>There are <strong>six distinct ways</strong> imaginary numbers enter cryptography, each contributing something different:</p>
+
+  <div class="grid3">
+    <div class="card">
+      <h4>Gaussian Integers ℤ[i]</h4>
+      <p>Integers extended with i. A unique factorization domain with "Gaussian primes." Basis for Gaussian-integer variants of RSA and DH.</p>
+    </div>
+    <div class="card">
+      <h4>√−1 in Finite Fields</h4>
+      <p>For prime p ≡ 1 (mod 4), −1 has a square root in ℤ<sub>p</sub>. Enables the GLV scalar decomposition trick that speeds up ECC by ~50%.</p>
+    </div>
+    <div class="card">
+      <h4>Roots of Unity &amp; NTT</h4>
+      <p>The Number Theoretic Transform replaces complex roots of unity (e<sup>2πi/n</sup>) with modular ones. Heart of Kyber and Dilithium performance.</p>
+    </div>
+    <div class="card">
+      <h4>Cyclotomic Polynomials</h4>
+      <p>Φ<sub>n</sub>(x) whose roots are primitive nth roots of unity. Ring-LWE lives in ℤ[x]/Φ<sub>n</sub>(x) — the algebraic structure that makes lattice crypto efficient.</p>
+    </div>
+    <div class="card">
+      <h4>Complex Multiplication</h4>
+      <p>Elliptic curves over imaginary quadratic fields ℚ(√−d). Used to construct curves with specific group orders for pairing-friendly cryptography.</p>
+    </div>
+    <div class="card">
+      <h4>Bilinear Pairings</h4>
+      <p>Weil and Tate pairings map to roots of unity in field extensions. Enable IBE, BLS signatures, and zero-knowledge proofs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §2  GAUSSIAN INTEGERS
+     ════════════════════════════════════════ -->
+<section id="gaussian">
+  <div class="sec-label">§ 2</div>
+  <h2>Gaussian Integers ℤ[i]</h2>
+
+  <p>The <strong>Gaussian integers</strong> are complex numbers <span class="m">a + bi</span> where both <span class="m">a</span> and <span class="m">b</span> are ordinary integers. They extend the familiar integer number line into a 2D lattice on the complex plane.</p>
+
+  <div class="defn">
+    <div class="bt">Definition — Gaussian Integers</div>
+    <p><span class="m">ℤ[i] = { a + bi : a, b ∈ ℤ, i² = −1 }</span><br>
+    Addition: <span class="m">(a+bi) + (c+di) = (a+c) + (b+d)i</span><br>
+    Multiplication: <span class="m">(a+bi)(c+di) = (ac−bd) + (ad+bc)i</span><br>
+    Norm: <span class="m">N(a+bi) = a² + b²</span> &nbsp;(always a non-negative integer)</p>
+  </div>
+
+  <h3>Gaussian Primes</h3>
+  <p>A Gaussian integer <span class="m">π</span> is a <strong>Gaussian prime</strong> if it cannot be factored into smaller Gaussian integers. The rules for which ordinary primes stay prime in ℤ[i] are determined by whether <span class="m">−1</span> is a quadratic residue mod <span class="m">p</span>:</p>
+
+  <div class="math">
+    <span class="lbl">Gaussian Prime Classification</span>
+    <span class="eq"><span class="r">p = 2</span>         →  <span class="i">2 = −i(1+i)²</span>  (ramifies; 1+i is a Gaussian prime, N(1+i)=2)</span>
+    <span class="eq"><span class="r">p ≡ 1 (mod 4)</span> →  <span class="hi">p splits:</span>  p = π·π̄  into two conjugate Gaussian primes</span>
+    <span class="eq">                    e.g., 5 = (2+i)(2−i),  13 = (3+2i)(3−2i)</span>
+    <span class="eq"><span class="r">p ≡ 3 (mod 4)</span> →  <span class="hi">p stays prime</span> in ℤ[i]  (inert)</span>
+    <span class="eq">                    e.g., 3, 7, 11, 19, 23 are all Gaussian primes</span>
+  </div>
+
+  <div class="thm">
+    <div class="bt">Theorem — Fermat's Two-Square</div>
+    <p>An odd prime <span class="m">p</span> is the sum of two squares <span class="m">p = a² + b²</span> if and only if <span class="m">p ≡ 1 (mod 4)</span>. This is exactly when <span class="m">p</span> factors in ℤ[i] as <span class="m">p = (a+bi)(a−bi)</span>. Example: <span class="m">29 = 25+4 = 5²+2² = (5+2i)(5−2i)</span>.</p>
+  </div>
+
+  <div class="plane-wrap">
+    <canvas id="gauss-plane" width="520" height="300"></canvas>
+    <div class="plane-legend">
+      <span><span class="leg-dot" style="background:#7ec8e3"></span>Gaussian integers</span>
+      <span><span class="leg-dot" style="background:#f0c060"></span>Gaussian primes</span>
+      <span><span class="leg-dot" style="background:#c07af0"></span>Split primes (p≡1 mod 4)</span>
+    </div>
+  </div>
+
+  <h3>Division with Remainder in ℤ[i]</h3>
+  <p>ℤ[i] is a <strong>Euclidean domain</strong>: you can always divide with remainder, enabling a Gaussian GCD algorithm. Division uses the complex norm as the "size" measure:</p>
+
+  <div class="math">
+    <span class="lbl">Gaussian Division Algorithm</span>
+    <span class="eq"><span class="cm">// Divide α by β: find q, r such that α = q·β + r, N(r) < N(β)</span></span>
+    <span class="eq"><span class="v">q</span>  <span class="op">=</span>  round( α/β )  <span class="cm">// round each of real and imaginary parts to nearest integer</span></span>
+    <span class="eq"><span class="v">r</span>  <span class="op">=</span>  α − q·β</span>
+    <span class="eq"><span class="cm">// Example: (11+3i) ÷ (2+5i)</span></span>
+    <span class="eq">α/β = (11+3i)(2−5i)/29 = (37−49i)/29 ≈ 1.28 − 1.69i → round to 1−2i</span>
+    <span class="eq">q = 1−2i,  r = (11+3i) − (1−2i)(2+5i) = (11+3i)−(12+i) = −1+2i</span>
+    <span class="eq">N(r) = 1+4 = 5  <  N(2+5i) = 29  ✓</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Gaussian integer arithmetic, GCD, Gaussian prime test</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Gaussian Integer Arithmetic in GNU Octave</span>
+<span class="cm">%% Represent a+bi as [a, b]; all operations return [real_part, imag_part]</span>
+
+<span class="kw">function</span> <span class="vv">r</span> <span class="op2">=</span> <span class="fn">gn</span>(<span class="vv">z</span>)
+  <span class="vv">r</span> <span class="op2">=</span> <span class="vv">z</span>(<span class="num">1</span>)<span class="op2">^</span><span class="num">2</span> <span class="op2">+</span> <span class="vv">z</span>(<span class="num">2</span>)<span class="op2">^</span><span class="num">2</span>;       <span class="cm">% Gaussian norm N(a+bi) = a²+b²</span>
+<span class="kw">end</span>
+<span class="kw">function</span> <span class="vv">r</span> <span class="op2">=</span> <span class="fn">gmul</span>(<span class="vv">u</span>, <span class="vv">v</span>)
+  <span class="vv">r</span> <span class="op2">=</span> [<span class="vv">u</span>(<span class="num">1</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">1</span>)<span class="op2">-</span><span class="vv">u</span>(<span class="num">2</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">2</span>),  <span class="vv">u</span>(<span class="num">1</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">2</span>)<span class="op2">+</span><span class="vv">u</span>(<span class="num">2</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">1</span>)];
+<span class="kw">end</span>
+<span class="kw">function</span> [<span class="vv">q</span>, <span class="vv">r</span>] <span class="op2">=</span> <span class="fn">gdivrem</span>(<span class="vv">alpha</span>, <span class="vv">beta</span>)
+  <span class="cm">% α = q·β + r,  N(r) < N(β)</span>
+  <span class="vv">nb</span> <span class="op2">=</span> <span class="fn">gn</span>(<span class="vv">beta</span>);
+  <span class="vv">qr</span> <span class="op2">=</span> (<span class="vv">alpha</span>(<span class="num">1</span>)<span class="op2">*</span><span class="vv">beta</span>(<span class="num">1</span>) <span class="op2">+</span> <span class="vv">alpha</span>(<span class="num">2</span>)<span class="op2">*</span><span class="vv">beta</span>(<span class="num">2</span>)) <span class="op2">/</span> <span class="vv">nb</span>;
+  <span class="vv">qi</span> <span class="op2">=</span> (<span class="vv">alpha</span>(<span class="num">2</span>)<span class="op2">*</span><span class="vv">beta</span>(<span class="num">1</span>) <span class="op2">-</span> <span class="vv">alpha</span>(<span class="num">1</span>)<span class="op2">*</span><span class="vv">beta</span>(<span class="num">2</span>)) <span class="op2">/</span> <span class="vv">nb</span>;
+  <span class="vv">q</span>  <span class="op2">=</span> [<span class="fn">round</span>(<span class="vv">qr</span>), <span class="fn">round</span>(<span class="vv">qi</span>)];
+  <span class="vv">r</span>  <span class="op2">=</span> <span class="vv">alpha</span> <span class="op2">-</span> <span class="fn">gmul</span>(<span class="vv">q</span>, <span class="vv">beta</span>);
+<span class="kw">end</span>
+<span class="kw">function</span> <span class="vv">g</span> <span class="op2">=</span> <span class="fn">ggcd</span>(<span class="vv">a</span>, <span class="vv">b</span>)
+  <span class="kw">while</span> <span class="fn">any</span>(<span class="vv">b</span> <span class="op2">~=</span> <span class="num">0</span>)
+    [<span class="op2">~</span>, <span class="vv">r</span>] <span class="op2">=</span> <span class="fn">gdivrem</span>(<span class="vv">a</span>, <span class="vv">b</span>);
+    <span class="vv">a</span> <span class="op2">=</span> <span class="vv">b</span>; <span class="vv">b</span> <span class="op2">=</span> <span class="vv">r</span>;
+  <span class="kw">end</span>
+  <span class="vv">g</span> <span class="op2">=</span> <span class="vv">a</span>;
+<span class="kw">end</span>
+<span class="kw">function</span> <span class="vv">tf</span> <span class="op2">=</span> <span class="fn">is_gaussian_prime</span>(<span class="vv">z</span>)
+  <span class="cm">% A Gaussian integer z is prime if N(z) is prime, or</span>
+  <span class="cm">% z = unit * p where p is an ordinary prime ≡ 3 (mod 4)</span>
+  <span class="vv">n</span>   <span class="op2">=</span> <span class="fn">gn</span>(<span class="vv">z</span>);
+  <span class="vv">tf</span>  <span class="op2">=</span> <span class="fn">isprime</span>(<span class="vv">n</span>) <span class="op2">||</span> (<span class="vv">z</span>(<span class="num">2</span>)<span class="op2">==</span><span class="num">0</span> <span class="op2">&amp;&amp;</span> <span class="fn">isprime</span>(<span class="fn">abs</span>(<span class="vv">z</span>(<span class="num">1</span>))) <span class="op2">&amp;&amp;</span> <span class="fn">mod</span>(<span class="fn">abs</span>(<span class="vv">z</span>(<span class="num">1</span>)),<span class="num">4</span>)<span class="op2">==</span><span class="num">3</span>) <span class="op2">||</span> ...
+         (<span class="vv">z</span>(<span class="num">1</span>)<span class="op2">==</span><span class="num">0</span> <span class="op2">&amp;&amp;</span> <span class="fn">isprime</span>(<span class="fn">abs</span>(<span class="vv">z</span>(<span class="num">2</span>))) <span class="op2">&amp;&amp;</span> <span class="fn">mod</span>(<span class="fn">abs</span>(<span class="vv">z</span>(<span class="num">2</span>)),<span class="num">4</span>)<span class="op2">==</span><span class="num">3</span>);
+<span class="kw">end</span>
+
+<span class="cm">% Factoring 5 in Z[i]: 5 = (2+i)(2-i)</span>
+<span class="vv">a</span> <span class="op2">=</span> [<span class="num">2</span>,<span class="num">1</span>]; <span class="vv">b</span> <span class="op2">=</span> [<span class="num">2</span>,<span class="op2">-</span><span class="num">1</span>];
+<span class="vv">prod</span> <span class="op2">=</span> <span class="fn">gmul</span>(<span class="vv">a</span>,<span class="vv">b</span>);
+<span class="fn">printf</span>(<span class="str">'(2+i)(2-i) = %d+%di  [expect 5+0i]\n'</span>, <span class="vv">prod</span>(<span class="num">1</span>), <span class="vv">prod</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'2+i Gaussian prime? %d\n'</span>, <span class="fn">is_gaussian_prime</span>([<span class="num">2</span>,<span class="num">1</span>]));
+<span class="fn">printf</span>('<span class="str">3   Gaussian prime? %d  (3≡3 mod 4)\n'</span>, <span class="fn">is_gaussian_prime</span>([<span class="num">3</span>,<span class="num">0</span>]));
+<span class="fn">printf</span>(<span class="str">'5   Gaussian prime? %d  (splits)\n'</span>,   <span class="fn">is_gaussian_prime</span>([<span class="num">5</span>,<span class="num">0</span>]));
+
+<span class="cm">% Gaussian GCD: gcd(11+3i, 1+8i)</span>
+<span class="vv">g</span> <span class="op2">=</span> <span class="fn">ggcd</span>([<span class="num">11</span>,<span class="num">3</span>], [<span class="num">1</span>,<span class="num">8</span>]);
+<span class="fn">printf</span>(<span class="str">'gcd(11+3i, 1+8i) = %d+%di\n'</span>, <span class="vv">g</span>(<span class="num">1</span>), <span class="vv">g</span>(<span class="num">2</span>));
+
+<span class="cm">% Print Gaussian primes with norm ≤ 25</span>
+<span class="fn">printf</span>(<span class="str">'\nGaussian primes a+bi with 0≤a,b≤5:\n'</span>);
+<span class="kw">for</span> <span class="vv">a</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="num">5</span>; <span class="kw">for</span> <span class="vv">b</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="num">5</span>
+  <span class="kw">if</span> (<span class="vv">a</span><span class="op2">+</span><span class="vv">b</span><span class="op2">&gt;</span><span class="num">0</span>) <span class="op2">&amp;&amp;</span> <span class="fn">is_gaussian_prime</span>([<span class="vv">a</span>,<span class="vv">b</span>])
+    <span class="fn">printf</span>(<span class="str">'  %d+%di (N=%d)\n'</span>, <span class="vv">a</span>, <span class="vv">b</span>, <span class="vv">a</span><span class="op2">^</span><span class="num">2</span><span class="op2">+</span><span class="vv">b</span><span class="op2">^</span><span class="num">2</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>; <span class="kw">end</span>
+</pre>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §3  √−1 IN FINITE FIELDS
+     ════════════════════════════════════════ -->
+<section id="sqrtmod">
+  <div class="sec-label">§ 3</div>
+  <h2>The Square Root of −1 in Finite Fields</h2>
+
+  <p>In the reals, <span class="m">√−1</span> doesn't exist. But in a finite field <span class="m">𝔽<sub>p</sub></span>, it exists exactly when <span class="m">−1</span> is a quadratic residue — i.e., when <span class="m">p ≡ 1 (mod 4)</span>. This is not philosophical: it's a concrete, computable number modulo p.</p>
+
+  <div class="math">
+    <span class="lbl">Existence Criterion</span>
+    <span class="eq">√−1 exists in 𝔽<sub>p</sub>  <span class="op">⟺</span>  p ≡ 1 (mod 4)</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// By Euler's criterion: (−1)^((p-1)/2) ≡ 1 (mod p)  ⟺  (p-1)/2 is even  ⟺  p≡1(mod 4)</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Computing √−1: use the Tonelli-Shanks algorithm, or</span></span>
+    <span class="eq"><span class="cm">// the shortcut when p ≡ 1 (mod 4):</span></span>
+    <span class="eq">Find generator <span class="v">g</span> of 𝔽<sub>p</sub>*,  then  <span class="i">i</span> = <span class="v">g</span><sup>(p−1)/4</sup> mod p</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Example: p = 17 ≡ 1 (mod 4); generator g = 3</span></span>
+    <span class="eq"><span class="i">i</span> = 3<sup>(17−1)/4</sup> = 3<sup>4</sup> = 81 ≡ 13 (mod 17)</span>
+    <span class="eq"><span class="hi">Verify: 13² = 169 = 9·17 + 16 ≡ −1 (mod 17)  ✓</span></span>
+  </div>
+
+  <div class="thm">
+    <div class="bt">Wilson's Theorem Shortcut</div>
+    <p>When <span class="m">p ≡ 1 (mod 4)</span>, a formula for <span class="m">√−1 mod p</span> is <span class="m">i ≡ ((p−1)/2)! (mod p)</span>. This is Wilson's theorem in disguise: <span class="m">(p−1)! ≡ −1 (mod p)</span>, which splits nicely when <span class="m">(p−1)/2</span> is even.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Compute √−1 mod p; verify quadratic residuosity</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Finding sqrt(-1) mod p for primes p ≡ 1 (mod 4)</span>
+
+<span class="kw">function</span> <span class="vv">r</span> <span class="op2">=</span> <span class="fn">mod_pow</span>(<span class="vv">base</span>, <span class="vv">exp</span>, <span class="vv">m</span>)
+  <span class="vv">r</span> <span class="op2">=</span> <span class="num">1</span>; <span class="vv">base</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">base</span>, <span class="vv">m</span>);
+  <span class="kw">while</span> <span class="vv">exp</span> <span class="op2">&gt;</span> <span class="num">0</span>
+    <span class="kw">if</span> <span class="fn">bitand</span>(<span class="vv">exp</span>,<span class="num">1</span>); <span class="vv">r</span><span class="op2">=</span><span class="fn">mod</span>(<span class="vv">r</span><span class="op2">*</span><span class="vv">base</span>,<span class="vv">m</span>); <span class="kw">end</span>
+    <span class="vv">exp</span><span class="op2">=</span><span class="fn">bitshift</span>(<span class="vv">exp</span>,<span class="op2">-</span><span class="num">1</span>); <span class="vv">base</span><span class="op2">=</span><span class="fn">mod</span>(<span class="vv">base</span><span class="op2">^</span><span class="num">2</span>,<span class="vv">m</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="vv">g</span> <span class="op2">=</span> <span class="fn">find_generator</span>(<span class="vv">p</span>)
+  <span class="kw">for</span> <span class="vv">g</span> <span class="op2">=</span> <span class="num">2</span><span class="op2">:</span><span class="vv">p</span><span class="op2">-</span><span class="num">1</span>
+    <span class="kw">if</span> <span class="fn">mod_pow</span>(<span class="vv">g</span>, (<span class="vv">p</span><span class="op2">-</span><span class="num">1</span>)<span class="op2">/</span><span class="num">2</span>, <span class="vv">p</span>) <span class="op2">~=</span> <span class="num">1</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="vv">i</span> <span class="op2">=</span> <span class="fn">sqrt_neg1_mod_p</span>(<span class="vv">p</span>)
+  <span class="kw">if</span> <span class="fn">mod</span>(<span class="vv">p</span>, <span class="num">4</span>) <span class="op2">~=</span> <span class="num">1</span>
+    <span class="fn">error</span>(<span class="str">'sqrt(-1) does not exist mod %d (p ≡ 3 mod 4)'</span>, <span class="vv">p</span>); 
+  <span class="kw">end</span>
+  <span class="vv">g</span> <span class="op2">=</span> <span class="fn">find_generator</span>(<span class="vv">p</span>);
+  <span class="vv">i</span> <span class="op2">=</span> <span class="fn">mod_pow</span>(<span class="vv">g</span>, (<span class="vv">p</span><span class="op2">-</span><span class="num">1</span>)<span class="op2">/</span><span class="num">4</span>, <span class="vv">p</span>);
+<span class="kw">end</span>
+
+<span class="cm">% Test several primes</span>
+<span class="vv">test_primes</span> <span class="op2">=</span> [<span class="num">5</span>, <span class="num">13</span>, <span class="num">17</span>, <span class="num">29</span>, <span class="num">41</span>, <span class="num">61</span>, <span class="num">101</span>, <span class="num">10007</span>];
+<span class="fn">printf</span>(<span class="str">'%-8s %-6s %-10s %-8s\n'</span>, <span class="str">'p'</span>, <span class="str">'p mod 4'</span>, <span class="str">'sqrt(-1)'</span>, <span class="str">'verify'</span>);
+<span class="fn">printf</span>(<span class="str">'%s\n'</span>, <span class="fn">repmat</span>(<span class="str">'-'</span>,<span class="num">36</span>,<span class="num">1</span>));
+<span class="kw">for</span> <span class="vv">p</span> <span class="op2">=</span> <span class="vv">test_primes</span>
+  <span class="kw">if</span> <span class="fn">mod</span>(<span class="vv">p</span>,<span class="num">4</span>)<span class="op2">==</span><span class="num">1</span>
+    <span class="vv">s</span>   <span class="op2">=</span> <span class="fn">sqrt_neg1_mod_p</span>(<span class="vv">p</span>);
+    <span class="vv">chk</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">s</span><span class="op2">^</span><span class="num">2</span>, <span class="vv">p</span>);   <span class="cm">% should be p-1</span>
+    <span class="fn">printf</span>(<span class="str">'%-8d %-6d %-10d %-8d\n'</span>, <span class="vv">p</span>, <span class="fn">mod</span>(<span class="vv">p</span>,<span class="num">4</span>), <span class="vv">s</span>, <span class="vv">chk</span><span class="op2">==</span><span class="vv">p</span><span class="op2">-</span><span class="num">1</span>);
+  <span class="kw">else</span>
+    <span class="fn">printf</span>(<span class="str">'%-8d %-6d %-10s %-8s\n'</span>, <span class="vv">p</span>, <span class="fn">mod</span>(<span class="vv">p</span>,<span class="num">4</span>), <span class="str">'N/A'</span>, <span class="str">'—'</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">%% The secp256k1 (Bitcoin) field prime: p = 2^256 - 2^32 - 977</span>
+<span class="cm">%% p ≡ 3 (mod 4), so sqrt(-1) does NOT exist in 𝔽_p directly.</span>
+<span class="cm">%% But the cube root of 1 does, enabling the GLV endomorphism (see §7).</span>
+<span class="fn">printf</span>(<span class="str">'\nsecp256k1 field prime mod 4 = %d (no sqrt(-1) in F_p)\n'</span>, ...
+       <span class="fn">mod</span>(<span class="num">3</span>, <span class="num">4</span>));  <span class="cm">% symbolic only; actual prime too large for floating point</span>
+</pre>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §4  GAUSSIAN INTEGER RSA
+     ════════════════════════════════════════ -->
+<section id="gauss-rsa">
+  <div class="sec-label">§ 4</div>
+  <h2>Gaussian Integer RSA</h2>
+
+  <p>Since ℤ[i] is a unique factorization domain with a notion of "Gaussian primes," it is possible to construct an RSA-like scheme over Gaussian integers. The security rests on the hardness of <strong>factoring a Gaussian composite</strong> — knowing <span class="m">N(π₁·π₂)</span> but not the factors.</p>
+
+  <div class="math">
+    <span class="lbl">Gaussian RSA Key Generation</span>
+    <span class="eq"><span class="cm">// Choose two Gaussian primes π₁, π₂ with large norms</span></span>
+    <span class="eq"><span class="v">n</span>     <span class="op">=</span>  π₁ <span class="op">·</span> π₂             <span class="cm">// Gaussian composite</span></span>
+    <span class="eq"><span class="v">φ(n)</span>  <span class="op">=</span>  (N(π₁)−1)(N(π₂)−1) <span class="cm">// analogue of Euler totient</span></span>
+    <span class="eq"><span class="v">e</span>     <span class="op">=</span>  choose with gcd(e, φ(n)) = 1</span>
+    <span class="eq"><span class="v">d</span>     <span class="op">=</span>  e<sup>−1</sup> mod φ(n)</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Encryption: for Gaussian integer message M = a+bi</span></span>
+    <span class="eq"><span class="v">C</span>  <span class="op">=</span>  M<sup>e</sup> mod n  <span class="cm">// Gaussian modular exponentiation</span></span>
+    <span class="eq"><span class="v">M</span>  <span class="op">=</span>  C<sup>d</sup> mod n</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Gaussian integer modular exponentiation and toy RSA</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Gaussian Integer RSA (toy example)</span>
+<span class="cm">%% Gaussian modular reduction: (a+bi) mod n means reduce norm</span>
+
+<span class="kw">function</span> <span class="vv">r</span> <span class="op2">=</span> <span class="fn">gmod</span>(<span class="vv">alpha</span>, <span class="vv">n</span>)
+  <span class="cm">% Reduce Gaussian integer alpha mod ordinary integer n</span>
+  <span class="vv">r</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">alpha</span>, <span class="vv">n</span>);
+<span class="kw">end</span>
+<span class="kw">function</span> <span class="vv">r</span> <span class="op2">=</span> <span class="fn">gmul_mod</span>(<span class="vv">u</span>, <span class="vv">v</span>, <span class="vv">n</span>)
+  <span class="vv">r</span> <span class="op2">=</span> <span class="fn">mod</span>([<span class="vv">u</span>(<span class="num">1</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">1</span>)<span class="op2">-</span><span class="vv">u</span>(<span class="num">2</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">2</span>),  <span class="vv">u</span>(<span class="num">1</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">2</span>)<span class="op2">+</span><span class="vv">u</span>(<span class="num">2</span>)<span class="op2">*</span><span class="vv">v</span>(<span class="num">1</span>)], <span class="vv">n</span>);
+<span class="kw">end</span>
+<span class="kw">function</span> <span class="vv">r</span> <span class="op2">=</span> <span class="fn">gpow_mod</span>(<span class="vv">base</span>, <span class="vv">exp</span>, <span class="vv">n</span>)
+  <span class="cm">% Square-and-multiply for Gaussian integers</span>
+  <span class="vv">r</span> <span class="op2">=</span> [<span class="num">1</span>, <span class="num">0</span>];
+  <span class="vv">base</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">base</span>, <span class="vv">n</span>);
+  <span class="kw">while</span> <span class="vv">exp</span> <span class="op2">&gt;</span> <span class="num">0</span>
+    <span class="kw">if</span> <span class="fn">bitand</span>(<span class="vv">exp</span>, <span class="num">1</span>)
+      <span class="vv">r</span> <span class="op2">=</span> <span class="fn">gmul_mod</span>(<span class="vv">r</span>, <span class="vv">base</span>, <span class="vv">n</span>);
+    <span class="kw">end</span>
+    <span class="vv">base</span> <span class="op2">=</span> <span class="fn">gmul_mod</span>(<span class="vv">base</span>, <span class="vv">base</span>, <span class="vv">n</span>);
+    <span class="vv">exp</span>  <span class="op2">=</span> <span class="fn">bitshift</span>(<span class="vv">exp</span>, <span class="op2">-</span><span class="num">1</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% Key setup: Gaussian primes π₁ = 2+3i (N=13), π₂ = 4+i (N=17)</span>
+<span class="cm">% n = π₁·π₂;  use ordinary n = N(π₁)·N(π₂) = 13·17 = 221 as modulus</span>
+<span class="vv">N1</span> <span class="op2">=</span> <span class="num">13</span>; <span class="vv">N2</span> <span class="op2">=</span> <span class="num">17</span>;    <span class="cm">% norms of the two Gaussian primes</span>
+<span class="vv">n</span>  <span class="op2">=</span> <span class="vv">N1</span> <span class="op2">*</span> <span class="vv">N2</span>;          <span class="cm">% = 221</span>
+<span class="vv">phi</span><span class="op2">=</span> (<span class="vv">N1</span><span class="op2">-</span><span class="num">1</span>)<span class="op2">*</span>(<span class="vv">N2</span><span class="op2">-</span><span class="num">1</span>);   <span class="cm">% = 192</span>
+<span class="vv">e</span>  <span class="op2">=</span> <span class="num">5</span>;                 <span class="cm">% gcd(5,192) = 1 ✓</span>
+<span class="cm">% d = e^{-1} mod phi</span>
+<span class="kw">function</span> <span class="vv">inv</span> <span class="op2">=</span> <span class="fn">modinv</span>(<span class="vv">a</span>,<span class="vv">m</span>)
+  [<span class="vv">g</span>,<span class="vv">x</span>,<span class="op2">~</span>]<span class="op2">=</span><span class="fn">gcd</span>(<span class="fn">mod</span>(<span class="vv">a</span>,<span class="vv">m</span>),<span class="vv">m</span>); <span class="vv">inv</span><span class="op2">=</span><span class="fn">mod</span>(<span class="vv">x</span>,<span class="vv">m</span>);
+<span class="kw">end</span>
+<span class="vv">d</span>  <span class="op2">=</span> <span class="fn">modinv</span>(<span class="vv">e</span>, <span class="vv">phi</span>);
+<span class="fn">printf</span>(<span class="str">'Gaussian RSA: n=%d, e=%d, d=%d, phi=%d\n'</span>, <span class="vv">n</span>, <span class="vv">e</span>, <span class="vv">d</span>, <span class="vv">phi</span>);
+
+<span class="cm">% Encrypt Gaussian message M = 5+7i</span>
+<span class="vv">M</span>   <span class="op2">=</span> [<span class="num">5</span>, <span class="num">7</span>];
+<span class="vv">C</span>   <span class="op2">=</span> <span class="fn">gpow_mod</span>(<span class="vv">M</span>, <span class="vv">e</span>, <span class="vv">n</span>);
+<span class="vv">Dec</span> <span class="op2">=</span> <span class="fn">gpow_mod</span>(<span class="vv">C</span>, <span class="vv">d</span>, <span class="vv">n</span>);
+<span class="fn">printf</span>(<span class="str">'M = %d+%di\n'</span>, <span class="vv">M</span>(<span class="num">1</span>), <span class="vv">M</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'C = M^e mod n = %d+%di\n'</span>, <span class="vv">C</span>(<span class="num">1</span>), <span class="vv">C</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'Decrypted = C^d mod n = %d+%di  OK=%d\n'</span>, <span class="vv">Dec</span>(<span class="num">1</span>), <span class="vv">Dec</span>(<span class="num">2</span>), <span class="fn">isequal</span>(<span class="vv">Dec</span>,<span class="vv">M</span>));
+</pre>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §5  CYCLOTOMIC POLYNOMIALS
+     ════════════════════════════════════════ -->
+<section id="cyclo">
+  <div class="sec-label">§ 5</div>
+  <h2>Cyclotomic Polynomials &amp; Roots of Unity</h2>
+
+  <p>The <strong>n-th roots of unity</strong> are the <span class="m">n</span> complex solutions to <span class="m">z<sup>n</sup> = 1</span>. The <em>primitive</em> n-th roots of unity satisfy no lower-degree equation; they are the roots of the <strong>cyclotomic polynomial</strong> <span class="m">Φ<sub>n</sub>(x)</span>.</p>
+
+  <div class="math">
+    <span class="lbl">Cyclotomic Polynomial Definition</span>
+    <span class="eq">Φ<span class="r">ₙ</span>(x)  <span class="op">=</span>  ∏ <span class="f">(x − ω<sup>k</sup>)</span>   over primitive n-th roots ω = e<sup>2πi/n</sup></span>
+    <span class="eq"></span>
+    <span class="eq">Φ<span class="r">₁</span>(x) = x − 1</span>
+    <span class="eq">Φ<span class="r">₂</span>(x) = x + 1</span>
+    <span class="eq">Φ<span class="r">₄</span>(x) = x² + 1  <span class="cm">← roots are ±i  (MOST IMPORTANT for crypto)</span></span>
+    <span class="eq">Φ<span class="r">₈</span>(x) = x⁴ + 1</span>
+    <span class="eq">Φ<span class="r">₁₂</span>(x) = x⁴ − x² + 1</span>
+    <span class="eq">Φ<span class="r">ₚ</span>(x) = x<sup>p−1</sup> + x<sup>p−2</sup> + ⋯ + x + 1   for prime p</span>
+    <span class="eq"></span>
+    <span class="eq">x<sup>n</sup> − 1  <span class="op">=</span>  ∏ Φ<span class="v">d</span>(x)  over all divisors d of n</span>
+  </div>
+
+  <h3>Why Φ₂ₙ(x) = xⁿ + 1 Matters</h3>
+  <p>Ring-LWE and Kyber/Dilithium use the ring <span class="m">R = ℤ<sub>q</sub>[x] / (xⁿ + 1)</span> where <span class="m">n</span> is a power of 2. This is the ring of integers in the <em>cyclotomic number field</em> <span class="m">ℚ(ζ<sub>2n</sub>)</span>. The polynomial <span class="m">x<sup>n</sup> + 1 = Φ<sub>2n</sub>(x)</span> is irreducible over ℚ, making <span class="m">R</span> a valid field extension.</p>
+
+  <div class="math">
+    <span class="lbl">Ring-LWE Ring Structure</span>
+    <span class="eq">R<span class="v">q</span>  <span class="op">=</span>  ℤ<sub>q</sub>[x] / (x<sup>n</sup> + 1)    n = 256 in Kyber, 512/1024 in Dilithium</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Elements are polynomials of degree < n with coefficients in ℤ_q</span></span>
+    <span class="eq"><span class="cm">// Multiplication is polynomial mult, then reduce mod (xⁿ + 1)</span></span>
+    <span class="eq"><span class="cm">// Key: xⁿ ≡ −1 (mod xⁿ+1), so xⁿ⁺¹ ≡ −x, etc.</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="hi">This −1 is exactly the √−1 connection: the cyclotomic ring wraps complex roots into algebra</span></span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Compute cyclotomic polynomials; polynomial ring multiplication mod xⁿ+1</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Cyclotomic Polynomials and Ring Arithmetic mod x^n + 1</span>
+
+<span class="kw">function</span> <span class="vv">phi</span> <span class="op2">=</span> <span class="fn">cyclotomic</span>(<span class="vv">n</span>)
+  <span class="cm">% Compute Φ_n(x) using the Möbius inversion formula</span>
+  <span class="cm">% Φ_n = (x^n - 1) / ∏ Φ_d(x) for d | n, d < n</span>
+  <span class="vv">phi_table</span> <span class="op2">=</span> {}; <span class="vv">phi_table</span>{<span class="num">1</span>} <span class="op2">=</span> [<span class="op2">-</span><span class="num">1</span>, <span class="num">1</span>];  <span class="cm">% Φ₁ = x-1</span>
+  <span class="kw">for</span> <span class="vv">k</span> <span class="op2">=</span> <span class="num">2</span><span class="op2">:</span><span class="vv">n</span>
+    <span class="cm">% x^k - 1</span>
+    <span class="vv">num</span> <span class="op2">=</span> <span class="fn">zeros</span>(<span class="num">1</span>, <span class="vv">k</span><span class="op2">+</span><span class="num">1</span>); <span class="vv">num</span>(<span class="num">1</span>) <span class="op2">=</span> <span class="op2">-</span><span class="num">1</span>; <span class="vv">num</span>(<span class="kw">end</span>) <span class="op2">=</span> <span class="num">1</span>;
+    <span class="vv">den</span> <span class="op2">=</span> [<span class="num">1</span>];
+    <span class="kw">for</span> <span class="vv">d</span> <span class="op2">=</span> <span class="num">1</span><span class="op2">:</span><span class="vv">k</span><span class="op2">-</span><span class="num">1</span>
+      <span class="kw">if</span> <span class="fn">mod</span>(<span class="vv">k</span>,<span class="vv">d</span>)<span class="op2">==</span><span class="num">0</span>
+        <span class="vv">den</span> <span class="op2">=</span> <span class="fn">conv</span>(<span class="vv">den</span>, <span class="vv">phi_table</span>{<span class="vv">d</span>});
+      <span class="kw">end</span>
+    <span class="kw">end</span>
+    [<span class="vv">phi_table</span>{<span class="vv">k</span>}, <span class="op2">~</span>] <span class="op2">=</span> <span class="fn">deconv</span>(<span class="vv">num</span>, <span class="vv">den</span>);
+    <span class="vv">phi_table</span>{<span class="vv">k</span>} <span class="op2">=</span> <span class="fn">round</span>(<span class="vv">phi_table</span>{<span class="vv">k</span>});
+  <span class="kw">end</span>
+  <span class="vv">phi</span> <span class="op2">=</span> <span class="vv">phi_table</span>{<span class="vv">n</span>};
+<span class="kw">end</span>
+
+<span class="cm">% Display first several cyclotomic polynomials</span>
+<span class="kw">for</span> <span class="vv">n</span> <span class="op2">=</span> [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>,<span class="num">8</span>,<span class="num">10</span>,<span class="num">12</span>]
+  <span class="vv">c</span> <span class="op2">=</span> <span class="fn">cyclotomic</span>(<span class="vv">n</span>);
+  <span class="fn">printf</span>(<span class="str">'Φ_%2d(x) = '</span>, <span class="vv">n</span>);
+  <span class="kw">for</span> <span class="vv">k</span> <span class="op2">=</span> <span class="fn">length</span>(<span class="vv">c</span>)<span class="op2">:-</span><span class="num">1</span><span class="op2">:</span><span class="num">1</span>
+    <span class="vv">deg</span><span class="op2">=</span><span class="vv">k</span><span class="op2">-</span><span class="num">1</span>; <span class="vv">co</span><span class="op2">=</span><span class="vv">c</span>(<span class="fn">length</span>(<span class="vv">c</span>)<span class="op2">-</span><span class="vv">deg</span>);
+    <span class="kw">if</span> <span class="vv">co</span><span class="op2">~=</span><span class="num">0</span>
+      <span class="kw">if</span> <span class="vv">deg</span><span class="op2">==</span><span class="num">0</span>; <span class="fn">printf</span>(<span class="str">'%+d'</span>,<span class="vv">co</span>);
+      <span class="kw">elseif</span> <span class="vv">deg</span><span class="op2">==</span><span class="num">1</span>; <span class="fn">printf</span>(<span class="str">'%+dx'</span>,<span class="vv">co</span>);
+      <span class="kw">else</span> <span class="fn">printf</span>(<span class="str">'%+dx^%d'</span>,<span class="vv">co</span>,<span class="vv">deg</span>); <span class="kw">end</span>
+    <span class="kw">end</span>
+  <span class="kw">end</span>; <span class="fn">printf</span>(<span class="str">'\n'</span>);
+<span class="kw">end</span>
+
+<span class="cm">%% Polynomial multiplication in ℤ_q[x]/(x^n + 1) — Ring-LWE style</span>
+<span class="kw">function</span> <span class="vv">r</span> <span class="op2">=</span> <span class="fn">ring_mul</span>(<span class="vv">a</span>, <span class="vv">b</span>, <span class="vv">n</span>, <span class="vv">q</span>)
+  <span class="cm">% Multiply polynomials a, b in Z_q[x]/(x^n + 1)</span>
+  <span class="vv">r</span> <span class="op2">=</span> <span class="fn">zeros</span>(<span class="num">1</span>, <span class="vv">n</span>);
+  <span class="kw">for</span> <span class="vv">i</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="vv">n</span><span class="op2">-</span><span class="num">1</span>; <span class="kw">for</span> <span class="vv">j</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="vv">n</span><span class="op2">-</span><span class="num">1</span>
+    <span class="vv">deg</span> <span class="op2">=</span> <span class="vv">i</span><span class="op2">+</span><span class="vv">j</span>;
+    <span class="vv">sign</span><span class="op2">=</span> <span class="num">1</span> <span class="op2">-</span> <span class="num">2</span><span class="op2">*</span>(<span class="fn">floor</span>(<span class="vv">deg</span><span class="op2">/</span><span class="vv">n</span>));   <span class="cm">% +1 or -1: xⁿ ≡ -1</span>
+    <span class="vv">r</span>(<span class="fn">mod</span>(<span class="vv">deg</span>,<span class="vv">n</span>)<span class="op2">+</span><span class="num">1</span>) <span class="op2">=</span> <span class="vv">r</span>(<span class="fn">mod</span>(<span class="vv">deg</span>,<span class="vv">n</span>)<span class="op2">+</span><span class="num">1</span>) <span class="op2">+</span> <span class="vv">sign</span><span class="op2">*</span><span class="vv">a</span>(<span class="vv">i</span><span class="op2">+</span><span class="num">1</span>)<span class="op2">*</span><span class="vv">b</span>(<span class="vv">j</span><span class="op2">+</span><span class="num">1</span>);
+  <span class="kw">end</span>; <span class="kw">end</span>
+  <span class="vv">r</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">r</span>, <span class="vv">q</span>);
+<span class="kw">end</span>
+
+<span class="cm">% Demo in Z_17[x]/(x^4+1): multiply [1,2,3,4] * [5,6,7,8]</span>
+<span class="vv">a</span> <span class="op2">=</span> [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>]; <span class="vv">b</span> <span class="op2">=</span> [<span class="num">5</span>,<span class="num">6</span>,<span class="num">7</span>,<span class="num">8</span>]; <span class="vv">q</span> <span class="op2">=</span> <span class="num">17</span>; <span class="vv">n</span> <span class="op2">=</span> <span class="num">4</span>;
+<span class="fn">printf</span>(<span class="str">'\nRing mult in Z_17[x]/(x^4+1):\n'</span>);
+<span class="fn">printf</span>(<span class="str">'a*b = '); disp(ring_mul(a, b, n, q));</span>
+</pre>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §6  NUMBER THEORETIC TRANSFORM
+     ════════════════════════════════════════ -->
+<section id="ntt">
+  <div class="sec-label">§ 6</div>
+  <h2>Number Theoretic Transform (NTT)</h2>
+
+  <p>The NTT is the <strong>Discrete Fourier Transform over a finite field</strong>. Instead of complex roots of unity <span class="m">e<sup>2πi/n</sup></span>, it uses <em>modular</em> roots of unity — integers <span class="m">ω</span> in <span class="m">ℤ<sub>q</sub></span> such that <span class="m">ω<sup>n</sup> ≡ 1 (mod q)</span>. It powers the O(n log n) polynomial multiplication at the heart of Kyber and Dilithium.</p>
+
+  <div class="math">
+    <span class="lbl">NTT vs FFT</span>
+    <span class="eq">FFT:  <span class="f">X̂[k]</span> = Σ<sub>j=0</sub><sup>n-1</sup> x[j] · <span class="i">e<sup>−2πijk/n</sup></span></span>
+    <span class="eq">NTT:  <span class="f">X̂[k]</span> = Σ<sub>j=0</sub><sup>n-1</sup> x[j] · <span class="i">ω<sup>jk</sup></span>  (mod q)</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Requirement: q must be a prime with q ≡ 1 (mod n)</span></span>
+    <span class="eq"><span class="cm">// so that a primitive n-th root of unity ω exists in Z_q</span></span>
+    <span class="eq"></span>
+    <span class="eq">Kyber-768:  q = 3329,  n = 256,  ω = 17  (17^((3329-1)/256) = 17^13 mod 3329)</span>
+    <span class="eq">Dilithium:  q = 8380417, n = 256, ω = 1753</span>
+  </div>
+
+  <div class="flow">
+    <div class="fbox">Polynomial mult O(n²)</div>
+    <div class="farr">→</div>
+    <div class="fbox im">NTT (pointwise in freq domain)</div>
+    <div class="farr">→</div>
+    <div class="fbox re">O(n log n) !</div>
+  </div>
+
+  <p>The key insight is identical to the FFT: a polynomial product in the "time domain" (coefficient space) becomes a pointwise product in the "frequency domain" (NTT domain), and the NTT can be computed in <span class="m">O(n log n)</span> via the Cooley-Tukey butterfly structure — with all arithmetic mod <span class="m">q</span> instead of over ℂ.</p>
+
+  <div class="demo">
+    <h4 style="margin-top:0;color:var(--im)">Interactive NTT Demo</h4>
+    <label>Input polynomial coefficients (comma-separated, length must be power of 2)</label>
+    <input type="text" id="ntt-in" value="3, 1, 4, 1, 5, 9, 2, 6">
+    <label style="margin-top:.6rem">Modulus q (prime, q ≡ 1 mod n recommended)</label>
+    <input type="text" id="ntt-q" value="17" style="width:120px">
+    <button class="dbtn" onclick="runNTT()">Run NTT</button>
+    <div class="out" id="ntt-out">Press "Run NTT" to see the transform</div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Full NTT + INTT + fast polynomial multiplication (Kyber parameters)</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Number Theoretic Transform — the imaginary-number-free FFT used in Kyber</span>
+
+<span class="kw">function</span> <span class="vv">A</span> <span class="op2">=</span> <span class="fn">ntt</span>(<span class="vv">a</span>, <span class="vv">q</span>, <span class="vv">omega</span>)
+  <span class="cm">% Cooley-Tukey NTT (iterative, bit-reversal permutation)</span>
+  <span class="vv">n</span> <span class="op2">=</span> <span class="fn">length</span>(<span class="vv">a</span>);
+  <span class="vv">A</span> <span class="op2">=</span> <span class="vv">a</span>(<span class="fn">bitrevorder</span>(<span class="num">1</span><span class="op2">:</span><span class="vv">n</span>));  <span class="cm">% bit-reversal permutation</span>
+  <span class="vv">len</span> <span class="op2">=</span> <span class="num">2</span>;
+  <span class="kw">while</span> <span class="vv">len</span> <span class="op2">&lt;=</span> <span class="vv">n</span>
+    <span class="vv">w</span> <span class="op2">=</span> <span class="fn">mod_pow</span>(<span class="vv">omega</span>, <span class="vv">n</span><span class="op2">/</span><span class="vv">len</span>, <span class="vv">q</span>);
+    <span class="kw">for</span> <span class="vv">i</span> <span class="op2">=</span> <span class="num">1</span><span class="op2">:</span><span class="vv">len</span><span class="op2">:</span><span class="vv">n</span>
+      <span class="vv">wn</span> <span class="op2">=</span> <span class="num">1</span>;
+      <span class="kw">for</span> <span class="vv">j</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="vv">len</span><span class="op2">/</span><span class="num">2</span><span class="op2">-</span><span class="num">1</span>
+        <span class="vv">u</span> <span class="op2">=</span> <span class="vv">A</span>(<span class="vv">i</span><span class="op2">+</span><span class="vv">j</span>);
+        <span class="vv">t</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">wn</span> <span class="op2">*</span> <span class="vv">A</span>(<span class="vv">i</span><span class="op2">+</span><span class="vv">j</span><span class="op2">+</span><span class="vv">len</span><span class="op2">/</span><span class="num">2</span>), <span class="vv">q</span>);
+        <span class="vv">A</span>(<span class="vv">i</span><span class="op2">+</span><span class="vv">j</span>)          <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">u</span><span class="op2">+</span><span class="vv">t</span>, <span class="vv">q</span>);
+        <span class="vv">A</span>(<span class="vv">i</span><span class="op2">+</span><span class="vv">j</span><span class="op2">+</span><span class="vv">len</span><span class="op2">/</span><span class="num">2</span>) <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">u</span><span class="op2">-</span><span class="vv">t</span><span class="op2">+</span><span class="vv">q</span>, <span class="vv">q</span>);
+        <span class="vv">wn</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">wn</span><span class="op2">*</span><span class="vv">w</span>, <span class="vv">q</span>);
+      <span class="kw">end</span>
+    <span class="kw">end</span>
+    <span class="vv">len</span> <span class="op2">*=</span> <span class="num">2</span>;
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="vv">a</span> <span class="op2">=</span> <span class="fn">intt</span>(<span class="vv">A</span>, <span class="vv">q</span>, <span class="vv">omega</span>)
+  <span class="cm">% Inverse NTT: use ω^{-1} and multiply by n^{-1}</span>
+  <span class="vv">n</span>     <span class="op2">=</span> <span class="fn">length</span>(<span class="vv">A</span>);
+  <span class="vv">omega_inv</span> <span class="op2">=</span> <span class="fn">mod_pow</span>(<span class="vv">omega</span>, <span class="vv">q</span><span class="op2">-</span><span class="num">2</span>, <span class="vv">q</span>);  <span class="cm">% ω^{-1} = ω^{q-2} mod q (Fermat)</span>
+  <span class="vv">n_inv</span>     <span class="op2">=</span> <span class="fn">mod_pow</span>(<span class="vv">n</span>, <span class="vv">q</span><span class="op2">-</span><span class="num">2</span>, <span class="vv">q</span>);
+  <span class="vv">a</span>     <span class="op2">=</span> <span class="fn">ntt</span>(<span class="vv">A</span>, <span class="vv">q</span>, <span class="vv">omega_inv</span>);
+  <span class="vv">a</span>     <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">a</span> <span class="op2">*</span> <span class="vv">n_inv</span>, <span class="vv">q</span>);
+<span class="kw">end</span>
+
+<span class="cm">% NTT-based polynomial multiplication in Z_q (q=17, n=8, ω=2)</span>
+<span class="cm">% Check: 2^8 = 256 ≡ 1 (mod 17) ← 2 is a primitive 8th root of unity mod 17</span>
+<span class="vv">q</span> <span class="op2">=</span> <span class="num">17</span>; <span class="vv">n</span> <span class="op2">=</span> <span class="num">8</span>; <span class="vv">omega</span> <span class="op2">=</span> <span class="num">2</span>;
+<span class="fn">printf</span>(<span class="str">'Verify ω^n mod q: 2^8 mod 17 = %d  (must be 1)\n'</span>, <span class="fn">mod_pow</span>(<span class="vv">omega</span>,<span class="vv">n</span>,<span class="vv">q</span>));
+
+<span class="vv">a</span> <span class="op2">=</span> [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>];  <span class="cm">% polynomial 1+2x+3x²+4x³</span>
+<span class="vv">b</span> <span class="op2">=</span> [<span class="num">5</span>,<span class="num">6</span>,<span class="num">7</span>,<span class="num">8</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>];  <span class="cm">% polynomial 5+6x+7x²+8x³</span>
+
+<span class="cm">% Method 1: direct convolution (O(n²))</span>
+<span class="vv">direct</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="fn">conv</span>(<span class="vv">a</span>,<span class="vv">b</span>), <span class="vv">q</span>);
+
+<span class="cm">% Method 2: NTT-based (O(n log n))</span>
+<span class="vv">A</span>   <span class="op2">=</span> <span class="fn">ntt</span>(<span class="vv">a</span>, <span class="vv">q</span>, <span class="vv">omega</span>);
+<span class="vv">B</span>   <span class="op2">=</span> <span class="fn">ntt</span>(<span class="vv">b</span>, <span class="vv">q</span>, <span class="vv">omega</span>);
+<span class="vv">C</span>   <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">A</span> <span class="op2">.*</span> <span class="vv">B</span>, <span class="vv">q</span>);           <span class="cm">% pointwise multiply!</span>
+<span class="vv">ntt_result</span> <span class="op2">=</span> <span class="fn">intt</span>(<span class="vv">C</span>, <span class="vv">q</span>, <span class="vv">omega</span>);
+
+<span class="fn">printf</span>(<span class="str">'Direct:  '); disp(direct(1:8));</span>
+<span class="fn">printf</span>(<span class="str">'NTT:     '); disp(ntt_result);</span>
+<span class="fn">printf</span>(<span class="str">'Match: %d\n'</span>, <span class="fn">isequal</span>(<span class="vv">direct</span>(<span class="num">1</span><span class="op2">:</span><span class="num">8</span>), <span class="vv">ntt_result</span>));
+</pre>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §7  COMPLEX MULTIPLICATION ON ECC
+     ════════════════════════════════════════ -->
+<section id="cm">
+  <div class="sec-label">§ 7</div>
+  <h2>Complex Multiplication on Elliptic Curves</h2>
+
+  <p>An elliptic curve <span class="m">E</span> over a field <span class="m">K</span> has an <strong>endomorphism ring</strong> End(E) — the set of algebraic maps from <span class="m">E</span> to itself. For most curves End(E) ≅ ℤ. But special curves have End(E) ≅ an order in an <em>imaginary quadratic field</em> <span class="m">K = ℚ(√−d)</span>. These are called <strong>CM curves</strong>.</p>
+
+  <div class="math">
+    <span class="lbl">Imaginary Quadratic Fields Used in Crypto</span>
+    <span class="eq">ℚ(√−<span class="r">1</span>)  →  ℤ[<span class="i">i</span>]  endomorphism ring   <span class="cm">// secp256k1-style curves, j-invariant 1728</span></span>
+    <span class="eq">ℚ(√−<span class="r">2</span>)  →  ℤ[√−2]</span>
+    <span class="eq">ℚ(√−<span class="r">3</span>)  →  ℤ[ζ₃]  (Eisenstein integers) <span class="cm">// j-invariant 0, BLS12-381 curve</span></span>
+    <span class="eq">ℚ(√−<span class="r">7</span>)  →  order in ℤ[(1+√−7)/2]</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// CM theory gives control over the group order #E(𝔽_p):</span></span>
+    <span class="eq"><span class="r">#E(𝔽_p)</span>  <span class="op">=</span>  p <span class="op">+</span> 1 <span class="op">−</span> <span class="i">t</span>,   where <span class="i">t = π + π̄</span>  (trace of Frobenius)</span>
+    <span class="eq">π <span class="op">·</span> π̄  <span class="op">=</span>  p   and  π is a Gaussian/quadratic integer in ℚ(√−d)</span>
+  </div>
+
+  <h3>Why This Matters: Pairing-Friendly Curves</h3>
+  <p>Pairing-based cryptography (BLS signatures, zkSNARKs) requires curves with very specific group orders and embedding degrees. The <strong>CM method</strong> constructs these curves by choosing a desired order, finding the CM discriminant <span class="m">D</span>, computing the <em>Hilbert class polynomial</em> <span class="m">H<sub>D</sub>(x)</span>, and setting <span class="m">j(E)</span> to be a root of <span class="m">H<sub>D</sub>(x) mod p</span>.</p>
+
+  <div class="math">
+    <span class="lbl">CM Method — Constructing Curves with Prescribed Order</span>
+    <span class="eq"><span class="num">1.</span> Choose order <span class="v">m</span> = p+1−t with t²−4p = D·y²  (D < 0 square-free)</span>
+    <span class="eq"><span class="num">2.</span> Compute Hilbert class polynomial H<sub>D</sub>(x) over ℤ</span>
+    <span class="eq"><span class="num">3.</span> Find root <span class="v">j₀</span> of H<sub>D</sub>(x) mod p  →  j₀ = j-invariant of desired curve</span>
+    <span class="eq"><span class="num">4.</span> Recover a, b from j₀:  <span class="i">a = 3j₀/(j₀−1728),  b = 2j₀/(j₀−1728)</span></span>
+    <span class="eq"><span class="num">5.</span> Check #E(𝔽_p) = m;  twist if needed</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Frobenius trace, group order, and j-invariant for CM curves</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% CM Curves: Counting Points with Complex Multiplication</span>
+<span class="cm">%% For curves y² = x³ + ax + b over F_p, we use Schoof's baby approach</span>
+
+<span class="kw">function</span> <span class="vv">count</span> <span class="op2">=</span> <span class="fn">count_points_naive</span>(<span class="vv">a</span>, <span class="vv">b</span>, <span class="vv">p</span>)
+  <span class="cm">% Count affine points on y² = x³ + ax + b mod p, plus point at infinity</span>
+  <span class="vv">count</span> <span class="op2">=</span> <span class="num">1</span>;   <span class="cm">% include point at infinity</span>
+  <span class="kw">for</span> <span class="vv">x</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="vv">p</span><span class="op2">-</span><span class="num">1</span>
+    <span class="vv">rhs</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">x</span><span class="op2">^</span><span class="num">3</span> <span class="op2">+</span> <span class="vv">a</span><span class="op2">*</span><span class="vv">x</span> <span class="op2">+</span> <span class="vv">b</span>, <span class="vv">p</span>);
+    <span class="kw">if</span> <span class="vv">rhs</span> <span class="op2">==</span> <span class="num">0</span>
+      <span class="vv">count</span> <span class="op2">+=</span> <span class="num">1</span>;
+    <span class="kw">elseif</span> <span class="fn">mod_pow</span>(<span class="vv">rhs</span>, (<span class="vv">p</span><span class="op2">-</span><span class="num">1</span>)<span class="op2">/</span><span class="num">2</span>, <span class="vv">p</span>) <span class="op2">==</span> <span class="num">1</span>   <span class="cm">% QR: Euler's criterion</span>
+      <span class="vv">count</span> <span class="op2">+=</span> <span class="num">2</span>;
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="vv">j</span> <span class="op2">=</span> <span class="fn">j_invariant</span>(<span class="vv">a</span>, <span class="vv">b</span>, <span class="vv">p</span>)
+  <span class="cm">% j(E) = 1728 · 4a³ / (4a³ + 27b²) mod p</span>
+  <span class="vv">num</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="num">1728</span> <span class="op2">*</span> <span class="num">4</span> <span class="op2">*</span> <span class="fn">mod_pow</span>(<span class="vv">a</span>, <span class="num">3</span>, <span class="vv">p</span>), <span class="vv">p</span>);
+  <span class="vv">den</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="num">4</span><span class="op2">*</span><span class="fn">mod_pow</span>(<span class="vv">a</span>,<span class="num">3</span>,<span class="vv">p</span>) <span class="op2">+</span> <span class="num">27</span><span class="op2">*</span><span class="fn">mod_pow</span>(<span class="vv">b</span>,<span class="num">2</span>,<span class="vv">p</span>), <span class="vv">p</span>);
+  <span class="vv">j</span>   <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">num</span> <span class="op2">*</span> <span class="fn">mod_pow</span>(<span class="vv">den</span>, <span class="vv">p</span><span class="op2">-</span><span class="num">2</span>, <span class="vv">p</span>), <span class="vv">p</span>);
+<span class="kw">end</span>
+
+<span class="vv">p</span> <span class="op2">=</span> <span class="num">127</span>;   <span class="cm">% small prime for demo</span>
+<span class="fn">printf</span>(<span class="str">'Curve  a    b     #E    t=p+1-#E  j-invariant\n'</span>);
+<span class="fn">printf</span>(<span class="str">'%s\n'</span>, <span class="fn">repmat</span>(<span class="str">'-'</span>,<span class="num">52</span>,<span class="num">1</span>));
+<span class="kw">for</span> [<span class="vv">a</span>,<span class="vv">b</span>] <span class="op2">=</span> [[<span class="num">1</span>;<span class="num">0</span>], [<span class="num">0</span>;<span class="num">1</span>], [<span class="op2">-</span><span class="num">1</span>;<span class="num">0</span>], [<span class="num">3</span>;<span class="num">5</span>], [<span class="num">0</span>;<span class="num">7</span>]]
+  <span class="vv">ord</span> <span class="op2">=</span> <span class="fn">count_points_naive</span>(<span class="vv">a</span>, <span class="vv">b</span>, <span class="vv">p</span>);
+  <span class="vv">t</span>   <span class="op2">=</span> <span class="vv">p</span> <span class="op2">+</span> <span class="num">1</span> <span class="op2">-</span> <span class="vv">ord</span>;
+  <span class="vv">j</span>   <span class="op2">=</span> <span class="fn">j_invariant</span>(<span class="fn">mod</span>(<span class="vv">a</span>,<span class="vv">p</span>), <span class="fn">mod</span>(<span class="vv">b</span>,<span class="vv">p</span>), <span class="vv">p</span>);
+  <span class="fn">printf</span>(<span class="str">'y²=x³%+dx%+d  %-5d %+d   j=%d\n'</span>, <span class="vv">a</span>,<span class="vv">b</span>,<span class="vv">ord</span>,<span class="vv">t</span>,<span class="vv">j</span>);
+<span class="kw">end</span>
+<span class="cm">%% j=0:    curve with CM by ℤ[ω₃] (cube roots of unity, BLS-type)</span>
+<span class="cm">%% j=1728: curve with CM by ℤ[i]  (square roots of -1)</span>
+</pre>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §8  GLV SCALAR MULTIPLICATION
+     ════════════════════════════════════════ -->
+<section id="glv">
+  <div class="sec-label">§ 8</div>
+  <h2>GLV Endomorphism: Using √−1 to Speed Up ECC</h2>
+
+  <p>The <strong>Gallant-Lambert-Vanstone (GLV)</strong> method exploits a curve's endomorphism to split an <span class="m">n</span>-bit scalar multiplication into two <span class="m">n/2</span>-bit multiplications, roughly halving computation time. For <strong>secp256k1</strong> (Bitcoin/Ethereum), this endomorphism comes from a complex cube root of unity in the base field.</p>
+
+  <div class="math">
+    <span class="lbl">secp256k1 GLV Endomorphism</span>
+    <span class="eq"><span class="cm">// Curve: y² = x³ + 7 over 𝔽_p  (j = 0, CM by ℤ[ω₃])</span></span>
+    <span class="eq">φ: (x, y)  <span class="op">↦</span>  (β·x, y)   where β³ <span class="op">≡</span> 1 (mod p), β <span class="op">≠</span> 1</span>
+    <span class="eq"><span class="cm">// β is a non-trivial cube root of unity in 𝔽_p  (not √-1, but related)</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Since φ is an endomorphism: φ(P) = λ·P  for some λ with λ² + λ + 1 ≡ 0 (mod n)</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// For any scalar k, decompose: k = k₁ + k₂·λ  (both k₁, k₂ ≈ n/2 bits)</span></span>
+    <span class="eq">k·P  <span class="op">=</span>  k₁·P  <span class="op">+</span>  k₂·φ(P)  <span class="op">=</span>  k₁·P  <span class="op">+</span>  k₂·(β·x, y)</span>
+    <span class="eq"><span class="cm">// Use Simultaneous Double-and-Add: halves the number of doublings</span></span>
+  </div>
+
+  <h3>The √−1 Connection for Other Curves</h3>
+  <p>For curves where <span class="m">p ≡ 1 (mod 4)</span> and End(E) ≅ ℤ[i], the endomorphism is literally <span class="m">(x, y) ↦ (−x, i·y)</span> where <span class="m">i = √−1 mod p</span>. This gives <span class="m">φ(P) = i·P</span> (the imaginary unit acts as a scalar!).</p>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">GLV scalar decomposition on a CM curve with ℤ[i] endomorphism</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% GLV Scalar Decomposition using the ℤ[i] endomorphism</span>
+<span class="cm">%% Curve: y² = x³ + x  over F_p (j=1728, CM by ℤ[i])</span>
+<span class="cm">%% Endomorphism: φ(x,y) = (-x, i·y) where i² ≡ -1 (mod p)</span>
+
+<span class="cm">% Toy parameters: p=9001 (prime ≡ 1 mod 4 so sqrt(-1) exists)</span>
+<span class="vv">p</span>   <span class="op2">=</span> <span class="num">9001</span>;
+<span class="vv">a_c</span> <span class="op2">=</span> <span class="num">1</span>; <span class="vv">b_c</span> <span class="op2">=</span> <span class="num">0</span>;   <span class="cm">% y² = x³ + x</span>
+<span class="fn">printf</span>(<span class="str">'p mod 4 = %d\n'</span>, <span class="fn">mod</span>(<span class="vv">p</span>, <span class="num">4</span>));  <span class="cm">% must be 1</span>
+
+<span class="cm">% Compute sqrt(-1) mod p</span>
+<span class="vv">i_mod_p</span> <span class="op2">=</span> <span class="fn">sqrt_neg1_mod_p</span>(<span class="vv">p</span>);
+<span class="fn">printf</span>(<span class="str">'sqrt(-1) mod %d = %d  (verify: %d)\n'</span>, <span class="vv">p</span>, <span class="vv">i_mod_p</span>, ...
+       <span class="fn">mod</span>(<span class="vv">i_mod_p</span><span class="op2">^</span><span class="num">2</span>, <span class="vv">p</span>));  <span class="cm">% should be p-1</span>
+
+<span class="cm">% ℤ[i] endomorphism: φ(x,y) = (-x mod p, i_mod_p * y mod p)</span>
+<span class="kw">function</span> <span class="vv">Q</span> <span class="op2">=</span> <span class="fn">phi_endo</span>(<span class="vv">P</span>, <span class="vv">i_val</span>, <span class="vv">p</span>)
+  <span class="vv">Q</span> <span class="op2">=</span> [<span class="fn">mod</span>(<span class="op2">-</span><span class="vv">P</span>(<span class="num">1</span>), <span class="vv">p</span>),  <span class="fn">mod</span>(<span class="vv">i_val</span> <span class="op2">*</span> <span class="vv">P</span>(<span class="num">2</span>), <span class="vv">p</span>)];
+<span class="kw">end</span>
+
+<span class="cm">% GLV decomposition: given k, find k1, k2 s.t. k ≡ k1 + k2*λ (mod n)</span>
+<span class="cm">% where λ is the eigenvalue of φ (λ ≡ i_mod_p for ℤ[i] CM)</span>
+<span class="kw">function</span> [<span class="vv">k1</span>,<span class="vv">k2</span>] <span class="op2">=</span> <span class="fn">glv_decompose</span>(<span class="vv">k</span>, <span class="vv">lambda</span>, <span class="vv">n</span>)
+  <span class="cm">% Simple decomposition (exact for ℤ[i] case, round-based)</span>
+  <span class="vv">k2</span> <span class="op2">=</span> <span class="fn">round</span>(<span class="vv">k</span> <span class="op2">*</span> <span class="fn">mod_inverse</span>(<span class="vv">lambda</span>,<span class="vv">n</span>) <span class="op2">/</span> <span class="vv">n</span>);
+  <span class="vv">k1</span> <span class="op2">=</span> <span class="vv">k</span> <span class="op2">-</span> <span class="vv">k2</span> <span class="op2">*</span> <span class="vv">lambda</span>;
+<span class="kw">end</span>
+
+<span class="cm">% Find a point on y² = x³ + x mod 9001</span>
+<span class="vv">G</span> <span class="op2">=</span> [];
+<span class="kw">for</span> <span class="vv">x</span> <span class="op2">=</span> <span class="num">1</span><span class="op2">:</span><span class="vv">p</span>
+  <span class="vv">rhs</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">x</span><span class="op2">^</span><span class="num">3</span> <span class="op2">+</span> <span class="vv">x</span>, <span class="vv">p</span>);
+  <span class="vv">y</span>   <span class="op2">=</span> <span class="fn">mod_pow</span>(<span class="vv">rhs</span>, <span class="fn">floor</span>((<span class="vv">p</span><span class="op2">+</span><span class="num">1</span>)<span class="op2">/</span><span class="num">4</span>), <span class="vv">p</span>);
+  <span class="kw">if</span> <span class="fn">mod</span>(<span class="vv">y</span><span class="op2">^</span><span class="num">2</span>,<span class="vv">p</span>)<span class="op2">==</span><span class="vv">rhs</span> <span class="op2">&amp;&amp;</span> <span class="vv">y</span><span class="op2">&gt;</span><span class="num">0</span>; <span class="vv">G</span><span class="op2">=</span>[<span class="vv">x</span> <span class="vv">y</span>]; <span class="kw">break</span>; <span class="kw">end</span>
+<span class="kw">end</span>
+<span class="vv">phiG</span> <span class="op2">=</span> <span class="fn">phi_endo</span>(<span class="vv">G</span>, <span class="vv">i_mod_p</span>, <span class="vv">p</span>);
+<span class="fn">printf</span>(<span class="str">'G       = (%d, %d)\n'</span>, <span class="vv">G</span>(<span class="num">1</span>), <span class="vv">G</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'φ(G)    = (%d, %d)  [= (-x, i·y)]\n'</span>, <span class="vv">phiG</span>(<span class="num">1</span>), <span class="vv">phiG</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'φ(G) lies on curve: y²-x³-x ≡ %d (mod %d)\n'</span>, ...
+       <span class="fn">mod</span>(<span class="vv">phiG</span>(<span class="num">2</span>)<span class="op2">^</span><span class="num">2</span> <span class="op2">-</span> <span class="vv">phiG</span>(<span class="num">1</span>)<span class="op2">^</span><span class="num">3</span> <span class="op2">-</span> <span class="vv">phiG</span>(<span class="num">1</span>), <span class="vv">p</span>), <span class="vv">p</span>);  <span class="cm">% should be 0</span>
+</pre>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §9  PAIRINGS
+     ════════════════════════════════════════ -->
+<section id="pairings">
+  <div class="sec-label">§ 9</div>
+  <h2>Bilinear Pairings &amp; Roots of Unity</h2>
+
+  <p>A <strong>bilinear pairing</strong> maps two groups of elliptic curve points to a group of roots of unity in a field extension. This is where complex roots of unity re-emerge, now living in a finite field extension <span class="m">𝔽<sub>p^k</sub></span>.</p>
+
+  <div class="math">
+    <span class="lbl">Weil / Tate Pairing</span>
+    <span class="eq">e: <span class="v">G₁</span> × <span class="v">G₂</span>  →  μ<sub>r</sub> ⊂ 𝔽<sub>p^k</sub>*</span>
+    <span class="eq"></span>
+    <span class="eq">μ<sub>r</sub>  <span class="op">=</span>  { ζ ∈ 𝔽<sub>p^k</sub>* : ζ<sup>r</sup> <span class="op">=</span> 1 }  <span class="cm">// r-th roots of unity!</span></span>
+    <span class="eq"></span>
+    <span class="eq">Bilinearity:  e(<span class="v">aP</span>, <span class="v">bQ</span>) = e(<span class="v">P</span>, <span class="v">Q</span>)<sup>ab</sup></span>
+    <span class="eq">Non-degeneracy: e(<span class="v">P</span>, <span class="v">Q</span>) ≠ 1  for P,Q ≠ ∞</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// k = embedding degree: smallest k s.t. r | (p^k − 1)</span></span>
+    <span class="eq"><span class="cm">// BLS12-381: k=12, r≈255-bit prime, p≈381-bit prime</span></span>
+  </div>
+
+  <h3>Applications Enabled by Pairings</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>BLS Signatures</h4>
+      <p>Sign: <span class="m">σ = x·H(m)</span>. Verify: check <span class="m">e(σ, G) = e(H(m), xG)</span>. Supports signature <strong>aggregation</strong> — combine n signatures into one. Used in Ethereum 2.0.</p>
+    </div>
+    <div class="card">
+      <h4>Identity-Based Encryption</h4>
+      <p>Encrypt to an email address without a pre-distributed key. Uses pairings to bind identity strings to public keys. Boneh-Franklin IBE (2001) was the first practical IBE scheme.</p>
+    </div>
+    <div class="card">
+      <h4>zkSNARKs (Groth16)</h4>
+      <p>Zero-knowledge proofs with constant-size proofs (192 bytes). The pairing check <span class="m">e(A, B) = e(C, δ)·e(D, γ)</span> is the final verification step. Powers Zcash and many ZK rollups.</p>
+    </div>
+    <div class="card">
+      <h4>Attribute-Based Encryption</h4>
+      <p>Encrypt data with a policy ("CEO AND CTO"). Decryption works only if attributes satisfy the policy. Pairings make the policy matching algebraically verifiable.</p>
+    </div>
+  </div>
+
+  <div class="math">
+    <span class="lbl">Miller's Algorithm — Computing the Weil Pairing</span>
+    <span class="eq"><span class="cm">// Core loop: builds a function f_{r,P} on the curve</span></span>
+    <span class="eq">f <span class="op">=</span> 1;  T <span class="op">=</span> P</span>
+    <span class="eq"><span class="kw">for</span> bit in binary(r) from MSB-1 to 0:</span>
+    <span class="eq">  f <span class="op">←</span> f² · l<sub>T,T</sub>(Q) / v<sub>2T</sub>(Q)   <span class="cm">// line function at doubling</span></span>
+    <span class="eq">  T <span class="op">←</span> 2T</span>
+    <span class="eq">  <span class="kw">if</span> bit = 1:</span>
+    <span class="eq">    f <span class="op">←</span> f · l<sub>T,P</sub>(Q) / v<sub>T+P</sub>(Q)  <span class="cm">// line function at addition</span></span>
+    <span class="eq">    T <span class="op">←</span> T+P</span>
+    <span class="eq"><span class="hi">e(P,Q) = f<sup>(p^k − 1)/r</sup>  (final exponentiation to μ_r)</span></span>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     §10  RING-LWE
+     ════════════════════════════════════════ -->
+<section id="ringlwe">
+  <div class="sec-label">§ 10</div>
+  <h2>Ring-LWE: Imaginary Quadratic Fields Meet Lattices</h2>
+
+  <p>Ring-LWE (Ring Learning With Errors) is the algebraic number theory problem underlying Kyber and Dilithium. The ring <span class="m">R = ℤ[x]/(x<sup>n</sup>+1)</span> is the ring of integers of the cyclotomic field <span class="m">ℚ(ζ<sub>2n</sub>)</span>, and its properties — rooted in the arithmetic of complex roots of unity — provide both the security and efficiency of post-quantum lattice schemes.</p>
+
+  <div class="math">
+    <span class="lbl">Ring-LWE Problem</span>
+    <span class="eq">R  <span class="op">=</span>  ℤ[x]/(x<sup>n</sup>+1),   R<sub>q</sub>  <span class="op">=</span>  R/(q) <span class="op">=</span>  ℤ<sub>q</sub>[x]/(x<sup>n</sup>+1)</span>
+    <span class="eq"></span>
+    <span class="eq">Secret:  <span class="v">s</span> ← R<sub>q</sub>  (small coefficients)</span>
+    <span class="eq">Sample:  (<span class="v">a</span>, <span class="v">b</span> <span class="op">=</span> a·s + e)  where <span class="v">a</span> ← R<sub>q</sub> uniform, <span class="v">e</span> small</span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Ring-LWE Hard Problem: distinguish (a, as+e) from (a, uniform)</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="cm">// Why xⁿ+1? It's irreducible over ℤ → field extension</span></span>
+    <span class="eq"><span class="cm">// Its roots are ζ, ζ³, ζ⁵, ... (primitive 2n-th roots of unity)</span></span>
+    <span class="eq"><span class="cm">// These complex roots guarantee algebraic structure needed for proofs</span></span>
+  </div>
+
+  <h3>The Canonical Embedding</h3>
+  <p>The <strong>canonical embedding</strong> maps a ring element <span class="m">f ∈ R</span> to <span class="m">n</span> complex numbers by evaluating at each of the primitive <span class="m">2n</span>-th roots of unity. This embedding is the bridge between the abstract ring and complex analysis — it is what makes the geometric notion of "small" (short vectors in ℂ<sup>n</sup>) correspond to "small coefficients" in the polynomial ring.</p>
+
+  <div class="math">
+    <span class="lbl">Canonical Embedding σ: R → ℂⁿ</span>
+    <span class="eq">σ(<span class="v">f</span>)  <span class="op">=</span>  ( <span class="v">f</span>(ζ), <span class="v">f</span>(ζ³), <span class="v">f</span>(ζ⁵), …, <span class="v">f</span>(ζ<sup>2n−1</sup>) )</span>
+    <span class="eq">where ζ <span class="op">=</span> e<sup>iπ/n</sup>  (primitive 2n-th root of unity)</span>
+    <span class="eq"></span>
+    <span class="eq">‖σ(f)‖²  <span class="op">=</span>  n · Σ <span class="v">fᵢ</span>²   <span class="cm">// connects ℂⁿ norm to polynomial coefficients</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="hi">The security of Ring-LWE ultimately reduces to the hardness of</span></span>
+    <span class="eq"><span class="hi">finding short vectors in lattices defined by these complex evaluations.</span></span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-hdr">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Canonical embedding, Ring-LWE key exchange, visualizing complex roots</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Ring-LWE Key Exchange: canonical embedding and Kyber-style demo</span>
+
+<span class="kw">function</span> <span class="vv">emb</span> <span class="op2">=</span> <span class="fn">canonical_embedding</span>(<span class="vv">f</span>, <span class="vv">n</span>)
+  <span class="cm">% Evaluate f at primitive 2n-th roots of unity ζ^(2k+1), k=0..n-1</span>
+  <span class="cm">% ζ = exp(i*π/n)</span>
+  <span class="vv">emb</span> <span class="op2">=</span> <span class="fn">zeros</span>(<span class="num">1</span>, <span class="vv">n</span>);
+  <span class="kw">for</span> <span class="vv">k</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="vv">n</span><span class="op2">-</span><span class="num">1</span>
+    <span class="vv">zeta</span>  <span class="op2">=</span> <span class="fn">exp</span>(<span class="num">1i</span> <span class="op2">*</span> <span class="fn">pi</span> <span class="op2">*</span> (<span class="num">2</span><span class="op2">*</span><span class="vv">k</span><span class="op2">+</span><span class="num">1</span>) <span class="op2">/</span> <span class="vv">n</span>);  <span class="cm">% ζ^(2k+1)</span>
+    <span class="vv">val</span>   <span class="op2">=</span> <span class="num">0</span>;
+    <span class="kw">for</span> <span class="vv">j</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="vv">n</span><span class="op2">-</span><span class="num">1</span>
+      <span class="vv">val</span> <span class="op2">+=</span> <span class="vv">f</span>(<span class="vv">j</span><span class="op2">+</span><span class="num">1</span>) <span class="op2">*</span> <span class="vv">zeta</span><span class="op2">^</span><span class="vv">j</span>;
+    <span class="kw">end</span>
+    <span class="vv">emb</span>(<span class="vv">k</span><span class="op2">+</span><span class="num">1</span>) <span class="op2">=</span> <span class="vv">val</span>;
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% Show that xⁿ+1 roots are on the unit circle in C</span>
+<span class="vv">n</span> <span class="op2">=</span> <span class="num">8</span>;
+<span class="fn">printf</span>(<span class="str">'Roots of x^%d + 1 (primitive 2n-th roots of unity):\n'</span>, <span class="vv">n</span>);
+<span class="kw">for</span> <span class="vv">k</span> <span class="op2">=</span> <span class="num">0</span><span class="op2">:</span><span class="vv">n</span><span class="op2">-</span><span class="num">1</span>
+  <span class="vv">zeta</span> <span class="op2">=</span> <span class="fn">exp</span>(<span class="num">1i</span> <span class="op2">*</span> <span class="fn">pi</span> <span class="op2">*</span> (<span class="num">2</span><span class="op2">*</span><span class="vv">k</span><span class="op2">+</span><span class="num">1</span>) <span class="op2">/</span> <span class="vv">n</span>);
+  <span class="fn">printf</span>(<span class="str">'  k=%d: angle=%.2f°  ζ^%d + 1 = %.6f\n'</span>, ...
+         <span class="vv">k</span>, (<span class="num">2</span><span class="op2">*</span><span class="vv">k</span><span class="op2">+</span><span class="num">1</span>)<span class="op2">*</span><span class="num">180</span><span class="op2">/</span><span class="vv">n</span>, <span class="vv">n</span>, <span class="fn">abs</span>(<span class="vv">zeta</span><span class="op2">^</span><span class="vv">n</span> <span class="op2">+</span> <span class="num">1</span>));  <span class="cm">% should be ~0</span>
+<span class="kw">end</span>
+
+<span class="cm">% Ring-LWE toy key exchange in Z_q[x]/(x^n+1)</span>
+<span class="vv">q</span> <span class="op2">=</span> <span class="num">97</span>; <span class="vv">n</span> <span class="op2">=</span> <span class="num">8</span>;
+<span class="cm">% Alice's key pair</span>
+<span class="vv">s_a</span> <span class="op2">=</span> <span class="fn">randi</span>([<span class="op2">-</span><span class="num">1</span>,<span class="num">1</span>], <span class="num">1</span>, <span class="vv">n</span>);          <span class="cm">% small secret</span>
+<span class="vv">a</span>   <span class="op2">=</span> <span class="fn">randi</span>([<span class="num">0</span>, <span class="vv">q</span><span class="op2">-</span><span class="num">1</span>], <span class="num">1</span>, <span class="vv">n</span>);        <span class="cm">% public random polynomial</span>
+<span class="vv">e_a</span> <span class="op2">=</span> <span class="fn">randi</span>([<span class="op2">-</span><span class="num">1</span>,<span class="num">1</span>], <span class="num">1</span>, <span class="vv">n</span>);          <span class="cm">% small error</span>
+<span class="vv">b_a</span> <span class="op2">=</span> <span class="fn">ring_mul</span>(<span class="vv">a</span>, <span class="vv">s_a</span>, <span class="vv">n</span>, <span class="vv">q</span>);
+<span class="vv">b_a</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="vv">b_a</span> <span class="op2">+</span> <span class="vv">e_a</span>, <span class="vv">q</span>);             <span class="cm">% public key: b_a = a*s_a + e_a</span>
+<span class="cm">% Bob's key pair</span>
+<span class="vv">s_b</span> <span class="op2">=</span> <span class="fn">randi</span>([<span class="op2">-</span><span class="num">1</span>,<span class="num">1</span>], <span class="num">1</span>, <span class="vv">n</span>);
+<span class="vv">e_b</span> <span class="op2">=</span> <span class="fn">randi</span>([<span class="op2">-</span><span class="num">1</span>,<span class="num">1</span>], <span class="num">1</span>, <span class="vv">n</span>);
+<span class="vv">b_b</span> <span class="op2">=</span> <span class="fn">mod</span>(<span class="fn">ring_mul</span>(<span class="vv">a</span>, <span class="vv">s_b</span>, <span class="vv">n</span>, <span class="vv">q</span>) <span class="op2">+</span> <span class="vv">e_b</span>, <span class="vv">q</span>);
+<span class="cm">% Shared secrets (approximately equal due to small errors)</span>
+<span class="vv">K_a</span> <span class="op2">=</span> <span class="fn">ring_mul</span>(<span class="vv">b_b</span>, <span class="vv">s_a</span>, <span class="vv">n</span>, <span class="vv">q</span>);    <span class="cm">% Alice computes b_b * s_a</span>
+<span class="vv">K_b</span> <span class="op2">=</span> <span class="fn">ring_mul</span>(<span class="vv">b_a</span>, <span class="vv">s_b</span>, <span class="vv">n</span>, <span class="vv">q</span>);    <span class="cm">% Bob computes b_a * s_b</span>
+<span class="vv">diff</span><span class="op2">=</span> <span class="fn">max</span>(<span class="fn">abs</span>(<span class="fn">double</span>(<span class="vv">K_a</span>) <span class="op2">-</span> <span class="fn">double</span>(<span class="vv">K_b</span>)));
+<span class="fn">printf</span>(<span class="str">'\nRing-LWE key exchange:\n'</span>);
+<span class="fn">printf</span>(<span class="str">'K_a = '); disp(K_a);</span>
+<span class="fn">printf</span>(<span class="str">'K_b = '); disp(K_b);</span>
+<span class="fn">printf</span>(<span class="str">'Max coefficient difference: %d  (small ≈ error magnitude)\n'</span>, <span class="vv">diff</span>);
+<span class="cm">% In real Kyber, reconciliation mechanism ensures exact agreement</span>
+</pre>
+  </div>
+
+  <div class="note">
+    <div class="bt">The Full Circle</div>
+    <p>We started with <span class="m">i = √−1</span> — an abstract concept with "no real meaning." We end with it as the organizing principle of the most important family of post-quantum algorithms. The roots of unity <span class="m">e<sup>2πi/n</sup></span> define the algebraic structure of <span class="m">ℚ(ζ<sub>n</sub>)</span>. The rings <span class="m">ℤ[x]/(Φ<sub>n</sub>(x))</span> inherited from those roots are precisely the ones that make lattice cryptography simultaneously secure and fast. The imaginary unit is not an abstraction bolted onto cryptography — it is woven into its foundations.</p>
+  </div>
+</section>
+
+</main>
+
+<footer style="background:var(--bg2);border-top:1px solid var(--border);padding:2rem;text-align:center;font-family:var(--mono);font-size:.72rem;color:var(--muted);line-height:2">
+  Imaginary Numbers in Cryptography &nbsp;·&nbsp; Gaussian Integers · NTT · CM Theory · Pairings · Ring-LWE<br>
+  All Octave examples require helper functions from §2–§3 in scope (mod_pow, mod_inverse, ring_mul, sqrt_neg1_mod_p)
+</footer>
+
+<script>
+/* ── ANIMATED COMPLEX PLANE HEADER ─────────────── */
+(function(){
+  const c = document.getElementById('bg-canvas');
+  const ctx = c.getContext('2d');
+  let W, H, pts = [];
+  function resize(){
+    W = c.width = c.parentElement.offsetWidth;
+    H = c.height = c.parentElement.offsetHeight;
+    pts = [];
+    for(let i=0;i<60;i++){
+      pts.push({
+        x: Math.random()*W, y: Math.random()*H,
+        vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3,
+        r: Math.random()*1.5+.5,
+        hue: Math.random()<.5 ? 195 : 45
+      });
+    }
+  }
+  resize(); window.addEventListener('resize', resize);
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${p.hue},70%,65%,0.7)`;
+      ctx.fill();
+    });
+    pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<90){
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(126,200,227,${.18*(1-d/90)})`;
+        ctx.lineWidth=.5; ctx.stroke();
+      }
+    }));
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ── GAUSSIAN PRIME PLANE ───────────────────────── */
+(function(){
+  const c = document.getElementById('gauss-plane');
+  const ctx = c.getContext('2d');
+  const W=c.width, H=c.height, cx=W/2, cy=H/2, scale=24;
+  ctx.fillStyle='#04070e'; ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='#1a2540'; ctx.lineWidth=.5;
+  for(let x=-10;x<=10;x++){
+    ctx.beginPath(); ctx.moveTo(cx+x*scale,0); ctx.lineTo(cx+x*scale,H); ctx.stroke();
+  }
+  for(let y=-6;y<=6;y++){
+    ctx.beginPath(); ctx.moveTo(0,cy+y*scale); ctx.lineTo(W,cy+y*scale); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle='#2a3f60'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+
+  function isPrime(n){ if(n<2)return false; for(let i=2;i*i<=n;i++)if(n%i===0)return false; return true; }
+  function isGaussPrime(a,b){
+    const n=a*a+b*b;
+    if(isPrime(n)) return true;
+    if(b===0 && isPrime(Math.abs(a)) && Math.abs(a)%4===3) return true;
+    if(a===0 && isPrime(Math.abs(b)) && Math.abs(b)%4===3) return true;
+    return false;
+  }
+
+  for(let a=-9;a<=9;a++){
+    for(let b=-5;b<=5;b++){
+      const px=cx+a*scale, py=cy-b*scale;
+      if(a===0&&b===0) continue;
+      const gp=isGaussPrime(a,b);
+      const split=(a!==0||b!==0)&&isPrime(a*a+b*b);
+      let color='#1e2d4a', r=2.5;
+      if(gp&&split){color='#9060d0';r=4;}
+      else if(gp){color='#f0c060';r=4;}
+      else{color='#1a2d50';r=2;}
+      ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2);
+      ctx.fillStyle=color; ctx.fill();
+    }
+  }
+  // Labels
+  ctx.fillStyle='#3a5080'; ctx.font='10px monospace';
+  ctx.fillText('ℜ →', W-24, cy-4);
+  ctx.fillText('↑ 𝒊', cx+4, 12);
+})();
+
+/* ── INTERACTIVE NTT ────────────────────────────── */
+function modpow(base,exp,mod){
+  let r=1n; base=BigInt(base)%BigInt(mod); exp=BigInt(exp); mod=BigInt(mod);
+  while(exp>0n){ if(exp&1n) r=r*base%mod; base=base*base%mod; exp>>=1n; }
+  return Number(r);
+}
+function bitRevOrder(arr){
+  const n=arr.length, log2n=Math.log2(n);
+  const res=new Array(n);
+  for(let i=0;i<n;i++){
+    let rev=0,x=i;
+    for(let j=0;j<log2n;j++){rev=(rev<<1)|(x&1);x>>=1;}
+    res[rev]=arr[i];
+  }
+  return res;
+}
+function nttJS(a, q, omega){
+  const n=a.length;
+  let A=bitRevOrder(a.map(Number));
+  for(let len=2;len<=n;len*=2){
+    const w=modpow(omega, (q-1)/len, q);
+    for(let i=0;i<n;i+=len){
+      let wn=1;
+      for(let j=0;j<len/2;j++){
+        const u=A[i+j], t=(wn*A[i+j+len/2])%q;
+        A[i+j]=(u+t)%q;
+        A[i+j+len/2]=(u-t+q)%q;
+        wn=(wn*w)%q;
+      }
+    }
+  }
+  return A;
+}
+function runNTT(){
+  const raw=document.getElementById('ntt-in').value;
+  const q=parseInt(document.getElementById('ntt-q').value)||17;
+  const a=raw.split(',').map(s=>((parseInt(s.trim())%q)+q)%q).filter(x=>!isNaN(x));
+  const n=a.length;
+  if(n===0||!Number.isInteger(Math.log2(n))){
+    document.getElementById('ntt-out').textContent='Length must be a power of 2 (2, 4, 8, 16, ...)'; return;
+  }
+  // Find primitive n-th root of unity mod q
+  let omega=-1;
+  for(let g=2;g<q;g++){
+    if(modpow(g,(q-1)/n,q)!==1 && modpow(g,q-1,q)===1){
+      // check order is exactly n
+      let ok=true;
+      for(let d=1;d<n;d++){if((n%d===0)&&modpow(g,(q-1)*d/n,q)===1){ok=false;break;}}
+      if(ok){omega=modpow(g,(q-1)/n,q);break;}
+    }
+  }
+  if(omega<0){document.getElementById('ntt-out').innerHTML='<span style="color:var(--coral)">No primitive '+n+'-th root of unity in ℤ<sub>'+q+'</sub>. Try q ≡ 1 (mod '+n+')</span>'; return;}
+  const A=nttJS(a,q,omega);
+  const out=document.getElementById('ntt-out');
+  out.innerHTML=`<span class="label">Input:</span>${a.join(', ')}\n`+
+    `<span class="label">Modulus q:</span>${q}\n`+
+    `<span class="label">ω (root):</span>${omega} &nbsp;(ω^${n} ≡ ${modpow(omega,n,q)} mod ${q})\n`+
+    `<span class="label">NTT output:</span>${A.join(', ')}\n`+
+    `<span class="label">Point values:</span>f(ω⁰)…f(ω^${n-1}) in ℤ_${q}`;
+}
+
+/* ── COPY BUTTONS ───────────────────────────────── */
+function copyCode(btn){
+  const text=btn.closest('.code-wrap').querySelector('pre').innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    const o=btn.textContent; btn.textContent='copied!';
+    btn.style.cssText='border-color:#50d890;color:#50d890';
+    setTimeout(()=>{btn.textContent=o;btn.style.cssText='';},1800);
+  });
+}
+
+/* ── SMOOTH NAV ──────────────────────────────────── */
+document.querySelectorAll('nav a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const el=document.getElementById(a.getAttribute('href').slice(1));
+    if(el) window.scrollTo({top:el.getBoundingClientRect().top+scrollY-52,behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cryptography Guide</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:#0f1117;color:#e2e8f0;line-height:1.7;font-size:16px}
+  :root{--purple:#7c3aed;--purple-light:#a78bfa;--purple-dark:#4c1d95;--teal:#0d9488;--teal-light:#5eead4;--coral:#e05a2b;--coral-light:#fb923c;--blue:#2563eb;--blue-light:#60a5fa;--green:#16a34a;--green-light:#4ade80;--amber:#d97706;--amber-light:#fbbf24;--gray:#374151;--gray-light:#6b7280;--surface:#1a1d27;--surface2:#22263a;--surface3:#2a2f45;--border:#2e3550;--text:#e2e8f0;--muted:#94a3b8}
+  header{background:linear-gradient(135deg,#0f1117 0%,#1a1040 50%,#0f1117 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;position:relative;overflow:hidden}
+  header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,0.15) 0%,transparent 70%)}
+  header h1{font-size:2.6rem;font-weight:700;background:linear-gradient(90deg,#a78bfa,#5eead4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative}
+  header p{color:var(--muted);margin-top:.5rem;font-size:1.05rem;position:relative}
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 2rem;display:flex;gap:.5rem;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+  nav a{color:var(--muted);text-decoration:none;font-size:.85rem;padding:.35rem .75rem;border-radius:6px;border:1px solid transparent;transition:all .2s}
+  nav a:hover{color:var(--purple-light);border-color:var(--purple);background:rgba(124,58,237,.1)}
+  main{max-width:900px;margin:0 auto;padding:2rem}
+  section{margin-bottom:3.5rem}
+  .sec-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+  .sec-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+  .sec-icon.purple{background:rgba(124,58,237,.2);color:var(--purple-light)}
+  .sec-icon.teal{background:rgba(13,148,136,.2);color:var(--teal-light)}
+  .sec-icon.coral{background:rgba(224,90,43,.2);color:var(--coral-light)}
+  .sec-icon.blue{background:rgba(37,99,235,.2);color:var(--blue-light)}
+  .sec-icon.green{background:rgba(22,163,74,.2);color:var(--green-light)}
+  .sec-icon.amber{background:rgba(217,119,6,.2);color:var(--amber-light)}
+  h2{font-size:1.5rem;font-weight:600;color:var(--text)}
+  h3{font-size:1.1rem;font-weight:600;color:var(--text);margin:1.25rem 0 .5rem}
+  p{color:#cbd5e1;margin-bottom:1rem}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:1rem}
+  .card h3{margin-top:0}
+  .tag{display:inline-block;font-size:.75rem;padding:.2rem .6rem;border-radius:4px;font-weight:600;letter-spacing:.04em;margin-bottom:.5rem}
+  .tag.sym{background:rgba(37,99,235,.2);color:var(--blue-light)}
+  .tag.asym{background:rgba(124,58,237,.2);color:var(--purple-light)}
+  .tag.hash{background:rgba(13,148,136,.2);color:var(--teal-light)}
+  .tag.modern{background:rgba(22,163,74,.2);color:var(--green-light)}
+  .tag.classic{background:rgba(217,119,6,.2);color:var(--amber-light)}
+  .tag.broken{background:rgba(224,90,43,.2);color:var(--coral-light)}
+  .algo-row{display:flex;align-items:flex-start;gap:1rem;padding:.75rem;border-radius:8px;border:1px solid var(--border);margin-bottom:.6rem;background:var(--surface2)}
+  .algo-name{font-weight:600;font-size:.95rem;color:var(--text);min-width:80px}
+  .algo-desc{font-size:.9rem;color:var(--muted);flex:1}
+  .algo-meta{font-size:.8rem;color:var(--gray-light);white-space:nowrap}
+  code{background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:.15rem .45rem;font-family:'Courier New',monospace;font-size:.88rem;color:var(--teal-light)}
+  pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0}
+  pre code{background:none;border:none;padding:0;font-size:.85rem;color:#e2e8f0;line-height:1.6}
+  .kw{color:#a78bfa}.fn{color:#60a5fa}.str{color:#86efac}.cm{color:#4b5563}.num{color:#fbbf24}
+  .flow{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+  .flow-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.5rem 1rem;font-size:.9rem;font-weight:500;text-align:center}
+  .flow-box.hi{border-color:var(--purple);background:rgba(124,58,237,.1);color:var(--purple-light)}
+  .flow-arrow{color:var(--muted);font-size:1.2rem}
+  .infobox{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;display:flex;gap:.75rem}
+  .infobox.tip{background:rgba(13,148,136,.08);border:1px solid rgba(13,148,136,.3)}
+  .infobox.warn{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.3)}
+  .infobox.danger{background:rgba(224,90,43,.08);border:1px solid rgba(224,90,43,.3)}
+  .infobox i{font-size:1.1rem;margin-top:2px;flex-shrink:0}
+  .infobox.tip i{color:var(--teal-light)}
+  .infobox.warn i{color:var(--amber-light)}
+  .infobox.danger i{color:var(--coral-light)}
+  .infobox p{margin:0;font-size:.9rem}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;margin:1rem 0}
+  th{text-align:left;padding:.6rem 1rem;background:var(--surface3);color:var(--muted);font-weight:500;border-bottom:1px solid var(--border)}
+  td{padding:.6rem 1rem;border-bottom:1px solid var(--border);color:#cbd5e1}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--surface2)}
+  .timeline{position:relative;padding-left:2rem}
+  .timeline::before{content:'';position:absolute;left:.6rem;top:0;bottom:0;width:1px;background:var(--border)}
+  .tl-item{position:relative;margin-bottom:1.5rem}
+  .tl-dot{position:absolute;left:-1.65rem;top:.3rem;width:14px;height:14px;border-radius:50%;border:2px solid var(--purple);background:var(--surface)}
+  .tl-year{font-size:.8rem;font-weight:700;color:var(--purple-light);letter-spacing:.05em;margin-bottom:.2rem}
+  .tl-text{font-size:.9rem;color:var(--muted)}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+  .compare-col{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .compare-col h4{font-size:.95rem;font-weight:600;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+  .compare-col.blue h4{color:var(--blue-light)}
+  .compare-col.purple h4{color:var(--purple-light)}
+  .dot-list{list-style:none}
+  .dot-list li{font-size:.88rem;color:var(--muted);padding:.25rem 0;padding-left:1rem;position:relative}
+  .dot-list li::before{content:'→';position:absolute;left:0;color:var(--purple-light)}
+  .interactive{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:1rem 0}
+  .interactive label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:.35rem}
+  .interactive input[type=text]{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;color:var(--text);font-size:.95rem;font-family:monospace;outline:none;transition:border .2s}
+  .interactive input[type=text]:focus{border-color:var(--purple)}
+  .interactive input[type=number]{width:100px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;color:var(--text);font-size:.95rem;outline:none}
+  .btn{background:rgba(124,58,237,.2);border:1px solid var(--purple);color:var(--purple-light);padding:.5rem 1.25rem;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:500;transition:all .2s;margin-top:.75rem}
+  .btn:hover{background:rgba(124,58,237,.35)}
+  .output-box{margin-top:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-family:monospace;font-size:.85rem;color:var(--teal-light);word-break:break-all;min-height:36px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:600px){.compare,.grid2{grid-template-columns:1fr}.flow{flex-direction:column}}
+  .badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;padding:.2rem .65rem;border-radius:5px;border:1px solid var(--border);color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><i class="ti ti-lock" style="display:inline-block;background:linear-gradient(90deg,#a78bfa,#5eead4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:.3rem"></i> Cryptography Guide</h1>
+  <p>A complete reference from classical ciphers to modern cryptographic systems</p>
+</header>
+
+<nav>
+  <a href="#intro">Introduction</a>
+  <a href="#history">History</a>
+  <a href="#symmetric">Symmetric</a>
+  <a href="#asymmetric">Asymmetric</a>
+  <a href="#hashing">Hashing</a>
+  <a href="#protocols">Protocols</a>
+  <a href="#attacks">Attacks</a>
+  <a href="#playground">Playground</a>
+  <a href="#bestpractices">Best Practices</a>
+</nav>
+
+<main>
+
+<!-- INTRO -->
+<section id="intro">
+  <div class="sec-header">
+    <div class="sec-icon purple"><i class="ti ti-book"></i></div>
+    <h2>What is Cryptography?</h2>
+  </div>
+  <p>Cryptography is the science and art of securing information by transforming it into an unreadable format for unauthorized parties. From ancient scrolls to HTTPS, it underlies all digital trust.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3><i class="ti ti-eye-off" style="color:#a78bfa;margin-right:6px"></i> Confidentiality</h3>
+      <p style="margin:0;font-size:.9rem">Only intended recipients can read the data. Achieved through encryption algorithms like AES or RSA.</p>
+    </div>
+    <div class="card">
+      <h3><i class="ti ti-shield-check" style="color:#5eead4;margin-right:6px"></i> Integrity</h3>
+      <p style="margin:0;font-size:.9rem">Data has not been altered in transit. Achieved through hash functions and MACs (Message Authentication Codes).</p>
+    </div>
+    <div class="card">
+      <h3><i class="ti ti-user-check" style="color:#60a5fa;margin-right:6px"></i> Authentication</h3>
+      <p style="margin:0;font-size:.9rem">Verifying the identity of a sender or receiver. Achieved via digital signatures and certificates.</p>
+    </div>
+    <div class="card">
+      <h3><i class="ti ti-certificate" style="color:#4ade80;margin-right:6px"></i> Non-repudiation</h3>
+      <p style="margin:0;font-size:.9rem">A sender cannot deny having sent a message. Achieved through digital signatures tied to private keys.</p>
+    </div>
+  </div>
+
+  <h3>Core terminology</h3>
+  <table>
+    <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td><code>Plaintext</code></td><td>Original readable data before encryption</td></tr>
+      <tr><td><code>Ciphertext</code></td><td>Scrambled, unreadable output after encryption</td></tr>
+      <tr><td><code>Key</code></td><td>Secret value that controls encryption/decryption</td></tr>
+      <tr><td><code>Cipher</code></td><td>The algorithm used to encrypt and decrypt</td></tr>
+      <tr><td><code>Keyspace</code></td><td>Total number of possible key values</td></tr>
+      <tr><td><code>Entropy</code></td><td>Measure of randomness / unpredictability in a key</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- HISTORY -->
+<section id="history">
+  <div class="sec-header">
+    <div class="sec-icon amber"><i class="ti ti-clock-history"></i></div>
+    <h2>A Brief History</h2>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">~1900 BCE</div><div class="tl-text">Ancient Egyptians used substitution hieroglyphs to obscure meaning in tomb inscriptions.</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">~100 BCE</div><div class="tl-text">Julius Caesar uses the Caesar cipher — a simple rotation cipher to encrypt military dispatches (ROT-3).</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1466</div><div class="tl-text">Leon Alberti invents the polyalphabetic cipher, using multiple substitution alphabets to resist frequency analysis.</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1917</div><div class="tl-text">The Zimmermann Telegram — a coded German diplomatic message — is broken by British intelligence, influencing WWI's outcome.</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1940s</div><div class="tl-text">Alan Turing and team crack the Enigma machine at Bletchley Park, a watershed moment in both cryptanalysis and computing.</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1976</div><div class="tl-text">Diffie and Hellman publish "New Directions in Cryptography", introducing public-key cryptography — the most important cryptographic innovation of the 20th century.</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1977</div><div class="tl-text">RSA algorithm published by Rivest, Shamir, and Adleman. DES adopted as the US federal standard for symmetric encryption.</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">2001</div><div class="tl-text">AES (Advanced Encryption Standard) adopted by NIST, replacing DES with a stronger, faster block cipher.</div></div>
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">2022+</div><div class="tl-text">NIST begins standardizing post-quantum cryptographic algorithms (CRYSTALS-Kyber, CRYSTALS-Dilithium) to resist quantum computing threats.</div></div>
+  </div>
+</section>
+
+<!-- SYMMETRIC -->
+<section id="symmetric">
+  <div class="sec-header">
+    <div class="sec-icon blue"><i class="ti ti-key"></i></div>
+    <h2>Symmetric Encryption</h2>
+  </div>
+  <p>Symmetric encryption uses a <strong>single shared key</strong> for both encryption and decryption. It is fast and suitable for bulk data, but key distribution is a challenge.</p>
+
+  <div class="flow" style="justify-content:center">
+    <div class="flow-box">Plaintext</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box hi">🔑 Encrypt (Key)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Ciphertext</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box hi">🔑 Decrypt (Same Key)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Plaintext</div>
+  </div>
+
+  <h3>Block ciphers</h3>
+  <p>Encrypt fixed-size blocks of data (e.g., 128 bits). The same key is applied to each block using a specific mode of operation.</p>
+
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Modern</span><br>AES</div><div class="algo-desc">Advanced Encryption Standard. Block size 128 bits, key sizes 128/192/256 bits. Gold standard of symmetric encryption, used in TLS, WPA2, disk encryption.</div><div class="algo-meta">Since 2001</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag classic">Legacy</span><br>DES</div><div class="algo-desc">Data Encryption Standard. 64-bit blocks, 56-bit key. Replaced by AES. Now insecure — brute-forceable in hours.</div><div class="algo-meta">1977–2001</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag classic">Legacy</span><br>3DES</div><div class="algo-desc">Triple DES. Applies DES three times with 112-bit effective security. Deprecated by NIST in 2019.</div><div class="algo-meta">~1998</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Modern</span><br>Blowfish</div><div class="algo-desc">64-bit block, key sizes 32–448 bits. Fast and patent-free. Common in older password hashing (bcrypt's cipher).</div><div class="algo-meta">1993</div></div>
+
+  <h3>Stream ciphers</h3>
+  <p>Encrypt data one bit or byte at a time using a pseudo-random keystream XOR'd with plaintext. Faster than block ciphers for continuous data.</p>
+
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Modern</span><br>ChaCha20</div><div class="algo-desc">256-bit stream cipher designed by DJB. Used in TLS 1.3, WireGuard. Resistant to timing attacks, software-efficient.</div><div class="algo-meta">2008</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag broken">Broken</span><br>RC4</div><div class="algo-desc">Once widely used in SSL and WEP. Multiple statistical biases discovered. Do not use.</div><div class="algo-meta">Deprecated</div></div>
+
+  <h3>Modes of operation (for block ciphers)</h3>
+  <table>
+    <thead><tr><th>Mode</th><th>Full Name</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>ECB</code></td><td>Electronic Codebook</td><td>❌ Deterministic — identical blocks → identical ciphertext. Never use.</td></tr>
+      <tr><td><code>CBC</code></td><td>Cipher Block Chaining</td><td>Each block XOR'd with previous ciphertext. Requires IV. Vulnerable to padding oracle attacks.</td></tr>
+      <tr><td><code>CTR</code></td><td>Counter Mode</td><td>Converts block cipher to stream cipher. Parallelizable. Requires unique nonce.</td></tr>
+      <tr><td><code>GCM</code></td><td>Galois/Counter Mode</td><td>✅ Recommended. Authenticated encryption (AEAD). Provides confidentiality + integrity.</td></tr>
+      <tr><td><code>CCM</code></td><td>Counter with CBC-MAC</td><td>AEAD mode used in IEEE 802.11 (WPA2). Good for constrained devices.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="infobox tip"><i class="ti ti-info-circle"></i><p><strong>Best practice:</strong> Always use AES-256-GCM. It provides authenticated encryption, meaning you get both confidentiality and integrity protection in a single primitive.</p></div>
+</section>
+
+<!-- ASYMMETRIC -->
+<section id="asymmetric">
+  <div class="sec-header">
+    <div class="sec-icon purple"><i class="ti ti-arrows-exchange"></i></div>
+    <h2>Asymmetric (Public-Key) Encryption</h2>
+  </div>
+  <p>Uses a mathematically linked <strong>key pair</strong>: a public key (share freely) and a private key (keep secret). What one key encrypts, only the other can decrypt.</p>
+
+  <div class="compare">
+    <div class="compare-col blue">
+      <h4><i class="ti ti-world" style="margin-right:6px"></i> Public Key</h4>
+      <ul class="dot-list">
+        <li>Freely distributed</li>
+        <li>Used to encrypt messages for you</li>
+        <li>Used to verify your signatures</li>
+        <li>Cannot decrypt or sign</li>
+      </ul>
+    </div>
+    <div class="compare-col purple">
+      <h4><i class="ti ti-lock" style="margin-right:6px"></i> Private Key</h4>
+      <ul class="dot-list">
+        <li>Never shared</li>
+        <li>Used to decrypt messages</li>
+        <li>Used to create digital signatures</li>
+        <li>Mathematically derived from keygen</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Key algorithms</h3>
+  <div class="algo-row"><div class="algo-name"><span class="tag asym">Asym</span><br>RSA</div><div class="algo-desc">Based on difficulty of factoring large integers. Keys: 2048–4096 bits. Used for key exchange, signatures, TLS certificates. Slow for bulk data.</div><div class="algo-meta">1977</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag asym">Asym</span><br>ECC</div><div class="algo-desc">Elliptic Curve Cryptography. Smaller keys (256 bits ≈ RSA 3072 bits) with equivalent security. Basis for ECDSA and ECDH.</div><div class="algo-meta">1985</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag asym">Asym</span><br>DSA / ECDSA</div><div class="algo-desc">Digital Signature Algorithm / Elliptic Curve DSA. Used for digital signatures, SSH keys, code signing, TLS. ECDSA is preferred.</div><div class="algo-meta">1991</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Modern</span><br>Ed25519</div><div class="algo-desc">Edwards-curve variant, very fast and secure. No weak random number vulnerability like ECDSA. Preferred for SSH and modern TLS.</div><div class="algo-meta">2011</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Modern</span><br>X25519</div><div class="algo-desc">Curve25519-based Diffie-Hellman key exchange. Used in TLS 1.3, Signal protocol, WireGuard.</div><div class="algo-meta">2006</div></div>
+
+  <h3>Diffie-Hellman key exchange</h3>
+  <p>Allows two parties to establish a shared secret over an insecure channel without ever transmitting the secret itself.</p>
+  <div class="flow" style="flex-direction:column;align-items:flex-start">
+    <div style="display:flex;gap:.5rem;align-items:center"><div class="flow-box">Alice & Bob agree on public params (g, p)</div></div>
+    <div class="flow-arrow" style="margin-left:1rem">↓</div>
+    <div style="display:flex;gap:.5rem;align-items:center"><div class="flow-box">Alice picks secret <code>a</code>, sends <code>g^a mod p</code></div><div class="flow-box">Bob picks secret <code>b</code>, sends <code>g^b mod p</code></div></div>
+    <div class="flow-arrow" style="margin-left:1rem">↓</div>
+    <div style="display:flex;gap:.5rem;align-items:center"><div class="flow-box hi">Shared secret: <code>(g^b)^a mod p</code> = <code>(g^a)^b mod p</code></div></div>
+  </div>
+
+  <h3>Digital signatures</h3>
+  <div class="flow" style="justify-content:center">
+    <div class="flow-box">Message</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box hi">Hash(msg)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box hi">Sign(private key)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Signature</div>
+  </div>
+  <p style="margin:.5rem 0">Verification: anyone with your public key can run <code>Verify(signature, public key)</code> → outputs <code>valid</code> or <code>invalid</code>.</p>
+
+  <div class="infobox warn"><i class="ti ti-alert-triangle"></i><p>RSA with keys under 2048 bits is considered weak. For new systems, prefer ECC (P-256 or X25519). RSA-1024 can be factored with enough compute.</p></div>
+</section>
+
+<!-- HASHING -->
+<section id="hashing">
+  <div class="sec-header">
+    <div class="sec-icon teal"><i class="ti ti-hash"></i></div>
+    <h2>Cryptographic Hash Functions</h2>
+  </div>
+  <p>A hash function maps arbitrary-length input to a fixed-length output (digest). It is a <strong>one-way function</strong> — easy to compute, computationally infeasible to reverse.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3><i class="ti ti-arrows-random" style="color:#5eead4;margin-right:6px"></i> Deterministic</h3>
+      <p style="margin:0;font-size:.9rem">Same input always produces the same hash output. No randomness involved.</p>
+    </div>
+    <div class="card">
+      <h3><i class="ti ti-wave-saw-tool" style="color:#a78bfa;margin-right:6px"></i> Avalanche Effect</h3>
+      <p style="margin:0;font-size:.9rem">Changing even one bit of input completely changes the output — unpredictably.</p>
+    </div>
+    <div class="card">
+      <h3><i class="ti ti-forbid" style="color:#60a5fa;margin-right:6px"></i> Collision Resistant</h3>
+      <p style="margin:0;font-size:.9rem">Practically impossible to find two different inputs that produce the same hash.</p>
+    </div>
+    <div class="card">
+      <h3><i class="ti ti-arrow-back-up" style="color:#4ade80;margin-right:6px"></i> Pre-image Resistant</h3>
+      <p style="margin:0;font-size:.9rem">Given a hash output, it's infeasible to find the original input.</p>
+    </div>
+  </div>
+
+  <h3>Common hash algorithms</h3>
+  <table>
+    <thead><tr><th>Algorithm</th><th>Output</th><th>Status</th><th>Use case</th></tr></thead>
+    <tbody>
+      <tr><td><code>MD5</code></td><td>128 bits</td><td><span class="tag broken">Broken</span></td><td>Checksums only — collisions trivially found</td></tr>
+      <tr><td><code>SHA-1</code></td><td>160 bits</td><td><span class="tag broken">Deprecated</span></td><td>Legacy — SHAttered attack broke it in 2017</td></tr>
+      <tr><td><code>SHA-256</code></td><td>256 bits</td><td><span class="tag modern">Secure</span></td><td>TLS, code signing, Bitcoin, general purpose</td></tr>
+      <tr><td><code>SHA-512</code></td><td>512 bits</td><td><span class="tag modern">Secure</span></td><td>Higher security, slower on 32-bit systems</td></tr>
+      <tr><td><code>SHA-3 / Keccak</code></td><td>224–512 bits</td><td><span class="tag modern">Secure</span></td><td>NIST standard, different design from SHA-2</td></tr>
+      <tr><td><code>BLAKE3</code></td><td>variable</td><td><span class="tag modern">Modern</span></td><td>Fastest secure hash. Used in Bao, IPFS</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Password hashing (key derivation)</h3>
+  <p>Regular hashes are too fast for passwords — attackers can hash millions of guesses per second. Password hashing functions are deliberately slow and memory-hard.</p>
+
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Best</span><br>Argon2id</div><div class="algo-desc">Winner of the Password Hashing Competition (2015). Memory-hard, CPU-hard, resistant to GPU and ASIC attacks. <strong>Use this for new systems.</strong></div><div class="algo-meta">2015</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Good</span><br>bcrypt</div><div class="algo-desc">Based on Blowfish. Cost factor is adjustable. Widely supported. Capped at 72 bytes input.</div><div class="algo-meta">1999</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Good</span><br>scrypt</div><div class="algo-desc">Memory-hard function used in Litecoin, some password managers. Parameter tuning required.</div><div class="algo-meta">2009</div></div>
+  <div class="algo-row"><div class="algo-name"><span class="tag modern">Good</span><br>PBKDF2</div><div class="algo-desc">NIST-approved, FIPS-compliant. Not memory-hard, but widely available and sufficient with high iterations (600k+ for HMAC-SHA256).</div><div class="algo-meta">2000</div></div>
+
+  <h3>HMAC (Hash-based Message Authentication Code)</h3>
+  <p>Combines a cryptographic hash with a secret key to verify both the integrity and authenticity of a message.</p>
+  <pre><code><span class="cm">// HMAC-SHA256 construction</span>
+<span class="kw">HMAC</span>(key, message) = <span class="fn">Hash</span>((key ⊕ opad) || <span class="fn">Hash</span>((key ⊕ ipad) || message))
+
+<span class="cm">// Used in: JWT tokens, TLS MAC, API authentication headers</span>
+Authorization: HMAC-SHA256 <span class="str">timestamp=1234&nonce=abc&sig=e3b0c442...</span></code></pre>
+</section>
+
+<!-- PROTOCOLS -->
+<section id="protocols">
+  <div class="sec-header">
+    <div class="sec-icon green"><i class="ti ti-network"></i></div>
+    <h2>Cryptographic Protocols</h2>
+  </div>
+
+  <h3>TLS / SSL — Transport Layer Security</h3>
+  <p>The protocol that secures HTTPS. It uses asymmetric crypto for key exchange and authentication, then symmetric crypto for the bulk data transfer.</p>
+  <div class="flow" style="flex-direction:column;align-items:flex-start">
+    <div style="display:flex;align-items:center;gap:.5rem"><span style="font-size:.8rem;color:var(--muted);width:60px">Step 1</span><div class="flow-box">Client Hello (supported ciphers, random)</div></div>
+    <div style="display:flex;align-items:center;gap:.5rem;margin-top:4px"><span style="font-size:.8rem;color:var(--muted);width:60px">Step 2</span><div class="flow-box">Server Hello + Certificate (public key)</div></div>
+    <div style="display:flex;align-items:center;gap:.5rem;margin-top:4px"><span style="font-size:.8rem;color:var(--muted);width:60px">Step 3</span><div class="flow-box hi">Key Exchange (ECDHE / X25519)</div></div>
+    <div style="display:flex;align-items:center;gap:.5rem;margin-top:4px"><span style="font-size:.8rem;color:var(--muted);width:60px">Step 4</span><div class="flow-box">Derive session keys from shared secret</div></div>
+    <div style="display:flex;align-items:center;gap:.5rem;margin-top:4px"><span style="font-size:.8rem;color:var(--muted);width:60px">Step 5</span><div class="flow-box hi">Encrypted data transfer (AES-256-GCM)</div></div>
+  </div>
+  <div class="infobox tip" style="margin-top:1rem"><i class="ti ti-info-circle"></i><p>TLS 1.3 (2018) simplified the handshake, removed weak ciphers (RC4, DES, SHA-1), and requires forward secrecy. Always use TLS 1.2 minimum, prefer 1.3.</p></div>
+
+  <h3>PKI — Public Key Infrastructure</h3>
+  <div class="card-grid">
+    <div class="card"><h3>Certificate Authorities (CA)</h3><p style="font-size:.9rem;margin:0">Trusted third parties (DigiCert, Let's Encrypt, etc.) that sign X.509 certificates, binding a public key to an identity.</p></div>
+    <div class="card"><h3>X.509 Certificates</h3><p style="font-size:.9rem;margin:0">Standard format containing: subject name, public key, issuer, validity period, and the CA's digital signature.</p></div>
+    <div class="card"><h3>Certificate Chain</h3><p style="font-size:.9rem;margin:0">End-entity cert → Intermediate CA → Root CA. Root CAs are pre-installed in OSes and browsers as trust anchors.</p></div>
+    <div class="card"><h3>Certificate Revocation</h3><p style="font-size:.9rem;margin:0">CRL (Certificate Revocation Lists) and OCSP (Online Certificate Status Protocol) handle invalidating compromised certs.</p></div>
+  </div>
+
+  <h3>Other important protocols</h3>
+  <div class="algo-row"><div class="algo-name">PGP / GPG</div><div class="algo-desc">Pretty Good Privacy. Web-of-trust model. Used for email encryption and file signing. Combines RSA/ECC with AES for hybrid encryption.</div><div class="algo-meta">1991</div></div>
+  <div class="algo-row"><div class="algo-name">SSH</div><div class="algo-desc">Secure Shell. Authenticated remote access using asymmetric keys (Ed25519/RSA) and symmetric session encryption. Standard for server administration.</div><div class="algo-meta">1995</div></div>
+  <div class="algo-row"><div class="algo-name">Signal Protocol</div><div class="algo-desc">Double Ratchet + X3DH. Provides end-to-end encryption with forward secrecy and break-in recovery. Used in Signal, WhatsApp, Wire.</div><div class="algo-meta">2013</div></div>
+  <div class="algo-row"><div class="algo-name">WireGuard</div><div class="algo-desc">Modern VPN protocol. Uses ChaCha20-Poly1305, Curve25519, BLAKE2s. Minimal codebase (~4000 LOC), replaces OpenVPN/IPsec.</div><div class="algo-meta">2017</div></div>
+</section>
+
+<!-- ATTACKS -->
+<section id="attacks">
+  <div class="sec-header">
+    <div class="sec-icon coral"><i class="ti ti-bug"></i></div>
+    <h2>Common Attacks</h2>
+  </div>
+
+  <div class="card-grid">
+    <div class="card"><h3>Brute Force</h3><p style="font-size:.9rem;margin:0">Trying every possible key until the correct one is found. Defended against with large key sizes (128+ bits).</p></div>
+    <div class="card"><h3>Dictionary Attack</h3><p style="font-size:.9rem;margin:0">Using pre-computed wordlists against password hashes. Defeated by salting and slow hash functions.</p></div>
+    <div class="card"><h3>Rainbow Table</h3><p style="font-size:.9rem;margin:0">Precomputed hash → password mappings. A unique, random salt per password renders rainbow tables useless.</p></div>
+    <div class="card"><h3>Man-in-the-Middle</h3><p style="font-size:.9rem;margin:0">Intercepting communication between two parties. Defeated by certificate pinning and authenticated key exchange.</p></div>
+    <div class="card"><h3>Replay Attack</h3><p style="font-size:.9rem;margin:0">Reusing captured valid messages. Defeated by nonces, timestamps, and session tokens.</p></div>
+    <div class="card"><h3>Side-Channel</h3><p style="font-size:.9rem;margin:0">Exploiting physical information (timing, power, EM emissions) rather than mathematical weaknesses. Difficult to fully prevent.</p></div>
+    <div class="card"><h3>Padding Oracle</h3><p style="font-size:.9rem;margin:0">Exploiting error messages from block cipher padding to decrypt data. Defeated by authenticated encryption (AEAD like GCM).</p></div>
+    <div class="card"><h3>Birthday Attack</h3><p style="font-size:.9rem;margin:0">Finding hash collisions using probability theory (~2^n/2 operations). Reason SHA-1 (160-bit) is broken — practical collision found.</p></div>
+  </div>
+
+  <h3>Quantum computing threats</h3>
+  <div class="infobox warn"><i class="ti ti-alert-triangle"></i><p><strong>Shor's Algorithm</strong> can break RSA and ECC by efficiently factoring large numbers and computing discrete logs on a sufficiently powerful quantum computer. This is not imminent but drives post-quantum cryptography research. NIST has standardized Kyber (key encapsulation) and Dilithium (signatures) as PQC replacements.</p></div>
+  <div class="infobox tip"><i class="ti ti-info-circle"></i><p><strong>Grover's Algorithm</strong> speeds up symmetric key searching, reducing AES-128 to ~2^64 effective security. Use AES-256 as a precaution against future quantum attacks.</p></div>
+</section>
+
+<!-- PLAYGROUND -->
+<section id="playground">
+  <div class="sec-header">
+    <div class="sec-icon blue"><i class="ti ti-terminal"></i></div>
+    <h2>Interactive Playground</h2>
+  </div>
+
+  <div class="interactive">
+    <h3 style="margin-top:0">Caesar Cipher</h3>
+    <div class="grid2">
+      <div>
+        <label>Plaintext</label>
+        <input type="text" id="cc-input" value="Hello World" oninput="doCaesar()">
+      </div>
+      <div>
+        <label>Rotation (1–25)</label>
+        <input type="number" id="cc-rot" min="1" max="25" value="3" oninput="doCaesar()">
+      </div>
+    </div>
+    <label style="margin-top:.75rem">Ciphertext</label>
+    <div class="output-box" id="cc-output">Khoor Zruog</div>
+  </div>
+
+  <div class="interactive">
+    <h3 style="margin-top:0">Vigenère Cipher</h3>
+    <div class="grid2">
+      <div>
+        <label>Plaintext</label>
+        <input type="text" id="vg-input" value="attackatdawn" oninput="doVigenere()">
+      </div>
+      <div>
+        <label>Key (letters only)</label>
+        <input type="text" id="vg-key" value="lemon" oninput="doVigenere()">
+      </div>
+    </div>
+    <label style="margin-top:.75rem">Ciphertext</label>
+    <div class="output-box" id="vg-output"></div>
+  </div>
+
+  <div class="interactive">
+    <h3 style="margin-top:0">XOR Cipher (hex output)</h3>
+    <div class="grid2">
+      <div>
+        <label>Plaintext</label>
+        <input type="text" id="xor-plain" value="Secret" oninput="doXOR()">
+      </div>
+      <div>
+        <label>Key</label>
+        <input type="text" id="xor-key" value="key" oninput="doXOR()">
+      </div>
+    </div>
+    <label style="margin-top:.75rem">XOR'd hex</label>
+    <div class="output-box" id="xor-output"></div>
+  </div>
+
+  <div class="interactive">
+    <h3 style="margin-top:0">SHA-256 Hash (via SubtleCrypto)</h3>
+    <label>Input text</label>
+    <input type="text" id="sha-input" value="Hello World" placeholder="Type anything...">
+    <button class="btn" onclick="doSHA()"><i class="ti ti-hash" style="margin-right:6px"></i>Compute SHA-256</button>
+    <label style="margin-top:.75rem">SHA-256 digest (hex)</label>
+    <div class="output-box" id="sha-output">a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e</div>
+  </div>
+
+  <div class="interactive">
+    <h3 style="margin-top:0">Base64 Encoding / Decoding</h3>
+    <label>Input</label>
+    <input type="text" id="b64-input" value="Cryptography is fun!" oninput="doB64()">
+    <div class="grid2" style="margin-top:.75rem">
+      <div><label>Base64 encoded</label><div class="output-box" id="b64-enc"></div></div>
+      <div><label>Decoded back</label><div class="output-box" id="b64-dec"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BEST PRACTICES -->
+<section id="bestpractices">
+  <div class="sec-header">
+    <div class="sec-icon green"><i class="ti ti-checklist"></i></div>
+    <h2>Best Practices & Recommendations</h2>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <span class="tag modern">Encryption</span>
+      <h3>Symmetric</h3>
+      <ul class="dot-list">
+        <li>Use AES-256-GCM for new code</li>
+        <li>Never reuse nonces</li>
+        <li>Avoid ECB mode entirely</li>
+        <li>Use AEAD ciphers only</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag asym">Asymmetric</span>
+      <h3>Public Key</h3>
+      <ul class="dot-list">
+        <li>RSA: minimum 2048 bits</li>
+        <li>Prefer Ed25519 / X25519</li>
+        <li>Rotate keys periodically</li>
+        <li>Store private keys in HSMs</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag hash">Hashing</span>
+      <h3>Hashing & MACs</h3>
+      <ul class="dot-list">
+        <li>SHA-256 minimum for general use</li>
+        <li>Argon2id for passwords</li>
+        <li>Always salt password hashes</li>
+        <li>HMAC-SHA256 for message auth</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag modern">Transport</span>
+      <h3>Protocols</h3>
+      <ul class="dot-list">
+        <li>TLS 1.3 preferred, 1.2 minimum</li>
+        <li>Enable HSTS headers</li>
+        <li>Certificate pinning for mobile</li>
+        <li>Disable SSLv3, TLS 1.0/1.1</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Things to never do</h3>
+  <div class="infobox danger"><i class="ti ti-x"></i><p>Never roll your own cryptography. Use well-audited libraries: <code>libsodium</code>, <code>OpenSSL</code>, <code>Web Crypto API</code>, <code>BouncyCastle</code>. Custom crypto is almost always broken in subtle ways.</p></div>
+  <div class="infobox danger"><i class="ti ti-x"></i><p>Never use MD5 or SHA-1 for security-sensitive operations. Never use DES, 3DES, or RC4. Never use RSA with PKCS#1 v1.5 padding (use OAEP).</p></div>
+  <div class="infobox danger"><i class="ti ti-x"></i><p>Never hardcode keys, passwords, or secrets in source code or version control. Use environment variables, secrets managers, or HSMs.</p></div>
+
+  <h3>Recommended libraries by language</h3>
+  <table>
+    <thead><tr><th>Language</th><th>Library</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Python</td><td><code>cryptography</code>, <code>PyNaCl</code></td><td>Use <code>cryptography</code> package, not <code>pycrypto</code></td></tr>
+      <tr><td>JavaScript</td><td><code>Web Crypto API</code>, <code>libsodium.js</code></td><td>Avoid CryptoJS for new projects</td></tr>
+      <tr><td>Java / Kotlin</td><td><code>BouncyCastle</code>, JDK <code>javax.crypto</code></td><td>Use JCA providers correctly</td></tr>
+      <tr><td>Go</td><td><code>crypto/</code> stdlib</td><td>Excellent standard library coverage</td></tr>
+      <tr><td>Rust</td><td><code>ring</code>, <code>RustCrypto</code></td><td><code>ring</code> wraps BoringSSL primitives</td></tr>
+      <tr><td>C / C++</td><td><code>libsodium</code>, <code>OpenSSL</code></td><td>libsodium has safer default API</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer style="text-align:center;padding:2rem;color:var(--muted);font-size:.85rem;border-top:1px solid var(--border);margin-top:2rem">
+  Cryptography Guide &nbsp;·&nbsp; Always verify against current NIST / IETF standards
+</footer>
+
+<script>
+function doCaesar(){
+  const txt=document.getElementById('cc-input').value;
+  const rot=parseInt(document.getElementById('cc-rot').value)||3;
+  const r=rot%26;
+  const out=txt.split('').map(c=>{
+    if(/[a-z]/.test(c))return String.fromCharCode((c.charCodeAt(0)-97+r)%26+97);
+    if(/[A-Z]/.test(c))return String.fromCharCode((c.charCodeAt(0)-65+r)%26+65);
+    return c;
+  }).join('');
+  document.getElementById('cc-output').textContent=out;
+}
+function doVigenere(){
+  const txt=document.getElementById('vg-input').value.toLowerCase();
+  const key=document.getElementById('vg-key').value.toLowerCase().replace(/[^a-z]/g,'')||'a';
+  let ki=0;
+  const out=txt.split('').map(c=>{
+    if(/[a-z]/.test(c)){const r=(c.charCodeAt(0)-97+key.charCodeAt(ki%key.length)-97)%26;ki++;return String.fromCharCode(r+97);}
+    return c;
+  }).join('');
+  document.getElementById('vg-output').textContent=out;
+}
+function doXOR(){
+  const p=document.getElementById('xor-plain').value;
+  const k=document.getElementById('xor-key').value||' ';
+  const out=Array.from(p).map((c,i)=>(c.charCodeAt(0)^k.charCodeAt(i%k.length)).toString(16).padStart(2,'0')).join(' ');
+  document.getElementById('xor-output').textContent=out||'—';
+}
+async function doSHA(){
+  const inp=document.getElementById('sha-input').value;
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(inp));
+  const hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  document.getElementById('sha-output').textContent=hex;
+}
+function doB64(){
+  const inp=document.getElementById('b64-input').value;
+  try{const enc=btoa(unescape(encodeURIComponent(inp)));document.getElementById('b64-enc').textContent=enc;document.getElementById('b64-dec').textContent=decodeURIComponent(escape(atob(enc)));}catch(e){document.getElementById('b64-enc').textContent='(encode error)';}
+}
+doCaesar();doVigenere();doXOR();doB64();
+doSHA();
+</script>
+</body>
+</html>

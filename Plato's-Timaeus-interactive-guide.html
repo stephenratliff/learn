@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plato's Timaeus – Interactive Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<style>
+:root{
+  --ivory:#fcf9f1;
+  --paper:#fffdf7;
+  --ink:#1e1c18;
+  --blue:#10387a;
+  --blue2:#1e4fa3;
+  --accent:#8c6d3f;
+  --shadow:0 12px 32px rgba(16,56,122,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background: radial-gradient(1200px 700px at 50% -200px, #ffffff 0%, var(--ivory) 65%);
+  color:var(--ink);
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height:1.75;
+}
+.top-note{
+  background:var(--blue); color:#fff; text-align:center;
+  padding:.55rem 1rem; font-size:.9rem; letter-spacing:.2px;
+}
+header{
+  max-width:1000px; margin:0 auto; padding:3.5rem 1.5rem 1.5rem; text-align:center;
+}
+h1{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(2.4rem,5.2vw,3.8rem);
+  color:var(--blue); margin:0 0 .4rem; line-height:1.05; font-weight:700;
+}
+.subtitle{
+  font-family:"Cormorant Garamond", serif; font-size:1.35rem; color:var(--accent); margin:.2rem 0 1rem;
+}
+.intro{max-width:820px; margin:1.2rem auto 0; font-size:1.08rem; color:#2d2a24}
+
+nav{
+  position:sticky; top:0; z-index:50;
+  background:rgba(252,249,241,.85); backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid rgba(16,56,122,.1);
+}
+.nav-inner{
+  max-width:1000px; margin:0 auto; display:flex; gap:.5rem; overflow-x:auto;
+  padding:.7rem 1rem; scrollbar-width:none;
+}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-inner a{
+  white-space:nowrap; padding:.45rem .85rem; border-radius:999px; text-decoration:none;
+  color:var(--blue); font-weight:500; font-size:.92rem; border:1px solid transparent;
+  transition:.2s;
+}
+.nav-inner a:hover{background:rgba(30,79,163,.1); border-color:rgba(30,79,163,.15)}
+
+main{max-width:1000px; margin:0 auto; padding:1rem 1rem 3rem}
+section{
+  background:var(--paper); margin:2.2rem 0; padding:2rem 1.5rem; border-radius:20px;
+  box-shadow:var(--shadow); border:1px solid rgba(16,56,122,.07);
+}
+section h2{
+  font-family:"Cormorant Garamond", serif; font-size:2.05rem; margin:0 0 1rem; color:var(--blue); font-weight:600;
+}
+section h3{font-family:"Cormorant Garamond", serif; color:var(--blue2); margin:.2rem 0 .5rem; font-size:1.4rem}
+.grid{display:grid; grid-template-columns:1.15fr .85fr; gap:2rem; align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:1fr; gap:1.4rem}}
+p{margin:.85rem 0}
+em{font-style:italic}
+
+.panel{
+  background:#ffffff; border:1px solid rgba(0,0,0,.06); border-radius:14px; padding:1rem;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.toggle-group{display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.8rem}
+.toggle-group button{
+  border:1px solid var(--blue2); background:transparent; color:var(--blue2);
+  padding:.5rem .9rem; border-radius:9px; cursor:pointer; font-weight:500; transition:.2s;
+}
+.toggle-group button.active, .toggle-group button:hover{background:var(--blue2); color:white}
+.principle-panel{display:none; animation:fade .28s ease}
+.principle-panel.active{display:block}
+
+canvas{
+  width:100%; height:auto; display:block; background:linear-gradient(#f7f3e8,#fdfcfa);
+  border-radius:12px; border:1px solid rgba(0,0,0,.08);
+}
+.controls{margin-top:.8rem; display:flex; gap:.9rem; align-items:center; flex-wrap:wrap; font-size:.95rem}
+input[type=range]{accent-color:var(--blue2); width:180px}
+button.action{
+  background:var(--blue); color:white; border:none; padding:.55rem .95rem; border-radius:9px;
+  cursor:pointer; font-weight:500; transition:.2s;
+}
+button.action:hover{filter:brightness(1.08)}
+button.action.secondary{background:transparent; color:var(--blue); border:1px solid var(--blue)}
+
+.badge{display:inline-block; background:rgba(30,79,163,.1); color:var(--blue); padding:.15rem .5rem; border-radius:6px; font-size:.78rem; margin-right:.35rem}
+
+#solidsContainer{height:320px; border-radius:12px; overflow:hidden; background:#0a1224; border:1px solid rgba(255,255,255,.08)}
+.solids-ui{display:flex; gap:.5rem; flex-wrap:wrap; margin:.8rem 0}
+.solids-ui button{padding:.45rem .7rem; border:1px solid var(--blue2); background:white; color:var(--blue2); border-radius:8px; cursor:pointer; font-weight:500}
+.solids-ui button.active{background:var(--blue2); color:white}
+
+.body-svg{max-width:220px; margin:.2rem auto 1rem; display:block}
+.body-part{fill:#e8decb; stroke:var(--blue2); stroke-width:2.2; cursor:pointer; transition:.18s}
+.body-part:hover, .body-part.active{fill:#c9d8f5}
+.body-info{min-height:120px}
+
+.footnote{
+  font-size:.86rem; color:#5a554d; margin-top:1.1rem; border-top:1px dashed rgba(0,0,0,.12); padding-top:.6rem;
+}
+footer{max-width:1000px; margin:2rem auto 4rem; padding:0 1rem; color:#6b665d; font-size:.9rem; text-align:center}
+
+@keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
+</style>
+</head>
+<body>
+<div class="top-note">This page is self-contained for study. Save as HTML to use offline.</div>
+
+<header>
+  <h1>Plato's Timaeus</h1>
+  <div class="subtitle">The Likely Story of the Cosmos</div>
+  <p class="intro">Written about 360 BCE, the <em>Timaeus</em> is Plato's great cosmological dialogue. After Socrates recalls the ideal city, Timaeus of Locri offers a likely account, an <em>eikos mythos</em>, of how the world came to be. A divine Craftsman, the Demiurge, looks to an eternal model, the complete Living Thing that contains all intelligible forms, and fashions the visible cosmos as a single, intelligent living creature, as good and beautiful as generated nature allows.</p>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#principles">Principles</a>
+    <a href="#demiurge">Demiurge</a>
+    <a href="#soul">World Soul</a>
+    <a href="#time">Time</a>
+    <a href="#necessity">Necessity</a>
+    <a href="#elements">Elements</a>
+    <a href="#human">Human Beings</a>
+    <a href="#ethics">Ethics</a>
+    <a href="#literal">Literal?</a>
+  </div>
+</nav>
+
+<main>
+<section id="principles">
+  <h2>1. The Three Principles</h2>
+  <div class="grid">
+    <div>
+      <p>Timaeus begins with a distinction that organizes the whole account. First, there is Being, that which always is and never becomes. It is ungenerated, imperishable, and changeless, and it is grasped by understanding with a rational account. This is the realm of Forms.</p>
+      <p>Second, there is Becoming, that which comes to be and passes away, but never fully is. It is grasped by opinion together with unreasoning sensation, because it is always in motion and never stable. All visible things belong here.</p>
+      <p>Third, after much labor, Timaeus introduces a difficult kind, the Receptacle. It is not intelligible and not sensible, but a third nature, the in which all becoming occurs. It is called mother, nurse, and place, chora. It has no form of its own, yet it receives the likenesses of the Forms, like odorless wax receiving scent, and offers them a location in which to appear. (27d-28a, 49a-52d)</p>
+      <p>Every generated thing thus requires three factors, a model that is, a copy that becomes, and a medium that receives.</p>
+    </div>
+    <div class="panel">
+      <div class="toggle-group">
+        <button data-target="being" class="active">Being</button>
+        <button data-target="becoming">Becoming</button>
+        <button data-target="receptacle">Receptacle</button>
+      </div>
+      <div id="being" class="principle-panel active">
+        <span class="badge">Tim. 27d-28a</span>
+        <h3>Being (to on)</h3>
+        <p>Eternal, intelligible, grasped by nous with logos. It serves as the model. Example, Animal itself, the complete Form that contains every kind of living thing.</p>
+      </div>
+      <div id="becoming" class="principle-panel">
+        <span class="badge">Tim. 28b-c</span>
+        <h3>Becoming (genesis)</h3>
+        <p>Generated, perceptible, changing. Grasped by doxa with sensation. It always has a cause, since nothing comes to be without one.</p>
+      </div>
+      <div id="receptacle" class="principle-panel">
+        <span class="badge">Tim. 49a-52d</span>
+        <h3>Receptacle (hypodoche)</h3>
+        <p>Formless space-like nurse. Shaken, it sorts like to like, as in a winnowing basket. It makes room for images of Being to enter Becoming.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demiurge">
+  <h2>2. Why There Is a Cosmos: The Demiurge</h2>
+  <div class="grid">
+    <div>
+      <p>Why is there order at all? Because the maker is good, and the good is never envious. Being free of grudging, he wanted everything to become as like himself as possible. Finding the visible all in disorderly motion, he brought it from disorder to order, since he judged order to be better in every way. (29e-30a)</p>
+      <p>He worked looking to the eternal model, not to anything generated. Desiring that the world be as complete as possible, he made it a single living animal to contain all living things within itself. He gave it the most perfect body, containing all fire, air, water, and earth, so that nothing would remain outside, and therefore it would be whole, ageless, and free from disease.</p>
+      <p>For shape he chose the sphere, which is alike from the center to every extreme, most similar to itself, and best suited to turning in place. For motion he gave it the motion of intelligence, uniform rotation. And because body alone is not enough, he placed soul at its center and extended it through the whole, so that intelligence would govern the body from within. The cosmos thus became a visible god, blessed and self sufficient. (32b-34b)</p>
+    </div>
+    <div class="panel">
+      <canvas id="demiurgeCanvas" width="600" height="320" aria-label="Chaos to cosmos slider"></canvas>
+      <div class="controls">
+        <label for="orderSlider">Order</label>
+        <input type="range" id="orderSlider" min="0" max="100" value="0">
+        <span id="orderLabel">disorderly chaos</span>
+      </div>
+      <p style="font-size:.9rem">Drag right. Intellect persuades Necessity, and scattered motions gather into the spherical form of the cosmos.</p>
+    </div>
+  </div>
+</section>
+
+<section id="soul">
+  <h2>3. The World Soul: Harmony and Circles</h2>
+  <div class="grid">
+    <div>
+      <p>The soul is made prior to the body and set to rule it. The Demiurge compounds an intermediate substance from three pairs, indivisible and divisible Being, Sameness, and Difference. He blends them, then divides the mixture according to number. (35a-36b)</p>
+      <p>He marks off portions in two geometric series, the double, 1, 2, 4, 8, and the triple, 1, 3, 9, 27. These form the arms of a lambda. He fills the intervals with harmonic and arithmetic means, which produce the musical ratios of the fourth, 4 to 3, the fifth, 3 to 2, and the whole tone, 9 to 8, leaving the leimma, 256 to 243. The soul thus has the structure of harmony.</p>
+      <p>He splits the compound lengthwise, lays the two strips across each other in the form of a chi, X, and bends each into a circle, joining them at their ends. The outer circle is the Circle of the Same, moving to the right, undivided, carrying the fixed stars. The inner is the Circle of the Different, moving to the left, divided into seven unequal circles for the sun, moon, and five planets. The circles turn in opposite directions, yet are harmonized, and the soul, invisible, extends from center to circumference, giving the heavens intelligence and life.</p>
+    </div>
+    <div class="panel">
+      <canvas id="soulCanvas" width="600" height="320" aria-label="World soul circles"></canvas>
+      <div class="controls">
+        <button class="action secondary" id="playScale">Play Scale</button>
+        <button class="action secondary" id="playFifth">Fifth 3:2</button>
+        <button class="action secondary" id="playFourth">Fourth 4:3</button>
+      </div>
+      <p style="font-size:.9rem">Gold follows the Same, blue follows the Different. Their steady ratios echo the musical structure built into soul.</p>
+    </div>
+  <p class="footnote">Tim. 35b-36d. The series 1,2,3,4,8,9,27 unites arithmetic progression with musical harmony.</p>
+</section>
+
+<section id="time">
+  <h2>4. Time: Moving Image of Eternity</h2>
+  <div class="grid">
+    <div>
+      <p>The model abides in eternity, which is a single, unchanging now. The generated copy cannot receive that stillness, so the Demiurge makes a moving likeness of eternity, and this we have named time. Time does not exist before the heavens, it comes to be together with them. (37d-38b)</p>
+      <p>To define number in this motion, he made the sun, moon, and planets. The sun lights the whole heaven and gives the measure called the year by completing its own circle. The moon gives the month by overtaking the sun. Day and night arise from the daily circuit of the Same.</p>
+      <p>Time is therefore not an independent container. It is the counting of the soul's circular motion as expressed in the heavens. This is why astronomy is not mere curiosity. Learning the periods teaches our inner circles to move with the same ratios as the world soul.</p>
+    </div>
+    <div class="panel">
+      <canvas id="timeCanvas" width="600" height="320" aria-label="Orrery"></canvas>
+      <div class="controls">
+        <label for="speedSlider">Speed</label>
+        <input type="range" id="speedSlider" min="0" max="200" value="70">
+        <span id="speedLabel">1.0x</span>
+      </div>
+      <p style="font-size:.9rem">Sun at center, Earth, and Moon. Adjust speed to see how regular returns create day, month, and year.</p>
+    </div>
+  </div>
+</section>
+
+<section id="necessity">
+  <h2>5. Necessity and the Receptacle</h2>
+  <div class="grid">
+    <div>
+      <p>Beyond Intellect there is a second kind of cause, Necessity. This is not mere chance, it is the character of the Receptacle and of bodily powers when left to themselves. Intellect persuades Necessity toward the best, so far as persuasion can prevail. (47e-48a, 56c)</p>
+      <p>Before the cosmos was completed, the Receptacle shook, receiving traces of the elements. Like seeds in a winnowing basket, like moved toward like, the heavy and dense toward one region, the light and fiery toward another. These were not yet fire or earth in the full sense, only flickering vestiges, qualities shifting without measure.</p>
+      <p>When Intellect imposed form through number and shape, these traces were bound into definite triangles and solids. Necessity did not disappear, it was harnessed. The world remains a joint product, a mixture where purpose leads, but material conditions set limits.</p>
+    </div>
+    <div class="panel">
+      <canvas id="receptacleCanvas" width="600" height="320" aria-label="Receptacle shaking"></canvas>
+      <div class="controls">
+        <button class="action" id="persuadeBtn">Persuade by Intellect</button>
+        <button class="action secondary" id="shakeBtn">Release to Necessity</button>
+      </div>
+      <p style="font-size:.9rem">Necessity jitters. Persuasion sorts traces into regions, preparing them to receive geometry.</p>
+    </div>
+  </div>
+</section>
+
+<section id="elements">
+  <h2>6. The Four Elements as Geometry</h2>
+  <div class="grid">
+    <div>
+      <p>Plato replaces material stuffs with mathematical structure. Since bodies have depth, they are bounded by planes, and planes are composed of triangles. Two right triangles are basic, the isosceles half square, and the scalene half equilateral, whose sides are in the ratio 1 to 2 to square root of 3. (53c-54b)</p>
+      <p>From the scalene triangle he builds three regular solids. Fire is the tetrahedron, with four triangular faces, smallest in volume and sharpest in angle, so it cuts and moves upward. Air is the octahedron, with eight faces. Water is the icosahedron, with twenty faces, the most faces and thus closest to the sphere, so it flows. From the isosceles triangle he builds the cube, with six square faces, assigned to earth, stable and hard to move.</p>
+      <p>Because fire, air, and water share the same triangle, they can transform into one another. When a sharper solid cuts a larger one into its triangles, those triangles can reassemble into new solids according to number. Earth, being made from a different triangle, does not convert into the others, which explains its permanence as foundation.</p>
+    </div>
+    <div class="panel">
+      <div id="solidsContainer" aria-label="Platonic solids"></div>
+      <div class="solids-ui">
+        <button data-solid="fire" class="active">Fire – Tetrahedron</button>
+        <button data-solid="air">Air – Octahedron</button>
+        <button data-solid="water">Water – Icosahedron</button>
+        <button data-solid="earth">Earth – Cube</button>
+        <button id="morphBtn" class="action secondary">Interconvert</button>
+      </div>
+      <p id="solidDesc">Fire: 4 faces, 4 vertices, built from scalene triangles. Sharpest and most mobile.</p>
+    </div>
+  </div>
+  <p class="footnote">Tim. 53c-57d. Geometry explains weight, mobility, and transformation without appeal to occult qualities.</p>
+</section>
+
+<section id="human">
+  <h2>7. Human Beings: Body for Soul</h2>
+  <div class="grid">
+    <div>
+      <p>After the world, the Demiurge fashions human souls. He mixes a second and third grade of the world soul stuff, divides it into the number of stars, and sows each soul in a star as in a vehicle. He shows them the nature of the All and the law of their first birth, that the one who masters pleasure and pain will return to his star, while failure leads to further embodiments. He then delegates the making of mortal bodies to the younger gods. (41d-42e)</p>
+      <p>The younger gods imitate the cosmos. They house the immortal, rational part in the head, a small sphere containing circles akin to those of the world soul. Below, they build a body as a vehicle, and they bind two mortal kinds of soul in separate dwellings to protect reason from riot. Spirit, the ally of reason, is placed in the chest near the heart, so it can listen to reason and control the blood's force. Appetite, which desires food and drink, is placed below the midriff in the belly, tethered far from counsel, and given the liver as a dark, smooth mirror where reason can impress images, producing divination in dreams. (69c-72d)</p>
+      <p>The marrow, made from the purest triangles, anchors the soul's bonds in bone. Flesh cushions. Lungs cool the heart's fire. Disease arises when elements are excessive or deficient, or when the soul's circles are distorted by violent motions from the body.</p>
+    </div>
+    <div class="panel">
+      <svg class="body-svg" viewBox="0 0 200 360" role="img">
+        <rect x="0" y="0" width="200" height="360" rx="22" fill="#fff" stroke="#e0d7c5"/>
+        <circle cx="100" cy="62" r="34" class="body-part active" data-part="head"/>
+        <rect x="66" y="104" width="68" height="78" rx="18" class="body-part" data-part="chest"/>
+        <rect x="66" y="192" width="68" height="88" rx="18" class="body-part" data-part="belly"/>
+        <line x1="100" y1="280" x2="100" y2="338" stroke="#b8a98f" stroke-width="4"/>
+      </svg>
+      <div class="body-info panel" id="bodyInfo">
+        <h3>Head – Reason</h3>
+        <p>Immortal part, circles of Same and Different. Its proper motion is calm, circular thought, akin to the heavens.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ethics">
+  <h2>8. Ethics: Aligning With the Cosmos</h2>
+  <div class="grid">
+    <div>
+      <p>At birth the soul is flooded by sensation and growth, and its circles are thrown off course. We first experience the world as confusion. Health is the restoration of proportion, in body through balance of the elements, in soul through right motion. (86b-90d)</p>
+      <p>The therapy for the soul is to give it motions akin to its nature. Study of astronomy steadies the Circle of the Same. Music attunes the intervals of the Different. Dialectic and philosophy train both circles to follow what is, not what merely appears. By imitating the harmonious revolutions of the All, we gradually correct the wanderings that arose with embodiment.</p>
+      <p>Vice, on this view, is a kind of disease, the result of bad bodily constitution and poor nurture, not a simple free choice detached from nature. Education, training, and way of life are medical arts for the soul, aiming at a life that is measured, ordered, and in concord with the cosmos.</p>
+    </div>
+    <div>
+      <p style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--blue);">The best life turns the soul toward its kin. By attending to harmony and to the circuits of the heavens, we make the motions within us like the motions that never wander.</p>
+      <p class="footnote">Tim. 90a-d. Philosophy is presented as the highest music, tuning the soul to cosmic ratio.</p>
+    </div>
+  </div>
+</section>
+
+<section id="literal">
+  <h2>9. Literal or Metaphorical?</h2>
+  <p>Did Plato intend a temporal beginning? Aristotle read the Timaeus literally and argued that what is generated must perish, so the cosmos cannot have come to be in time. He held the world to be eternal. Many later Platonists defended Plato differently. Speusippus, Xenocrates, Plotinus, and Proclus treated the narrative of making as pedagogical, like a geometer who draws a figure step by step to reveal its structure, not to assert a history. On this reading, the Demiurge is not a craftsman in time, but the eternal cause of order. The Receptacle is the ever present condition for appearance. Generation signifies ontological dependence, not a first day.</p>
+  <p>Modern scholars remain divided, but the dialogue's influence is clear. By joining teleology with mathematics, and by tying ethics to cosmology, the Timaeus shaped ancient science from Euclid to Ptolemy, informed Stoic and Neoplatonic theology, and returned with force in the Renaissance. Its central proposal endures, that to understand the world is to learn how reason persuades necessity, and that this learning is also the care of the soul.</p>
+  <p class="footnote">Key passages: 27d-29d on principles, 29d-30c on the goodness of the maker, 34b-37c on soul, 37c-39e on time, 47e-53b on Necessity, 53c-61c on elements, 90a-92c on the human telos.</p>
+</section>
+</main>
+
+<footer>
+  Interactive guide to Plato's <em>Timaeus</em>. Paraphrase for educational use. Stephanus numbers cite the standard pagination.
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // principles toggle
+  document.querySelectorAll('.toggle-group button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.toggle-group button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const id = btn.dataset.target;
+      document.querySelectorAll('.principle-panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    });
+  });
+
+  // 2. Demiurge slider
+  const demi = document.getElementById('demiurgeCanvas');
+  const dctx = demi.getContext('2d');
+  const dw = demi.width, dh = demi.height, cx = dw/2, cy = dh/2+8, R=110;
+  const N=300; const parts=[];
+  for(let i=0;i<N;i++){
+    const startX=Math.random()*dw, startY=Math.random()*dh;
+    const y = 1 - (i/(N-1))*2;
+    const radius = Math.sqrt(1 - y*y);
+    const theta = Math.PI*(3-Math.sqrt(5))*i;
+    const endX = cx + radius*R*Math.cos(theta);
+    const endY = cy + y*R*0.85;
+    parts.push({startX,startY,endX,endY});
+  }
+  function drawDemi(t){
+    dctx.clearRect(0,0,dw,dh);
+    dctx.beginPath(); dctx.arc(cx,cy,R,0,Math.PI*2); dctx.strokeStyle='rgba(16,56,122,.12)'; dctx.lineWidth=2; dctx.stroke();
+    parts.forEach(p=>{
+      const x = p.startX + (p.endX - p.startX)*t;
+      const y = p.startY + (p.endY - p.startY)*t;
+      dctx.beginPath(); dctx.arc(x,y,2.1,0,Math.PI*2);
+      dctx.fillStyle = `rgba(30,79,163,${0.25+0.75*t})`; dctx.fill();
+    });
+  }
+  drawDemi(0);
+  const orderSlider = document.getElementById('orderSlider');
+  const orderLabel = document.getElementById('orderLabel');
+  orderSlider.addEventListener('input', e=>{
+    const t = e.target.value/100; drawDemi(t);
+    orderLabel.textContent = t<0.33 ? 'disorderly chaos' : t<0.66 ? 'ordering' : 'ordered cosmos';
+  });
+
+  // 3. World Soul
+  const soul = document.getElementById('soulCanvas'); const sctx = soul.getContext('2d');
+  const sw = soul.width, sh = soul.height, scx = sw/2, scy = sh/2;
+  let ang=0;
+  function drawSoul(){
+    ang += 0.008;
+    sctx.clearRect(0,0,sw,sh);
+    // circles
+    const r=88, off=42;
+    sctx.lineWidth=2;
+    // Same
+    sctx.beginPath(); sctx.arc(scx-off, scy, r, 0, Math.PI*2); sctx.strokeStyle='rgba(140,109,63,.35)'; sctx.stroke();
+    // Different
+    sctx.beginPath(); sctx.arc(scx+off, scy, r, 0, Math.PI*2); sctx.strokeStyle='rgba(30,79,163,.35)'; sctx.stroke();
+    // dots
+    const x1 = scx-off + r*Math.cos(-ang);
+    const y1 = scy + r*Math.sin(-ang);
+    const x2 = scx+off + r*Math.cos(ang*1.3);
+    const y2 = scy + r*Math.sin(ang*1.3);
+    sctx.beginPath(); sctx.arc(x1,y1,5,0,Math.PI*2); sctx.fillStyle='#b08968'; sctx.fill();
+    sctx.beginPath(); sctx.arc(x2,y2,5,0,Math.PI*2); sctx.fillStyle='#1e4fa3'; sctx.fill();
+    requestAnimationFrame(drawSoul);
+  }
+  drawSoul();
+  // audio
+  let audioCtx;
+  function beep(freq, dur=0.35){
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
+    o.start(); o.stop(audioCtx.currentTime+dur+0.02);
+  }
+  const base=220;
+  const ratios = [1,9/8,81/64,4/3,3/2,27/16,243/128,2];
+  document.getElementById('playScale').onclick=()=> ratios.forEach((r,i)=> setTimeout(()=>beep(base*r,0.32), i*340));
+  document.getElementById('playFifth').onclick=()=>{beep(base,0.4); setTimeout(()=>beep(base*3/2,0.4), 420)};
+  document.getElementById('playFourth').onclick=()=>{beep(base,0.4); setTimeout(()=>beep(base*4/3,0.4), 420)};
+
+  // 4. Time orrery
+  const time = document.getElementById('timeCanvas'); const tctx = time.getContext('2d');
+  const tw=time.width, th=time.height, tcx=tw/2, tcy=th/2+10;
+  let earthA=0, moonA=0;
+  const speedSlider=document.getElementById('speedSlider'); const speedLabel=document.getElementById('speedLabel');
+  function drawTime(){
+    const speed = speedSlider.value/70;
+    speedLabel.textContent = speed.toFixed(1)+'x';
+    tctx.clearRect(0,0,tw,th);
+    // sun
+    tctx.beginPath(); tctx.arc(tcx,tcy,16,0,Math.PI*2); tctx.fillStyle='#e2a32b'; tctx.fill();
+    // earth orbit
+    const er=92; tctx.beginPath(); tctx.arc(tcx,tcy,er,0,Math.PI*2); tctx.strokeStyle='rgba(16,56,122,.18)'; tctx.stroke();
+    earthA += 0.008*speed; const ex = tcx + er*Math.cos(earthA); const ey = tcy + er*Math.sin(earthA);
+    tctx.beginPath(); tctx.arc(ex,ey,7,0,Math.PI*2); tctx.fillStyle='#2a6bcf'; tctx.fill();
+    // moon
+    moonA += 0.028*speed; const mr=22; const mx = ex + mr*Math.cos(moonA); const my = ey + mr*Math.sin(moonA);
+    tctx.beginPath(); tctx.arc(mx,my,3.5,0,Math.PI*2); tctx.fillStyle='#8a8f98'; tctx.fill();
+    requestAnimationFrame(drawTime);
+  }
+  drawTime();
+
+  // 5. Receptacle
+  const rec = document.getElementById('receptacleCanvas'); const rctx = rec.getContext('2d');
+  const rw=rec.width, rh=rec.height;
+  const recParts = Array.from({length:220}, (_,i)=>({x:Math.random()*rw, y:Math.random()*rh, t:i%4}));
+  let mode='necessity';
+  const centers = [{x:rw*0.25,y:rh*0.3},{x:rw*0.75,y:rh*0.3},{x:rw*0.25,y:rh*0.75},{x:rw*0.75,y:rh*0.75}];
+  const colors = ['#d97706','#2563eb','#0ea5e9','#a16207']; // fire air water earth tints
+  function drawRec(){
+    rctx.clearRect(0,0,rw,rh);
+    recParts.forEach(p=>{
+      if(mode==='necessity'){ p.x += (Math.random()-0.5)*1.8; p.y += (Math.random()-0.5)*1.8; }
+      else { const c=centers[p.t]; p.x += (c.x - p.x)*0.02; p.y += (c.y - p.y)*0.02; }
+      p.x = Math.max(2, Math.min(rw-2, p.x)); p.y = Math.max(2, Math.min(rh-2, p.y));
+      rctx.beginPath(); rctx.arc(p.x,p.y,2.2,0,Math.PI*2); rctx.fillStyle=colors[p.t]; rctx.globalAlpha=0.85; rctx.fill(); rctx.globalAlpha=1;
+    });
+    requestAnimationFrame(drawRec);
+  }
+  drawRec();
+  document.getElementById('persuadeBtn').onclick=()=>mode='persuaded';
+  document.getElementById('shakeBtn').onclick=()=>mode='necessity';
+
+  // 7. Body diagram
+  const info = document.getElementById('bodyInfo');
+  const texts = {
+    head:{title:'Head – Reason', text:'Immortal part, circles of Same and Different. Its proper motion is calm, circular thought, akin to the heavens.'},
+    chest:{title:'Chest – Spirit', text:'Mortal spirited part, ally of reason. Housed near the heart, it responds to honor and anger, moderated by breath from the lungs.'},
+    belly:{title:'Belly – Appetite', text:'Mortal appetitive part, desires nourishment. Bound below the diaphragm, guided by the liver as a mirror for images from reason.'}
+  };
+  document.querySelectorAll('.body-part').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      document.querySelectorAll('.body-part').forEach(q=>q.classList.remove('active'));
+      p.classList.add('active');
+      const d = texts[p.dataset.part];
+      info.innerHTML = `<h3>${d.title}</h3><p>${d.text}</p>`;
+    });
+  });
+});
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+const container = document.getElementById('solidsContainer');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a1224);
+const camera = new THREE.PerspectiveCamera(42, container.clientWidth/320, 0.1, 100);
+camera.position.set(0,0,4.6);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(container.clientWidth, 320);
+container.appendChild(renderer.domElement);
+const light1 = new THREE.DirectionalLight(0xffffff, 1.1); light1.position.set(2,3,4); scene.add(light1);
+const light2 = new THREE.AmbientLight(0x90b4ff, 0.45); scene.add(light2);
+const mat = new THREE.MeshStandardMaterial({color:0x6ea0ff, metalness:0.2, roughness:0.35, flatShading:true});
+const geos = {
+  fire: new THREE.TetrahedronGeometry(1.25),
+  air: new THREE.OctahedronGeometry(1.25),
+  water: new THREE.IcosahedronGeometry(1.25),
+  earth: new THREE.BoxGeometry(1.85,1.85)
+};
+let current='fire';
+let mesh = new THREE.Mesh(geos[current], mat); scene.add(mesh);
+function animate(){ requestAnimationFrame(animate); mesh.rotation.y += 0.008; mesh.rotation.x += 0.004; renderer.render(scene,camera); }
+animate();
+const desc = {
+  fire:'Fire: 4 faces, 4 vertices, built from scalene triangles. Sharpest and most mobile.',
+  air:'Air: 8 faces, light and mobile, intermediary between fire and water.',
+  water:'Water: 20 faces, most nearly spherical, flows and pools.',
+  earth:'Earth: 6 square faces from isosceles triangles. Stable, does not convert into the others.'
+};
+const solidDesc = document.getElementById('solidDesc');
+function setSolid(name){
+  current=name;
+  mesh.geometry.dispose(); mesh.geometry = geos[name].clone();
+  document.querySelectorAll('[data-solid]').forEach(b=>b.classList.toggle('active', b.dataset.solid===name));
+  solidDesc.textContent = desc[name];
+}
+document.querySelectorAll('[data-solid]').forEach(btn=> btn.addEventListener('click', ()=> setSolid(btn.dataset.solid)));
+document.getElementById('morphBtn').addEventListener('click', ()=>{
+  if(current==='earth'){ solidDesc.textContent = 'Earth cannot interconvert, it is built from a different triangle.'; return; }
+  const order=['fire','air','water']; const i=order.indexOf(current); setSolid(order[(i+1)%order.length]);
+});
+window.addEventListener('resize', ()=>{
+  const w = container.clientWidth; renderer.setSize(w,320); camera.aspect = w/320; camera.updateProjectionMatrix();
+});
+</script>
+</body>
+</html>

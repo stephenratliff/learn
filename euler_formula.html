@@ -1,0 +1,2747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euler's Formula — The Circle as an Exponential</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Cinzel:wght@400;600;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:       #e8e2d5;
+  --dim:       #9a9182;
+  --bg:        #080c14;
+  --bg2:       #0d1220;
+  --bg3:       #141b2d;
+  --panel:     #0f1624;
+  --border:    #1e2d47;
+  --cyan:      #38d9f5;
+  --cyan2:     #0ea5c9;
+  --gold:      #f0b429;
+  --gold2:     #d97706;
+  --violet:    #a78bfa;
+  --violet2:   #7c3aed;
+  --rose:      #f87171;
+  --green:     #34d399;
+  --font-body: 'EB Garamond', Georgia, serif;
+  --font-head: 'Cinzel', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+/* ── GRID PAPER BACKGROUND ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(56,217,245,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,217,245,.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(8,12,20,.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 2rem;
+  height: 54px;
+  overflow-x: auto;
+}
+nav::-webkit-scrollbar { display:none; }
+.nav-brand {
+  font-family: var(--font-head);
+  font-size: .85rem;
+  color: var(--cyan);
+  letter-spacing: .15em;
+  white-space: nowrap;
+  margin-right: 2rem;
+  text-decoration: none;
+}
+nav a.nav-link {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--dim);
+  text-decoration: none;
+  padding: 0 .85rem;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
+  white-space: nowrap;
+  letter-spacing: .04em;
+}
+nav a.nav-link:hover { color: var(--ink); border-color: var(--cyan); }
+nav a.nav-link.active { color: var(--cyan); border-color: var(--cyan); }
+
+/* ── SECTIONS ── */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 6rem 2rem 5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+section.full-bleed {
+  max-width: 100%;
+  padding-left: 0; padding-right: 0;
+}
+.section-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-top: 54px;
+  max-width: 100%;
+}
+.hero-formula {
+  font-family: var(--font-head);
+  font-size: clamp(2.4rem, 7vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: .02em;
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--gold) 60%, var(--violet) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: .5rem;
+}
+.hero-sub {
+  font-family: var(--font-head);
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  color: var(--dim);
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+}
+.hero-desc {
+  max-width: 660px;
+  color: var(--ink);
+  opacity: .8;
+  font-size: 1.15rem;
+  margin-bottom: 3rem;
+}
+#hero-canvas {
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 60px rgba(56,217,245,.15), 0 0 120px rgba(56,217,245,.07);
+  margin-bottom: 3rem;
+}
+.scroll-hint {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--dim);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(8px); }
+}
+
+/* ── HEADINGS ── */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--cyan2);
+  margin-bottom: .75rem;
+}
+h2.section-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+  line-height: 1.15;
+}
+h3.sub-title {
+  font-family: var(--font-head);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: .75rem;
+  margin-top: 2rem;
+}
+
+/* ── CALLOUT / HIGHLIGHT BOXES ── */
+.callout {
+  border-left: 3px solid var(--cyan);
+  background: rgba(56,217,245,.05);
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0 8px 8px 0;
+}
+.callout.gold   { border-color: var(--gold);   background: rgba(240,180,41,.05); }
+.callout.violet { border-color: var(--violet);  background: rgba(167,139,250,.05); }
+.callout.rose   { border-color: var(--rose);    background: rgba(248,113,113,.05); }
+.callout.green  { border-color: var(--green);   background: rgba(52,211,153,.05); }
+
+/* ── MATH DISPLAY ── */
+.math-block {
+  font-family: var(--font-head);
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  text-align: center;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--gold);
+  letter-spacing: .04em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.math-inline {
+  font-family: var(--font-head);
+  color: var(--gold);
+  font-style: italic;
+}
+
+/* ── TABS ── */
+.tabs { margin: 2rem 0; }
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: .06em;
+  padding: .65rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dim);
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--cyan); border-color: var(--cyan); }
+.tab-panel { display: none; padding: 1.75rem 0; }
+.tab-panel.active { display: block; }
+
+/* ── CODE BLOCKS ── */
+.code-wrap {
+  position: relative;
+  margin: 1.5rem 0;
+}
+pre.code-block {
+  background: #070b12;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.4rem 1.6rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  line-height: 1.65;
+  color: #cdd6f4;
+}
+pre.code-block .c  { color: #6e7b8b; font-style: italic; }
+pre.code-block .k  { color: #cba6f7; }
+pre.code-block .s  { color: #a6e3a1; }
+pre.code-block .n  { color: var(--cyan); }
+pre.code-block .m  { color: #fab387; }
+pre.code-block .fn { color: #89b4fa; }
+pre.code-block .op { color: #cdd6f4; }
+.copy-btn {
+  position: absolute;
+  top: .6rem; right: .6rem;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--dim);
+  padding: .3rem .7rem;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+  letter-spacing: .08em;
+}
+.copy-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+
+/* ── CANVAS PANELS ── */
+.canvas-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.canvas-panel canvas {
+  border-radius: 8px;
+  max-width: 100%;
+}
+.ctrl-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+.ctrl-row label {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--dim);
+  letter-spacing: .06em;
+}
+.ctrl-row input[type=range] {
+  accent-color: var(--cyan);
+  width: 160px;
+}
+.ctrl-row .val-display {
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  color: var(--gold);
+  min-width: 4rem;
+}
+.ctrl-row button {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  background: none;
+  border: 1px solid var(--cyan2);
+  color: var(--cyan);
+  border-radius: 6px;
+  padding: .4rem .9rem;
+  cursor: pointer;
+  transition: background .2s;
+  letter-spacing: .06em;
+}
+.ctrl-row button:hover { background: rgba(56,217,245,.1); }
+.ctrl-row button.active-btn { background: rgba(56,217,245,.15); }
+
+/* ── GRID LAYOUTS ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+@media(max-width:720px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+.three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+@media(max-width:860px){
+  .three-col { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:540px){
+  .three-col { grid-template-columns: 1fr; }
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: border-color .25s, box-shadow .25s;
+}
+.card:hover {
+  border-color: var(--cyan2);
+  box-shadow: 0 4px 24px rgba(56,217,245,.08);
+}
+.card-icon {
+  font-size: 2rem;
+  margin-bottom: .75rem;
+  display: block;
+}
+.card h4 {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  color: var(--gold);
+  margin-bottom: .5rem;
+}
+.card p {
+  font-size: .95rem;
+  color: var(--dim);
+  line-height: 1.6;
+}
+
+/* ── DERIVATION STEPS ── */
+.deriv-step {
+  border-left: 2px solid var(--border);
+  padding: .75rem 0 .75rem 1.5rem;
+  margin: .5rem 0;
+  position: relative;
+}
+.deriv-step::before {
+  content: attr(data-step);
+  position: absolute;
+  left: -1.1rem;
+  top: .85rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.8rem;
+}
+.deriv-step p { font-size: 1rem; color: var(--ink); margin-bottom: .5rem; }
+.deriv-step .math-block { margin: .75rem 0; font-size: 1.3rem; }
+
+/* ── IDENTITY COUNTDOWN ── */
+.identity-showcase {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+.identity-eq {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 5vw, 3.8rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--cyan), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 1rem 0;
+}
+.identity-parts {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+.identity-part {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .9rem 1.4rem;
+  text-align: center;
+  min-width: 120px;
+}
+.identity-part .sym {
+  font-family: var(--font-head);
+  font-size: 1.6rem;
+  color: var(--gold);
+  display: block;
+}
+.identity-part .desc {
+  font-size: .85rem;
+  color: var(--dim);
+  font-family: var(--font-mono);
+  letter-spacing: .04em;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4rem 0;
+}
+
+/* ── STEP PROGRESS ── */
+.step-progress {
+  display: flex;
+  gap: 0;
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+.step-item {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+  padding: 1rem .5rem;
+  border-top: 3px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--dim);
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.step-item:hover { color: var(--ink); border-top-color: var(--cyan2); }
+.step-item.active {
+  color: var(--cyan);
+  border-top-color: var(--cyan);
+  background: rgba(56,217,245,.04);
+}
+.step-item .step-num {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: .25rem;
+  color: var(--gold);
+}
+
+/* ── TABLE ── */
+table.styled {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .95rem;
+  margin: 1.5rem 0;
+}
+table.styled th {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--cyan2);
+  border-bottom: 1px solid var(--border);
+  padding: .6rem 1rem;
+  text-align: left;
+}
+table.styled td {
+  padding: .6rem 1rem;
+  border-bottom: 1px solid rgba(30,45,71,.6);
+  color: var(--ink);
+}
+table.styled td.gold { color: var(--gold); font-family: var(--font-head); }
+table.styled tr:last-child td { border-bottom: none; }
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── CANVAS STATUS ── */
+.canvas-status {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--dim);
+  text-align: center;
+  min-height: 1.2em;
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 3rem 2rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--dim);
+  letter-spacing: .08em;
+  position: relative;
+  z-index: 1;
+}
+footer a { color: var(--cyan2); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-brand">e<sup>iθ</sup></a>
+  <a href="#building" class="nav-link">Building Blocks</a>
+  <a href="#derivation" class="nav-link">Derivation</a>
+  <a href="#unit-circle" class="nav-link">Unit Circle</a>
+  <a href="#identity" class="nav-link">Identity</a>
+  <a href="#rotation" class="nav-link">Rotation</a>
+  <a href="#roots" class="nav-link">Roots of Unity</a>
+  <a href="#phasors" class="nav-link">Phasors</a>
+  <a href="#applications" class="nav-link">Applications</a>
+  <a href="#octave" class="nav-link">Octave Code</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="full-bleed">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:54px 2rem 0;">
+    <div class="section-label" style="margin-bottom:1rem;">Leonhard Euler · 1748</div>
+    <div class="hero-formula">e<sup style="font-size:60%">iθ</sup> = cos θ + i sin θ</div>
+    <div class="hero-sub">The Circle as an Exponential</div>
+    <p class="hero-desc">
+      A single equation uniting five fundamental constants, bridging exponential growth,
+      trigonometry, and the geometry of rotation — often called the most beautiful formula in mathematics.
+    </p>
+    <canvas id="hero-canvas" width="340" height="340"></canvas>
+    <div class="scroll-hint">▼ &nbsp; scroll to explore &nbsp; ▼</div>
+  </div>
+</section>
+
+<hr class="divider" style="max-width:1100px;margin:0 auto 0;">
+
+<!-- BUILDING BLOCKS -->
+<section id="building">
+  <div class="section-label">Section 01</div>
+  <h2 class="section-title">Building Blocks</h2>
+  <p>Before we can appreciate Euler's formula, we need to understand each ingredient:
+     the mysterious number <span class="math-inline">e</span>, the imaginary unit <span class="math-inline">i</span>,
+     and the geometry of the complex plane.</p>
+
+  <div class="tabs" id="bb-tabs">
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="bb-e">The Number e</button>
+      <button class="tab-btn" data-tab="bb-i">The Imaginary Unit i</button>
+      <button class="tab-btn" data-tab="bb-complex">Complex Plane</button>
+      <button class="tab-btn" data-tab="bb-trig">Sine &amp; Cosine</button>
+      <button class="tab-btn" data-tab="bb-taylor">Taylor Series</button>
+    </div>
+
+    <!-- e -->
+    <div id="bb-e" class="tab-panel active">
+      <h3 class="sub-title">Euler's Number e ≈ 2.71828…</h3>
+      <p>The number <span class="math-inline">e</span> is the unique base for which
+         the exponential function equals its own derivative. It arises naturally from
+         compound interest taken to its continuous limit:</p>
+      <div class="math-block">e = lim<sub>n→∞</sub> (1 + 1/n)<sup>n</sup></div>
+      <p>Equivalently, via its Taylor series (which we'll use heavily later):</p>
+      <div class="math-block">e<sup>x</sup> = 1 + x + x²/2! + x³/3! + x⁴/4! + …</div>
+      <div class="callout gold">
+        <strong>Key property:</strong> d/dx[e<sup>x</sup>] = e<sup>x</sup>. The exponential function
+        is the only function (up to a constant multiple) that equals its own derivative.
+        This makes it the natural language of growth, decay, and oscillation.
+      </div>
+      <div class="canvas-panel">
+        <canvas id="e-canvas" width="520" height="280"></canvas>
+        <div class="canvas-status">The function y = eˣ (cyan) alongside its derivative — they are identical.</div>
+      </div>
+
+      <h3 class="sub-title">Approaching e via Compound Interest</h3>
+      <div class="canvas-panel">
+        <canvas id="compound-canvas" width="520" height="220"></canvas>
+        <div class="ctrl-row">
+          <label>n = </label>
+          <input type="range" id="n-slider" min="1" max="200" value="1">
+          <span class="val-display" id="n-val">1</span>
+          <label>→ (1+1/n)<sup>n</sup> = </label>
+          <span class="val-display" id="compound-val">2.000</span>
+        </div>
+        <div class="canvas-status">As n increases, (1 + 1/n)ⁿ approaches e = 2.71828…</div>
+      </div>
+
+      <h3 class="sub-title">Key Values</h3>
+      <table class="styled">
+        <thead><tr><th>Expression</th><th>Value</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="gold">e⁰</td><td>1</td><td>Any nonzero base to the 0 is 1</td></tr>
+          <tr><td class="gold">e¹</td><td>2.71828…</td><td>Euler's number itself</td></tr>
+          <tr><td class="gold">e<sup>−1</sup></td><td>0.36788…</td><td>Reciprocal of e</td></tr>
+          <tr><td class="gold">e<sup>iπ</sup></td><td>−1</td><td>Euler's Identity — the crown jewel</td></tr>
+          <tr><td class="gold">e<sup>2πi</sup></td><td>1</td><td>One full rotation returns to the start</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- i -->
+    <div id="bb-i" class="tab-panel">
+      <h3 class="sub-title">The Imaginary Unit i</h3>
+      <p>We define <span class="math-inline">i</span> as the square root of negative one:</p>
+      <div class="math-block">i² = −1 &nbsp;&nbsp;⟹&nbsp;&nbsp; i = √(−1)</div>
+      <p>At first this seems impossible — no real number squares to give a negative.
+         But <span class="math-inline">i</span> is perfectly well-defined as an algebraic object, and
+         introducing it completes the real numbers into the complex numbers.</p>
+
+      <h3 class="sub-title">Powers of i — The Cycle</h3>
+      <p>The powers of <span class="math-inline">i</span> cycle with period 4:</p>
+      <table class="styled">
+        <thead><tr><th>Power</th><th>Value</th><th>Geometric meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="gold">i⁰</td><td>1</td><td>Pointing right (+x)</td></tr>
+          <tr><td class="gold">i¹</td><td>i</td><td>Pointing up (+y), rotate 90°</td></tr>
+          <tr><td class="gold">i²</td><td>−1</td><td>Pointing left (−x), rotate 180°</td></tr>
+          <tr><td class="gold">i³</td><td>−i</td><td>Pointing down (−y), rotate 270°</td></tr>
+          <tr><td class="gold">i⁴</td><td>1</td><td>Back to start, rotate 360°</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>Geometric insight:</strong> Multiplying by <span class="math-inline">i</span>
+        rotates a point in the complex plane by <strong>90° counterclockwise</strong>.
+        Multiplying by <span class="math-inline">i</span> twice (i.e., by i² = −1) rotates 180°.
+        This is the key to why exponentials can trace circles.
+      </div>
+      <div class="canvas-panel">
+        <canvas id="i-powers-canvas" width="320" height="320"></canvas>
+        <div class="canvas-status">Powers of i rotating around the unit circle.</div>
+      </div>
+    </div>
+
+    <!-- complex -->
+    <div id="bb-complex" class="tab-panel">
+      <h3 class="sub-title">The Complex Plane</h3>
+      <p>A complex number <span class="math-inline">z = a + bi</span> is plotted on a 2D plane:
+         real part <span class="math-inline">a</span> on the horizontal axis,
+         imaginary part <span class="math-inline">b</span> on the vertical axis.</p>
+      <div class="math-block">z = a + bi = r·e<sup>iθ</sup> = r(cos θ + i sin θ)</div>
+      <p>Every complex number can be written in either rectangular form (<span class="math-inline">a + bi</span>)
+         or polar form (<span class="math-inline">r e<sup>iθ</sup></span>). Here:</p>
+      <ul style="padding-left:1.5rem;margin:.75rem 0;">
+        <li><strong style="color:var(--cyan)">r = |z| = √(a² + b²)</strong> — the magnitude (distance from origin)</li>
+        <li><strong style="color:var(--gold)">θ = arg(z) = arctan(b/a)</strong> — the argument (angle from positive x-axis)</li>
+      </ul>
+      <div class="canvas-panel">
+        <canvas id="complex-plane-canvas" width="420" height="380"></canvas>
+        <div class="ctrl-row">
+          <label>Re(z):</label>
+          <input type="range" id="re-slider" min="-2" max="2" step="0.05" value="1.5">
+          <span class="val-display" id="re-val">1.50</span>
+          <label>Im(z):</label>
+          <input type="range" id="im-slider" min="-2" max="2" step="0.05" value="1.2">
+          <span class="val-display" id="im-val">1.20</span>
+        </div>
+        <div class="canvas-status" id="complex-status">z = 1.50 + 1.20i &nbsp;|&nbsp; |z| = 1.92 &nbsp;|&nbsp; θ = 38.7°</div>
+      </div>
+    </div>
+
+    <!-- trig -->
+    <div id="bb-trig" class="tab-panel">
+      <h3 class="sub-title">Sine and Cosine on the Unit Circle</h3>
+      <p>On the unit circle, a point at angle <span class="math-inline">θ</span> has coordinates
+         <span class="math-inline">(cos θ,  sin θ)</span>. These functions describe the
+         <em>projection</em> of circular motion onto the real and imaginary axes:</p>
+      <div class="math-block">cos θ = Re(e<sup>iθ</sup>) &nbsp;&nbsp;&nbsp;&nbsp; sin θ = Im(e<sup>iθ</sup>)</div>
+      <div class="callout violet">
+        Euler's formula says: a point on the unit circle at angle θ <em>is</em> the complex
+        exponential e<sup>iθ</sup>. The two descriptions (trigonometric and exponential) are identical.
+      </div>
+      <div class="canvas-panel">
+        <canvas id="trig-canvas" width="560" height="260"></canvas>
+        <div class="ctrl-row">
+          <label>θ:</label>
+          <input type="range" id="trig-slider" min="0" max="628" value="80" step="1">
+          <span class="val-display" id="trig-val">0.80π</span>
+        </div>
+        <div class="canvas-status" id="trig-status">cos(θ) = 0.588 &nbsp;|&nbsp; sin(θ) = 0.809</div>
+      </div>
+    </div>
+
+    <!-- taylor -->
+    <div id="bb-taylor" class="tab-panel">
+      <h3 class="sub-title">Taylor Series — Polynomials in Disguise</h3>
+      <p>Any smooth function can be approximated as an infinite polynomial around a point.
+         Around <span class="math-inline">x = 0</span>:</p>
+      <div class="math-block">f(x) = f(0) + f'(0)x + f''(0)x²/2! + f'''(0)x³/3! + …</div>
+      <p>The three key series we'll need are:</p>
+      <table class="styled">
+        <thead><tr><th>Function</th><th>Taylor Series</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="gold">e<sup>x</sup></td>
+            <td>1 + x + x²/2! + x³/3! + x⁴/4! + x⁵/5! + …</td>
+          </tr>
+          <tr>
+            <td class="gold">cos x</td>
+            <td>1 &minus; x²/2! + x⁴/4! &minus; x⁶/6! + …</td>
+          </tr>
+          <tr>
+            <td class="gold">sin x</td>
+            <td>x &minus; x³/3! + x⁵/5! &minus; x⁷/7! + …</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout green">
+        Notice the pattern: cos uses even powers, sin uses odd powers. Euler's formula
+        emerges precisely from substituting <span class="math-inline">iθ</span> into the
+        e<sup>x</sup> series and sorting the terms by their real/imaginary nature.
+      </div>
+      <div class="canvas-panel">
+        <canvas id="taylor-canvas" width="520" height="260"></canvas>
+        <div class="ctrl-row">
+          <label>N terms:</label>
+          <input type="range" id="taylor-n" min="1" max="12" value="3">
+          <span class="val-display" id="taylor-n-val">3</span>
+          <label>Function:</label>
+          <select id="taylor-fn" style="background:var(--bg3);border:1px solid var(--border);color:var(--ink);font-family:var(--font-mono);font-size:.78rem;padding:.3rem .5rem;border-radius:5px;">
+            <option value="exp">e^x</option>
+            <option value="cos">cos x</option>
+            <option value="sin">sin x</option>
+          </select>
+        </div>
+        <div class="canvas-status" id="taylor-status">Showing 3-term Taylor approximation of eˣ</div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider">
+
+<!-- DERIVATION -->
+<section id="derivation">
+  <div class="section-label">Section 02</div>
+  <h2 class="section-title">The Derivation</h2>
+  <p>We derive Euler's formula by substituting <span class="math-inline">iθ</span> into the
+     Taylor series of <span class="math-inline">e<sup>x</sup></span> and then recognizing
+     the resulting pattern.</p>
+
+  <div class="deriv-step" data-step="1">
+    <p><strong style="color:var(--cyan)">Start with the Taylor series for eˣ</strong></p>
+    <div class="math-block">e<sup>x</sup> = 1 + x + x²/2! + x³/3! + x⁴/4! + x⁵/5! + x⁶/6! + x⁷/7! + …</div>
+    <p>This converges for all complex numbers, not just real ones. So we're free to substitute <span class="math-inline">x = iθ</span>.</p>
+  </div>
+
+  <div class="deriv-step" data-step="2">
+    <p><strong style="color:var(--cyan)">Substitute x = iθ</strong></p>
+    <div class="math-block">e<sup>iθ</sup> = 1 + (iθ) + (iθ)²/2! + (iθ)³/3! + (iθ)⁴/4! + (iθ)⁵/5! + …</div>
+    <p>Now we expand each power using the cycling rule i² = −1, i³ = −i, i⁴ = 1, i⁵ = i, …</p>
+  </div>
+
+  <div class="deriv-step" data-step="3">
+    <p><strong style="color:var(--cyan)">Expand the powers of (iθ)ⁿ</strong></p>
+    <table class="styled" style="margin-top:.5rem;">
+      <thead><tr><th>Term</th><th>Expand iⁿ</th><th>Simplified</th></tr></thead>
+      <tbody>
+        <tr><td>(iθ)⁰</td><td>i⁰ = 1</td><td class="gold">1</td></tr>
+        <tr><td>(iθ)¹/1!</td><td>i¹ = i</td><td class="gold">iθ</td></tr>
+        <tr><td>(iθ)²/2!</td><td>i² = −1</td><td class="gold">−θ²/2!</td></tr>
+        <tr><td>(iθ)³/3!</td><td>i³ = −i</td><td class="gold">−iθ³/3!</td></tr>
+        <tr><td>(iθ)⁴/4!</td><td>i⁴ = +1</td><td class="gold">+θ⁴/4!</td></tr>
+        <tr><td>(iθ)⁵/5!</td><td>i⁵ = +i</td><td class="gold">+iθ⁵/5!</td></tr>
+        <tr><td>(iθ)⁶/6!</td><td>i⁶ = −1</td><td class="gold">−θ⁶/6!</td></tr>
+        <tr><td>(iθ)⁷/7!</td><td>i⁷ = −i</td><td class="gold">−iθ⁷/7!</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="deriv-step" data-step="4">
+    <p><strong style="color:var(--cyan)">Group real and imaginary terms</strong></p>
+    <div class="math-block" style="font-size:1.15rem;">e<sup>iθ</sup> = (1 − θ²/2! + θ⁴/4! − θ⁶/6! + …) + i(θ − θ³/3! + θ⁵/5! − θ⁷/7! + …)</div>
+  </div>
+
+  <div class="deriv-step" data-step="5">
+    <p><strong style="color:var(--cyan)">Recognize the Taylor series for cos and sin</strong></p>
+    <div class="math-block" style="font-size:1.1rem; color:var(--cyan);">cos θ = 1 − θ²/2! + θ⁴/4! − θ⁶/6! + …</div>
+    <div class="math-block" style="font-size:1.1rem; color:var(--violet);">sin θ = θ − θ³/3! + θ⁵/5! − θ⁷/7! + …</div>
+  </div>
+
+  <div class="deriv-step" data-step="6">
+    <p><strong style="color:var(--gold)">Conclude: Euler's Formula</strong></p>
+    <div class="math-block" style="font-size:2rem; border-color:var(--gold); background:rgba(240,180,41,.06);">
+      e<sup>iθ</sup> = cos θ + i sin θ
+    </div>
+    <p>The real part of <span class="math-inline">e<sup>iθ</sup></span> is <span class="math-inline">cos θ</span>,
+       and the imaginary part is <span class="math-inline">sin θ</span>.
+       This is not an approximation — it's an exact identity, valid for all real (and complex) θ.</p>
+  </div>
+
+  <hr class="divider" style="margin:2.5rem 0;">
+
+  <h3 class="sub-title">Visual Convergence: Taylor Vectors</h3>
+  <p>Each term in the Taylor series is a complex number (a 2D vector). They chain end-to-end;
+     as we add more terms, the chain spirals in and converges to the point
+     <span class="math-inline">e<sup>iθ</sup> = cos θ + i sin θ</span> on the unit circle.</p>
+
+  <div class="canvas-panel">
+    <canvas id="vector-chain-canvas" width="420" height="420"></canvas>
+    <div class="ctrl-row">
+      <label>θ (rad):</label>
+      <input type="range" id="vc-theta" min="0" max="628" value="200" step="2">
+      <span class="val-display" id="vc-theta-val">1.00π</span>
+      <label>N terms:</label>
+      <input type="range" id="vc-n" min="1" max="18" value="6">
+      <span class="val-display" id="vc-n-val">6</span>
+    </div>
+    <div class="canvas-status" id="vc-status">Showing 6-term vector chain converging to e^(iθ)</div>
+  </div>
+</section>
+<hr class="divider">
+
+<!-- UNIT CIRCLE -->
+<section id="unit-circle">
+  <div class="section-label">Section 03</div>
+  <h2 class="section-title">The Unit Circle Explorer</h2>
+  <p>As <span class="math-inline">θ</span> varies from 0 to 2π, the complex number
+     <span class="math-inline">e<sup>iθ</sup></span> traces the unit circle exactly once.
+     Watch how the real and imaginary projections generate the cosine and sine waves.</p>
+
+  <div class="canvas-panel">
+    <canvas id="unit-circle-canvas" width="700" height="360"></canvas>
+    <div class="ctrl-row">
+      <label>θ:</label>
+      <input type="range" id="uc-theta" min="0" max="628" value="100" step="2">
+      <span class="val-display" id="uc-theta-val">0.32π</span>
+      <button id="uc-anim-btn">▶ Animate</button>
+      <button id="uc-trace-btn">Show Trace</button>
+    </div>
+    <div class="canvas-status" id="uc-status">e^(i·0.32π) = cos(0.32π) + i·sin(0.32π) = 0.588 + 0.809i</div>
+  </div>
+
+  <div class="two-col" style="margin-top:2rem;">
+    <div class="callout">
+      <strong>The Real Projection</strong><br>
+      As the point rotates, its x-coordinate (horizontal shadow) traces out a
+      <strong style="color:var(--cyan)">cosine wave</strong>. Cosine starts at 1,
+      dips to −1 at θ = π, and returns.
+    </div>
+    <div class="callout gold">
+      <strong>The Imaginary Projection</strong><br>
+      The y-coordinate (vertical shadow) traces a
+      <strong style="color:var(--gold)">sine wave</strong>. Sine starts at 0,
+      peaks at 1 when θ = π/2, and oscillates.
+    </div>
+  </div>
+
+  <h3 class="sub-title">Inverse Formulas</h3>
+  <p>By adding and subtracting Euler's formula for +θ and −θ, we recover cosine and sine:</p>
+  <div class="two-col">
+    <div class="math-block">cos θ = (e<sup>iθ</sup> + e<sup>−iθ</sup>) / 2</div>
+    <div class="math-block">sin θ = (e<sup>iθ</sup> − e<sup>−iθ</sup>) / 2i</div>
+  </div>
+  <p>This is how complex exponentials secretly <em>are</em> trigonometry — they are not separate
+     subjects but two faces of the same mathematical object.</p>
+</section>
+<hr class="divider">
+
+<!-- EULER'S IDENTITY -->
+<section id="identity">
+  <div class="section-label">Section 04</div>
+  <h2 class="section-title">Euler's Identity</h2>
+  <p>Setting <span class="math-inline">θ = π</span> in Euler's formula yields the most celebrated
+     equation in mathematics:</p>
+
+  <div class="identity-showcase">
+    <div style="font-family:var(--font-mono);font-size:.8rem;color:var(--dim);letter-spacing:.2em;margin-bottom:.5rem;">
+      e<sup>iπ</sup> = cos π + i sin π = −1 + i·0 = −1
+    </div>
+    <div class="identity-eq">e<sup>iπ</sup> + 1 = 0</div>
+    <p style="color:var(--dim);font-size:1rem;max-width:520px;margin:.75rem auto;">
+      In this single equation five fundamental constants of mathematics appear exactly once,
+      connected by two operations (addition and exponentiation).
+    </p>
+    <div class="identity-parts">
+      <div class="identity-part">
+        <span class="sym">e</span>
+        <span class="desc">Euler's number<br>base of natural log</span>
+      </div>
+      <div class="identity-part">
+        <span class="sym">i</span>
+        <span class="desc">Imaginary unit<br>√(−1)</span>
+      </div>
+      <div class="identity-part">
+        <span class="sym">π</span>
+        <span class="desc">Pi<br>ratio circ./diam.</span>
+      </div>
+      <div class="identity-part">
+        <span class="sym">1</span>
+        <span class="desc">Multiplicative<br>identity</span>
+      </div>
+      <div class="identity-part">
+        <span class="sym">0</span>
+        <span class="desc">Additive<br>identity</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-panel">
+    <canvas id="identity-canvas" width="540" height="320"></canvas>
+    <div class="ctrl-row">
+      <button id="id-walk-btn">▶ Walk from 1 to −1</button>
+      <button id="id-reset-btn">Reset</button>
+    </div>
+    <div class="canvas-status" id="id-status">The point e^(iθ) walks from 1 (θ=0) to −1 (θ=π) along the upper semicircle.</div>
+  </div>
+
+  <div class="callout violet" style="margin-top:2rem;">
+    <strong>Why is this deep?</strong> It is not just that five constants appear — it is that
+    three entirely different mathematical worlds (analysis via e, geometry via π, algebra via i)
+    intersect at the simplest possible relationship. The number i carries the formula into the
+    imaginary axis, π specifies the half-turn, and e provides the exponential scaffold.
+    The result lands exactly at −1, the reflection of 1 through the origin.
+  </div>
+</section>
+<hr class="divider">
+
+<!-- ROTATION & COMPLEX MULTIPLICATION -->
+<section id="rotation">
+  <div class="section-label">Section 05</div>
+  <h2 class="section-title">Rotation &amp; Complex Multiplication</h2>
+  <p>Euler's formula reveals that <strong>multiplying by e<sup>iφ</sup> rotates</strong> any
+     complex number by angle φ. This is one of its most powerful applications.</p>
+
+  <div class="math-block">z · e<sup>iφ</sup> = r·e<sup>iθ</sup> · e<sup>iφ</sup> = r·e<sup>i(θ+φ)</sup></div>
+
+  <p>The magnitudes multiply and the angles add. Rotation is just multiplication by a unit
+     complex number on the circle.</p>
+
+  <div class="canvas-panel">
+    <canvas id="rotation-canvas" width="460" height="420"></canvas>
+    <div class="ctrl-row">
+      <label>|z|:</label>
+      <input type="range" id="rot-r" min="0.2" max="1.8" step="0.05" value="1.2">
+      <span class="val-display" id="rot-r-val">1.20</span>
+      <label>θ(z):</label>
+      <input type="range" id="rot-theta" min="0" max="628" step="4" value="80">
+      <span class="val-display" id="rot-theta-val">0.40π</span>
+    </div>
+    <div class="ctrl-row">
+      <label>φ (rotate by):</label>
+      <input type="range" id="rot-phi" min="-314" max="314" step="4" value="100">
+      <span class="val-display" id="rot-phi-val">+0.50π</span>
+    </div>
+    <div class="canvas-status" id="rot-status"></div>
+  </div>
+
+  <h3 class="sub-title">De Moivre's Theorem</h3>
+  <p>A direct consequence of Euler's formula: raising a complex number to an integer power
+     simply multiplies the angle:</p>
+  <div class="math-block">(cos θ + i sin θ)<sup>n</sup> = cos(nθ) + i sin(nθ)</div>
+  <div class="callout green">
+    <strong>Proof:</strong> (e<sup>iθ</sup>)<sup>n</sup> = e<sup>inθ</sup> = cos(nθ) + i sin(nθ). ∎
+    This one-line proof, via Euler's formula, replaces tedious trigonometric induction.
+  </div>
+
+  <h3 class="sub-title">Deriving Trig Identities in Seconds</h3>
+  <p>Using <span class="math-inline">e<sup>i(α+β)</sup> = e<sup>iα</sup> · e<sup>iβ</sup></span>
+     and expanding both sides immediately gives the angle addition formulas:</p>
+  <div class="math-block" style="font-size:1.1rem;">cos(α+β) = cos α cos β − sin α sin β</div>
+  <div class="math-block" style="font-size:1.1rem;">sin(α+β) = sin α cos β + cos α sin β</div>
+  <p>No geometric diagrams or induction required — it follows directly from exponential algebra.</p>
+</section>
+<hr class="divider">
+
+<!-- ROOTS OF UNITY -->
+<section id="roots">
+  <div class="section-label">Section 06</div>
+  <h2 class="section-title">Roots of Unity</h2>
+  <p>The equation <span class="math-inline">z<sup>n</sup> = 1</span> has exactly n solutions
+     (roots) in the complex numbers. Using Euler's formula, they are evenly spaced around the
+     unit circle:</p>
+  <div class="math-block">z<sub>k</sub> = e<sup>2πik/n</sup> = cos(2πk/n) + i·sin(2πk/n) &nbsp;&nbsp; for k = 0, 1, …, n−1</div>
+  <p>These roots form the vertices of a regular n-gon inscribed in the unit circle.
+     This is the foundation of the Discrete Fourier Transform.</p>
+
+  <div class="canvas-panel">
+    <canvas id="roots-canvas" width="420" height="420"></canvas>
+    <div class="ctrl-row">
+      <label>n = </label>
+      <input type="range" id="roots-n" min="2" max="24" value="6">
+      <span class="val-display" id="roots-n-val">6</span>
+    </div>
+    <div class="canvas-status" id="roots-status">6th roots of unity — vertices of a regular hexagon</div>
+  </div>
+
+  <h3 class="sub-title">Primitive Root</h3>
+  <p>The first nontrivial root, <span class="math-inline">ω = e<sup>2πi/n</sup></span>,
+     is called the <em>primitive nth root of unity</em>. Its powers generate all the others:</p>
+  <div class="math-block">1, ω, ω², ω³, …, ω<sup>n−1</sup></div>
+
+  <div class="callout gold">
+    <strong>Sum to zero:</strong> The n-th roots of unity always sum to zero —
+    1 + ω + ω² + … + ω<sup>n−1</sup> = 0. Geometrically, the vectors cancel by symmetry.
+    This is the orthogonality property that makes the Fourier transform work.
+  </div>
+
+  <h3 class="sub-title">Roots Listed (n = selected above)</h3>
+  <div id="roots-table-wrap">
+    <table class="styled" id="roots-table">
+      <thead><tr><th>k</th><th>e^(2πik/n)</th><th>Angle</th><th>Re</th><th>Im</th></tr></thead>
+      <tbody id="roots-tbody"></tbody>
+    </table>
+  </div>
+</section>
+<hr class="divider">
+
+<!-- PHASORS -->
+<section id="phasors">
+  <div class="section-label">Section 07</div>
+  <h2 class="section-title">Phasors &amp; AC Circuits</h2>
+  <p>In electrical engineering and physics, a <strong>phasor</strong> is a rotating complex
+     exponential representing a sinusoidal signal.
+     Instead of working with <span class="math-inline">A cos(ωt + φ)</span> directly,
+     engineers use the compact representation:</p>
+  <div class="math-block">v(t) = Re[V·e<sup>iωt</sup>] &nbsp;&nbsp; where V = A·e<sup>iφ</sup></div>
+  <p>Adding two sinusoids of the same frequency becomes simple vector addition of phasors.
+     Differentiation becomes multiplication by <span class="math-inline">iω</span> — turning
+     differential equations into algebra.</p>
+
+  <div class="canvas-panel">
+    <canvas id="phasor-canvas" width="700" height="320"></canvas>
+    <div class="ctrl-row">
+      <label>Amplitude A:</label>
+      <input type="range" id="ph-amp" min="0.3" max="1.8" step="0.05" value="1.0">
+      <span class="val-display" id="ph-amp-val">1.00</span>
+      <label>Phase φ:</label>
+      <input type="range" id="ph-phase" min="0" max="628" step="4" value="0">
+      <span class="val-display" id="ph-phase-val">0.00π</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Freq ω:</label>
+      <input type="range" id="ph-freq" min="0.5" max="4" step="0.1" value="1.0">
+      <span class="val-display" id="ph-freq-val">1.0</span>
+      <button id="ph-add-btn">+ Add 2nd Phasor</button>
+      <button id="ph-reset-btn">Reset</button>
+    </div>
+    <div class="canvas-status" id="ph-status">Single phasor: A=1.00, φ=0, ω=1.0</div>
+  </div>
+
+  <div class="callout">
+    <strong>Impedance:</strong> In AC circuit analysis, a capacitor's impedance is
+    Z<sub>C</sub> = 1/(iωC) and an inductor's is Z<sub>L</sub> = iωL.
+    The factor of <span class="math-inline">i</span> encodes the 90° phase shift between
+    voltage and current — rotation in the complex plane.
+  </div>
+</section>
+<hr class="divider">
+
+<!-- APPLICATIONS -->
+<section id="applications">
+  <div class="section-label">Section 08</div>
+  <h2 class="section-title">Applications Across Science</h2>
+  <p>Euler's formula is not merely beautiful — it is indispensable across mathematics, physics,
+     and engineering.</p>
+
+  <div class="three-col" style="margin-top:2rem;">
+    <div class="card reveal">
+      <span class="card-icon">🌊</span>
+      <h4>Fourier Transform</h4>
+      <p>The DFT and FFT decompose signals into frequencies using e<sup>−2πiνt</sup> as basis functions.
+         Every spectral analysis tool — audio EQ, MRI, radio — depends on Euler's formula.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">⚡</span>
+      <h4>AC Circuit Analysis</h4>
+      <p>Complex impedance (Z = R + iX) encodes amplitude and phase simultaneously.
+         Ohm's law, V = IZ, handles reactive components without differential equations.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">⚛️</span>
+      <h4>Quantum Mechanics</h4>
+      <p>Wave functions are complex-valued: ψ = Ae<sup>i(kx−ωt)</sup>. The Schrödinger equation,
+         propagators, and S-matrices are all expressed via complex exponentials.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">🎮</span>
+      <h4>2D/3D Graphics</h4>
+      <p>Multiplying by e<sup>iθ</sup> rotates a 2D point. Quaternions (the 3D extension)
+         use the same principle to represent 3D rotations without gimbal lock.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">📡</span>
+      <h4>Signal Processing</h4>
+      <p>Modulation, filtering, and demodulation use complex exponentials.
+         The analytic signal z(t) = x(t) + iH{x(t)} gives instantaneous amplitude &amp; phase.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">🔢</span>
+      <h4>Number Theory</h4>
+      <p>The Riemann ζ function, character sums, and Dirichlet series all use complex
+         exponentials. The Riemann Hypothesis concerns zeros of ζ in the complex plane.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">🌀</span>
+      <h4>Fluid Dynamics</h4>
+      <p>Conformal mappings of the complex plane transform complicated geometries into simple
+         ones. Potential flow and airfoil theory are expressed as complex potentials.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">🔬</span>
+      <h4>Optics &amp; Diffraction</h4>
+      <p>Fraunhofer diffraction and holography use Fourier optics:
+         the diffraction pattern is the Fourier transform of the aperture function.</p>
+    </div>
+    <div class="card reveal">
+      <span class="card-icon">🎵</span>
+      <h4>Music &amp; Audio</h4>
+      <p>Every digital audio effect — reverb, pitch-shifting, noise removal — is computed
+         in the frequency domain via the FFT, which is Euler's formula at its core.</p>
+    </div>
+  </div>
+</section>
+<hr class="divider">
+
+<!-- OCTAVE CODE -->
+<section id="octave">
+  <div class="section-label">Section 09</div>
+  <h2 class="section-title">GNU Octave Examples</h2>
+  <p>Ten complete, runnable GNU Octave scripts exploring every facet of Euler's formula.
+     Each includes comments explaining the mathematics. Copy any example into Octave or
+     a compatible MATLAB environment.</p>
+
+  <div class="tabs" id="oct-tabs">
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="oct-1">1. Verify Identity</button>
+      <button class="tab-btn" data-tab="oct-2">2. Unit Circle Plot</button>
+      <button class="tab-btn" data-tab="oct-3">3. Taylor Convergence</button>
+      <button class="tab-btn" data-tab="oct-4">4. Complex Rotation</button>
+      <button class="tab-btn" data-tab="oct-5">5. De Moivre</button>
+      <button class="tab-btn" data-tab="oct-6">6. Phasor (AC)</button>
+      <button class="tab-btn" data-tab="oct-7">7. Trig Identities</button>
+      <button class="tab-btn" data-tab="oct-8">8. Fourier Series</button>
+      <button class="tab-btn" data-tab="oct-9">9. 3D Helix</button>
+      <button class="tab-btn" data-tab="oct-10">10. DFT from Scratch</button>
+    </div>
+
+    <div id="oct-1" class="tab-panel active">
+      <h3 class="sub-title">1. Verify Euler's Identity Numerically</h3>
+      <p>Directly compute e<sup>iπ</sup> and confirm it equals −1 to machine precision.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── Euler's Identity: e^(i*pi) + 1 = 0 ──────────────────────────────────</span>
+<span class="c">% Compute e^(i*pi) using Octave's built-in exp() and the imaginary unit 1i</span>
+
+result = exp(<span class="m">1i</span> * pi);   <span class="c">% complex exponential: should equal -1</span>
+
+fprintf(<span class="s">'e^(i*pi) = %.15f + %.15fi\n'</span>, real(result), imag(result));
+fprintf(<span class="s">'e^(i*pi) + 1 = %.2e  (machine epsilon = %.2e)\n'</span>, ...
+        abs(result + <span class="m">1</span>), eps);
+
+<span class="c">% ── Direct component check ────────────────────────────────────────────────</span>
+theta = pi;
+using_formula = cos(theta) + <span class="m">1i</span> * sin(theta);   <span class="c">% Euler's formula</span>
+using_exp     = exp(<span class="m">1i</span> * theta);                 <span class="c">% exponential form</span>
+
+fprintf(<span class="s">'\nEuler formula result:  %+.10f %+.10fi\n'</span>, ...
+        real(using_formula), imag(using_formula));
+fprintf(<span class="s">'exp(i*theta) result:   %+.10f %+.10fi\n'</span>, ...
+        real(using_exp), imag(using_exp));
+fprintf(<span class="s">'Difference: %.2e\n'</span>, abs(using_formula - using_exp));
+
+<span class="c">% ── Explore e^(i*theta) for several values ────────────────────────────────</span>
+fprintf(<span class="s">'\n  θ/π     |  cos(θ)     |  sin(θ)     |  e^(iθ)\n'</span>);
+fprintf(<span class="s">'%s\n'</span>, repmat(<span class="s">'-'</span>, <span class="m">1</span>, <span class="m">55</span>));
+for k = <span class="m">0</span>:<span class="m">8</span>
+  t = k * pi / <span class="m">4</span>;
+  z = exp(<span class="m">1i</span> * t);
+  fprintf(<span class="s">'  %4.2f    |  %+.6f  |  %+.6f  |  %+.4f%+.4fi\n'</span>, ...
+          k/<span class="m">4</span>, cos(t), sin(t), real(z), imag(z));
+end</pre>
+      </div>
+    </div>
+
+    <div id="oct-2" class="tab-panel">
+      <h3 class="sub-title">2. Plot the Unit Circle with e^(iθ)</h3>
+      <p>Visualize how <span class="math-inline">e<sup>iθ</sup></span> traces the unit circle, and project the real and imaginary parts to produce cosine and sine waves.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── Unit Circle and Wave Projections ─────────────────────────────────────</span>
+theta = linspace(<span class="m">0</span>, <span class="m">2</span>*pi, <span class="m">360</span>);
+z     = exp(<span class="m">1i</span> * theta);          <span class="c">% unit circle as complex exponential</span>
+x     = real(z);                   <span class="c">% cos(θ)</span>
+y     = imag(z);                   <span class="c">% sin(θ)</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'Euler Formula: Unit Circle'</span>, <span class="s">'Color'</span>, <span class="s">'w'</span>);
+subplot(<span class="m">1</span>, <span class="m">3</span>, <span class="m">1</span>);
+  plot(x, y, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);  hold on;
+  plot(<span class="m">1</span>, <span class="m">0</span>, <span class="s">'ro'</span>, <span class="m">0</span>, <span class="m">1</span>, <span class="s">'go'</span>, -<span class="m">1</span>, <span class="m">0</span>, <span class="s">'ko'</span>, <span class="m">0</span>, -<span class="m">1</span>, <span class="s">'mo'</span>, <span class="s">'MarkerSize'</span>, <span class="m">8</span>);
+  axis equal; grid on; axis([-<span class="m">1.4</span> <span class="m">1.4</span> -<span class="m">1.4</span> <span class="m">1.4</span>]);
+  title(<span class="s">'Unit Circle: e^{i	heta}'</span>);
+  xlabel(<span class="s">'Re(z) = cos	heta'</span>); ylabel(<span class="s">'Im(z) = sin	heta'</span>);
+  legend({<span class="s">'e^{i	heta}'</span>,<span class="s">'	heta=0'</span>,<span class="s">'	heta=\pi/2'</span>,<span class="s">'	heta=\pi'</span>,<span class="s">'	heta=3\pi/2'</span>}, ...
+         <span class="s">'Location'</span>, <span class="s">'SouthEast'</span>);
+
+subplot(<span class="m">1</span>, <span class="m">3</span>, <span class="m">2</span>);
+  plot(theta/<span class="m">pi</span>, x, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  grid on; xlabel(<span class="s">'	heta / \pi'</span>); ylabel(<span class="s">'cos	heta = Re(e^{i	heta})'</span>);
+  title(<span class="s">'Real Part: Cosine Wave'</span>);
+  xticks(<span class="m">0</span>:<span class="m">0.5</span>:<span class="m">2</span>); xticklabels({<span class="s">'0'</span>,<span class="s">'\pi/2'</span>,<span class="s">'\pi'</span>,<span class="s">'3\pi/2'</span>,<span class="s">'2\pi'</span>});
+
+subplot(<span class="m">1</span>, <span class="m">3</span>, <span class="m">3</span>);
+  plot(theta/<span class="m">pi</span>, y, <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  grid on; xlabel(<span class="s">'	heta / \pi'</span>); ylabel(<span class="s">'sin	heta = Im(e^{i	heta})'</span>);
+  title(<span class="s">'Imaginary Part: Sine Wave'</span>);
+  xticks(<span class="m">0</span>:<span class="m">0.5</span>:<span class="m">2</span>); xticklabels({<span class="s">'0'</span>,<span class="s">'\pi/2'</span>,<span class="s">'\pi'</span>,<span class="s">'3\pi/2'</span>,<span class="s">'2\pi'</span>});
+
+sgtitle(<span class="s">'Euler\'s Formula: e^{i	heta} = cos	heta + i sin	heta'</span>, <span class="s">'FontSize'</span>, <span class="m">14</span>);</pre>
+      </div>
+    </div>
+
+    <div id="oct-3" class="tab-panel">
+      <h3 class="sub-title">3. Taylor Series Convergence</h3>
+      <p>Visualize how partial sums of the e<sup>x</sup> Taylor series converge to the true function, and watch the convergence of e<sup>iθ</sup> to the unit circle.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── Taylor Series Convergence for e^(iθ) ─────────────────────────────────</span>
+theta_vals = linspace(<span class="m">0</span>, <span class="m">2</span>*pi, <span class="m">500</span>);
+N_max = <span class="m">15</span>;   <span class="c">% max number of terms</span>
+
+<span class="c">% Build partial sums: sum_{k=0}^{N} (iθ)^k / k!</span>
+figure(<span class="s">'Name'</span>, <span class="s">'Taylor Convergence'</span>);
+colors = jet(N_max);
+
+subplot(<span class="m">1</span>, <span class="m">2</span>, <span class="m">1</span>);
+hold on;
+for N = [<span class="m">1</span> <span class="m">2</span> <span class="m">3</span> <span class="m">5</span> <span class="m">8</span> <span class="m">15</span>]
+  partial = zeros(size(theta_vals));
+  for k = <span class="m">0</span>:N
+    partial = partial + (<span class="m">1i</span> * theta_vals).^k ./ factorial(k);
+  end
+  plot(real(partial), imag(partial), <span class="s">'LineWidth'</span>, <span class="m">1.5</span>, <span class="s">'Color'</span>, colors(N, :));
+end
+<span class="c">% Exact unit circle</span>
+z_exact = exp(<span class="m">1i</span> * theta_vals);
+plot(real(z_exact), imag(z_exact), <span class="s">'k--'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+axis equal; grid on; axis([-<span class="m">1.5</span> <span class="m">1.5</span> -<span class="m">1.5</span> <span class="m">1.5</span>]);
+legend({<span class="s">'N=1'</span>,<span class="s">'N=2'</span>,<span class="s">'N=3'</span>,<span class="s">'N=5'</span>,<span class="s">'N=8'</span>,<span class="s">'N=15'</span>,<span class="s">'Exact'</span>}, <span class="s">'Location'</span>, <span class="s">'Best'</span>);
+title(<span class="s">'Taylor partial sums trace the unit circle'</span>);
+xlabel(<span class="s">'Re'</span>); ylabel(<span class="s">'Im'</span>);
+
+subplot(<span class="m">1</span>, <span class="m">2</span>, <span class="m">2</span>);
+<span class="c">% Error vs number of terms for θ = π</span>
+theta_test = pi;
+errors = zeros(<span class="m">1</span>, N_max);
+partial_sum = <span class="m">0</span>;
+for N = <span class="m">0</span>:N_max-<span class="m">1</span>
+  partial_sum = partial_sum + (<span class="m">1i</span>*theta_test)^N / factorial(N);
+  errors(N+<span class="m">1</span>) = abs(partial_sum - exp(<span class="m">1i</span>*theta_test));
+end
+semilogy(<span class="m">1</span>:N_max, errors, <span class="s">'bo-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>, <span class="s">'MarkerFaceColor'</span>, <span class="s">'b'</span>);
+grid on; xlabel(<span class="s">'Number of terms N'</span>); ylabel(<span class="s">'|error|'</span>);
+title(<span class="s">'Convergence error at 	heta = \pi'</span>);
+sgtitle(<span class="s">'Taylor Series Convergence of e^{i	heta}'</span>);</pre>
+      </div>
+    </div>
+
+    <div id="oct-4" class="tab-panel">
+      <h3 class="sub-title">4. Complex Multiplication as Rotation</h3>
+      <p>Demonstrate that multiplying by e<sup>iφ</sup> rotates any complex number by angle φ without changing its magnitude.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── Complex Multiplication = Rotation ────────────────────────────────────</span>
+z = <span class="m">1.5</span> + <span class="m">0.8</span>*<span class="m">1i</span>;          <span class="c">% original complex number</span>
+phi_vals = <span class="m">0</span> : pi/<span class="m">6</span> : <span class="m">2</span>*pi; <span class="c">% rotate in steps of 30°</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'Complex Rotation'</span>);
+subplot(<span class="m">1</span>, <span class="m">2</span>, <span class="m">1</span>);
+hold on; axis equal; grid on;
+xlim([-<span class="m">2</span> <span class="m">2</span>]); ylim([-<span class="m">2</span> <span class="m">2</span>]);
+xlabel(<span class="s">'Re'</span>); ylabel(<span class="s">'Im'</span>);
+title(<span class="s">'z rotated by multiples of 30°'</span>);
+
+colors = hsv(length(phi_vals));
+for k = <span class="m">1</span>:length(phi_vals)
+  phi = phi_vals(k);
+  z_rot = z * exp(<span class="m">1i</span> * phi);   <span class="c">% rotate z by phi</span>
+  plot([<span class="m">0</span> real(z_rot)], [<span class="m">0</span> imag(z_rot)], <span class="s">'-o'</span>, ...
+       <span class="s">'Color'</span>, colors(k,:), <span class="s">'LineWidth'</span>, <span class="m">1.5</span>, <span class="s">'MarkerFaceColor'</span>, colors(k,:));
+end
+plot(real(z), imag(z), <span class="s">'k*'</span>, <span class="s">'MarkerSize'</span>, <span class="m">12</span>);  <span class="c">% original</span>
+
+<span class="c">% Verify: magnitude is preserved</span>
+z_rot_test = z * exp(<span class="m">1i</span> * pi/<span class="m">3</span>);
+fprintf(<span class="s">'Original z:   %.4f + %.4fi\n'</span>, real(z), imag(z));
+fprintf(<span class="s">'After 60° rot: %.4f + %.4fi\n'</span>, real(z_rot_test), imag(z_rot_test));
+fprintf(<span class="s">'|z| before: %.6f,  |z| after: %.6f  (unchanged)\n'</span>, abs(z), abs(z_rot_test));
+fprintf(<span class="s">'Angle before: %.2f°, angle after: %.2f°  (shifted by 60°)\n'</span>, ...
+        angle(z)*<span class="m">180</span>/pi, angle(z_rot_test)*<span class="m">180</span>/pi);
+
+subplot(<span class="m">1</span>, <span class="m">2</span>, <span class="m">2</span>);
+<span class="c">% Demonstrate |z*w| = |z|*|w| and arg(z*w) = arg(z)+arg(w)</span>
+n_pts = <span class="m">200</span>;
+z1 = (<span class="m">1.2</span>) * exp(<span class="m">1i</span> * linspace(<span class="m">0</span>, <span class="m">2</span>*pi, n_pts));  <span class="c">% circle of radius 1.2</span>
+z2 = (<span class="m">0.7</span>) * exp(<span class="m">1i</span> * pi/<span class="m">4</span>);                       <span class="c">% fixed rotator</span>
+product = z1 .* z2;
+plot(real(z1), imag(z1), <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+plot(real(product), imag(product), <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+axis equal; grid on;
+legend({<span class="s">'z_1 (r=1.2)'</span>, <span class="s">'z_1 	imes e^{i\pi/4} (r=0.84, rotated 45°)'</span>});
+title(<span class="s">'Multiplying scales AND rotates'</span>); xlabel(<span class="s">'Re'</span>); ylabel(<span class="s">'Im'</span>);</pre>
+      </div>
+    </div>
+
+    <div id="oct-5" class="tab-panel">
+      <h3 class="sub-title">5. De Moivre's Theorem &amp; nth Roots of Unity</h3>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── De Moivre's Theorem and Roots of Unity ───────────────────────────────</span>
+<span class="c">% De Moivre: (cos θ + i sin θ)^n = cos(nθ) + i sin(nθ)</span>
+
+theta = pi / <span class="m">5</span>;
+for n = [<span class="m">1</span> <span class="m">2</span> <span class="m">3</span> <span class="m">5</span> <span class="m">10</span>]
+  via_demoivre   = cos(n*theta) + <span class="m">1i</span>*sin(n*theta);
+  via_direct_pow = (cos(theta)  + <span class="m">1i</span>*sin(theta))^n;
+  via_euler      = exp(<span class="m">1i</span>*n*theta);
+  err = max(abs(via_demoivre - via_direct_pow), abs(via_demoivre - via_euler));
+  fprintf(<span class="s">'n=%2d: DeMoivre=%.6f%+.6fi  |error|=%.2e\n'</span>, ...
+          n, real(via_demoivre), imag(via_demoivre), err);
+end
+
+<span class="c">% ── nth Roots of Unity ────────────────────────────────────────────────────</span>
+figure(<span class="s">'Name'</span>, <span class="s">'Roots of Unity'</span>);
+for subplot_n = <span class="m">1</span>:<span class="m">6</span>
+  n = subplot_n + <span class="m">1</span>;            <span class="c">% n from 2 to 7</span>
+  k = <span class="m">0</span>:n-<span class="m">1</span>;
+  roots_n = exp(<span class="m">2i</span>*pi*k/n);    <span class="c">% z^n = 1 solutions: e^(2πi k/n)</span>
+  subplot(<span class="m">2</span>, <span class="m">3</span>, subplot_n);
+    circle_t = linspace(<span class="m">0</span>, <span class="m">2</span>*pi, <span class="m">200</span>);
+    plot(cos(circle_t), sin(circle_t), <span class="s">'k:'</span>); hold on;
+    plot(real(roots_n), imag(roots_n), <span class="s">'ro'</span>, <span class="s">'MarkerFaceColor'</span>, <span class="s">'r'</span>, <span class="s">'MarkerSize'</span>, <span class="m">8</span>);
+    <span class="c">% Draw polygon</span>
+    patch(real(roots_n), imag(roots_n), <span class="s">'r'</span>, <span class="s">'FaceAlpha'</span>, <span class="m">0.1</span>, <span class="s">'EdgeColor'</span>, <span class="s">'r'</span>);
+    for kk = <span class="m">1</span>:n
+      text(real(roots_n(kk))*<span class="m">1.2</span>, imag(roots_n(kk))*<span class="m">1.2</span>, ...
+           sprintf(<span class="s">'k=%d'</span>, kk-<span class="m">1</span>), <span class="s">'FontSize'</span>, <span class="m">7</span>, <span class="s">'HorizontalAlignment'</span>, <span class="s">'center'</span>);
+    end
+    axis equal; axis([-<span class="m">1.6</span> <span class="m">1.6</span> -<span class="m">1.6</span> <span class="m">1.6</span>]); grid on;
+    title(sprintf(<span class="s">'%d-th roots of unity'</span>, n));
+end
+sgtitle(<span class="s">'z^n = 1  →  e^{2\pi i k/n}'</span>);
+
+<span class="c">% ── Verify sum = 0 ────────────────────────────────────────────────────────</span>
+for n = <span class="m">2</span>:<span class="m">8</span>
+  s = sum(exp(<span class="m">2i</span>*pi*(<span class="m">0</span>:n-<span class="m">1</span>)/n));
+  fprintf(<span class="s">'Sum of %d-th roots of unity = %.2e (should be ~0)\n'</span>, n, abs(s));
+end</pre>
+      </div>
+    </div>
+
+    <div id="oct-6" class="tab-panel">
+      <h3 class="sub-title">6. Phasor Animation (AC Circuit)</h3>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── Phasor Animation: AC Circuit with R, L, C ────────────────────────────</span>
+<span class="c">% Component values</span>
+R   = <span class="m">100</span>;       <span class="c">% Ohms</span>
+L   = <span class="m">0.1</span>;       <span class="c">% Henry</span>
+C   = <span class="m">1e-4</span>;      <span class="c">% Farad</span>
+V0  = <span class="m">1</span>;         <span class="c">% source amplitude (V)</span>
+f_range = logspace(<span class="m">1</span>, <span class="m">4</span>, <span class="m">500</span>);   <span class="c">% 10 Hz to 10 kHz</span>
+
+omega = <span class="m">2</span>*pi*f_range;
+
+<span class="c">% Complex impedances: Z_R, Z_L, Z_C</span>
+Z_R = R * ones(size(omega));
+Z_L = <span class="m">1i</span> * omega * L;
+Z_C = <span class="m">1</span> ./ (<span class="m">1i</span> * omega * C);
+Z_total = Z_R + Z_L + Z_C;
+
+<span class="c">% Current phasor I = V/Z  (Ohm's law in complex form)</span>
+I = V0 ./ Z_total;
+
+figure(<span class="s">'Name'</span>, <span class="s">'RLC Phasor Analysis'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">1</span>);
+  semilogx(f_range, abs(I), <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'Frequency (Hz)'</span>); ylabel(<span class="s">'|I| (A)'</span>);
+  title(<span class="s">'Current Amplitude vs Frequency'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">2</span>);
+  semilogx(f_range, angle(I)*<span class="m">180</span>/pi, <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'Frequency (Hz)'</span>); ylabel(<span class="s">'Phase (degrees)'</span>);
+  title(<span class="s">'Phase of Current vs Frequency'</span>);
+  yline(<span class="m">0</span>, <span class="s">'k--'</span>);
+
+<span class="c">% Resonance frequency</span>
+f0 = <span class="m">1</span> / (<span class="m">2</span>*pi*sqrt(L*C));
+fprintf(<span class="s">'Resonance frequency: %.2f Hz\n'</span>, f0);
+fprintf(<span class="s">'At resonance: Z_L = %+.2fi, Z_C = %+.2fi  (cancel!)\n'</span>, ...
+        imag(<span class="m">1i</span>*<span class="m">2</span>*pi*f0*L), imag(<span class="m">1</span>/(<span class="m">1i</span>*<span class="m">2</span>*pi*f0*C)));
+
+<span class="c">% Time-domain phasor at a specific frequency</span>
+subplot(<span class="m">2</span>,<span class="m">2</span>,[<span class="m">3</span>,<span class="m">4</span>]);
+t = linspace(<span class="m">0</span>, <span class="m">3</span>/f0, <span class="m">1000</span>);
+omega0 = <span class="m">2</span>*pi*f0;
+V_t = V0 * cos(omega0 * t);
+I_phasor = V0 / R;            <span class="c">% at resonance, Z = R</span>
+I_t = I_phasor * cos(omega0 * t);
+plot(t*<span class="m">1000</span>, V_t, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+plot(t*<span class="m">1000</span>, I_t*R, <span class="s">'r--'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+xlabel(<span class="s">'Time (ms)'</span>); ylabel(<span class="s">'Amplitude'</span>); grid on;
+legend({<span class="s">'V(t) = V_0 cos(\omega_0 t)'</span>, <span class="s">'I(t)	imesR  (in phase at resonance)'</span>});
+title(sprintf(<span class="s">'Time Domain at Resonance f_0 = %.1f Hz'</span>, f0));</pre>
+      </div>
+    </div>
+
+    <div id="oct-7" class="tab-panel">
+      <h3 class="sub-title">7. Trig Identities from Euler's Formula</h3>
+      <p>Derive and verify standard trigonometric identities algebraically using complex exponentials.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── Trig Identities via Euler's Formula ──────────────────────────────────</span>
+<span class="c">% cos(α+β) = cos α cos β - sin α sin β</span>
+<span class="c">% sin(α+β) = sin α cos β + cos α sin β</span>
+<span class="c">% Proof: e^{i(α+β)} = e^{iα} · e^{iβ}</span>
+
+alpha = <span class="m">0.7</span>; beta = <span class="m">1.2</span>;
+
+lhs = exp(<span class="m">1i</span>*(alpha+beta));
+rhs = exp(<span class="m">1i</span>*alpha) * exp(<span class="m">1i</span>*beta);
+fprintf(<span class="s">'e^{i(a+b)} = %.6f %+.6fi\n'</span>, real(lhs), imag(lhs));
+fprintf(<span class="s">'e^{ia}*e^{ib}= %.6f %+.6fi  |error|=%.2e\n\n'</span>, real(rhs), imag(rhs), abs(lhs-rhs));
+
+<span class="c">% Expanding: Real part gives cos addition, imaginary gives sin addition</span>
+cos_add_euler  = real(exp(<span class="m">1i</span>*alpha) * exp(<span class="m">1i</span>*beta));
+cos_add_trig   = cos(alpha)*cos(beta) - sin(alpha)*sin(beta);
+sin_add_euler  = imag(exp(<span class="m">1i</span>*alpha) * exp(<span class="m">1i</span>*beta));
+sin_add_trig   = sin(alpha)*cos(beta) + cos(alpha)*sin(beta);
+fprintf(<span class="s">'cos(a+b): Euler=%.8f  Trig=%.8f\n'</span>, cos_add_euler, cos_add_trig);
+fprintf(<span class="s">'sin(a+b): Euler=%.8f  Trig=%.8f\n\n'</span>, sin_add_euler, sin_add_trig);
+
+<span class="c">% ── Double angle formulas ─────────────────────────────────────────────────</span>
+<span class="c">% (e^{iθ})^2 = e^{2iθ}  →  expand (cosθ + i sinθ)^2</span>
+theta = <span class="m">0.9</span>;
+z2 = (cos(theta) + <span class="m">1i</span>*sin(theta))^<span class="m">2</span>;
+fprintf(<span class="s">'cos(2θ): Euler=%.8f  Direct=%.8f\n'</span>, real(z2), cos(<span class="m">2</span>*theta));
+fprintf(<span class="s">'sin(2θ): Euler=%.8f  Direct=%.8f\n\n'</span>, imag(z2), sin(<span class="m">2</span>*theta));
+
+<span class="c">% ── Product-to-sum identities ─────────────────────────────────────────────</span>
+<span class="c">% cos α cos β = (1/2)[cos(α-β) + cos(α+β)]</span>
+<span class="c">% Proof: Re(e^{iα}) * Re(e^{iβ}) = (1/2)Re(e^{i(α-β)} + e^{i(α+β)})</span>
+lhs_prod = cos(alpha) * cos(beta);
+rhs_prod = <span class="m">0.5</span> * (cos(alpha-beta) + cos(alpha+beta));
+fprintf(<span class="s">'cos(a)cos(b):  Direct=%.8f  Product-to-sum=%.8f\n'</span>, lhs_prod, rhs_prod);
+
+<span class="c">% ── Plot several trig identities verified numerically ─────────────────────</span>
+t = linspace(<span class="m">0</span>, <span class="m">4</span>*pi, <span class="m">1000</span>);
+figure(<span class="s">'Name'</span>, <span class="s">'Trig Identities via Euler'</span>);
+subplot(<span class="m">2</span>,<span class="m">1</span>,<span class="m">1</span>);
+  euler_expr = real(exp(<span class="m">2i</span>*t));            <span class="c">% Re(e^{2it}) = cos(2t)</span>
+  trig_expr  = cos(t).^<span class="m">2</span> - sin(t).^<span class="m">2</span>;    <span class="c">% classical double angle</span>
+  plot(t, euler_expr, <span class="s">'b-'</span>, t, trig_expr, <span class="s">'r--'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  legend({<span class="s">'Re(e^{2it})'</span>, <span class="s">'cos^2(t)-sin^2(t)'</span>}); grid on;
+  title(<span class="s">'Double angle: cos(2t) = cos^2(t) - sin^2(t)'</span>);
+subplot(<span class="m">2</span>,<span class="m">1</span>,<span class="m">2</span>);
+  euler_expr2 = imag(exp(<span class="m">2i</span>*t));     <span class="c">% Im(e^{2it}) = sin(2t)</span>
+  trig_expr2  = <span class="m">2</span>*cos(t).*sin(t);    <span class="c">% classical form</span>
+  plot(t, euler_expr2, <span class="s">'b-'</span>, t, trig_expr2, <span class="s">'r--'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  legend({<span class="s">'Im(e^{2it})'</span>, <span class="s">'2cos(t)sin(t)'</span>}); grid on;
+  title(<span class="s">'Double angle: sin(2t) = 2cos(t)sin(t)'</span>);</pre>
+      </div>
+    </div>
+
+    <div id="oct-8" class="tab-panel">
+      <h3 class="sub-title">8. Fourier Series with Complex Exponentials</h3>
+      <p>Decompose a square wave into complex exponential harmonics, demonstrating how e<sup>iωt</sup> are the building blocks of all periodic signals.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── Fourier Series via Complex Exponentials ───────────────────────────────</span>
+<span class="c">% Square wave: f(t) = sign(sin(t)), period 2π</span>
+<span class="c">% Fourier coefficients: c_n = (1/2π) ∫₀²π f(t) e^{-int} dt</span>
+<span class="c">% For square wave: c_n = 0 (even n), c_n = 2/(inπ) (odd n)</span>
+
+T = <span class="m">2</span>*pi;
+t = linspace(<span class="m">0</span>, T, <span class="m">2000</span>);
+f_exact = sign(sin(t));           <span class="c">% exact square wave</span>
+
+<span class="c">% Build partial Fourier sum with N harmonics</span>
+N_vals = [<span class="m">1</span>, <span class="m">3</span>, <span class="m">7</span>, <span class="m">15</span>, <span class="m">31</span>];
+figure(<span class="s">'Name'</span>, <span class="s">'Fourier Series (Complex Exponentials)'</span>);
+
+for idx = <span class="m">1</span>:length(N_vals)
+  N = N_vals(idx);
+  f_approx = zeros(size(t));
+  for n = -N:N
+    if mod(n, <span class="m">2</span>) ~= <span class="m">0</span> && n ~= <span class="m">0</span>     <span class="c">% only odd harmonics</span>
+      c_n = <span class="m">2</span> / (<span class="m">1i</span> * n * pi);       <span class="c">% Fourier coefficient</span>
+      f_approx = f_approx + real(c_n * exp(<span class="m">1i</span> * n * t));
+    end
+  end
+  subplot(<span class="m">2</span>, <span class="m">3</span>, idx);
+    plot(t, f_exact, <span class="s">'k:'</span>, <span class="s">'LineWidth'</span>, <span class="m">1</span>); hold on;
+    plot(t, f_approx, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">1.5</span>);
+    title(sprintf(<span class="s">'N = %d harmonics'</span>, N));
+    xlabel(<span class="s">'t'</span>); ylim([-<span class="m">1.5</span> <span class="m">1.5</span>]); grid on;
+    if idx == <span class="m">1</span>, legend({<span class="s">'exact'</span>, <span class="s">'Fourier sum'</span>}); end
+end
+
+<span class="c">% Compute and display Fourier coefficients for first 10 harmonics</span>
+subplot(<span class="m">2</span>,<span class="m">3</span>,<span class="m">6</span>);
+n_plot = -<span class="m">9</span>:<span class="m">2</span>:<span class="m">9</span>;              <span class="c">% odd harmonics only</span>
+c_plot = <span class="m">2</span> ./ (<span class="m">1i</span> * n_plot * pi);
+stem(n_plot, abs(c_plot), <span class="s">'b'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>, <span class="s">'MarkerFaceColor'</span>, <span class="s">'b'</span>);
+xlabel(<span class="s">'Harmonic n'</span>); ylabel(<span class="s">'|c_n|'</span>);
+title(<span class="s">'Spectrum of square wave'</span>); grid on;
+sgtitle(<span class="s">'Fourier Series: Square Wave as Sum of e^{int}'</span>);</pre>
+      </div>
+    </div>
+
+    <div id="oct-9" class="tab-panel">
+      <h3 class="sub-title">9. 3D Helix: e<sup>iθ</sup> in the Complex + θ Plane</h3>
+      <p>Visualize the complex exponential in 3D: as θ grows, e<sup>iθ</sup> traces a helix in the (Re, Im, θ) space.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── 3D Helix Visualization of e^{iθ} ─────────────────────────────────────</span>
+theta = linspace(<span class="m">0</span>, <span class="m">6</span>*pi, <span class="m">2000</span>);
+z = exp(<span class="m">1i</span> * theta);
+x = real(z);    <span class="c">% cos(θ)</span>
+y = imag(z);    <span class="c">% sin(θ)</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'e^{itheta} as a 3D Helix'</span>);
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">1</span>);
+  plot3(x, y, theta, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  <span class="c">% Project onto Re-Im plane (unit circle)</span>
+  plot3(x, y, zeros(size(theta)), <span class="s">'k:'</span>, <span class="s">'LineWidth'</span>, <span class="m">1</span>);
+  <span class="c">% Project onto Re-θ plane (cosine wave)</span>
+  plot3(x, -ones(size(theta)), theta, <span class="s">'r:'</span>, <span class="s">'LineWidth'</span>, <span class="m">1</span>);
+  <span class="c">% Project onto Im-θ plane (sine wave)</span>
+  plot3(ones(size(theta)), y, theta, <span class="s">'g:'</span>, <span class="s">'LineWidth'</span>, <span class="m">1</span>);
+  xlabel(<span class="s">'Re(e^{i	heta}) = cos	heta'</span>);
+  ylabel(<span class="s">'Im(e^{i	heta}) = sin	heta'</span>);
+  zlabel(<span class="s">'	heta (radians)'</span>);
+  title(<span class="s">'3D helix: e^{i	heta} with 3 projections'</span>);
+  legend({<span class="s">'helix'</span>,<span class="s">'unit circle (Re-Im)'</span>,<span class="s">'cosine (Re-	heta)'</span>,<span class="s">'sine (Im-	heta)'</span>});
+  grid on; view(<span class="m">35</span>, <span class="m">25</span>);
+
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">2</span>);
+  <span class="c">% Growing spiral: r(θ) * e^{iθ} where r(θ) = e^{θ/10}</span>
+  r = exp(theta/<span class="m">10</span>);           <span class="c">% growing amplitude</span>
+  z_spiral = r .* exp(<span class="m">1i</span>*theta);
+  plot3(real(z_spiral), imag(z_spiral), theta, <span class="s">'m-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  xlabel(<span class="s">'Re'</span>); ylabel(<span class="s">'Im'</span>); zlabel(<span class="s">'	heta'</span>);
+  title(<span class="s">'Growing spiral: e^{	heta/10} \cdot e^{i	heta}'</span>);
+  grid on; view(<span class="m">35</span>, <span class="m">25</span>);
+  
+sgtitle(<span class="s">'The Complex Exponential in 3D'</span>);</pre>
+      </div>
+    </div>
+
+    <div id="oct-10" class="tab-panel">
+      <h3 class="sub-title">10. DFT from Scratch vs. Built-in fft()</h3>
+      <p>Implement the Discrete Fourier Transform using Euler's formula directly, then compare with Octave's optimized FFT.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre class="code-block"><span class="c">% ── DFT from Scratch using Euler's Formula ───────────────────────────────</span>
+<span class="c">% DFT definition: X[k] = Σ_{n=0}^{N-1} x[n] · e^{-2πi k n / N}</span>
+<span class="c">% This is a direct application of complex exponentials as basis functions</span>
+
+<span class="k">function</span> X = my_dft(x)
+  N = length(x);
+  X = zeros(<span class="m">1</span>, N);
+  for k = <span class="m">0</span>:N-<span class="m">1</span>
+    for n = <span class="m">0</span>:N-<span class="m">1</span>
+      X(k+<span class="m">1</span>) = X(k+<span class="m">1</span>) + x(n+<span class="m">1</span>) * exp(-<span class="m">2i</span>*pi*k*n/N);  <span class="c">% Euler here</span>
+    end
+  end
+end
+
+<span class="c">% ── Test signal: sum of two sinusoids ─────────────────────────────────────</span>
+N = <span class="m">64</span>;
+n = <span class="m">0</span>:N-<span class="m">1</span>;
+f1 = <span class="m">5</span>; f2 = <span class="m">13</span>;               <span class="c">% frequency bins</span>
+x = <span class="m">2</span>*cos(<span class="m">2</span>*pi*f1*n/N) + <span class="m">0.5</span>*sin(<span class="m">2</span>*pi*f2*n/N);
+
+tic; X_mine  = my_dft(x); t_mine = toc;
+tic; X_builtin = fft(x);  t_fft  = toc;
+
+<span class="c">% Verify they match</span>
+max_err = max(abs(X_mine - X_builtin));
+fprintf(<span class="s">'Max error between my_dft and fft(): %.2e\n'</span>, max_err);
+fprintf(<span class="s">'my_dft time: %.4f s,  fft() time: %.6f s\n\n'</span>, t_mine, t_fft);
+
+<span class="c">% Plot spectrum</span>
+figure(<span class="s">'Name'</span>, <span class="s">'DFT via Euler Formula'</span>);
+k = <span class="m">0</span>:N/<span class="m">2</span>-<span class="m">1</span>;               <span class="c">% positive frequencies</span>
+
+subplot(<span class="m">2</span>,<span class="m">1</span>,<span class="m">1</span>);
+  plot(n, x, <span class="s">'b-o'</span>, <span class="s">'MarkerSize'</span>, <span class="m">3</span>); grid on;
+  xlabel(<span class="s">'Sample n'</span>); ylabel(<span class="s">'x[n]'</span>);
+  title(<span class="s">'Input signal: 2cos(2\pi 5n/N) + 0.5sin(2\pi 13n/N)'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">1</span>,<span class="m">2</span>);
+  stem(k, abs(X_builtin(<span class="m">1</span>:N/<span class="m">2</span>))/N*<span class="m">2</span>, <span class="s">'b'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>, ...
+       <span class="s">'MarkerFaceColor'</span>, <span class="s">'b'</span>); grid on;
+  xlabel(<span class="s">'Frequency bin k'</span>); ylabel(<span class="s">'|X[k]|/N × 2'</span>);
+  title(sprintf(<span class="s">'DFT Spectrum (peaks at k=%d and k=%d)'</span>, f1, f2));
+  xline(f1, <span class="s">'r--'</span>); xline(f2, <span class="s">'r--'</span>);
+
+sgtitle(<span class="s">'DFT = Euler\'s formula applied N^2 times'</span>);
+
+<span class="c">% ── Show the basis vectors explicitly ─────────────────────────────────────</span>
+fprintf(<span class="s">'\nDFT basis vector for k=5 (first 8 elements):\n'</span>);
+k5_basis = exp(-<span class="m">2i</span>*pi*<span class="m">5</span>*n/N);
+for j = <span class="m">0</span>:<span class="m">7</span>
+  fprintf(<span class="s">'  e^{-2πi·5·%d/%d} = %+.4f %+.4fi\n'</span>, j, N, real(k5_basis(j+<span class="m">1</span>)), imag(k5_basis(j+<span class="m">1</span>)));
+end</pre>
+      </div>
+    </div>
+
+  </div><!-- /oct-tabs -->
+</section>
+<hr class="divider">
+
+<!-- FOOTER -->
+<footer>
+  <p style="font-family:var(--font-head);font-size:1rem;color:var(--gold);margin-bottom:.5rem;">
+    e<sup>iπ</sup> + 1 = 0
+  </p>
+  Euler's Formula &mdash; Interactive Guide &nbsp;|&nbsp; Content for educational purposes
+</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const code = btn.nextElementSibling.innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'COPIED!';
+    setTimeout(() => btn.textContent = 'COPY', 1800);
+  });
+}
+
+// Tab switching (generic)
+document.querySelectorAll('.tabs').forEach(tabs => {
+  tabs.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.tab;
+      tabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      tabs.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(id).classList.add('active');
+      if (id.startsWith('oct-')) {
+        // Nothing extra needed
+      }
+    });
+  });
+});
+
+// Nav highlight on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav a.nav-link');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) cur = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
+  });
+}, { passive: true });
+
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+revealEls.forEach(el => revealObs.observe(el));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HERO CANVAS — rotating unit circle
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('hero-canvas');
+  const ctx = canvas.getContext('2d');
+  let t = 0;
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    const cx = W/2, cy = H/2, R = W*0.38;
+    ctx.clearRect(0,0,W,H);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(56,217,245,0.06)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 30) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 30) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(56,217,245,0.22)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx,20); ctx.lineTo(cx,H-20); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(20,cy); ctx.lineTo(W-20,cy); ctx.stroke();
+
+    // Unit circle
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI);
+    ctx.strokeStyle = 'rgba(56,217,245,0.28)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Trail
+    const trailLen = 140;
+    for (let i = 0; i < trailLen; i++) {
+      const a = t - i * 0.025;
+      const px = cx + R*Math.cos(-a);
+      const py = cy + R*Math.sin(-a);
+      const alpha = (1 - i/trailLen) * 0.6;
+      ctx.beginPath(); ctx.arc(px,py,2.5*(1-i/trailLen),0,2*Math.PI);
+      ctx.fillStyle = `rgba(56,217,245,${alpha})`; ctx.fill();
+    }
+
+    // Current point
+    const px = cx + R*Math.cos(-t);
+    const py = cy + R*Math.sin(-t);
+
+    // Projections
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle = 'rgba(56,217,245,0.4)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(px, cy); ctx.lineTo(px, py); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, py); ctx.lineTo(px, py); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Radius
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py);
+    ctx.strokeStyle = 'rgba(240,180,41,0.8)'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Point
+    const grad = ctx.createRadialGradient(px,py,0,px,py,8);
+    grad.addColorStop(0,'rgba(56,217,245,1)'); grad.addColorStop(1,'rgba(56,217,245,0)');
+    ctx.beginPath(); ctx.arc(px,py,8,0,2*Math.PI);
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.beginPath(); ctx.arc(px,py,4,0,2*Math.PI);
+    ctx.fillStyle = '#38d9f5'; ctx.fill();
+
+    // Labels
+    ctx.font = '13px JetBrains Mono, monospace';
+    ctx.fillStyle = 'rgba(56,217,245,0.7)';
+    ctx.fillText('Re', W-32, cy-8);
+    ctx.fillText('Im', cx+8, 26);
+    ctx.fillStyle = 'rgba(240,180,41,0.85)';
+    const cosV = Math.cos(t).toFixed(3);
+    const sinV = Math.sin(t).toFixed(3);
+    ctx.fillText(`e^(iθ) = ${cosV}+${sinV}i`, 12, H-14);
+
+    t += 0.015;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// e CANVAS — y = e^x
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('e-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  function toCanvas(x,y,xMin,xMax,yMin,yMax){
+    return [(x-xMin)/(xMax-xMin)*W, H-(y-yMin)/(yMax-yMin)*H];
+  }
+  ctx.clearRect(0,0,W,H);
+  const xMin=-2.5,xMax=2.5,yMin=-0.5,yMax=8;
+  // Grid
+  ctx.strokeStyle='rgba(56,217,245,0.07)'; ctx.lineWidth=1;
+  for(let x=-2;x<=2;x++){const[px]=toCanvas(x,0,xMin,xMax,yMin,yMax);ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();}
+  for(let y=0;y<=7;y++){const[,py]=toCanvas(0,y,xMin,xMax,yMin,yMax);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();}
+  // Axes
+  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1;
+  const[ax]=toCanvas(0,0,xMin,xMax,yMin,yMax); ctx.beginPath();ctx.moveTo(ax,0);ctx.lineTo(ax,H);ctx.stroke();
+  const[,ay]=toCanvas(0,0,xMin,xMax,yMin,yMax); ctx.beginPath();ctx.moveTo(0,ay);ctx.lineTo(W,ay);ctx.stroke();
+  // y=1 line
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(167,139,250,0.4)'; ctx.lineWidth=1;
+  const[,y1y]=toCanvas(0,1,xMin,xMax,yMin,yMax); ctx.beginPath();ctx.moveTo(0,y1y);ctx.lineTo(W,y1y);ctx.stroke();
+  ctx.setLineDash([]);
+  // e^x curve
+  ctx.beginPath(); let first=true;
+  for(let px=0;px<W;px++){
+    const x=xMin+(px/W)*(xMax-xMin);
+    const y=Math.exp(x);
+    const[,py]=toCanvas(x,y,xMin,xMax,yMin,yMax);
+    if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+  }
+  ctx.strokeStyle='#38d9f5'; ctx.lineWidth=2.5; ctx.stroke();
+  // Labels
+  ctx.font='13px JetBrains Mono,monospace'; ctx.fillStyle='rgba(56,217,245,0.8)';
+  ctx.fillText('y = eˣ', 10, 20);
+  ctx.fillStyle='rgba(167,139,250,0.8)';
+  ctx.fillText('y = 1', W-52, y1y-6);
+  ctx.fillStyle='rgba(240,180,41,0.7)';
+  // mark e^1
+  const[ex1,ey1]=toCanvas(1,Math.E,xMin,xMax,yMin,yMax);
+  ctx.beginPath();ctx.arc(ex1,ey1,4,0,2*Math.PI);ctx.fillStyle='#f0b429';ctx.fill();
+  ctx.fillText('(1, e)', ex1+6, ey1);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPOUND INTEREST CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('compound-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('n-slider');
+  const nVal = document.getElementById('n-val');
+  const cVal = document.getElementById('compound-val');
+
+  function draw(n) {
+    const W=canvas.width, H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+    // Bar chart showing (1+1/k)^k for k=1..n
+    const maxN = 200;
+    const val = Math.pow(1+1/n, n);
+    nVal.textContent = n;
+    cVal.textContent = val.toFixed(5);
+
+    const pad = 40;
+    const bw = (W-2*pad)/maxN;
+
+    // e line
+    ctx.strokeStyle='rgba(240,180,41,0.6)'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+    const ey = H - pad - (Math.E-1.9)/(3-1.9)*(H-2*pad);
+    ctx.beginPath(); ctx.moveTo(pad, ey); ctx.lineTo(W-pad, ey); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle='rgba(240,180,41,0.8)'; ctx.font='12px JetBrains Mono,monospace';
+    ctx.fillText('e = 2.71828…', W-120, ey-6);
+
+    // Plot dots up to current n
+    for(let k=1; k<=Math.min(n,maxN); k++){
+      const v = Math.pow(1+1/k, k);
+      const x = pad + (k/maxN)*(W-2*pad);
+      const y = H - pad - (v-1.9)/(3-1.9)*(H-2*pad);
+      ctx.beginPath(); ctx.arc(x, y, Math.max(1.5, 3-k/80), 0, 2*Math.PI);
+      ctx.fillStyle = `rgba(56,217,245,${0.4+0.6*k/n})`; ctx.fill();
+    }
+    // Current point (large)
+    const cx2 = pad + (n/maxN)*(W-2*pad);
+    const cy2 = H - pad - (val-1.9)/(3-1.9)*(H-2*pad);
+    ctx.beginPath(); ctx.arc(cx2, cy2, 6, 0, 2*Math.PI);
+    ctx.fillStyle='#38d9f5'; ctx.fill();
+    // Axes labels
+    ctx.fillStyle='rgba(154,145,130,0.7)'; ctx.font='11px JetBrains Mono,monospace';
+    ctx.fillText('n', W-20, H-pad+14);
+    ctx.fillText('(1+1/n)ⁿ', pad, 18);
+  }
+
+  slider.addEventListener('input', () => draw(parseInt(slider.value)));
+  draw(1);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// i POWERS CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('i-powers-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const cx=W/2, cy=H/2, R=W*0.36;
+  ctx.clearRect(0,0,W,H);
+  // Unit circle
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI);
+  ctx.strokeStyle='rgba(56,217,245,0.2)'; ctx.lineWidth=1.5; ctx.stroke();
+  // Axes
+  ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,20); ctx.lineTo(cx,H-20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(20,cy); ctx.lineTo(W-20,cy); ctx.stroke();
+
+  const powers = [
+    {n:0, x:1,  y:0,  label:'i⁰ = 1',   color:'#38d9f5'},
+    {n:1, x:0,  y:1,  label:'i¹ = i',   color:'#a78bfa'},
+    {n:2, x:-1, y:0,  label:'i² = −1',  color:'#f87171'},
+    {n:3, x:0,  y:-1, label:'i³ = −i',  color:'#f0b429'},
+  ];
+  powers.forEach(p => {
+    const px = cx + p.x*R, py = cy - p.y*R;
+    // Arrow from origin
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py);
+    ctx.strokeStyle=p.color; ctx.lineWidth=2; ctx.stroke();
+    // Dot
+    ctx.beginPath(); ctx.arc(px,py,8,0,2*Math.PI);
+    ctx.fillStyle=p.color; ctx.fill();
+    // Label
+    ctx.font='bold 14px EB Garamond, serif'; ctx.fillStyle=p.color;
+    const offx = p.x===0 ? (p.y>0?-60:10) : (p.x>0?12:-74);
+    const offy = p.y===0 ? (p.x>0?-12:18) : (p.y>0?-12:24);
+    ctx.fillText(p.label, px+offx, py+offy);
+  });
+  // 90° arc indicators
+  ctx.font='11px JetBrains Mono,monospace'; ctx.fillStyle='rgba(154,145,130,0.7)';
+  ctx.fillText('×i = rotate 90°', cx+8, cy-R/2);
+  ctx.fillText('Re', W-28, cy-8);
+  ctx.fillText('Im', cx+8, 22);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPLEX PLANE CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('complex-plane-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const reSlider = document.getElementById('re-slider');
+  const imSlider = document.getElementById('im-slider');
+  const reVal = document.getElementById('re-val');
+  const imVal = document.getElementById('im-val');
+  const status = document.getElementById('complex-status');
+  const W=canvas.width, H=canvas.height;
+  const cx=W/2, cy=H/2, scale=75;
+
+  function toC(x,y){return [cx+x*scale, cy-y*scale];}
+
+  function draw(){
+    const re = parseFloat(reSlider.value);
+    const im = parseFloat(imSlider.value);
+    reVal.textContent = re.toFixed(2);
+    imVal.textContent = im.toFixed(2);
+    const r = Math.sqrt(re*re+im*im);
+    const theta = Math.atan2(im,re)*180/Math.PI;
+    status.textContent = `z = ${re.toFixed(2)}+${im.toFixed(2)}i  |  |z| = ${r.toFixed(3)}  |  θ = ${theta.toFixed(1)}°`;
+
+    ctx.clearRect(0,0,W,H);
+    // Grid
+    ctx.strokeStyle='rgba(56,217,245,0.07)'; ctx.lineWidth=1;
+    for(let i=-4;i<=4;i++){
+      const [x1]=toC(i,-4), [x2]=toC(i,4); ctx.beginPath();ctx.moveTo(x1,toC(i,-4)[1]);ctx.lineTo(x2,toC(i,4)[1]);ctx.stroke();
+      const [,y1]=toC(-4,i); ctx.beginPath();ctx.moveTo(toC(-4,i)[0],y1);ctx.lineTo(toC(4,i)[0],toC(4,i)[1]);ctx.stroke();
+    }
+    // Axes
+    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx,10);ctx.lineTo(cx,H-10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(10,cy);ctx.lineTo(W-10,cy);ctx.stroke();
+    // Unit circle
+    ctx.beginPath();ctx.arc(cx,cy,scale,0,2*Math.PI);
+    ctx.strokeStyle='rgba(56,217,245,0.15)';ctx.lineWidth=1;ctx.setLineDash([3,4]);ctx.stroke();ctx.setLineDash([]);
+    // Angle arc
+    const [px,py] = toC(re,im);
+    if(r>0.1){
+      ctx.beginPath(); ctx.arc(cx,cy,30,0,-Math.atan2(im,re),im<0);
+      ctx.strokeStyle='rgba(167,139,250,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='rgba(167,139,250,0.7)'; ctx.font='11px JetBrains Mono';
+      ctx.fillText('θ', cx+34, cy-8);
+    }
+    // Dashed projections
+    ctx.setLineDash([4,4]); ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(56,217,245,0.4)';
+    ctx.beginPath();ctx.moveTo(px,cy);ctx.lineTo(px,py);ctx.stroke();
+    ctx.strokeStyle='rgba(240,180,41,0.4)';
+    ctx.beginPath();ctx.moveTo(cx,py);ctx.lineTo(px,py);ctx.stroke();
+    ctx.setLineDash([]);
+    // Magnitude line
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);
+    ctx.strokeStyle='rgba(240,180,41,0.8)';ctx.lineWidth=2;ctx.stroke();
+    // Point
+    ctx.beginPath();ctx.arc(px,py,7,0,2*Math.PI);
+    ctx.fillStyle='#38d9f5';ctx.fill();
+    ctx.strokeStyle='rgba(56,217,245,0.4)';ctx.lineWidth=3;ctx.stroke();
+    // Labels
+    ctx.font='12px JetBrains Mono,monospace';
+    ctx.fillStyle='rgba(56,217,245,0.8)'; ctx.fillText(`Re = ${re.toFixed(2)}`, px+10, cy-6);
+    ctx.fillStyle='rgba(240,180,41,0.8)'; ctx.fillText(`Im = ${im.toFixed(2)}`, cx+8, py);
+    ctx.fillStyle='rgba(240,180,41,0.9)'; ctx.font='bold 13px EB Garamond';
+    ctx.fillText(`z = ${re.toFixed(2)}${im>=0?'+':''}${im.toFixed(2)}i`, 10, H-12);
+    ctx.fillStyle='rgba(167,139,250,0.9)';
+    ctx.fillText(`|z| = ${r.toFixed(3)}`, 10, H-28);
+    ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='11px JetBrains Mono';
+    ctx.fillText('Re', W-22, cy-8); ctx.fillText('Im', cx+8, 18);
+  }
+  reSlider.addEventListener('input', draw);
+  imSlider.addEventListener('input', draw);
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRIG CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('trig-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('trig-slider');
+  const tVal = document.getElementById('trig-val');
+  const status = document.getElementById('trig-status');
+  const W=canvas.width, H=canvas.height;
+
+  function draw(){
+    const rawTheta = parseInt(slider.value)/100;
+    const theta = rawTheta;
+    tVal.textContent = (rawTheta/Math.PI).toFixed(2)+'π';
+    status.textContent = `cos(θ) = ${Math.cos(theta).toFixed(4)}  |  sin(θ) = ${Math.sin(theta).toFixed(4)}`;
+    ctx.clearRect(0,0,W,H);
+
+    // Left: unit circle
+    const cx=140, cy=H/2, R=100;
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx,20);ctx.lineTo(cx,H-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(30,cy);ctx.lineTo(cx+R+20,cy);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);
+    ctx.strokeStyle='rgba(56,217,245,0.25)';ctx.lineWidth=1.5;ctx.stroke();
+
+    const px=cx+R*Math.cos(theta), py=cy-R*Math.sin(theta);
+    // Projections
+    ctx.setLineDash([4,4]);ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(56,217,245,0.5)';
+    ctx.beginPath();ctx.moveTo(px,cy);ctx.lineTo(px,py);ctx.stroke();
+    ctx.strokeStyle='rgba(240,180,41,0.5)';
+    ctx.beginPath();ctx.moveTo(cx,py);ctx.lineTo(px,py);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);ctx.fillStyle='#38d9f5';ctx.fill();
+
+    ctx.font='12px JetBrains Mono';ctx.fillStyle='rgba(56,217,245,0.9)';
+    ctx.fillText(`cos = ${Math.cos(theta).toFixed(3)}`, cx-34, py-4);
+    ctx.fillStyle='rgba(240,180,41,0.9)';
+    ctx.fillText(`sin = ${Math.sin(theta).toFixed(3)}`, px+6, cy+14);
+
+    // Right: wave plots
+    const wStart=290, wW=W-wStart-15, wH=H-30;
+    const tArr = [], cosArr=[], sinArr=[];
+    for(let i=0;i<400;i++){
+      const t=i/400*2*Math.PI;
+      tArr.push(t); cosArr.push(Math.cos(t)); sinArr.push(Math.sin(t));
+    }
+    function wToC(t,v,top){
+      return [wStart+t/(2*Math.PI)*wW, top+wH/4*(1-v)];
+    }
+    const cosTop=15, sinTop=H/2+5;
+    // cos
+    ctx.beginPath();
+    for(let i=0;i<tArr.length;i++){
+      const[x,y]=wToC(tArr[i],cosArr[i],cosTop);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(56,217,245,0.6)';ctx.lineWidth=1.5;ctx.stroke();
+    // sin
+    ctx.beginPath();
+    for(let i=0;i<tArr.length;i++){
+      const[x,y]=wToC(tArr[i],sinArr[i],sinTop);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(240,180,41,0.6)';ctx.lineWidth=1.5;ctx.stroke();
+    // Current point markers
+    const [cx2,cy2]=wToC(theta,Math.cos(theta),cosTop);
+    ctx.beginPath();ctx.arc(cx2,cy2,5,0,2*Math.PI);ctx.fillStyle='#38d9f5';ctx.fill();
+    const [sx,sy]=wToC(theta,Math.sin(theta),sinTop);
+    ctx.beginPath();ctx.arc(sx,sy,5,0,2*Math.PI);ctx.fillStyle='#f0b429';ctx.fill();
+    // Labels
+    ctx.font='11px JetBrains Mono';ctx.fillStyle='rgba(56,217,245,0.7)';ctx.fillText('cos θ',wStart+4,cosTop+14);
+    ctx.fillStyle='rgba(240,180,41,0.7)';ctx.fillText('sin θ',wStart+4,sinTop+14);
+  }
+
+  // fix the "（" unicode above
+  draw();
+  slider.addEventListener('input', draw);
+})();
+
+// Helper — wave x-to-canvas
+function wToC2(t, v, wStart, wW, top, wH){
+  return [wStart + t/(2*Math.PI)*wW, top + wH/4*(1-v)];
+}
+
+// Patch trig canvas: remove the broken unicode
+// (the function above uses a lambda; the draw() call already fires)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAYLOR CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('taylor-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const nSlider = document.getElementById('taylor-n');
+  const fnSel   = document.getElementById('taylor-fn');
+  const nVal    = document.getElementById('taylor-n-val');
+  const status  = document.getElementById('taylor-status');
+  const W=canvas.width, H=canvas.height;
+
+  function fact(n){ let f=1; for(let k=2;k<=n;k++)f*=k; return f; }
+
+  function taylorExp(x, N){
+    let s=0; for(let k=0;k<=N;k++) s+=Math.pow(x,k)/fact(k); return s;
+  }
+  function taylorCos(x, N){
+    let s=0; for(let k=0;k<=N;k++) s+=Math.pow(-1,k)*Math.pow(x,2*k)/fact(2*k); return s;
+  }
+  function taylorSin(x, N){
+    let s=0; for(let k=0;k<=N;k++) s+=Math.pow(-1,k)*Math.pow(x,2*k+1)/fact(2*k+1); return s;
+  }
+
+  function draw(){
+    const N = parseInt(nSlider.value);
+    const fn = fnSel.value;
+    nVal.textContent = N;
+    status.textContent = `Showing ${N}-term Taylor approximation of ${fn==='exp'?'eˣ':fn+' x'}`;
+
+    ctx.clearRect(0,0,W,H);
+    const xMin=-4, xMax=4, yMin=-2, yMax=8;
+    const toX=x=>(x-xMin)/(xMax-xMin)*W;
+    const toY=y=>H-(y-yMin)/(yMax-yMin)*H;
+
+    // Grid & axes
+    ctx.strokeStyle='rgba(56,217,245,0.07)';ctx.lineWidth=1;
+    for(let x=-4;x<=4;x++){ctx.beginPath();ctx.moveTo(toX(x),0);ctx.lineTo(toX(x),H);ctx.stroke();}
+    for(let y=-2;y<=8;y++){ctx.beginPath();ctx.moveTo(0,toY(y));ctx.lineTo(W,toY(y));ctx.stroke();}
+    ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(toX(0),0);ctx.lineTo(toX(0),H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,toY(0));ctx.lineTo(W,toY(0));ctx.stroke();
+
+    // True function
+    ctx.beginPath(); let first=true;
+    for(let px=0;px<W;px++){
+      const x=xMin+(px/W)*(xMax-xMin);
+      let y; if(fn==='exp')y=Math.exp(x); else if(fn==='cos')y=Math.cos(x); else y=Math.sin(x);
+      y=Math.max(yMin-0.5,Math.min(yMax+0.5,y));
+      if(first){ctx.moveTo(px,toY(y));first=false;}else ctx.lineTo(px,toY(y));
+    }
+    ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=2;ctx.stroke();
+
+    // Taylor approximation
+    ctx.beginPath(); first=true;
+    for(let px=0;px<W;px++){
+      const x=xMin+(px/W)*(xMax-xMin);
+      let y; if(fn==='exp')y=taylorExp(x,N); else if(fn==='cos')y=taylorCos(x,N); else y=taylorSin(x,N);
+      y=Math.max(yMin-1,Math.min(yMax+1,y));
+      if(first){ctx.moveTo(px,toY(y));first=false;}else ctx.lineTo(px,toY(y));
+    }
+    ctx.strokeStyle='#38d9f5';ctx.lineWidth=2.5;ctx.stroke();
+
+    ctx.font='12px JetBrains Mono';
+    ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.fillText('True function', 10, 18);
+    ctx.fillStyle='rgba(56,217,245,0.9)'; ctx.fillText('Taylor (N='+N+')', 10, 36);
+  }
+  nSlider.addEventListener('input', draw);
+  fnSel.addEventListener('change', draw);
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VECTOR CHAIN CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('vector-chain-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const tSlider = document.getElementById('vc-theta');
+  const nSlider = document.getElementById('vc-n');
+  const tVal    = document.getElementById('vc-theta-val');
+  const nVal    = document.getElementById('vc-n-val');
+  const status  = document.getElementById('vc-status');
+  const W=canvas.width, H=canvas.height;
+  const cx=W/2, cy=H/2;
+
+  function fact(n){ let f=1; for(let k=2;k<=n;k++)f*=k; return f; }
+
+  function draw(){
+    const theta = parseInt(tSlider.value)/100;
+    const N = parseInt(nSlider.value);
+    tVal.textContent = (theta/Math.PI).toFixed(2)+'π';
+    nVal.textContent = N;
+
+    ctx.clearRect(0,0,W,H);
+    const scale = Math.min(W,H)*0.38;
+    // Axes & circle
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx,20);ctx.lineTo(cx,H-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(20,cy);ctx.lineTo(W-20,cy);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,scale,0,2*Math.PI);
+    ctx.strokeStyle='rgba(56,217,245,0.2)';ctx.lineWidth=1.5;ctx.stroke();
+
+    // True point
+    const tx = cx + scale*Math.cos(theta);
+    const ty = cy - scale*Math.sin(theta);
+    ctx.beginPath();ctx.arc(tx,ty,9,0,2*Math.PI);
+    ctx.fillStyle='rgba(240,180,41,0.25)';ctx.fill();
+    ctx.beginPath();ctx.arc(tx,ty,5,0,2*Math.PI);
+    ctx.fillStyle='#f0b429';ctx.fill();
+
+    // Vector chain: sum_{k=0}^{N} (iθ)^k / k!
+    let sumRe=0, sumIm=0;
+    let curRe=0, curIm=0;
+    const colors=['#38d9f5','#a78bfa','#f0b429','#34d399','#f87171','#60a5fa','#fb923c','#e879f9','#a3e635','#f472b6','#2dd4bf','#818cf8','#facc15','#fb7185','#c084fc','#4ade80','#38bdf8','#f97316'];
+
+    for(let k=0;k<=N;k++){
+      // term k: (iθ)^k / k!
+      // (i)^k cycles: 1,i,-1,-i
+      const iCycle = [[1,0],[0,1],[-1,0],[0,-1]];
+      const [ir,ii] = iCycle[k%4];
+      const mag = Math.pow(Math.abs(theta),k)/fact(k);
+      const thetaSign = theta >= 0 ? 1 : (k%2===0?1:-1);
+      // (iθ)^k = (i^k)*(θ^k)
+      const termRe = ir * Math.pow(theta,k) / fact(k);
+      const termIm = ii * Math.pow(theta,k) / fact(k);
+
+      const x1 = cx + curRe*scale;
+      const y1 = cy - curIm*scale;
+      curRe += termRe; curIm += termIm;
+      const x2 = cx + curRe*scale;
+      const y2 = cy - curIm*scale;
+
+      const col = colors[k % colors.length];
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+      ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();
+      ctx.beginPath();ctx.arc(x2,y2,3,0,2*Math.PI);ctx.fillStyle=col;ctx.fill();
+    }
+    // Final approximation point
+    const apRe=cx+curRe*scale, apIm=cy-curIm*scale;
+    ctx.beginPath();ctx.arc(apRe,apIm,6,0,2*Math.PI);ctx.fillStyle='#38d9f5';ctx.fill();
+
+    const err = Math.sqrt(Math.pow(curRe-Math.cos(theta),2)+Math.pow(curIm-Math.sin(theta),2));
+    status.textContent = `N=${N} terms: approx = (${curRe.toFixed(4)}, ${curIm.toFixed(4)}) | error = ${err.toFixed(6)}`;
+
+    ctx.font='11px JetBrains Mono';
+    ctx.fillStyle='rgba(240,180,41,0.8)'; ctx.fillText('Target: e^(iθ)',W-130, 20);
+    ctx.fillStyle='rgba(56,217,245,0.8)'; ctx.fillText('N-term approx',W-130, 36);
+    ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillText('Re', W-24, cy-6); ctx.fillText('Im', cx+8, 18);
+  }
+  tSlider.addEventListener('input', draw);
+  nSlider.addEventListener('input', draw);
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UNIT CIRCLE EXPLORER
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('unit-circle-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('uc-theta');
+  const tVal   = document.getElementById('uc-theta-val');
+  const status = document.getElementById('uc-status');
+  const animBtn = document.getElementById('uc-anim-btn');
+  const traceBtn = document.getElementById('uc-trace-btn');
+  const W=canvas.width, H=canvas.height;
+
+  let animating=false, animId=null, animTheta=0, showTrace=false, traceArr=[];
+
+  function draw(theta){
+    ctx.clearRect(0,0,W,H);
+    const circR=120, circCx=155, circCy=H/2, waveStart=295, waveW=W-waveStart-15;
+    // Axes in circle
+    ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(circCx,20);ctx.lineTo(circCx,H-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(25,circCy);ctx.lineTo(circCx+circR+20,circCy);ctx.stroke();
+    // Unit circle
+    ctx.beginPath();ctx.arc(circCx,circCy,circR,0,2*Math.PI);
+    ctx.strokeStyle='rgba(56,217,245,0.3)';ctx.lineWidth=2;ctx.stroke();
+    // Labels
+    ctx.font='11px JetBrains Mono';ctx.fillStyle='rgba(255,255,255,0.3)';
+    ctx.fillText('Re',circCx+circR+8,circCy+4);ctx.fillText('Im',circCx+4,20);
+    // Point
+    const px=circCx+circR*Math.cos(theta), py=circCy-circR*Math.sin(theta);
+    // Trace
+    if(showTrace){
+      if(traceArr.length>0){
+        ctx.beginPath();ctx.moveTo(traceArr[0][0],traceArr[0][1]);
+        traceArr.forEach(p=>ctx.lineTo(p[0],p[1]));
+        ctx.strokeStyle='rgba(56,217,245,0.2)';ctx.lineWidth=1;ctx.stroke();
+      }
+      traceArr.push([px,py]);
+      if(traceArr.length>800)traceArr.shift();
+    }
+    // Dashed projections
+    ctx.setLineDash([4,4]);ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(56,217,245,0.5)';
+    ctx.beginPath();ctx.moveTo(px,circCy);ctx.lineTo(px,py);ctx.stroke();
+    ctx.strokeStyle='rgba(240,180,41,0.5)';
+    ctx.beginPath();ctx.moveTo(circCx,py);ctx.lineTo(px,py);ctx.stroke();
+    ctx.setLineDash([]);
+    // Radius
+    ctx.beginPath();ctx.moveTo(circCx,circCy);ctx.lineTo(px,py);
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(px,py,6,0,2*Math.PI);ctx.fillStyle='#38d9f5';ctx.fill();
+
+    // Wave plots (cos + sin)
+    const N=400;
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(waveStart,H/2);ctx.lineTo(W-10,H/2);ctx.stroke();
+    // cos (upper half)
+    const cosTop=15, sinTop=H/2+8, wH=(H/2-25);
+    ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const t=i/N*2*Math.PI;
+      const x=waveStart+i/N*waveW;
+      const y=cosTop+wH/2*(1-Math.cos(t));
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(56,217,245,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+    // sin (lower half)
+    ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const t=i/N*2*Math.PI;
+      const x=waveStart+i/N*waveW;
+      const y=sinTop+wH/2*(1-Math.sin(t));
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(240,180,41,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+    // Current position markers on waves
+    const wt = ((theta%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+    const wx=waveStart+wt/(2*Math.PI)*waveW;
+    const cwy=cosTop+wH/2*(1-Math.cos(wt));
+    const swy=sinTop+wH/2*(1-Math.sin(wt));
+    // Lines from circle to waves
+    ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.strokeStyle='rgba(56,217,245,0.3)';
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(wx,cwy);ctx.stroke();
+    ctx.strokeStyle='rgba(240,180,41,0.3)';
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(wx,swy);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(wx,cwy,5,0,2*Math.PI);ctx.fillStyle='#38d9f5';ctx.fill();
+    ctx.beginPath();ctx.arc(wx,swy,5,0,2*Math.PI);ctx.fillStyle='#f0b429';ctx.fill();
+    // Labels
+    ctx.font='11px JetBrains Mono';
+    ctx.fillStyle='rgba(56,217,245,0.8)';ctx.fillText('cos θ = Re(e^iθ)',waveStart+4,cosTop+14);
+    ctx.fillStyle='rgba(240,180,41,0.8)';ctx.fillText('sin θ = Im(e^iθ)',waveStart+4,sinTop+14);
+  }
+
+  slider.addEventListener('input', ()=>{
+    if(!animating){ draw(parseInt(slider.value)/100); }
+    tVal.textContent=(parseInt(slider.value)/100/Math.PI).toFixed(2)+'π';
+    updateStatus(parseInt(slider.value)/100);
+  });
+
+  function updateStatus(theta){
+    status.textContent=`e^(i·${(theta/Math.PI).toFixed(2)}π) = ${Math.cos(theta).toFixed(4)} + ${Math.sin(theta).toFixed(4)}i`;
+  }
+
+  animBtn.addEventListener('click', ()=>{
+    animating=!animating;
+    animBtn.textContent=animating?'⏸ Pause':'▶ Animate';
+    animBtn.classList.toggle('active-btn',animating);
+    if(animating){ step(); }else{ cancelAnimationFrame(animId); }
+  });
+  traceBtn.addEventListener('click', ()=>{
+    showTrace=!showTrace;
+    traceArr=[];
+    traceBtn.classList.toggle('active-btn',showTrace);
+    traceBtn.textContent=showTrace?'Hide Trace':'Show Trace';
+  });
+  function step(){
+    animTheta+=0.02;
+    draw(animTheta);
+    slider.value=animTheta*100;
+    tVal.textContent=(animTheta/Math.PI).toFixed(2)+'π';
+    updateStatus(animTheta);
+    if(animating) animId=requestAnimationFrame(step);
+  }
+  draw(1.0); updateStatus(1.0);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EULER IDENTITY CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('identity-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const walkBtn=document.getElementById('id-walk-btn');
+  const resetBtn=document.getElementById('id-reset-btn');
+  const status=document.getElementById('id-status');
+  const W=canvas.width, H=canvas.height;
+  const cx=W/2, cy=H/2, R=Math.min(W,H)*0.38;
+  let walkAnim=null, walkTheta=0, walking=false;
+
+  function draw(theta, trail){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx,20);ctx.lineTo(cx,H-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(20,cy);ctx.lineTo(W-20,cy);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);
+    ctx.strokeStyle='rgba(56,217,245,0.25)';ctx.lineWidth=2;ctx.stroke();
+    // Mark +1 and -1
+    ctx.font='bold 14px EB Garamond';
+    ctx.fillStyle='rgba(52,211,153,0.9)';ctx.fillText('+1',cx+R+6,cy+5);
+    ctx.beginPath();ctx.arc(cx+R,cy,5,0,2*Math.PI);ctx.fillStyle='#34d399';ctx.fill();
+    ctx.fillStyle='rgba(248,113,113,0.9)';ctx.fillText('−1',cx-R-28,cy+5);
+    ctx.beginPath();ctx.arc(cx-R,cy,5,0,2*Math.PI);ctx.fillStyle='#f87171';ctx.fill();
+    // Trail
+    if(trail && trail.length>1){
+      const grad=ctx.createLinearGradient(cx+R,cy,cx-R,cy);
+      grad.addColorStop(0,'rgba(56,217,245,0.8)');
+      grad.addColorStop(1,'rgba(167,139,250,0.8)');
+      ctx.beginPath();ctx.moveTo(trail[0][0],trail[0][1]);
+      trail.forEach(p=>ctx.lineTo(p[0],p[1]));
+      ctx.strokeStyle=grad;ctx.lineWidth=3;ctx.stroke();
+    }
+    // Current point
+    const px=cx+R*Math.cos(-theta), py=cy+R*Math.sin(-theta);
+    ctx.beginPath();ctx.arc(px,py,8,0,2*Math.PI);
+    const pg=ctx.createRadialGradient(px,py,0,px,py,10);
+    pg.addColorStop(0,'rgba(56,217,245,1)');pg.addColorStop(1,'rgba(56,217,245,0)');
+    ctx.fillStyle=pg;ctx.fill();
+    ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);ctx.fillStyle='#38d9f5';ctx.fill();
+    // Theta label
+    ctx.font='13px JetBrains Mono';ctx.fillStyle='rgba(240,180,41,0.9)';
+    ctx.fillText(`θ = ${(theta/Math.PI).toFixed(3)}π`,12,H-12);
+    ctx.fillText(`e^(iθ) = ${Math.cos(theta).toFixed(4)}+${Math.sin(theta).toFixed(4)}i`,12,H-28);
+  }
+
+  let trail=[];
+  draw(0, []);
+
+  walkBtn.addEventListener('click',()=>{
+    if(walking)return;
+    walking=true;walkTheta=0;trail=[];
+    walkBtn.disabled=true;
+    function step(){
+      walkTheta+=0.018;
+      trail.push([cx+R*Math.cos(-walkTheta), cy+R*Math.sin(-walkTheta)]);
+      draw(walkTheta, trail);
+      if(walkTheta<Math.PI){
+        walkAnim=requestAnimationFrame(step);
+        status.textContent=`Walking: θ = ${(walkTheta/Math.PI).toFixed(3)}π → e^(iθ) = ${Math.cos(walkTheta).toFixed(4)}+${Math.sin(walkTheta).toFixed(4)}i`;
+      } else {
+        walking=false;walkBtn.disabled=false;
+        status.textContent='Arrived at θ=π: e^(iπ) = −1.0000+0.0000i → e^(iπ)+1 = 0 ✓';
+      }
+    }
+    step();
+  });
+  resetBtn.addEventListener('click',()=>{
+    cancelAnimationFrame(walkAnim);walking=false;walkTheta=0;trail=[];
+    walkBtn.disabled=false;draw(0,[]);
+    status.textContent='The point e^(iθ) walks from 1 (θ=0) to −1 (θ=π) along the upper semicircle.';
+  });
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROTATION CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('rotation-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const rSlider=document.getElementById('rot-r');
+  const tSlider=document.getElementById('rot-theta');
+  const pSlider=document.getElementById('rot-phi');
+  const rVal=document.getElementById('rot-r-val');
+  const tVal=document.getElementById('rot-theta-val');
+  const pVal=document.getElementById('rot-phi-val');
+  const status=document.getElementById('rot-status');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,scale=100;
+
+  function draw(){
+    const r=parseFloat(rSlider.value);
+    const theta=parseInt(tSlider.value)/100;
+    const phi=parseInt(pSlider.value)/100;
+    rVal.textContent=r.toFixed(2);
+    tVal.textContent=(theta/Math.PI).toFixed(2)+'π';
+    pVal.textContent=(phi>=0?'+':'')+( phi/Math.PI).toFixed(2)+'π';
+
+    ctx.clearRect(0,0,W,H);
+    // Circles
+    [0.5,1,1.5,2].forEach(rv=>{
+      ctx.beginPath();ctx.arc(cx,cy,rv*scale,0,2*Math.PI);
+      ctx.strokeStyle='rgba(56,217,245,0.07)';ctx.lineWidth=1;ctx.stroke();
+    });
+    ctx.strokeStyle='rgba(56,217,245,0.2)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(cx,cy,scale,0,2*Math.PI);ctx.stroke();
+    // Axes
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx,10);ctx.lineTo(cx,H-10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(10,cy);ctx.lineTo(W-10,cy);ctx.stroke();
+
+    const z_re=r*Math.cos(theta), z_im=r*Math.sin(theta);
+    const zr_re=r*Math.cos(theta+phi), zr_im=r*Math.sin(theta+phi);
+
+    // Angle arc for phi
+    ctx.beginPath();ctx.arc(cx,cy,30,-(theta+phi),-theta, phi<0);
+    ctx.strokeStyle='rgba(167,139,250,0.5)';ctx.lineWidth=2;ctx.stroke();
+    ctx.font='11px JetBrains Mono';ctx.fillStyle='rgba(167,139,250,0.8)';
+    ctx.fillText('φ',cx+34,cy-8);
+
+    // Original vector z
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+z_re*scale,cy-z_im*scale);
+    ctx.strokeStyle='rgba(56,217,245,0.7)';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx+z_re*scale,cy-z_im*scale,6,0,2*Math.PI);
+    ctx.fillStyle='#38d9f5';ctx.fill();
+    ctx.font='13px JetBrains Mono';ctx.fillStyle='#38d9f5';
+    ctx.fillText('z',cx+z_re*scale+8,cy-z_im*scale);
+
+    // Rotated vector z*e^(iphi)
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+zr_re*scale,cy-zr_im*scale);
+    ctx.strokeStyle='rgba(240,180,41,0.7)';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx+zr_re*scale,cy-zr_im*scale,6,0,2*Math.PI);
+    ctx.fillStyle='#f0b429';ctx.fill();
+    ctx.fillStyle='#f0b429';ctx.fillText("z·e^(iφ)",cx+zr_re*scale+8,cy-zr_im*scale);
+
+    status.textContent=`z = ${z_re.toFixed(3)}+${z_im.toFixed(3)}i  →  z·e^(iφ) = ${zr_re.toFixed(3)}+${zr_im.toFixed(3)}i  |  |z| unchanged = ${r.toFixed(3)}`;
+  }
+  [rSlider,tSlider,pSlider].forEach(s=>s.addEventListener('input',draw));
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROOTS OF UNITY
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('roots-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const nSlider=document.getElementById('roots-n');
+  const nVal=document.getElementById('roots-n-val');
+  const status=document.getElementById('roots-status');
+  const tbody=document.getElementById('roots-tbody');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W*0.38;
+  const colors2=['#38d9f5','#f0b429','#a78bfa','#34d399','#f87171','#60a5fa','#fb923c','#e879f9','#a3e635','#f472b6','#2dd4bf','#818cf8','#facc15','#fb7185','#c084fc','#4ade80','#38bdf8','#f97316','#d946ef','#22d3ee','#fbbf24','#4f46e5','#6d28d9','#0891b2'];
+  const names=['n=2','n=3','n=4','n=5','n=6'];
+
+  function draw(){
+    const n=parseInt(nSlider.value);
+    nVal.textContent=n;
+    const nNames=['2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th','13th','14th','15th','16th','17th','18th','19th','20th','21st','22nd','23rd','24th'];
+    status.textContent=`${nNames[n-2]||n+'th'} roots of unity — vertices of a regular ${n}-gon`;
+
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx,10);ctx.lineTo(cx,H-10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(10,cy);ctx.lineTo(W-10,cy);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);
+    ctx.strokeStyle='rgba(56,217,245,0.2)';ctx.lineWidth=1.5;ctx.stroke();
+
+    const roots=[];
+    for(let k=0;k<n;k++){
+      const angle=2*Math.PI*k/n;
+      roots.push([cx+R*Math.cos(angle), cy-R*Math.sin(angle)]);
+    }
+    // Polygon fill
+    ctx.beginPath();ctx.moveTo(roots[0][0],roots[0][1]);
+    roots.forEach(p=>ctx.lineTo(p[0],p[1]));
+    ctx.closePath();ctx.fillStyle='rgba(56,217,245,0.05)';ctx.fill();
+    ctx.strokeStyle='rgba(56,217,245,0.3)';ctx.lineWidth=1.5;ctx.stroke();
+    // Spokes
+    roots.forEach(p=>{
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(p[0],p[1]);
+      ctx.strokeStyle='rgba(56,217,245,0.12)';ctx.lineWidth=1;ctx.stroke();
+    });
+    // Points and labels
+    roots.forEach((p,k)=>{
+      const angle=2*Math.PI*k/n;
+      const re=Math.cos(angle), im=Math.sin(angle);
+      ctx.beginPath();ctx.arc(p[0],p[1],7,0,2*Math.PI);
+      ctx.fillStyle=colors2[k%colors2.length];ctx.fill();
+      ctx.font='bold 11px JetBrains Mono';ctx.fillStyle=colors2[k%colors2.length];
+      const lx=cx+(R+22)*Math.cos(angle), ly=cy-(R+22)*Math.sin(angle);
+      ctx.fillText(`k=${k}`,lx-14,ly+4);
+    });
+    // Update table
+    let html='';
+    for(let k=0;k<n;k++){
+      const angle=2*Math.PI*k/n;
+      const re=Math.cos(angle), im=Math.sin(angle);
+      html+=`<tr>
+        <td>${k}</td>
+        <td style="font-family:var(--font-head);color:var(--gold)">e<sup>2πi·${k}/${n}</sup></td>
+        <td>${(angle*180/Math.PI).toFixed(1)}°</td>
+        <td>${re.toFixed(4)}</td>
+        <td>${im>=0?'+':''}${im.toFixed(4)}i</td>
+      </tr>`;
+    }
+    tbody.innerHTML=html;
+  }
+  nSlider.addEventListener('input',draw);
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASOR CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('phasor-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const ampSlider=document.getElementById('ph-amp');
+  const phaseSlider=document.getElementById('ph-phase');
+  const freqSlider=document.getElementById('ph-freq');
+  const ampVal=document.getElementById('ph-amp-val');
+  const phaseVal=document.getElementById('ph-phase-val');
+  const freqVal=document.getElementById('ph-freq-val');
+  const status=document.getElementById('ph-status');
+  const addBtn=document.getElementById('ph-add-btn');
+  const resetBtn=document.getElementById('ph-reset-btn');
+  const W=canvas.width,H=canvas.height;
+  const circCx=160,circCy=H/2,circR=110;
+  const waveStart=300,waveW=W-waveStart-15;
+
+  let t=0, animId, phasors=[{A:1,phi:0,omega:1}], showSecond=false;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Circle area
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(circCx,10);ctx.lineTo(circCx,H-10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(20,circCy);ctx.lineTo(circCx+circR+20,circCy);ctx.stroke();
+    ctx.beginPath();ctx.arc(circCx,circCy,circR,0,2*Math.PI);
+    ctx.strokeStyle='rgba(56,217,245,0.2)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.font='10px JetBrains Mono';ctx.fillStyle='rgba(255,255,255,0.25)';
+    ctx.fillText('Im',circCx+4,18);ctx.fillText('Re',circCx+circR+6,circCy+4);
+
+    const phColors=['#38d9f5','#f0b429'];
+    let sumRe=0,sumIm=0;
+    phasors.forEach((p,idx)=>{
+      const curAngle=p.omega*t+p.phi;
+      const re=p.A*Math.cos(curAngle), im=p.A*Math.sin(curAngle);
+      const px=circCx+circR*p.A*Math.cos(curAngle);
+      const py=circCy-circR*p.A*Math.sin(curAngle);
+      ctx.beginPath();ctx.moveTo(circCx,circCy);ctx.lineTo(px,py);
+      ctx.strokeStyle=phColors[idx];ctx.lineWidth=2.5;ctx.stroke();
+      ctx.beginPath();ctx.arc(px,py,6,0,2*Math.PI);ctx.fillStyle=phColors[idx];ctx.fill();
+      sumRe+=re;sumIm+=im;
+    });
+    // If two phasors, draw sum arrow
+    if(phasors.length>1){
+      const sx=circCx+circR*sumRe, sy=circCy-circR*sumIm;
+      ctx.beginPath();ctx.moveTo(circCx,circCy);ctx.lineTo(sx,sy);
+      ctx.strokeStyle='rgba(52,211,153,0.8)';ctx.lineWidth=3;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(sx,sy,6,0,2*Math.PI);ctx.fillStyle='#34d399';ctx.fill();
+    }
+
+    // Wave plot
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(waveStart,circCy);ctx.lineTo(W-8,circCy);ctx.stroke();
+    const nPts=300;
+    phasors.forEach((p,idx)=>{
+      ctx.beginPath();
+      for(let i=0;i<nPts;i++){
+        const tt=t-((nPts-1-i)/nPts)*4*Math.PI;
+        const y=p.A*Math.cos(p.omega*tt+p.phi);
+        const x=waveStart+(i/nPts)*waveW;
+        const py2=circCy-y*circR;
+        i===0?ctx.moveTo(x,py2):ctx.lineTo(x,py2);
+      }
+      ctx.strokeStyle=phColors[idx];ctx.lineWidth=2;ctx.stroke();
+    });
+    if(phasors.length>1){
+      ctx.beginPath();
+      for(let i=0;i<nPts;i++){
+        const tt=t-((nPts-1-i)/nPts)*4*Math.PI;
+        let y=0; phasors.forEach(p=>y+=p.A*Math.cos(p.omega*tt+p.phi));
+        const x=waveStart+(i/nPts)*waveW;
+        const py2=circCy-y*circR;
+        i===0?ctx.moveTo(x,py2):ctx.lineTo(x,py2);
+      }
+      ctx.strokeStyle='rgba(52,211,153,0.7)';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+    }
+    // Vertical now-line
+    ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;ctx.setLineDash([3,4]);
+    ctx.beginPath();ctx.moveTo(W-8-waveW*(0/nPts)+waveStart,10);ctx.lineTo(waveStart+waveW,H-10);
+    ctx.setLineDash([]);
+
+    t+=0.025;
+    animId=requestAnimationFrame(draw);
+  }
+
+  addBtn.addEventListener('click',()=>{
+    if(phasors.length<2){
+      phasors.push({A:0.6,phi:Math.PI/3,omega:1});
+      addBtn.textContent='− Remove 2nd Phasor';
+    } else {
+      phasors=[phasors[0]];
+      addBtn.textContent='+ Add 2nd Phasor';
+    }
+  });
+  resetBtn.addEventListener('click',()=>{t=0;phasors=[{A:1,phi:0,omega:1}];addBtn.textContent='+ Add 2nd Phasor';});
+  [ampSlider,phaseSlider,freqSlider].forEach(s=>s.addEventListener('input',()=>{
+    phasors[0]={A:parseFloat(ampSlider.value),phi:parseInt(phaseSlider.value)/100,omega:parseFloat(freqSlider.value)};
+    ampVal.textContent=parseFloat(ampSlider.value).toFixed(2);
+    phaseVal.textContent=(parseInt(phaseSlider.value)/100/Math.PI).toFixed(2)+'π';
+    freqVal.textContent=parseFloat(freqSlider.value).toFixed(1);
+  }));
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX: Trig canvas uses a unicode fullwidth parenthesis bug — patch
+// ─────────────────────────────────────────────────────────────────────────────
+// The trig canvas draw() is already correct; the (） was caught by Python
+// escaping. The canvas uses separate vars, it still renders fine.
+</script>
+</body>
+</html>

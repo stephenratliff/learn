@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complete Application: PerlPad Editor — perl_gui_04_app.pl</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root{--bg:#09090f;--bg-card:#0f0f1c;--bg-code:#0c0c18;--border:#1e1e30;--amber:#f0a030;--amber-dim:#b87820;--amber-glow:#f0a03018;--text:#e2d9c8;--text-dim:#9b9380;--text-muted:#5a5448;--accent:#4db8ff;--green:#6fcf97;--red:#eb5757;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:1.75;}
+.topnav{background:#06060d;border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topnav-brand{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--amber);}
+.topnav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);text-decoration:none;transition:all .15s;}
+.nav-link:hover{color:var(--amber);border-color:var(--amber-dim);}
+.nav-link.current{color:var(--amber);border-color:var(--amber);background:var(--amber-glow);}
+.wrapper{max-width:1040px;margin:0 auto;padding:48px 32px 100px;display:grid;grid-template-columns:1fr 260px;gap:48px;align-items:start;}
+@media(max-width:820px){.wrapper{grid-template-columns:1fr;}.toc-panel{display:none;}}
+.toc-panel{position:sticky;top:72px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:20px;}
+.toc-panel h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;}
+.toc-list{list-style:none;}
+.toc-list a{font-size:12px;color:var(--text-dim);text-decoration:none;font-family:'JetBrains Mono',monospace;display:block;padding:4px 6px;border-radius:2px;border-left:2px solid transparent;transition:all .12s;}
+.toc-list a:hover,.toc-list a.active{color:var(--amber);border-left-color:var(--amber);background:var(--amber-glow);}
+.page-hero{margin-bottom:36px;padding-bottom:26px;border-bottom:1px solid var(--border);}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.page-hero h1{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,42px);font-weight:900;line-height:1.15;color:var(--text);margin-bottom:8px;}
+.page-hero h1 em{font-style:italic;color:var(--amber);}
+.page-hero .sub{font-style:italic;color:var(--text-dim);font-size:15.5px;font-weight:300;margin-bottom:14px;}
+.file-badge{display:inline-flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);padding:7px 14px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);}
+.file-badge span{color:var(--amber);}
+.teaches-box{background:var(--bg-card);border:1px solid var(--border);border-top:3px solid var(--amber);padding:18px 22px;margin:20px 0;border-radius:0 0 4px 4px;}
+.teaches-box h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.teaches-box ul{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.teaches-box li{font-size:12.5px;color:var(--text-dim);padding:3px 0;font-family:'JetBrains Mono',monospace;}
+.teaches-box li::before{content:"→ ";color:var(--amber-dim);}
+@media(max-width:700px){.teaches-box ul{grid-template-columns:1fr;}}
+.src-header{margin:28px 0 12px;display:flex;align-items:center;justify-content:space-between;}
+.src-header h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);}
+.code-block{position:relative;margin:0;border-radius:5px;overflow:hidden;border:1px solid var(--border);background:var(--bg-code);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#0a0a14;border-bottom:1px solid var(--border);}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase;}
+.code-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);}
+.copy-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .15s;}
+.copy-btn:hover{color:var(--amber);border-color:var(--amber-dim);}
+.copy-btn.copied{color:var(--green);border-color:var(--green);}
+.code-block pre[class*="language-"]{margin:0;padding:20px 22px;background:transparent !important;font-size:12.5px;line-height:1.65;overflow-x:auto;max-height:none;}
+.code-block code[class*="language-"]{font-family:'JetBrains Mono',monospace !important;}
+.token.comment,.token.prolog{color:#6a7a5a !important;font-style:italic;}
+.token.keyword{color:#f0a030 !important;font-weight:500;}
+.token.string,.token.char{color:#a8d8a0 !important;}
+.token.number{color:#a8c4e0 !important;}
+.token.operator{color:#d4c090 !important;}
+.token.function{color:#8fbce0 !important;}
+.token.variable{color:#e0b87a !important;}
+.token.regex{color:#d4a0c8 !important;}
+.token.punctuation{color:#6a7080 !important;}
+code:not([class]){font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--bg-card);color:var(--amber);padding:2px 6px;border-radius:3px;border:1px solid var(--border);}
+.callout{padding:13px 17px;border-radius:3px;border-left:3px solid;margin:20px 0;font-size:14.5px;}
+.callout.tip{background:#081510;border-color:var(--green);color:#90c890;}
+.callout strong{color:inherit;}
+a{color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber-dim);}
+a:hover{border-color:var(--amber);}
+.nav-bottom{display:flex;gap:12px;margin-top:40px;}
+.nav-bottom a{background:var(--bg-card);border:1px solid var(--border) !important;color:var(--text-dim) !important;padding:10px 18px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;transition:all .15s;}
+.nav-bottom a:hover{border-color:var(--amber-dim) !important;color:var(--amber) !important;}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <span class="topnav-brand">The Perl Guide</span>
+  <div class="topnav-links">
+    <a class="nav-link" href="perl_guide.html">↑ Guide</a>
+    <a class="nav-link" href="perl_tutorial.html">01 · Core</a>
+    <a class="nav-link" href="perl_gui_01_basics.html">02 · Basics</a>
+    <a class="nav-link" href="perl_gui_02_widgets.html">03 · Widgets</a>
+    <a class="nav-link" href="perl_gui_03_events_canvas.html">04 · Events</a>
+    <a class="nav-link" href="perl_gui_04_app.html">05 · App</a>
+  </div>
+</nav>
+<div class="wrapper">
+<main>
+<header class="page-hero">
+  <div class="eyebrow">Tutorial 05 — Complete Application</div>
+  <h1>PerlPad — <em>A Real Text Editor</em></h1>
+  <p class="sub">A production-quality text editor demonstrating a complete Perl/Tk application: menus, file I/O with dirty tracking, Find &amp; Replace with regex, live status bar, line numbers, font control, and graceful quit.</p>
+  <div class="file-badge">▶ <span>perl perl_gui_04_app.pl</span></div>
+</header>
+<div class="teaches-box">
+  <h4>What This Tutorial Covers</h4>
+  <ul>
+    <li>Full menu bar — File Edit View Help menus</li>
+    <li>File New / Open / Save / Save As with getOpenFile / getSaveFile</li>
+    <li>Dirty-state tracking ($modified flag)</li>
+    <li>Window title update to reflect current file and unsaved state</li>
+    <li>WM_DELETE_WINDOW — prompt to save on quit</li>
+    <li>Find &amp; Replace dialog (Toplevel, modal, regex-powered)</li>
+    <li>Text -undo =&gt; 1 and edit_undo for built-in undo</li>
+    <li>after() 500ms timer for live line/column/word-count status</li>
+    <li>Line number sidebar (read-only Text widget, synced scroll)</li>
+    <li>Font size control — configure() to update Text widget font</li>
+    <li>Word wrap toggle — configure(-wrap)</li>
+    <li>Keyboard shortcuts for all major commands (⌘ on macOS)</li>
+    <li>Application architecture — state vars separate from UI</li>
+  </ul>
+</div>
+<div class="src-header">
+  <h2>Full Source: perl_gui_04_app.pl</h2>
+</div>
+<div class="code-block">
+  <div class="code-header">
+    <span class="code-lang">perl</span>
+    <span class="code-meta">perl_gui_04_app.pl</span>
+    <button class="copy-btn" onclick="copyCode(this)">copy all</button>
+  </div>
+<pre><code class="language-perl">#!/usr/bin/env perl
+# =============================================================================
+#  perl_gui_04_app.pl  —  GUI Tutorial Part 4: A Complete Application
+#  Companion to: perl_mac_guide.md  Section 28–29
+#
+#  Run with:  perl perl_gui_04_app.pl
+#  Requires:  Perl/Tk  (cpanm Tk)
+#
+#  This is a fully-functional TEXT EDITOR demonstrating:
+#    • Complete menu bar (File, Edit, View, Help)
+#    • File open / save / save-as with dirty-state tracking
+#    • Find &amp; Replace dialog (Toplevel, modal)
+#    • Keyboard shortcuts (macOS Cmd key)
+#    • Word wrap toggle
+#    • Font size control
+#    • Line number display
+#    • Status bar (line/column, word count, file name)
+#    • Window close intercept (WM_DELETE_WINDOW)
+#    • after() timer for live status updates
+#    • Proper application architecture (state separated from UI)
+# =============================================================================
+use strict;
+use warnings;
+use Tk;
+use Tk::Text;
+
+# =============================================================================
+# Application State  — all data lives here, not inside callbacks
+# =============================================================================
+my $current_file  = undef;     # Path of open file, undef if new
+my $modified      = 0;         # Has the document changed since last save?
+my $word_wrap     = 1;         # Word wrap on/off
+my $font_size     = 13;        # Current font size
+my $status_msg    = "New Document";
+my $line_col_msg  = "Ln 1, Col 1";
+my $word_count    = "0 words";
+my $show_line_nums= 1;
+
+# =============================================================================
+# Main Window
+# =============================================================================
+my $mw = MainWindow-&gt;new;
+$mw-&gt;title("PerlPad — New Document");
+$mw-&gt;geometry("820x640+60+40");
+$mw-&gt;configure(-background =&gt; "#1e1e1e");
+
+# Intercept the window close button  (Section 28, 29)
+$mw-&gt;protocol("WM_DELETE_WINDOW", \&amp;cmd_quit);
+
+# =============================================================================
+# Build the UI
+# =============================================================================
+build_menu();
+build_toolbar();
+build_editor_area();
+build_status_bar();
+bind_shortcuts();
+
+# Start the live status updater
+$mw-&gt;after(500, \&amp;update_status_loop);
+
+# Focus the text area
+$mw-&gt;after(100, sub { $main::editor-&gt;focus });
+
+MainLoop;
+
+# =============================================================================
+# Menu Bar  (Section 26)
+# =============================================================================
+sub build_menu {
+    my $mb = $mw-&gt;Menu;
+    $mw-&gt;configure(-menu =&gt; $mb);
+
+    # ── File ──────────────────────────────────────────────────────────────────
+    my $file = $mb-&gt;cascade(-label =&gt; "File", -underline =&gt; 0, -tearoff =&gt; 0);
+    $file-&gt;command(-label =&gt; "New",       -accelerator =&gt; "Cmd+N", -command =&gt; \&amp;cmd_new);
+    $file-&gt;command(-label =&gt; "Open…",     -accelerator =&gt; "Cmd+O", -command =&gt; \&amp;cmd_open);
+    $file-&gt;separator;
+    $file-&gt;command(-label =&gt; "Save",      -accelerator =&gt; "Cmd+S", -command =&gt; \&amp;cmd_save);
+    $file-&gt;command(-label =&gt; "Save As…",  -accelerator =&gt; "Cmd+Shift+S", -command =&gt; \&amp;cmd_save_as);
+    $file-&gt;separator;
+    $file-&gt;command(-label =&gt; "Quit",      -accelerator =&gt; "Cmd+Q", -command =&gt; \&amp;cmd_quit);
+
+    # ── Edit ──────────────────────────────────────────────────────────────────
+    my $edit = $mb-&gt;cascade(-label =&gt; "Edit", -underline =&gt; 0, -tearoff =&gt; 0);
+    $edit-&gt;command(-label =&gt; "Undo",      -accelerator =&gt; "Cmd+Z", -command =&gt; \&amp;cmd_undo);
+    $edit-&gt;separator;
+    $edit-&gt;command(-label =&gt; "Cut",       -accelerator =&gt; "Cmd+X", -command =&gt; \&amp;cmd_cut);
+    $edit-&gt;command(-label =&gt; "Copy",      -accelerator =&gt; "Cmd+C", -command =&gt; \&amp;cmd_copy);
+    $edit-&gt;command(-label =&gt; "Paste",     -accelerator =&gt; "Cmd+V", -command =&gt; \&amp;cmd_paste);
+    $edit-&gt;separator;
+    $edit-&gt;command(-label =&gt; "Select All",-accelerator =&gt; "Cmd+A", -command =&gt; \&amp;cmd_select_all);
+    $edit-&gt;separator;
+    $edit-&gt;command(-label =&gt; "Find / Replace…", -accelerator =&gt; "Cmd+F", -command =&gt; \&amp;cmd_find);
+
+    # ── View ──────────────────────────────────────────────────────────────────
+    my $view = $mb-&gt;cascade(-label =&gt; "View", -tearoff =&gt; 0);
+    $view-&gt;checkbutton(-label =&gt; "Word Wrap",      -variable =&gt; \$word_wrap,
+                       -command =&gt; \&amp;apply_wrap);
+    $view-&gt;checkbutton(-label =&gt; "Line Numbers",   -variable =&gt; \$show_line_nums,
+                       -command =&gt; \&amp;toggle_line_numbers);
+    $view-&gt;separator;
+    $view-&gt;command(-label =&gt; "Increase Font",  -accelerator =&gt; "Cmd++", -command =&gt; sub { change_font(+1) });
+    $view-&gt;command(-label =&gt; "Decrease Font",  -accelerator =&gt; "Cmd+-", -command =&gt; sub { change_font(-1) });
+    $view-&gt;command(-label =&gt; "Reset Font",                               -command =&gt; sub { $font_size = 13; apply_font() });
+
+    # ── Help ──────────────────────────────────────────────────────────────────
+    my $help = $mb-&gt;cascade(-label =&gt; "Help", -tearoff =&gt; 0);
+    $help-&gt;command(-label =&gt; "About PerlPad", -command =&gt; \&amp;show_about);
+    $help-&gt;command(-label =&gt; "Keyboard Shortcuts", -command =&gt; \&amp;show_shortcuts);
+}
+
+# =============================================================================
+# Toolbar
+# =============================================================================
+sub build_toolbar {
+    my $tb = $mw-&gt;Frame(-background =&gt; "#2d2d2d", -relief =&gt; "flat")-&gt;pack(-fill =&gt; "x");
+
+    my @btns = (
+        ["New",    \&amp;cmd_new ],
+        ["Open",   \&amp;cmd_open],
+        ["Save",   \&amp;cmd_save],
+        ["|",      undef     ],
+        ["Undo",   \&amp;cmd_undo],
+        ["Cut",    \&amp;cmd_cut ],
+        ["Copy",   \&amp;cmd_copy],
+        ["Paste",  \&amp;cmd_paste],
+        ["|",      undef     ],
+        ["Find",   \&amp;cmd_find],
+    );
+
+    for my $b (@btns) {
+        my ($label, $cmd) = @$b;
+        if ($label eq "|") {
+            $tb-&gt;Label(-text =&gt; " ", -background =&gt; "#555", -width =&gt; 1)-&gt;pack(-side =&gt; "left", -padx =&gt; 3, -fill =&gt; "y");
+        } else {
+            $tb-&gt;Button(
+                -text             =&gt; $label,
+                -font             =&gt; "Helvetica 10",
+                -background       =&gt; "#2d2d2d",
+                -foreground       =&gt; "#cccccc",
+                -activebackground =&gt; "#3a3a3c",
+                -activeforeground =&gt; "white",
+                -relief           =&gt; "flat",
+                -padx             =&gt; 8, -pady =&gt; 4,
+                -command          =&gt; $cmd,
+            )-&gt;pack(-side =&gt; "left");
+        }
+    }
+
+    # Font size spinbox area
+    $tb-&gt;Label(-text =&gt; " Font: ", -font =&gt; "Helvetica 10",
+               -foreground =&gt; "#aaa", -background =&gt; "#2d2d2d"
+              )-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+    $tb-&gt;Button(-text =&gt; "−", -font =&gt; "Helvetica 12 bold",
+                -background =&gt; "#2d2d2d", -foreground =&gt; "#cccccc",
+                -activebackground =&gt; "#3a3a3c",
+                -relief =&gt; "flat", -padx =&gt; 4, -pady =&gt; 2,
+                -command =&gt; sub { change_font(-1) })-&gt;pack(-side =&gt; "left");
+    $tb-&gt;Label(-textvariable =&gt; \$font_size,
+               -font =&gt; "Helvetica 10 bold", -foreground =&gt; "white",
+               -background =&gt; "#2d2d2d", -width =&gt; 3
+              )-&gt;pack(-side =&gt; "left");
+    $tb-&gt;Button(-text =&gt; "+", -font =&gt; "Helvetica 12 bold",
+                -background =&gt; "#2d2d2d", -foreground =&gt; "#cccccc",
+                -activebackground =&gt; "#3a3a3c",
+                -relief =&gt; "flat", -padx =&gt; 4, -pady =&gt; 2,
+                -command =&gt; sub { change_font(+1) })-&gt;pack(-side =&gt; "left");
+}
+
+# =============================================================================
+# Editor Area — Text widget + optional line number bar
+# =============================================================================
+our $editor;          # Global so subroutines can access it
+our $line_num_text;   # Line number sidebar
+
+sub build_editor_area {
+    my $edit_frame = $mw-&gt;Frame(-background =&gt; "#1e1e1e")-&gt;pack(
+        -fill =&gt; "both", -expand =&gt; 1
+    );
+
+    # Line number sidebar (a read-only Text widget)
+    $line_num_text = $edit_frame-&gt;Text(
+        -width      =&gt; 5,
+        -font       =&gt; "Courier $font_size",
+        -background =&gt; "#2d2d2d",
+        -foreground =&gt; "#666666",
+        -relief     =&gt; "flat",
+        -state      =&gt; "disabled",
+        -cursor     =&gt; "arrow",
+    )-&gt;pack(-side =&gt; "left", -fill =&gt; "y");
+
+    # Main editor
+    $editor = $edit_frame-&gt;Text(
+        -font       =&gt; "Courier $font_size",
+        -background =&gt; "#1e1e1e",
+        -foreground =&gt; "#d4d4d4",
+        -insertbackground =&gt; "white",   # Cursor color
+        -selectbackground =&gt; "#264f78",
+        -selectforeground =&gt; "white",
+        -undo       =&gt; 1,               # Enable built-in undo stack
+        -wrap       =&gt; ($word_wrap ? "word" : "none"),
+        -relief     =&gt; "flat",
+        -padx       =&gt; 8,
+        -pady       =&gt; 4,
+    )-&gt;pack(-side =&gt; "left", -fill =&gt; "both", -expand =&gt; 1);
+
+    # Scrollbar (shared between editor and line numbers)
+    my $vsb = $edit_frame-&gt;Scrollbar(
+        -command    =&gt; sub { $editor-&gt;yview(@_); $line_num_text-&gt;yview(@_) },
+        -background =&gt; "#2d2d2d",
+        -troughcolor=&gt; "#1e1e1e",
+    )-&gt;pack(-side =&gt; "right", -fill =&gt; "y");
+
+    $editor-&gt;configure(-yscrollcommand =&gt; sub {
+        $vsb-&gt;set(@_);
+        update_line_numbers();
+    });
+
+    # Track modifications
+    $editor-&gt;bind("&lt;&lt;Modified&gt;&gt;", \&amp;on_text_modified);
+    $editor-&gt;bind("&lt;KeyRelease&gt;", \&amp;on_key_release);
+
+    # Syntax-style tag for headings (simple demo)
+    $editor-&gt;tagConfigure("comment",  -foreground =&gt; "#6a9955");
+    $editor-&gt;tagConfigure("keyword",  -foreground =&gt; "#569cd6");
+    $editor-&gt;tagConfigure("string",   -foreground =&gt; "#ce9178");
+    $editor-&gt;tagConfigure("number",   -foreground =&gt; "#b5cea8");
+
+    # Seed with welcome content
+    $editor-&gt;insert("1.0", welcome_text());
+    $editor-&gt;edit_modified(0);
+    update_line_numbers();
+}
+
+# =============================================================================
+# Status Bar
+# =============================================================================
+sub build_status_bar {
+    my $sb = $mw-&gt;Frame(-background =&gt; "#007aff", -height =&gt; 24)-&gt;pack(
+        -fill =&gt; "x", -side =&gt; "bottom"
+    );
+
+    $sb-&gt;Label(
+        -textvariable =&gt; \$status_msg,
+        -font         =&gt; "Helvetica 10",
+        -foreground   =&gt; "white",
+        -background   =&gt; "#007aff",
+        -anchor       =&gt; "w",
+    )-&gt;pack(-side =&gt; "left", -padx =&gt; 10);
+
+    $sb-&gt;Label(
+        -textvariable =&gt; \$word_count,
+        -font         =&gt; "Helvetica 10",
+        -foreground   =&gt; "white",
+        -background   =&gt; "#007aff",
+    )-&gt;pack(-side =&gt; "right", -padx =&gt; 20);
+
+    $sb-&gt;Label(
+        -textvariable =&gt; \$line_col_msg,
+        -font         =&gt; "Courier 10",
+        -foreground   =&gt; "white",
+        -background   =&gt; "#007aff",
+    )-&gt;pack(-side =&gt; "right", -padx =&gt; 10);
+}
+
+# =============================================================================
+# Keyboard Shortcuts  (Section 25, 29)
+# =============================================================================
+sub bind_shortcuts {
+    # On macOS, Command = Meta in Perl/Tk
+    $mw-&gt;bind("&lt;Meta-n&gt;",       \&amp;cmd_new);
+    $mw-&gt;bind("&lt;Meta-o&gt;",       \&amp;cmd_open);
+    $mw-&gt;bind("&lt;Meta-s&gt;",       \&amp;cmd_save);
+    $mw-&gt;bind("&lt;Meta-S&gt;",       \&amp;cmd_save_as);
+    $mw-&gt;bind("&lt;Meta-q&gt;",       \&amp;cmd_quit);
+    $mw-&gt;bind("&lt;Meta-z&gt;",       \&amp;cmd_undo);
+    $mw-&gt;bind("&lt;Meta-f&gt;",       \&amp;cmd_find);
+    $mw-&gt;bind("&lt;Meta-a&gt;",       \&amp;cmd_select_all);
+    $mw-&gt;bind("&lt;Meta-equal&gt;",   sub { change_font(+1) });   # Cmd+=
+    $mw-&gt;bind("&lt;Meta-minus&gt;",   sub { change_font(-1) });   # Cmd+-
+    $mw-&gt;bind("&lt;Meta-w&gt;",       \&amp;cmd_quit);
+}
+
+# =============================================================================
+# File Operations
+# =============================================================================
+sub cmd_new {
+    return unless confirm_save_if_modified();
+    $editor-&gt;delete("1.0", "end");
+    $editor-&gt;insert("1.0", "");
+    $editor-&gt;edit_modified(0);
+    $current_file = undef;
+    $modified     = 0;
+    $mw-&gt;title("PerlPad — New Document");
+    $status_msg = "New Document";
+    update_line_numbers();
+}
+
+sub cmd_open {
+    return unless confirm_save_if_modified();
+
+    my $file = $mw-&gt;getOpenFile(
+        -title      =&gt; "Open File",
+        -initialdir =&gt; $ENV{HOME} // ".",
+        -filetypes  =&gt; [
+            ["Text Files",  ".txt" ],
+            ["Perl Scripts",".pl"  ],
+            ["All Files",   "*"    ],
+        ],
+    );
+    return unless $file;
+
+    eval {
+        open(my $fh, "&lt;", $file) or die "Cannot read: $!";
+        my $content = do { local $/; &lt;$fh&gt; };
+        close($fh);
+
+        $editor-&gt;delete("1.0", "end");
+        $editor-&gt;insert("1.0", $content);
+        $editor-&gt;edit_modified(0);
+        $current_file = $file;
+        $modified     = 0;
+        $mw-&gt;title("PerlPad — $file");
+        $status_msg = "Opened: $file";
+        update_line_numbers();
+    };
+    if ($@) {
+        $mw-&gt;messageBox(-title =&gt; "Error", -message =&gt; "Could not open:\n$@",
+                        -type =&gt; "OK", -icon =&gt; "error");
+    }
+}
+
+sub cmd_save {
+    return cmd_save_as() unless $current_file;
+    save_to_file($current_file);
+}
+
+sub cmd_save_as {
+    my $file = $mw-&gt;getSaveFile(
+        -title       =&gt; "Save As",
+        -initialdir  =&gt; $ENV{HOME} // ".",
+        -initialfile =&gt; ($current_file // "untitled.txt"),
+        -filetypes   =&gt; [
+            ["Text Files",  ".txt"],
+            ["Perl Scripts",".pl" ],
+            ["All Files",   "*"   ],
+        ],
+    );
+    return unless $file;
+    $current_file = $file;
+    save_to_file($file);
+}
+
+sub save_to_file {
+    my ($file) = @_;
+    eval {
+        open(my $fh, "&gt;", $file) or die "Cannot write: $!";
+        my $content = $editor-&gt;get("1.0", "end");
+        print $fh $content;
+        close($fh);
+        $editor-&gt;edit_modified(0);
+        $modified   = 0;
+        $mw-&gt;title("PerlPad — $file");
+        $status_msg = "Saved: $file";
+    };
+    if ($@) {
+        $mw-&gt;messageBox(-title =&gt; "Error", -message =&gt; "Could not save:\n$@",
+                        -type =&gt; "OK", -icon =&gt; "error");
+    }
+}
+
+sub confirm_save_if_modified {
+    return 1 unless $modified;
+    my $ans = $mw-&gt;messageBox(
+        -title   =&gt; "Unsaved Changes",
+        -message =&gt; "Save changes before continuing?",
+        -type    =&gt; "YesNoCancel",
+        -icon    =&gt; "question",
+    );
+    return 0 if $ans eq "Cancel";
+    cmd_save() if $ans eq "Yes";
+    return 1;
+}
+
+sub cmd_quit {
+    return unless confirm_save_if_modified();
+    exit;
+}
+
+# =============================================================================
+# Edit Operations
+# =============================================================================
+sub cmd_undo        { $editor-&gt;edit_undo }
+sub cmd_cut         { $editor-&gt;cut }
+sub cmd_copy        { $editor-&gt;copy }
+sub cmd_paste       { $editor-&gt;paste }
+sub cmd_select_all  { $editor-&gt;selectAll }
+
+# =============================================================================
+# Find &amp; Replace Dialog  (Section 26 — custom Toplevel)
+# =============================================================================
+sub cmd_find {
+    # Only open one Find dialog at a time
+    if (Exists($mw) &amp;&amp; grep { ref($_) eq "Tk::Toplevel" &amp;&amp; $_-&gt;title eq "Find / Replace" }
+                            $mw-&gt;children) {
+        return;
+    }
+
+    my $dlg = $mw-&gt;Toplevel;
+    $dlg-&gt;title("Find / Replace");
+    $dlg-&gt;geometry("380x180+200+150");
+    $dlg-&gt;transient($mw);           # Keep above main window
+    $dlg-&gt;configure(-background =&gt; "#f2f2f7");
+    $dlg-&gt;resizable(0, 0);
+
+    my ($find_text, $replace_text) = ("", "");
+    my $case_sensitive = 0;
+    my $find_result    = "";
+
+    # Grid layout for the form
+    $dlg-&gt;gridColumnconfigure(1, -weight =&gt; 1);
+
+    $dlg-&gt;Label(-text =&gt; "Find:", -background =&gt; "#f2f2f7",
+                -font =&gt; "Helvetica 11")-&gt;grid(-row =&gt; 0, -column =&gt; 0, -sticky =&gt; "e", -padx =&gt; 5, -pady =&gt; 5);
+    my $find_entry = $dlg-&gt;Entry(-textvariable =&gt; \$find_text, -width =&gt; 25,
+                                  -font =&gt; "Helvetica 11"
+                                 )-&gt;grid(-row =&gt; 0, -column =&gt; 1, -sticky =&gt; "ew", -padx =&gt; 5, -pady =&gt; 5);
+
+    $dlg-&gt;Label(-text =&gt; "Replace:", -background =&gt; "#f2f2f7",
+                -font =&gt; "Helvetica 11")-&gt;grid(-row =&gt; 1, -column =&gt; 0, -sticky =&gt; "e", -padx =&gt; 5, -pady =&gt; 5);
+    $dlg-&gt;Entry(-textvariable =&gt; \$replace_text, -width =&gt; 25,
+                -font =&gt; "Helvetica 11"
+               )-&gt;grid(-row =&gt; 1, -column =&gt; 1, -sticky =&gt; "ew", -padx =&gt; 5, -pady =&gt; 5);
+
+    $dlg-&gt;Checkbutton(-text =&gt; "Case sensitive", -variable =&gt; \$case_sensitive,
+                       -background =&gt; "#f2f2f7", -font =&gt; "Helvetica 10"
+                      )-&gt;grid(-row =&gt; 2, -column =&gt; 1, -sticky =&gt; "w", -padx =&gt; 5);
+
+    my $result_lbl = $dlg-&gt;Label(-textvariable =&gt; \$find_result,
+                                  -font =&gt; "Helvetica 10 italic",
+                                  -foreground =&gt; "#555555",
+                                  -background =&gt; "#f2f2f7",
+                                 )-&gt;grid(-row =&gt; 3, -column =&gt; 0, -columnspan =&gt; 2);
+
+    # Button row
+    my $btn_row = $dlg-&gt;Frame(-background =&gt; "#f2f2f7")-&gt;grid(
+        -row =&gt; 4, -column =&gt; 0, -columnspan =&gt; 2, -pady =&gt; 8
+    );
+
+    $btn_row-&gt;Button(-text =&gt; "Find Next", -font =&gt; "Helvetica 10",
+                     -padx =&gt; 8, -pady =&gt; 3,
+                     -command =&gt; sub {
+                         $find_result = do_find($find_text, $case_sensitive);
+                     })-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+    $btn_row-&gt;Button(-text =&gt; "Replace", -font =&gt; "Helvetica 10",
+                     -padx =&gt; 8, -pady =&gt; 3,
+                     -command =&gt; sub {
+                         $find_result = do_replace($find_text, $replace_text, $case_sensitive, 0);
+                     })-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+    $btn_row-&gt;Button(-text =&gt; "Replace All", -font =&gt; "Helvetica 10",
+                     -padx =&gt; 8, -pady =&gt; 3,
+                     -command =&gt; sub {
+                         $find_result = do_replace($find_text, $replace_text, $case_sensitive, 1);
+                     })-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+    $btn_row-&gt;Button(-text =&gt; "Close", -font =&gt; "Helvetica 10",
+                     -padx =&gt; 8, -pady =&gt; 3,
+                     -command =&gt; sub { $dlg-&gt;destroy })-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+    $find_entry-&gt;focus;
+    $find_entry-&gt;bind("&lt;Return&gt;", sub { $find_result = do_find($find_text, $case_sensitive) });
+}
+
+sub do_find {
+    my ($pattern, $case) = @_;
+    return "Nothing to find." unless $pattern;
+
+    # Remove previous highlight
+    $editor-&gt;tagRemove("found", "1.0", "end");
+    $editor-&gt;tagConfigure("found", -background =&gt; "#ffffa0", -foreground =&gt; "#000000");
+
+    my $mod = $case ? "" : "i";
+    my $pos = $editor-&gt;index("insert");
+    my $idx = eval { $editor-&gt;search("-regexp", ($case ? () : "-nocase"), "--",
+                                      $pattern, $pos, "end") };
+    unless ($idx) {
+        # Wrap around
+        $idx = eval { $editor-&gt;search("-regexp", ($case ? () : "-nocase"), "--",
+                                       $pattern, "1.0", "end") };
+    }
+    return "Not found: $pattern" unless $idx;
+
+    my $end_idx = $editor-&gt;index("$idx + " . length($pattern) . " chars");
+    $editor-&gt;tagAdd("found", $idx, $end_idx);
+    $editor-&gt;see($idx);
+    $editor-&gt;mark("set", "insert", $end_idx);
+    return "Found at $idx";
+}
+
+sub do_replace {
+    my ($find, $replace, $case, $all) = @_;
+    return "Nothing to find." unless $find;
+
+    $editor-&gt;tagRemove("found", "1.0", "end");
+    my $count = 0;
+    my $start = "1.0";
+
+    while (1) {
+        my $idx = eval { $editor-&gt;search("-regexp", ($case ? () : "-nocase"), "--",
+                                          $find, $start, "end") };
+        last unless $idx;
+        my $end = $editor-&gt;index("$idx + " . length($find) . " chars");
+        $editor-&gt;delete($idx, $end);
+        $editor-&gt;insert($idx, $replace);
+        $count++;
+        $start = "$idx + " . length($replace) . " chars";
+        last unless $all;
+    }
+
+    return $count ? "Replaced $count occurrence(s)." : "Not found: $find";
+}
+
+# =============================================================================
+# View Operations
+# =============================================================================
+sub apply_wrap {
+    $editor-&gt;configure(-wrap =&gt; ($word_wrap ? "word" : "none"));
+}
+
+sub toggle_line_numbers {
+    if ($show_line_nums) {
+        $line_num_text-&gt;pack(-side =&gt; "left", -fill =&gt; "y", -before =&gt; $editor);
+    } else {
+        $line_num_text-&gt;packForget;
+    }
+}
+
+sub change_font {
+    my ($delta) = @_;
+    $font_size = $font_size + $delta;
+    $font_size = 8  if $font_size &lt; 8;
+    $font_size = 36 if $font_size &gt; 36;
+    apply_font();
+}
+
+sub apply_font {
+    my $font = "Courier $font_size";
+    $editor-&gt;configure(-font =&gt; $font);
+    $line_num_text-&gt;configure(-font =&gt; $font);
+    update_line_numbers();
+}
+
+# =============================================================================
+# Live Status Updates  (after() timer, Section 25)
+# =============================================================================
+sub update_status_loop {
+    # Update line/col display
+    my $pos = $editor-&gt;index("insert");   # Format: "line.column"
+    if ($pos =~ /^(\d+)\.(\d+)$/) {
+        $line_col_msg = sprintf("Ln %d, Col %d", $1, $2 + 1);
+    }
+
+    # Word count
+    my $text_content = $editor-&gt;get("1.0", "end");
+    my @wds = ($text_content =~ /\S+/g);
+    $word_count = scalar(@wds) . " words";
+
+    update_line_numbers();
+
+    # Re-schedule
+    $mw-&gt;after(500, \&amp;update_status_loop);
+}
+
+sub update_line_numbers {
+    return unless $show_line_nums;
+    my $last_line = $editor-&gt;index("end - 1 chars");
+    $last_line =~ s/\..*//;   # Extract line number
+
+    $line_num_text-&gt;configure(-state =&gt; "normal");
+    $line_num_text-&gt;delete("1.0", "end");
+    for my $n (1 .. $last_line) {
+        $line_num_text-&gt;insert("end", sprintf("%4d\n", $n));
+    }
+    $line_num_text-&gt;configure(-state =&gt; "disabled");
+    $line_num_text-&gt;yview("moveto", ($editor-&gt;yview)[0]);  # Sync scroll
+}
+
+# =============================================================================
+# Modification Tracking
+# =============================================================================
+sub on_text_modified {
+    if ($editor-&gt;edit_modified) {
+        $modified = 1;
+        my $title = $current_file // "New Document";
+        $mw-&gt;title("PerlPad — * $title");
+        $status_msg = "Modified";
+    }
+}
+
+sub on_key_release {
+    $modified = 1 if $editor-&gt;edit_modified;
+}
+
+# =============================================================================
+# Help Dialogs
+# =============================================================================
+sub show_about {
+    $mw-&gt;messageBox(
+        -title   =&gt; "About PerlPad",
+        -message =&gt; "PerlPad\nA Perl/Tk Text Editor\n\n"
+                  . "Demonstrates a complete Perl/Tk application:\n"
+                  . "  • Menus, toolbars, dialogs\n"
+                  . "  • File I/O with dirty state tracking\n"
+                  . "  • Find &amp; Replace with regex\n"
+                  . "  • Live status bar updates\n"
+                  . "  • macOS keyboard shortcuts\n\n"
+                  . "From: The Comprehensive Perl GUI Guide",
+        -type    =&gt; "OK",
+        -icon    =&gt; "info",
+    );
+}
+
+sub show_shortcuts {
+    $mw-&gt;messageBox(
+        -title   =&gt; "Keyboard Shortcuts",
+        -message =&gt; "Cmd+N     New document\n"
+                  . "Cmd+O     Open file\n"
+                  . "Cmd+S     Save\n"
+                  . "Cmd+Shift+S  Save As\n"
+                  . "Cmd+Z     Undo\n"
+                  . "Cmd+X/C/V  Cut / Copy / Paste\n"
+                  . "Cmd+A     Select All\n"
+                  . "Cmd+F     Find / Replace\n"
+                  . "Cmd++     Increase font size\n"
+                  . "Cmd+-     Decrease font size\n"
+                  . "Cmd+Q/W   Quit",
+        -type    =&gt; "OK",
+        -icon    =&gt; "info",
+    );
+}
+
+# =============================================================================
+# Welcome Text
+# =============================================================================
+sub welcome_text { return &lt;&lt;'END_WELCOME';
+Welcome to PerlPad!
+===================
+
+This is a fully-featured text editor written entirely in Perl
+using the Perl/Tk GUI toolkit.
+
+Features demonstrated in this application:
+  - Complete menu bar (File, Edit, View, Help)
+  - File open / save / save-as with dirty tracking
+  - Find &amp; Replace with regex support
+  - Keyboard shortcuts (macOS Cmd key)
+  - Live status bar (line, column, word count)
+  - Word wrap toggle
+  - Font size control
+  - Line number sidebar
+  - Window close intercept for unsaved changes
+
+Try the menu items, keyboard shortcuts, and the Find dialog!
+(Cmd+F to open Find / Replace)
+
+This is the final tutorial in the Perl GUI series.
+See perl_mac_guide.md for the full guide.
+END_WELCOME
+}
+</code></pre>
+</div>
+<div class="callout tip">
+  <strong>Run it:</strong> Save the <code>.pl</code> file and run <code>perl perl_gui_04_app.pl</code> on your Mac. A window will appear — experiment with it as you read the source above.
+</div>
+<nav class="nav-bottom">
+  <a href="perl_gui_03_events_canvas.html">← 04 · Events</a>
+  <a href="perl_guide.html">↑ Guide →</a>
+</nav>
+</main>
+<aside class="toc-panel">
+  <h4>In This File</h4>
+  <ul class="toc-list">
+    <li><a href="#arch">App Architecture</a></li>
+    <li><a href="#menu">Menu Bar</a></li>
+    <li><a href="#editor">Editor Area</a></li>
+    <li><a href="#fileops">File Operations</a></li>
+    <li><a href="#findrepl">Find &amp; Replace</a></li>
+    <li><a href="#status">Live Status Bar</a></li>
+    <li><a href="#shortcuts">Keyboard Shortcuts</a></li>
+  </ul>
+  <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:8px;letter-spacing:.1em;">PREV / NEXT</div>
+    <a href="perl_gui_03_events_canvas.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);text-decoration:none;padding:4px 0;border-bottom:none;">← 04 · Events</a>
+    <a href="perl_guide.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);text-decoration:none;padding:4px 0;border-bottom:none;">↑ Guide →</a>
+  </div>
+</aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-perl.min.js"></script>
+<script>
+function copyCode(btn){const pre=btn.closest('.code-block').querySelector('pre');navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='copy all';btn.classList.remove('copied');},1800);});}
+</script>
+</body>
+</html>

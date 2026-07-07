@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heron's Formula — A Complete, Interactive Lesson</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+
+<style>
+:root{
+  --paper:#f3ecdd;
+  --paper-2:#faf5e9;
+  --ink:#23241d;
+  --ink-soft:#4f4f43;
+  --rule:#d8cdb4;
+  --terra:#b1502a;       /* greek pottery red  */
+  --terra-deep:#8f3f20;
+  --patina:#2f6f63;      /* aged bronze/teal   */
+  --patina-deep:#225349;
+  --gold:#b48a2f;
+  --panel:#21271f;       /* dark code panel    */
+  --panel-2:#2b332a;
+  --code-fg:#e9e3d2;
+  --shadow:0 14px 40px -22px rgba(35,30,20,.55);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:74px}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(177,80,42,.07), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(47,111,99,.08), transparent 55%),
+    var(--paper);
+  color:var(--ink);
+  font-family:'Spectral', Georgia, serif;
+  font-size:18px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{ /* faint paper grain */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+.wrap{position:relative;z-index:1}
+
+/* ---------- Top navigation ---------- */
+nav.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(243,236,221,.86);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--rule);
+}
+nav.topbar .inner{
+  max-width:1080px;margin:0 auto;padding:.55rem 1.2rem;
+  display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;
+}
+nav.topbar .brand{
+  font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.35rem;
+  color:var(--terra-deep);letter-spacing:.3px;margin-right:auto;
+}
+nav.topbar a{
+  color:var(--ink-soft);text-decoration:none;font-size:.86rem;
+  padding:.25rem .55rem;border-radius:6px;font-family:'JetBrains Mono',monospace;
+  letter-spacing:-.2px;transition:all .15s;
+}
+nav.topbar a:hover{color:var(--terra);background:rgba(177,80,42,.08)}
+
+/* ---------- Layout ---------- */
+header.hero{max-width:1080px;margin:0 auto;padding:3.2rem 1.2rem 1.4rem}
+main{max-width:1080px;margin:0 auto;padding:0 1.2rem 5rem}
+section{padding:2.4rem 0;border-top:1px solid var(--rule)}
+section:first-of-type{border-top:none}
+
+/* ---------- Typography ---------- */
+h1{
+  font-family:'Cormorant Garamond',serif;font-weight:700;
+  font-size:clamp(2.8rem,7vw,4.8rem);line-height:1.02;margin:.2rem 0 .4rem;
+  letter-spacing:-.5px;color:var(--ink);
+}
+h1 .accent{color:var(--terra);font-style:italic}
+h2{
+  font-family:'Cormorant Garamond',serif;font-weight:700;
+  font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.08;margin:0 0 .2rem;
+  color:var(--patina-deep);letter-spacing:-.3px;
+}
+h2 .num{
+  font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700;
+  color:var(--terra);vertical-align:super;margin-right:.5rem;letter-spacing:0;
+}
+h3{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.55rem;margin:1.8rem 0 .3rem;color:var(--ink)}
+.lede{font-size:1.22rem;color:var(--ink-soft);font-style:italic;max-width:62ch}
+p{max-width:70ch}
+a.inlink{color:var(--terra-deep);text-decoration-color:var(--rule);text-underline-offset:3px}
+strong{color:var(--terra-deep);font-weight:600}
+.subtle{color:var(--ink-soft);font-size:.95rem}
+
+/* ---------- Hero kicker + toc ---------- */
+.kicker{
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:3px;
+  text-transform:uppercase;color:var(--patina);margin-bottom:.6rem;
+}
+.hero-grid{display:grid;grid-template-columns:1.3fr .9fr;gap:2rem;align-items:center;margin-top:1.4rem}
+@media(max-width:760px){.hero-grid{grid-template-columns:1fr}}
+.toc{
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:14px;
+  padding:1.1rem 1.3rem;box-shadow:var(--shadow);
+}
+.toc h4{margin:.1rem 0 .6rem;font-family:'JetBrains Mono',monospace;font-size:.74rem;
+  letter-spacing:2px;text-transform:uppercase;color:var(--terra)}
+.toc ol{margin:0;padding-left:1.3rem;columns:1}
+.toc li{margin:.18rem 0;font-size:.96rem}
+.toc a{color:var(--ink);text-decoration:none}
+.toc a:hover{color:var(--terra)}
+
+/* ---------- The formula plaque ---------- */
+.plaque{
+  background:linear-gradient(160deg,var(--panel),var(--panel-2));
+  color:var(--code-fg);border-radius:16px;padding:1.6rem 1.4rem;margin:1.6rem 0;
+  box-shadow:var(--shadow);border:1px solid #11150f;position:relative;overflow:hidden;
+}
+.plaque::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;
+  border:2px solid rgba(177,80,42,.25);border-radius:50%}
+.plaque .label{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:3px;
+  text-transform:uppercase;color:#caa86b;margin-bottom:.4rem}
+.plaque .math-big{font-size:1.35rem;color:#fff}
+
+/* ---------- Callout cards ---------- */
+.card{
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:14px;
+  padding:1.2rem 1.4rem;margin:1.4rem 0;box-shadow:var(--shadow);
+}
+.card.terra{border-left:5px solid var(--terra)}
+.card.patina{border-left:5px solid var(--patina)}
+.card.gold{border-left:5px solid var(--gold)}
+.card h3:first-child{margin-top:0}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;
+  letter-spacing:1.5px;text-transform:uppercase;padding:.15rem .5rem;border-radius:5px;
+  background:rgba(47,111,99,.12);color:var(--patina-deep);margin-bottom:.5rem}
+
+/* ---------- Proof boxes ---------- */
+.proof{
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:14px;
+  margin:1.4rem 0;box-shadow:var(--shadow);overflow:hidden;
+}
+.proof summary{
+  cursor:pointer;list-style:none;padding:1rem 1.3rem;
+  font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;
+  color:var(--patina-deep);display:flex;align-items:center;gap:.7rem;
+  background:linear-gradient(90deg,rgba(47,111,99,.07),transparent);
+}
+.proof summary::-webkit-details-marker{display:none}
+.proof summary .chev{transition:transform .25s;color:var(--terra);font-size:1rem}
+.proof[open] summary .chev{transform:rotate(90deg)}
+.proof .body{padding:.2rem 1.4rem 1.2rem}
+.qed{text-align:right;color:var(--terra);font-weight:600;font-style:italic}
+.step{margin:.5rem 0}
+.step b{color:var(--terra-deep)}
+
+/* ---------- Code ---------- */
+.codewrap{position:relative;margin:1.1rem 0}
+.codewrap .cap{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:1px;
+  color:var(--patina);text-transform:uppercase;margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem}
+.codewrap .cap::before{content:"▸";color:var(--terra)}
+pre{
+  margin:0;background:linear-gradient(160deg,var(--panel),var(--panel-2));
+  color:var(--code-fg);border-radius:12px;padding:1.05rem 1.15rem;overflow-x:auto;
+  font-family:'JetBrains Mono',monospace;font-size:.86rem;line-height:1.6;
+  border:1px solid #11150f;box-shadow:var(--shadow);
+}
+pre code{font-family:inherit}
+.copybtn{
+  position:absolute;top:1.95rem;right:.6rem;background:rgba(255,255,255,.07);
+  color:#d9cfb6;border:1px solid rgba(255,255,255,.14);border-radius:7px;
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:.28rem .55rem;
+  cursor:pointer;transition:all .15s;letter-spacing:.5px;
+}
+.copybtn:hover{background:var(--terra);color:#fff;border-color:var(--terra)}
+.out{
+  background:#1a1f19;color:#9fd8b2;border-radius:0 0 12px 12px;margin-top:-6px;
+  padding:.7rem 1.15rem .85rem;font-family:'JetBrains Mono',monospace;font-size:.82rem;
+  border:1px solid #11150f;border-top:1px dashed rgba(159,216,178,.3);white-space:pre-wrap;
+}
+.out .lbl{color:#6f8f76;display:block;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.3rem}
+/* token colours */
+.k{color:#e6915b;font-weight:500}   /* keyword  */
+.b{color:#7fc7d6}                    /* builtin  */
+.s{color:#bfe08b}                    /* string   */
+.n{color:#d9b3e0}                    /* number   */
+.c{color:#7a8a7c;font-style:italic}  /* comment  */
+
+/* ---------- Interactive widgets ---------- */
+.lab{
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:16px;
+  padding:1.4rem;margin:1.4rem 0;box-shadow:var(--shadow);
+}
+.lab .labhead{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:2px;
+  text-transform:uppercase;color:var(--terra);margin-bottom:.9rem;display:flex;gap:.5rem;align-items:center}
+.lab .labhead::before{content:"⬡";font-size:1rem}
+.controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem}
+.field{display:flex;flex-direction:column;gap:.25rem}
+.field label{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:1px;color:var(--ink-soft);text-transform:uppercase}
+.field input{
+  width:110px;font-family:'JetBrains Mono',monospace;font-size:1rem;padding:.45rem .55rem;
+  border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink);
+}
+.field input:focus{outline:none;border-color:var(--terra);box-shadow:0 0 0 3px rgba(177,80,42,.15)}
+.presets{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem}
+.presets button,.ghostbtn{
+  font-family:'JetBrains Mono',monospace;font-size:.74rem;padding:.32rem .6rem;
+  border:1px solid var(--rule);border-radius:7px;background:#fff;color:var(--ink-soft);
+  cursor:pointer;transition:all .15s;
+}
+.presets button:hover,.ghostbtn:hover{border-color:var(--patina);color:var(--patina-deep);background:rgba(47,111,99,.06)}
+.calc-grid{display:grid;grid-template-columns:1fr 320px;gap:1.4rem;align-items:start}
+@media(max-width:720px){.calc-grid{grid-template-columns:1fr}}
+.steps{font-family:'JetBrains Mono',monospace;font-size:.86rem;line-height:1.9}
+.steps .row{display:flex;justify-content:space-between;border-bottom:1px dotted var(--rule);padding:.1rem 0}
+.steps .row .v{color:var(--terra-deep);font-weight:700}
+.result-big{font-family:'Cormorant Garamond',serif;font-size:2.6rem;color:var(--patina-deep);font-weight:700;line-height:1}
+.result-big small{font-size:1rem;color:var(--ink-soft);font-family:'JetBrains Mono',monospace}
+.err{color:var(--terra);font-weight:600}
+svg.fig{width:100%;height:auto;background:#fbf8ef;border:1px solid var(--rule);border-radius:12px;touch-action:none}
+.hint{font-size:.85rem;color:var(--ink-soft);font-style:italic}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.8rem}
+@media(max-width:560px){.cmp{grid-template-columns:1fr}}
+.cmp .box{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:.8rem 1rem}
+.cmp .box.bad{border-color:#d99}
+.cmp .box.good{border-color:#9c9}
+.cmp .box .t{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+.cmp .box .val{font-family:'JetBrains Mono',monospace;font-size:1.15rem;margin-top:.2rem;word-break:break-all}
+
+table.def{border-collapse:collapse;margin:1rem 0;font-size:.95rem;width:100%}
+table.def th,table.def td{border:1px solid var(--rule);padding:.5rem .8rem;text-align:left}
+table.def th{background:rgba(47,111,99,.1);font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.5px}
+table.def code{background:rgba(177,80,42,.1);padding:.1rem .35rem;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.85rem}
+
+footer{max-width:1080px;margin:0 auto;padding:2.5rem 1.2rem 4rem;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.92rem}
+footer a{color:var(--terra-deep)}
+.divider-sym{text-align:center;color:var(--rule);font-size:1.4rem;letter-spacing:1rem;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="topbar">
+  <div class="inner">
+    <span class="brand">△ Heron</span>
+    <a href="#what">Formula</a>
+    <a href="#history">History</a>
+    <a href="#examples">By Hand</a>
+    <a href="#proof1">Proof I</a>
+    <a href="#proof2">Proof II</a>
+    <a href="#calc">Calculator</a>
+    <a href="#drag">Drag-a-Triangle</a>
+    <a href="#octave">Octave</a>
+    <a href="#stability">Stability</a>
+    <a href="#beyond">Beyond</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="kicker">Classical Geometry · Computational Mathematics</div>
+  <h1>Heron's <span class="accent">Formula</span></h1>
+  <p class="lede">Find the area of any triangle knowing only the lengths of its three sides — no angles, no height, no trigonometry required.</p>
+
+  <div class="hero-grid">
+    <div>
+      <div class="plaque">
+        <div class="label">The Formula</div>
+        <div class="math-big">\[ A=\sqrt{\,s\,(s-a)(s-b)(s-c)\,}\qquad s=\frac{a+b+c}{2} \]</div>
+      </div>
+      <p class="subtle">Below you'll find a full derivation (two independent proofs), worked examples by hand, verified <strong>GNU&nbsp;Octave</strong> code, three interactive playgrounds, and the numerical pitfalls that bite real programs — with the fix.</p>
+    </div>
+
+    <!-- Hero illustration: triangle + incircle -->
+    <svg class="fig" viewBox="0 0 360 300" role="img" aria-label="Triangle with inscribed circle">
+      <defs>
+        <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#2f6f63" stop-opacity="0.16"/>
+          <stop offset="1" stop-color="#b1502a" stop-opacity="0.14"/>
+        </linearGradient>
+      </defs>
+      <polygon points="40,250 320,250 230,60" fill="url(#tg)" stroke="#23241d" stroke-width="2"/>
+      <!-- incircle (approx for this triangle) -->
+      <circle cx="195" cy="190" r="55" fill="none" stroke="#b1502a" stroke-width="1.6" stroke-dasharray="4 4"/>
+      <circle cx="195" cy="190" r="2.6" fill="#b1502a"/>
+      <line x1="195" y1="190" x2="195" y2="245" stroke="#b1502a" stroke-width="1.2"/>
+      <text x="200" y="222" font-family="JetBrains Mono" font-size="12" fill="#8f3f20">r</text>
+      <text x="170" y="265" font-family="Cormorant Garamond" font-style="italic" font-size="18" fill="#23241d">a</text>
+      <text x="270" y="155" font-family="Cormorant Garamond" font-style="italic" font-size="18" fill="#23241d">b</text>
+      <text x="120" y="150" font-family="Cormorant Garamond" font-style="italic" font-size="18" fill="#23241d">c</text>
+      <circle cx="40" cy="250" r="3.4" fill="#23241d"/>
+      <circle cx="320" cy="250" r="3.4" fill="#23241d"/>
+      <circle cx="230" cy="60" r="3.4" fill="#23241d"/>
+    </svg>
+  </div>
+
+  <div class="toc" style="margin-top:1.8rem">
+    <h4>What's inside</h4>
+    <ol>
+      <li><a href="#what">The statement & what each symbol means</a></li>
+      <li><a href="#history">A little history — Heron of Alexandria</a></li>
+      <li><a href="#intuition">Intuition: why the semiperimeter?</a></li>
+      <li><a href="#examples">Worked examples by hand</a></li>
+      <li><a href="#proof1">Proof I — algebraic (Law of Cosines)</a></li>
+      <li><a href="#proof2">Proof II — geometric (the incircle)</a></li>
+      <li><a href="#calc">Interactive: step-by-step calculator</a></li>
+      <li><a href="#drag">Interactive: drag a triangle</a></li>
+      <li><a href="#octave">GNU Octave — code you can run</a></li>
+      <li><a href="#stability">Numerical stability & Kahan's fix</a></li>
+      <li><a href="#beyond">Beyond triangles — Brahmagupta & Cayley–Menger</a></li>
+    </ol>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================================= -->
+<section id="what">
+  <h2><span class="num">01</span>The Statement</h2>
+  <p>Take any triangle with side lengths \(a\), \(b\), and \(c\). Define its <strong>semiperimeter</strong> \(s\) — literally "half the perimeter":</p>
+  \[ s=\frac{a+b+c}{2}. \]
+  <p>Then its area \(A\) is given entirely by those three lengths:</p>
+  \[ \boxed{\,A=\sqrt{s\,(s-a)(s-b)(s-c)}\,}. \]
+  <p>That's the whole formula. You never need the height, you never need an angle, and you never need to know <em>where</em> the triangle sits in the plane. Three lengths in, one area out.</p>
+
+  <table class="def">
+    <tr><th>Symbol</th><th>Meaning</th><th>Example (a 3–4–5 triangle)</th></tr>
+    <tr><td><code>a, b, c</code></td><td>The three side lengths</td><td><code>a=3, b=4, c=5</code></td></tr>
+    <tr><td><code>s</code></td><td>Semiperimeter, \((a+b+c)/2\)</td><td><code>s = 12/2 = 6</code></td></tr>
+    <tr><td><code>s−a, s−b, s−c</code></td><td>How far each side falls short of \(s\)</td><td><code>3, 2, 1</code></td></tr>
+    <tr><td><code>A</code></td><td>The area</td><td><code>√(6·3·2·1) = √36 = 6</code></td></tr>
+  </table>
+
+  <div class="card terra">
+    <span class="tag">Sanity check</span>
+    <p style="margin:0">For the formula to give a real number, all of \(s-a,\,s-b,\,s-c\) must be positive. That is exactly the <strong>triangle inequality</strong>: each side must be shorter than the sum of the other two. If it fails, no triangle exists, and the expression under the square root goes negative.</p>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<section id="history">
+  <h2><span class="num">02</span>A Little History</h2>
+  <p><strong>Heron of Alexandria</strong> (also spelled <em>Hero</em>) was a Greek mathematician and engineer who lived in the first century CE — best estimates put him around 10–70&nbsp;CE. He was a prolific inventor, credited with an early steam device (the <em>aeolipile</em>), vending mechanisms, and automated theatres.</p>
+  <p>The formula appears in his work <em>Metrica</em>, a treatise on measurement rediscovered only in 1896. Heron gives a fully worked numerical proof for a triangle with sides 13, 14, 15 (area 84). Though it carries his name, historians believe the result was likely known earlier — possibly to <strong>Archimedes</strong> two centuries before — but Heron's is the earliest surviving written derivation.</p>
+  <p>What makes it remarkable is its <em>purely metric</em> character: it converts a question about shape and orientation into one of arithmetic on lengths alone, a recurring theme in computational geometry to this day.</p>
+</section>
+
+<!-- ============================================================= -->
+<section id="intuition">
+  <h2><span class="num">03</span>Intuition — Why the Semiperimeter?</h2>
+  <p>The appearance of \(s\) can feel mysterious. Here is one way to make peace with it. The product</p>
+  \[ 16A^2=(a+b+c)(-a+b+c)(a-b+c)(a+b-c) \]
+  <p>is the formula in its "raw" symmetric form (we will derive it in Proof&nbsp;I). Each factor is a perimeter-like combination of the sides. Dividing each side combination through by 2 turns those four factors into \(2s\), \(2(s-a)\), \(2(s-b)\), \(2(s-c)\); the four 2's multiply to 16 and cancel the leading 16, leaving the clean product under the root.</p>
+  <p>So the semiperimeter isn't magical — it is just the bookkeeping device that makes a naturally symmetric, four-factor product look tidy. Notice the deep symmetry: swap any two sides and the formula is unchanged, exactly as area should be.</p>
+
+  <div class="card patina">
+    <span class="tag">Degeneration</span>
+    <p style="margin:0">As a triangle flattens toward a straight line, one factor — say \(s-c\) — slides toward \(0\), driving the area smoothly to \(0\). The formula <em>knows</em> when your triangle has collapsed.</p>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<section id="examples">
+  <h2><span class="num">04</span>Worked Examples by Hand</h2>
+
+  <h3>Example 1 — the 3·4·5 right triangle</h3>
+  <p class="step"><b>Sides:</b> \(a=3,\ b=4,\ c=5\). &nbsp; <b>Semiperimeter:</b> \(s=\tfrac{3+4+5}{2}=6\).</p>
+  \[ A=\sqrt{6(6-3)(6-4)(6-5)}=\sqrt{6\cdot3\cdot2\cdot1}=\sqrt{36}=6. \]
+  <p>Cross-check: a 3–4–5 triangle is right-angled, so \(A=\tfrac12\cdot3\cdot4=6\). ✓</p>
+
+  <h3>Example 2 — a scalene 7·8·9 triangle</h3>
+  <p class="step"><b>Semiperimeter:</b> \(s=\tfrac{7+8+9}{2}=12\).</p>
+  \[ A=\sqrt{12(12-7)(12-8)(12-9)}=\sqrt{12\cdot5\cdot4\cdot3}=\sqrt{720}=12\sqrt5\approx 26.8328. \]
+  <p>There is no nice right angle to fall back on here — which is precisely where Heron earns its keep.</p>
+
+  <h3>Example 3 — Heron's own 13·14·15 triangle</h3>
+  <p class="step"><b>Semiperimeter:</b> \(s=\tfrac{13+14+15}{2}=21\).</p>
+  \[ A=\sqrt{21(21-13)(21-14)(21-15)}=\sqrt{21\cdot8\cdot7\cdot6}=\sqrt{7056}=84. \]
+  <p>A perfect integer area — the same example Heron worked in <em>Metrica</em>.</p>
+
+  <p class="divider-sym">△ ▽ △</p>
+</section>
+
+<!-- ============================================================= -->
+<section id="proof1">
+  <h2><span class="num">05</span>Proof I — Algebraic (via the Law of Cosines)</h2>
+  <p>This is the quickest rigorous route. It assumes only two standard facts: the area formula \(A=\tfrac12 ab\sin C\) and the Law of Cosines.</p>
+
+  <details class="proof" open>
+    <summary><span class="chev">▶</span> Full derivation</summary>
+    <div class="body">
+      <p class="step"><b>Start</b> from the trigonometric area, where \(C\) is the angle between sides \(a\) and \(b\):</p>
+      \[ A=\tfrac12 ab\sin C \quad\Longrightarrow\quad 16A^2=4a^2b^2\sin^2C. \]
+      <p class="step"><b>Replace</b> \(\sin^2 C=1-\cos^2 C\):</p>
+      \[ 16A^2=4a^2b^2\bigl(1-\cos^2 C\bigr)=4a^2b^2-(2ab\cos C)^2. \]
+      <p class="step"><b>Use the Law of Cosines</b>, \(c^2=a^2+b^2-2ab\cos C\), i.e. \(2ab\cos C=a^2+b^2-c^2\):</p>
+      \[ 16A^2=4a^2b^2-\bigl(a^2+b^2-c^2\bigr)^2. \]
+      <p class="step"><b>Factor</b> the difference of two squares, \(X^2-Y^2=(X-Y)(X+Y)\), with \(X=2ab,\ Y=a^2+b^2-c^2\):</p>
+      \[ 16A^2=\bigl(2ab-(a^2+b^2-c^2)\bigr)\bigl(2ab+(a^2+b^2-c^2)\bigr). \]
+      <p class="step"><b>Recognise</b> each bracket as another difference/sum of squares:</p>
+      \[ 2ab-(a^2+b^2-c^2)=c^2-(a-b)^2,\qquad 2ab+(a^2+b^2-c^2)=(a+b)^2-c^2. \]
+      <p class="step">Factor both once more:</p>
+      \[ 16A^2=\underbrace{(c-a+b)(c+a-b)}_{c^2-(a-b)^2}\cdot\underbrace{(a+b-c)(a+b+c)}_{(a+b)^2-c^2}. \]
+      <p class="step"><b>Introduce</b> \(s=\tfrac{a+b+c}{2}\). Then each factor becomes a multiple of two:</p>
+      \[ a+b+c=2s,\quad -a+b+c=2(s-a),\quad a-b+c=2(s-b),\quad a+b-c=2(s-c). \]
+      <p class="step"><b>Substitute</b> — the four 2's give \(2^4=16\), cancelling the leading 16:</p>
+      \[ 16A^2=2(s-a)\cdot 2(s-b)\cdot 2(s-c)\cdot 2s = 16\,s(s-a)(s-b)(s-c). \]
+      \[ \therefore\quad A=\sqrt{s(s-a)(s-b)(s-c)}. \]
+      <p class="qed">∎</p>
+    </div>
+  </details>
+</section>
+
+<!-- ============================================================= -->
+<section id="proof2">
+  <h2><span class="num">06</span>Proof II — Geometric (via the Inscribed Circle)</h2>
+  <p>This route is closer in spirit to Heron's own and reveals a beautiful by-product: an exact formula for the <strong>inradius</strong> \(r\). It uses three classical facts, each justified below.</p>
+
+  <details class="proof" open>
+    <summary><span class="chev">▶</span> Three lemmas, then the assembly</summary>
+    <div class="body">
+      <p class="step"><b>Lemma 1 — Area equals \(rs\).</b> Join the incentre \(I\) (centre of the inscribed circle, radius \(r\)) to the three vertices. This cuts the triangle into three smaller triangles whose bases are \(a,b,c\) and whose common height is \(r\):</p>
+      \[ A=\tfrac12 r a+\tfrac12 r b+\tfrac12 r c=\tfrac12 r(a+b+c)=r\,s. \]
+
+      <p class="step"><b>Lemma 2 — Tangent lengths are \(s-a,\,s-b,\,s-c\).</b> From each vertex the two tangent segments to the incircle have equal length; call them \(x,y,z\) from the vertices opposite \(a,b,c\). Pairing up the sides,</p>
+      \[ y+z=a,\quad z+x=b,\quad x+y=c \;\Longrightarrow\; x+y+z=s, \]
+      <p class="step">so \(x=s-a,\ y=s-b,\ z=s-c\) (e.g. \(x=(x+y+z)-(y+z)=s-a\)).</p>
+
+      <p class="step"><b>Lemma 3 — Half-angle tangents.</b> The incentre lies on each angle bisector, and \(r\) is perpendicular to a side at the point of tangency a distance \(s-a\) from vertex \(A\). Hence</p>
+      \[ \tan\tfrac{A}{2}=\frac{r}{s-a},\qquad \tan\tfrac{B}{2}=\frac{r}{s-b},\qquad \tan\tfrac{C}{2}=\frac{r}{s-c}. \]
+
+      <p class="step"><b>Assembly.</b> Because \(\tfrac{A}{2}+\tfrac{B}{2}+\tfrac{C}{2}=\tfrac{\pi}{2}\), the half-angle tangents satisfy the identity</p>
+      \[ \tan\tfrac{A}{2}\tan\tfrac{B}{2}+\tan\tfrac{B}{2}\tan\tfrac{C}{2}+\tan\tfrac{C}{2}\tan\tfrac{A}{2}=1. \]
+      <p class="step">Substituting Lemma 3 and clearing denominators:</p>
+      \[ \frac{r^2\bigl[(s-c)+(s-a)+(s-b)\bigr]}{(s-a)(s-b)(s-c)}=1. \]
+      <p class="step">Now \((s-a)+(s-b)+(s-c)=3s-(a+b+c)=3s-2s=s\), so</p>
+      \[ r^2=\frac{(s-a)(s-b)(s-c)}{s}\qquad\Longrightarrow\qquad r=\sqrt{\frac{(s-a)(s-b)(s-c)}{s}}. \]
+      <p class="step">Finally, feed this into Lemma 1, \(A=rs\):</p>
+      \[ A=s\,r=s\sqrt{\frac{(s-a)(s-b)(s-c)}{s}}=\sqrt{s(s-a)(s-b)(s-c)}. \]
+      <p class="qed">∎</p>
+    </div>
+  </details>
+
+  <div class="card gold">
+    <span class="tag">Bonus formula</span>
+    <p style="margin:0">The derivation hands you the inradius for free: \(\displaystyle r=\frac{A}{s}=\sqrt{\frac{(s-a)(s-b)(s-c)}{s}}\). The interactive triangle below draws exactly this circle.</p>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<section id="calc">
+  <h2><span class="num">07</span>Interactive — Step-by-Step Calculator</h2>
+  <p>Type three side lengths (or pick a preset). The widget validates the triangle inequality, walks through every intermediate value, and draws the triangle to scale.</p>
+
+  <div class="lab">
+    <div class="labhead">Heron Calculator</div>
+    <div class="presets" id="calcPresets">
+      <button data-a="3" data-b="4" data-c="5">3 · 4 · 5</button>
+      <button data-a="7" data-b="8" data-c="9">7 · 8 · 9</button>
+      <button data-a="13" data-b="14" data-c="15">13 · 14 · 15</button>
+      <button data-a="6" data-b="6" data-c="6">equilateral</button>
+      <button data-a="2" data-b="2" data-c="3.99">near-degenerate</button>
+    </div>
+    <div class="controls">
+      <div class="field"><label>side a</label><input id="ca" type="number" step="any" value="7"></div>
+      <div class="field"><label>side b</label><input id="cb" type="number" step="any" value="8"></div>
+      <div class="field"><label>side c</label><input id="cc" type="number" step="any" value="9"></div>
+    </div>
+
+    <div class="calc-grid">
+      <div>
+        <div class="steps" id="calcSteps"></div>
+        <div style="margin-top:1rem">
+          <div class="result-big" id="calcArea">—</div>
+        </div>
+      </div>
+      <svg class="fig" id="calcSvg" viewBox="0 0 320 260" aria-label="Triangle drawn to scale"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<section id="drag">
+  <h2><span class="num">08</span>Interactive — Drag a Triangle</h2>
+  <p>Grab any vertex and move it. The side lengths, semiperimeter, and area (computed by <strong>Heron's formula</strong>) update live. As an independent check, the area is recomputed with the unrelated <em>shoelace formula</em> from the coordinates — watch the two agree to the last digit. The dashed circle is the inscribed circle of radius \(r=A/s\) from Proof&nbsp;II.</p>
+
+  <div class="lab">
+    <div class="labhead">Live Triangle · Heron vs Shoelace</div>
+    <svg class="fig" id="dragSvg" viewBox="0 0 640 420" aria-label="Draggable triangle"></svg>
+    <p class="hint">Tip: drag the three solid dots. One unit = 40&nbsp;pixels.</p>
+    <div class="cmp">
+      <div class="box good"><div class="t">Area — Heron √(s(s−a)(s−b)(s−c))</div><div class="val" id="dHeron">—</div></div>
+      <div class="box good"><div class="t">Area — Shoelace (from coordinates)</div><div class="val" id="dShoe">—</div></div>
+    </div>
+    <div class="steps" id="dragInfo" style="margin-top:.8rem"></div>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<section id="octave">
+  <h2><span class="num">09</span>GNU Octave — Code You Can Run</h2>
+  <p>Every snippet below was executed in GNU&nbsp;Octave&nbsp;8.4; the <span style="color:var(--patina-deep);font-weight:600">output</span> shown is the real result. In Octave each <code style="font-family:'JetBrains Mono'">function</code> normally lives in its own <code style="font-family:'JetBrains Mono'">.m</code> file named after the function.</p>
+
+  <h3>1 · The basic function</h3>
+  <div class="codewrap">
+    <div class="cap">heron.m</div>
+    <pre><code class="oct">function A = heron(a, b, c)
+  % HERON  Area of a triangle from its three side lengths.
+  %   A = HERON(a, b, c) returns the area via Heron's formula.
+  s = (a + b + c) / 2;            % semiperimeter
+  A = sqrt(s * (s-a) * (s-b) * (s-c));
+end</code></pre>
+    <div class="out"><span class="lbl">Octave session</span>>> heron(3, 4, 5)
+ans = 6
+>> heron(7, 8, 9)
+ans = 26.833        % = 12*sqrt(5)</div>
+  </div>
+
+  <h3>2 · Guard against impossible triangles</h3>
+  <p>A robust version refuses inputs that violate the triangle inequality instead of silently returning a complex number.</p>
+  <div class="codewrap">
+    <div class="cap">heron_safe.m</div>
+    <pre><code class="oct">function A = heron_safe(a, b, c)
+  % Validate the triangle inequality before computing.
+  sides = sort([a, b, c]);        % ascending: shortest two first
+  if sides(1) + sides(2) <= sides(3)
+    error("heron_safe: %g, %g, %g cannot form a triangle", a, b, c);
+  end
+  s = (a + b + c) / 2;
+  A = sqrt(s * (s-a) * (s-b) * (s-c));
+end</code></pre>
+    <div class="out"><span class="lbl">Octave session</span>>> heron_safe(2, 2, 10)
+error: heron_safe: 2, 2, 10 cannot form a triangle</div>
+  </div>
+
+  <h3>3 · Vectorise over many triangles at once</h3>
+  <p>Octave shines at array work. Swap <code style="font-family:'JetBrains Mono'">*</code> for the element-wise <code style="font-family:'JetBrains Mono'">.*</code> and you can process whole columns of triangles in one shot — no loop.</p>
+  <div class="codewrap">
+    <div class="cap">interactive session</div>
+    <pre><code class="oct">a = [3;  5;  8];     % three triangles, one per row
+b = [4; 12; 15];
+c = [5; 13; 17];
+
+s = (a + b + c) / 2;                       % column of semiperimeters
+A = sqrt(s .* (s-a) .* (s-b) .* (s-c))     % element-wise -> column of areas</code></pre>
+    <div class="out"><span class="lbl">output</span>A =
+
+    6
+   30
+   60</div>
+  </div>
+
+  <h3>4 · Cross-check with the shoelace formula</h3>
+  <p>If you happen to have the vertex coordinates, the shoelace (Gauss) formula gives the area directly. It's a great independent test of a Heron implementation.</p>
+  <div class="codewrap">
+    <div class="cap">shoelace.m</div>
+    <pre><code class="oct">function A = shoelace(P)
+  % P is an n-by-2 matrix of polygon vertices (here, a triangle).
+  x = P(:,1);  y = P(:,2);
+  n = rows(P);
+  idx = [2:n, 1];                 % "next" vertex, wrapping around
+  A = 0.5 * abs(sum(x .* y(idx) - x(idx) .* y));
+end</code></pre>
+    <div class="out"><span class="lbl">Octave session — a right triangle with legs 4 and 3</span>>> P = [0 0; 4 0; 0 3];
+>> shoelace(P)
+ans = 6
+>> heron(4, 3, 5)        % same triangle, by side lengths
+ans = 6</div>
+  </div>
+
+  <h3>5 · Visualising the area surface</h3>
+  <p>Fix one side at \(a=5\) and let the other two roam: the height of the surface is the Heron area, and it vanishes exactly where the triangle inequality fails (the dark border).</p>
+  <div class="codewrap">
+    <div class="cap">heron_surface.m</div>
+    <pre><code class="oct">a = 5;
+b = linspace(0.1, 10, 400);
+c = linspace(0.1, 10, 400);
+[B, C] = meshgrid(b, c);
+
+s = (a + B + C) / 2;
+A = sqrt(s .* (s - a) .* (s - B) .* (s - C));   % complex where invalid
+
+contourf(B, C, real(A), 20, "LineColor", "none");
+colorbar; axis equal tight;
+xlabel("side b"); ylabel("side c");
+title("Heron area of triangles with a = 5");
+print("heron_surface.png", "-dpng");</code></pre>
+    <div class="out"><span class="lbl">result</span>Saves heron_surface.png — a filled contour map. The bright ridge runs
+along b ≈ c (near-isosceles, largest area); the area falls to 0 along the
+lines b + c = 5, |b - c| = 5 where the triangle degenerates.</div>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<section id="stability">
+  <h2><span class="num">10</span>Numerical Stability — and Kahan's Fix</h2>
+  <p>The textbook formula has a famous flaw on a computer. For a <strong>needle-like</strong> triangle (one extremely thin sliver), the quantities \(s\) and \(s-a\) are nearly equal large numbers, so subtracting them throws away most of your significant digits — <em>catastrophic cancellation</em>. The result can be badly wrong even in double precision.</p>
+
+  <p>William&nbsp;Kahan published a re-grouping that is provably accurate. <strong>Sort the sides so that \(a\ge b\ge c\)</strong>, then evaluate with this exact parenthesisation (the parentheses are not optional):</p>
+  \[ A=\tfrac14\sqrt{\bigl(a+(b+c)\bigr)\bigl(c-(a-b)\bigr)\bigl(c+(a-b)\bigr)\bigl(a+(b-c)\bigr)}. \]
+
+  <div class="codewrap">
+    <div class="cap">heron_kahan.m</div>
+    <pre><code class="oct">function A = heron_kahan(a, b, c)
+  % Numerically stable area (Kahan). Sort so a >= b >= c first.
+  s = sort([a, b, c], "descend");
+  a = s(1); b = s(2); c = s(3);
+  A = 0.25 * sqrt( (a + (b + c)) * (c - (a - b)) ...
+                 * (c + (a - b)) * (a + (b - c)) );
+end</code></pre>
+    <div class="out"><span class="lbl">Octave — isosceles needle a=b=1e9, c=1.5e-5  (true area is exactly 7500)</span>>> heron(1e9, 1e9, 1.5e-5)
+ans = 7510.2          % naive: wrong in the 3rd digit!
+>> heron_kahan(1e9, 1e9, 1.5e-5)
+ans = 7500.0          % stable: exact</div>
+  </div>
+
+  <p>Try it yourself — the playground below runs the <em>same</em> IEEE-754 double arithmetic your browser uses, so you'll reproduce the cancellation live.</p>
+
+  <div class="lab">
+    <div class="labhead">Stability Explorer · naive vs Kahan</div>
+    <div class="presets" id="kPresets">
+      <button data-a="1000000000" data-b="1000000000" data-c="0.000015">needle (true area 7500)</button>
+      <button data-a="100000" data-b="100000" data-c="0.00029">thin (true ≈ 14.5)</button>
+      <button data-a="7" data-b="8" data-c="9">ordinary</button>
+    </div>
+    <div class="controls">
+      <div class="field"><label>side a</label><input id="ka" type="number" step="any" value="1000000000"></div>
+      <div class="field"><label>side b</label><input id="kb" type="number" step="any" value="1000000000"></div>
+      <div class="field"><label>side c</label><input id="kc" type="number" step="any" value="0.000015"></div>
+    </div>
+    <div class="cmp">
+      <div class="box bad"><div class="t">Naive √(s(s−a)(s−b)(s−c))</div><div class="val" id="kNaive">—</div></div>
+      <div class="box good"><div class="t">Kahan (sorted, regrouped)</div><div class="val" id="kKahan">—</div></div>
+    </div>
+    <div class="steps" id="kInfo" style="margin-top:.7rem"></div>
+  </div>
+
+  <div class="card terra">
+    <span class="tag">Rule of thumb</span>
+    <p style="margin:0">For everyday triangles the naive formula is perfectly fine. Reach for Kahan's version whenever sides can differ by many orders of magnitude, or whenever a triangle may be almost degenerate — common in computational geometry, meshing, and graphics.</p>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<section id="beyond">
+  <h2><span class="num">11</span>Beyond Triangles</h2>
+
+  <h3>Brahmagupta's formula — cyclic quadrilaterals</h3>
+  <p>Around 628&nbsp;CE the Indian mathematician <strong>Brahmagupta</strong> generalised Heron to any quadrilateral whose four vertices lie on a circle. With sides \(a,b,c,d\) and \(s=\tfrac{a+b+c+d}{2}\):</p>
+  \[ A=\sqrt{(s-a)(s-b)(s-c)(s-d)}. \]
+  <p>Set \(d=0\) and the fourth vertex collapses onto a third — the quadrilateral becomes a triangle and Brahmagupta reduces exactly to Heron. Heron is the \(d\to 0\) shadow of Brahmagupta.</p>
+
+  <h3>The Cayley–Menger determinant — any dimension</h3>
+  <p>The grand generalisation expresses the squared content of a simplex from its edge lengths alone. For a triangle it is the determinant</p>
+  \[ 16A^2=-\begin{vmatrix}0&1&1&1\\[2pt]1&0&c^2&b^2\\[2pt]1&c^2&0&a^2\\[2pt]1&b^2&a^2&0\end{vmatrix}, \]
+  <p>which expands precisely to the \(16A^2\) we factored in Proof&nbsp;I. The same determinant, enlarged, gives the volume of a tetrahedron from its six edges, and so on into higher dimensions — Heron's idea, scaled up forever.</p>
+
+  <p class="divider-sym">△ ▽ △</p>
+</section>
+
+</main>
+
+<footer>
+  <p><strong>Heron's Formula — a complete, interactive lesson.</strong> All Octave output shown was produced by running the code in GNU&nbsp;Octave&nbsp;8.4. Mathematics typeset with MathJax.</p>
+  <p class="subtle">Further reading: Heron, <em>Metrica</em> (c. 60&nbsp;CE) · W.&nbsp;Kahan, “Miscalculating Area and Angles of a Needle-like Triangle” (1986/2014) · Brahmagupta, <em>Brāhmasphuṭasiddhānta</em> (628&nbsp;CE) · Cayley–Menger determinants.</p>
+</footer>
+
+</div><!-- /wrap -->
+
+<script>
+/* ============================================================
+   Octave-ish syntax highlighter (safe, text-node based)
+   ============================================================ */
+(function highlightAll(){
+  const KW = /\b(function|endfunction|end|if|elseif|else|endif|for|endfor|while|endwhile|return|switch|case|otherwise|do|until|break|continue)\b/g;
+  const BI = /\b(sqrt|sort|abs|sum|rows|columns|linspace|meshgrid|printf|fprintf|disp|error|warning|zeros|ones|real|imag|max|min|contourf|colorbar|axis|xlabel|ylabel|title|print|reshape|numel)\b/g;
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  document.querySelectorAll('code.oct').forEach(code=>{
+    const raw = code.textContent;
+    code.dataset.raw = raw;
+    const html = raw.split('\n').map(line=>{
+      // separate a trailing comment (% not inside a quote)
+      let inStr=false, ch='', idx=-1;
+      for(let i=0;i<line.length;i++){
+        const c=line[i];
+        if(inStr){ if(c===ch) inStr=false; }
+        else if(c==='"'||c==="'"){ inStr=true; ch=c; }
+        else if(c==='%'){ idx=i; break; }
+      }
+      let codePart=line, comment='';
+      if(idx>=0){ codePart=line.slice(0,idx); comment=line.slice(idx); }
+      let out=esc(codePart);
+      out=out.replace(/("[^"]*"|'[^']*')/g,'<span class="s">$1</span>');
+      out=out.replace(KW,'<span class="k">$1</span>');
+      out=out.replace(BI,'<span class="b">$1</span>');
+      out=out.replace(/\b(\d+\.?\d*([eE][-+]?\d+)?)\b/g,'<span class="n">$1</span>');
+      if(comment) out+='<span class="c">'+esc(comment)+'</span>';
+      return out;
+    }).join('\n');
+    code.innerHTML=html;
+  });
+})();
+
+/* ============================================================
+   Copy buttons on every code block
+   ============================================================ */
+document.querySelectorAll('.codewrap').forEach(wrap=>{
+  const code = wrap.querySelector('code.oct');
+  if(!code) return;
+  const btn=document.createElement('button');
+  btn.className='copybtn'; btn.textContent='copy';
+  btn.addEventListener('click',()=>{
+    navigator.clipboard.writeText(code.dataset.raw||code.textContent).then(()=>{
+      btn.textContent='copied ✓';
+      setTimeout(()=>btn.textContent='copy',1400);
+    });
+  });
+  wrap.appendChild(btn);
+});
+
+/* ============================================================
+   Shared maths helpers
+   ============================================================ */
+const heron = (a,b,c)=>{ const s=(a+b+c)/2; return Math.sqrt(s*(s-a)*(s-b)*(s-c)); };
+const heronKahan = (a,b,c)=>{
+  const s=[a,b,c].sort((x,y)=>y-x); a=s[0]; b=s[1]; c=s[2];
+  return 0.25*Math.sqrt((a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c)));
+};
+const fmt = (x,p=4)=> Number.isFinite(x)? (+x.toPrecision(p)).toString() : '—';
+
+/* ============================================================
+   Widget 1 — step-by-step calculator
+   ============================================================ */
+(function(){
+  const ca=document.getElementById('ca'), cb=document.getElementById('cb'), cc=document.getElementById('cc');
+  const steps=document.getElementById('calcSteps'), areaEl=document.getElementById('calcArea');
+  const svg=document.getElementById('calcSvg');
+
+  function row(k,v){return `<div class="row"><span>${k}</span><span class="v">${v}</span></div>`;}
+
+  function valid(a,b,c){
+    return a>0&&b>0&&c>0 && a+b>c && a+c>b && b+c>a;
+  }
+
+  function draw(a,b,c){
+    // Place B=(0,0), C=(a,0); solve for A.
+    const xa=(c*c - b*b + a*a)/(2*a);
+    const ya=Math.sqrt(Math.max(0, c*c - xa*xa));
+    const P=[[0,0],[a,0],[xa,ya]];
+    // fit into 320x260 with padding
+    const pad=34, W=320, H=260;
+    const xs=P.map(p=>p[0]), ys=P.map(p=>p[1]);
+    const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+    const sx=(W-2*pad)/Math.max(1e-9,maxX-minX), sy=(H-2*pad)/Math.max(1e-9,maxY-minY);
+    const k=Math.min(sx,sy);
+    const tx=x=>pad+(x-minX)*k;
+    const ty=y=>H-pad-(y-minY)*k;   // flip y
+    const pts=P.map(p=>`${tx(p[0]).toFixed(1)},${ty(p[1]).toFixed(1)}`).join(' ');
+    svg.innerHTML=`
+      <polygon points="${pts}" fill="rgba(47,111,99,0.14)" stroke="#23241d" stroke-width="2"/>
+      ${P.map(p=>`<circle cx="${tx(p[0]).toFixed(1)}" cy="${ty(p[1]).toFixed(1)}" r="3.4" fill="#b1502a"/>`).join('')}
+      <text x="${((tx(P[0][0])+tx(P[1][0]))/2).toFixed(1)}" y="${(ty(0)+16).toFixed(1)}" font-family="Cormorant Garamond" font-style="italic" font-size="16" fill="#23241d" text-anchor="middle">a=${fmt(a)}</text>`;
+  }
+
+  function update(){
+    const a=parseFloat(ca.value), b=parseFloat(cb.value), c=parseFloat(cc.value);
+    if(!(a>0&&b>0&&c>0)){ steps.innerHTML='<span class="err">Enter three positive side lengths.</span>'; areaEl.textContent='—'; svg.innerHTML=''; return; }
+    if(!valid(a,b,c)){
+      const m=Math.max(a,b,c), rest=a+b+c-m;
+      steps.innerHTML=`<span class="err">Triangle inequality fails: the longest side (${fmt(m)}) is not shorter than the sum of the other two (${fmt(rest)}). No such triangle exists.</span>`;
+      areaEl.textContent='—'; svg.innerHTML=''; return;
+    }
+    const s=(a+b+c)/2;
+    const f1=s-a, f2=s-b, f3=s-c, prod=s*f1*f2*f3, A=Math.sqrt(prod);
+    steps.innerHTML =
+      row('s = (a+b+c)/2', fmt(s,6)) +
+      row('s − a', fmt(f1,6)) +
+      row('s − b', fmt(f2,6)) +
+      row('s − c', fmt(f3,6)) +
+      row('s·(s−a)·(s−b)·(s−c)', fmt(prod,6)) +
+      row('√ of that', fmt(A,6));
+    areaEl.innerHTML = `${fmt(A,6)} <small>square units</small>`;
+    draw(a,b,c);
+  }
+
+  [ca,cb,cc].forEach(el=>el.addEventListener('input',update));
+  document.querySelectorAll('#calcPresets button').forEach(btn=>{
+    btn.addEventListener('click',()=>{ ca.value=btn.dataset.a; cb.value=btn.dataset.b; cc.value=btn.dataset.c; update(); });
+  });
+  update();
+})();
+
+/* ============================================================
+   Widget 2 — draggable triangle (Heron vs shoelace + incircle)
+   ============================================================ */
+(function(){
+  const svg=document.getElementById('dragSvg');
+  const NS='http://www.w3.org/2000/svg';
+  const SCALE=40; // px per unit
+  let pts=[{x:120,y:330},{x:520,y:340},{x:330,y:90}];
+  let dragIdx=-1;
+
+  const dist=(p,q)=>Math.hypot(p.x-q.x,p.y-q.y);
+
+  function build(){
+    svg.innerHTML='';
+    // polygon
+    const poly=document.createElementNS(NS,'polygon');
+    poly.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));
+    poly.setAttribute('fill','rgba(177,80,42,0.10)');
+    poly.setAttribute('stroke','#23241d'); poly.setAttribute('stroke-width','2.5');
+    svg.appendChild(poly);
+
+    // side labels (in units)
+    const lp=[ [pts[0],pts[1]], [pts[1],pts[2]], [pts[2],pts[0]] ];
+    const names=['c','a','b']; // c=AB, a=BC, b=CA (matching vertices A,B,C order pts[0,1,2])
+    lp.forEach((seg,i)=>{
+      const mx=(seg[0].x+seg[1].x)/2, my=(seg[0].y+seg[1].y)/2;
+      const len=dist(seg[0],seg[1])/SCALE;
+      const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',mx); t.setAttribute('y',my-6);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('font-family','JetBrains Mono');
+      t.setAttribute('font-size','12'); t.setAttribute('fill','#8f3f20');
+      t.textContent=`${names[i]} = ${len.toFixed(2)}`;
+      svg.appendChild(t);
+    });
+
+    // incircle (Proof II): incenter weighted by opposite side lengths
+    const A=pts[0],B=pts[1],C=pts[2];
+    const la=dist(B,C), lb=dist(C,A), lc=dist(A,B), per=la+lb+lc;
+    if(per>0){
+      const ix=(la*A.x+lb*B.x+lc*C.x)/per, iy=(la*A.y+lb*B.y+lc*C.y)/per;
+      // area in px via shoelace, then r = area/(per/2)
+      const areaPx=0.5*Math.abs((B.x-A.x)*(C.y-A.y)-(C.x-A.x)*(B.y-A.y));
+      const r=areaPx/(per/2);
+      const circ=document.createElementNS(NS,'circle');
+      circ.setAttribute('cx',ix); circ.setAttribute('cy',iy); circ.setAttribute('r',r);
+      circ.setAttribute('fill','none'); circ.setAttribute('stroke','#2f6f63');
+      circ.setAttribute('stroke-width','1.4'); circ.setAttribute('stroke-dasharray','4 4');
+      svg.appendChild(circ);
+      const dot=document.createElementNS(NS,'circle');
+      dot.setAttribute('cx',ix); dot.setAttribute('cy',iy); dot.setAttribute('r','2.2');
+      dot.setAttribute('fill','#2f6f63'); svg.appendChild(dot);
+    }
+
+    // vertices (draggable handles)
+    pts.forEach((p,i)=>{
+      const h=document.createElementNS(NS,'circle');
+      h.setAttribute('cx',p.x); h.setAttribute('cy',p.y); h.setAttribute('r','9');
+      h.setAttribute('fill','#23241d'); h.setAttribute('stroke','#f3ecdd'); h.setAttribute('stroke-width','2');
+      h.style.cursor='grab';
+      h.addEventListener('pointerdown',ev=>{ dragIdx=i; h.setPointerCapture(ev.pointerId); h.style.cursor='grabbing'; });
+      svg.appendChild(h);
+    });
+    info();
+  }
+
+  function info(){
+    const A=pts[0],B=pts[1],C=pts[2];
+    const a=dist(B,C)/SCALE, b=dist(C,A)/SCALE, c=dist(A,B)/SCALE;
+    const s=(a+b+c)/2;
+    const hA=heron(a,b,c);
+    // shoelace in units
+    const shoe=0.5*Math.abs(((B.x-A.x)*(C.y-A.y)-(C.x-A.x)*(B.y-A.y)))/(SCALE*SCALE);
+    document.getElementById('dHeron').textContent=hA.toFixed(5)+' u²';
+    document.getElementById('dShoe').textContent=shoe.toFixed(5)+' u²';
+    document.getElementById('dragInfo').innerHTML=
+      `<div class="row"><span>sides (a, b, c)</span><span class="v">${a.toFixed(2)}, ${b.toFixed(2)}, ${c.toFixed(2)}</span></div>`+
+      `<div class="row"><span>semiperimeter s</span><span class="v">${s.toFixed(3)}</span></div>`+
+      `<div class="row"><span>inradius r = A / s</span><span class="v">${(hA/s).toFixed(3)}</span></div>`;
+  }
+
+  function toLocal(ev){
+    const r=svg.getBoundingClientRect();
+    const vb=svg.viewBox.baseVal;
+    return {
+      x:(ev.clientX-r.left)/r.width*vb.width,
+      y:(ev.clientY-r.top)/r.height*vb.height
+    };
+  }
+  svg.addEventListener('pointermove',ev=>{
+    if(dragIdx<0) return;
+    const p=toLocal(ev);
+    pts[dragIdx]={ x:Math.max(14,Math.min(626,p.x)), y:Math.max(14,Math.min(406,p.y)) };
+    build();
+  });
+  svg.addEventListener('pointerup',()=>{ dragIdx=-1; });
+  svg.addEventListener('pointerleave',()=>{ dragIdx=-1; });
+
+  build();
+})();
+
+/* ============================================================
+   Widget 3 — stability explorer
+   ============================================================ */
+(function(){
+  const ka=document.getElementById('ka'), kb=document.getElementById('kb'), kc=document.getElementById('kc');
+  const nEl=document.getElementById('kNaive'), kEl=document.getElementById('kKahan'), info=document.getElementById('kInfo');
+  function update(){
+    const a=parseFloat(ka.value), b=parseFloat(kb.value), c=parseFloat(kc.value);
+    if(!(a>0&&b>0&&c>0)){ nEl.textContent='—'; kEl.textContent='—'; info.innerHTML='<span class="err">Enter three positive sides.</span>'; return; }
+    const naive=heron(a,b,c), kah=heronKahan(a,b,c);
+    nEl.textContent=Number.isFinite(naive)?naive.toPrecision(12):'NaN (negative under root)';
+    kEl.textContent=Number.isFinite(kah)?kah.toPrecision(12):'NaN';
+    let diff='';
+    if(Number.isFinite(naive)&&Number.isFinite(kah)&&kah!==0){
+      const rel=Math.abs(naive-kah)/Math.abs(kah)*100;
+      diff=`<div class="row"><span>relative disagreement</span><span class="v">${rel<1e-9?'~0':rel.toPrecision(3)+' %'}</span></div>`;
+    }
+    info.innerHTML=diff+`<p class="hint" style="margin:.4rem 0 0">Both columns use the browser's IEEE-754 doubles — the same arithmetic Octave uses. The wider the spread in side lengths, the more the naive value drifts.</p>`;
+  }
+  [ka,kb,kc].forEach(el=>el.addEventListener('input',update));
+  document.querySelectorAll('#kPresets button').forEach(btn=>{
+    btn.addEventListener('click',()=>{ ka.value=btn.dataset.a; kb.value=btn.dataset.b; kc.value=btn.dataset.c; update(); });
+  });
+  update();
+})();
+</script>
+</body>
+</html>

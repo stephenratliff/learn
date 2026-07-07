@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathematics of Cryptography — Complete Guide</title>
+<style>
+:root {
+  --bg:        #07090f;
+  --bg2:       #0d1220;
+  --bg3:       #131929;
+  --bg4:       #1a2235;
+  --border:    #1f2d45;
+  --gold:      #c9a84c;
+  --gold-dim:  #8a6e2f;
+  --gold-glow: rgba(201,168,76,0.12);
+  --teal:      #3ecfb2;
+  --teal-dim:  #1f7d6b;
+  --coral:     #e05d5d;
+  --blue:      #5b9cf6;
+  --purple:    #9f7fe8;
+  --green:     #4ec776;
+  --text:      #dde2ec;
+  --muted:     #7a8599;
+  --mono:      'Courier New', Courier, monospace;
+  --serif:     Georgia, 'Times New Roman', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* ── HEADER ─────────────────────────────── */
+header {
+  position: relative;
+  padding: 5rem 2rem 3.5rem;
+  text-align: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+header::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,.10) 0%, transparent 70%),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,.015) 40px),
+    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(255,255,255,.015) 40px);
+}
+.hdr-badge {
+  display:inline-block;
+  font-family: var(--mono);
+  font-size:.72rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color: var(--gold);
+  border:1px solid var(--gold-dim);
+  padding:.3rem 1.1rem;
+  border-radius:3px;
+  margin-bottom:1.4rem;
+  position:relative;
+}
+header h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: #f0ece0;
+  position: relative;
+  line-height: 1.2;
+}
+header h1 span { color: var(--gold); }
+header p.sub {
+  margin-top: .8rem;
+  font-size: 1.05rem;
+  color: var(--muted);
+  position: relative;
+  font-style: italic;
+}
+
+/* ── NAV ─────────────────────────────────── */
+nav {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: .6rem 1.5rem;
+  position: sticky; top: 0; z-index: 200;
+  display: flex; flex-wrap: wrap; gap: .25rem .1rem;
+  align-items: center;
+}
+nav a {
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--muted);
+  text-decoration: none;
+  padding: .3rem .65rem;
+  border-radius: 4px;
+  transition: color .2s, background .2s;
+  white-space: nowrap;
+  letter-spacing: .02em;
+}
+nav a:hover { color: var(--gold); background: var(--gold-glow); }
+nav .sep { color: var(--border); margin: 0 .2rem; user-select: none; }
+
+/* ── LAYOUT ──────────────────────────────── */
+main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+section {
+  margin-bottom: 4.5rem;
+  padding-top: 1rem;
+}
+.sec-label {
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: .5rem;
+}
+section > h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #f0ece0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: .6rem;
+  margin-bottom: 1.5rem;
+}
+h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin: 2rem 0 .75rem;
+}
+h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--teal);
+  margin: 1.4rem 0 .5rem;
+}
+p { color: #c8d0de; margin-bottom: .9rem; }
+p strong { color: #e8ecf5; font-weight: 700; }
+p em { color: var(--gold); font-style: italic; }
+
+/* ── MATH BLOCKS ─────────────────────────── */
+.math-block {
+  background: var(--bg2);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding: 1.1rem 1.5rem;
+  margin: 1.2rem 0;
+  font-family: var(--mono);
+  font-size: .95rem;
+  color: #f0ece0;
+  line-height: 2;
+  overflow-x: auto;
+}
+.math-block .lbl {
+  font-size: .72rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  display: block;
+  margin-bottom: .4rem;
+}
+.math-block .eq { display: block; padding: .2rem 0; }
+.math-block .eq .var { color: var(--blue); }
+.math-block .eq .op  { color: var(--gold); }
+.math-block .eq .num { color: var(--teal); }
+.math-block .eq .fn  { color: var(--purple); }
+.math-block .eq .com { color: var(--muted); font-style:italic; }
+.math-block .eq .hi  { color: var(--coral); }
+
+/* ── THEOREM / DEF BOXES ─────────────────── */
+.box {
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.2rem 0;
+  border: 1px solid;
+}
+.box-title {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-bottom: .45rem;
+  font-weight: 700;
+}
+.box p { margin: 0; font-size: .93rem; }
+.theorem { background: rgba(159,127,232,.07); border-color: rgba(159,127,232,.35); }
+.theorem .box-title { color: var(--purple); }
+.definition { background: rgba(62,207,178,.06); border-color: rgba(62,207,178,.3); }
+.definition .box-title { color: var(--teal); }
+.warning { background: rgba(224,93,93,.07); border-color: rgba(224,93,93,.3); }
+.warning .box-title { color: var(--coral); }
+.proof { background: rgba(201,168,76,.06); border-color: rgba(201,168,76,.25); }
+.proof .box-title { color: var(--gold); }
+
+/* ── CODE BLOCKS (Octave) ─────────────────── */
+.code-wrap {
+  margin: 1.4rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.code-header {
+  background: var(--bg3);
+  padding: .55rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.code-lang {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.code-desc {
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--muted);
+}
+.copy-btn {
+  font-family: var(--mono);
+  font-size: .7rem;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: .2rem .65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .08em;
+}
+.copy-btn:hover { border-color: var(--green); color: var(--green); }
+pre {
+  background: #080c14;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: .83rem;
+  line-height: 1.7;
+  margin: 0;
+}
+/* syntax tokens */
+.kw  { color: #c792ea; }
+.fn  { color: #82aaff; }
+.str { color: #c3e88d; }
+.cm  { color: #546e7a; font-style: italic; }
+.num { color: #f78c6c; }
+.op  { color: var(--gold); }
+.var-g { color: #89ddff; }
+
+/* ── GRID / TABLE ────────────────────────── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+}
+.card h4 { margin-top: 0; }
+.card p { font-size: .88rem; margin: 0; }
+
+table { width: 100%; border-collapse: collapse; margin: 1.1rem 0; font-size: .88rem; }
+th {
+  background: var(--bg3);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .6rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+td { padding: .55rem 1rem; border-bottom: 1px solid var(--bg3); color: #bcc5d8; }
+tr:hover td { background: var(--bg2); }
+code {
+  font-family: var(--mono);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .1rem .4rem;
+  font-size: .83rem;
+  color: var(--teal);
+}
+
+/* ── STEP FLOW ───────────────────────────── */
+.steps { list-style: none; counter-reset: step-ctr; }
+.steps li {
+  counter-increment: step-ctr;
+  padding: .7rem .7rem .7rem 2.8rem;
+  position: relative;
+  border-left: 1px solid var(--border);
+  margin-left: 1rem;
+  margin-bottom: .3rem;
+  font-size: .93rem;
+  color: #c8d0de;
+}
+.steps li::before {
+  content: counter(step-ctr);
+  position: absolute; left: -1rem; top: .6rem;
+  width: 2rem; height: 2rem;
+  background: var(--bg3);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+/* ── INLINE MATH ─────────────────────────── */
+.m { font-family: var(--mono); color: #e8d5a0; font-style: normal; }
+
+/* ── ALGO TABLE ──────────────────────────── */
+.algo-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  font-family: var(--mono);
+  font-size: .85rem;
+  color: #c8d0de;
+  line-height: 1.9;
+}
+.algo-box .algo-title {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: .8rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: .45rem;
+  margin-bottom: .7rem;
+}
+.algo-box .ind1 { padding-left: 1.5rem; }
+.algo-box .ind2 { padding-left: 3rem; }
+.algo-box .ind3 { padding-left: 4.5rem; }
+.algo-box .cmt  { color: var(--muted); font-style: italic; }
+.algo-box .key  { color: var(--purple); }
+.algo-box .var2 { color: var(--blue); }
+.algo-box .ret  { color: var(--green); }
+
+/* ── MODULAR ARITHMETIC DEMO ─────────────── */
+.mod-demo {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: .75rem 0;
+  font-family: var(--mono);
+  font-size: .9rem;
+}
+.mod-cell {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: .3rem .7rem;
+  border-radius: 5px;
+  color: #e0e7f0;
+}
+.mod-cell.hi { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+.mod-cell.tl { border-color: var(--teal); color: var(--teal); }
+.mod-op { color: var(--muted); }
+
+@media (max-width: 680px) {
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-badge">Complete Reference</div>
+  <h1>Mathematics of <span>Cryptography</span></h1>
+  <p class="sub">Number theory · Abstract algebra · Elliptic curves · Finite fields · With GNU Octave examples</p>
+</header>
+
+<nav>
+  <a href="#numtheory">Number Theory</a><span class="sep">·</span>
+  <a href="#euclid">Euclidean Alg.</a><span class="sep">·</span>
+  <a href="#modular">Modular Arith.</a><span class="sep">·</span>
+  <a href="#euler">Euler / Fermat</a><span class="sep">·</span>
+  <a href="#crt">CRT</a><span class="sep">·</span>
+  <a href="#algebra">Groups &amp; Fields</a><span class="sep">·</span>
+  <a href="#gf2">GF(2ⁿ) / AES</a><span class="sep">·</span>
+  <a href="#rsa">RSA Math</a><span class="sep">·</span>
+  <a href="#dh">Diffie-Hellman</a><span class="sep">·</span>
+  <a href="#ecc">Elliptic Curves</a><span class="sep">·</span>
+  <a href="#primality">Primality Tests</a><span class="sep">·</span>
+  <a href="#hash">Hash Math</a><span class="sep">·</span>
+  <a href="#pqc">Post-Quantum</a>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     §1  NUMBER THEORY FUNDAMENTALS
+     ══════════════════════════════════════════ -->
+<section id="numtheory">
+  <div class="sec-label">§ 1</div>
+  <h2>Foundations of Number Theory</h2>
+
+  <p>Nearly all of modern cryptography rests on a handful of deep results from number theory. Understanding <strong>divisibility</strong>, <strong>prime numbers</strong>, and their relationships is the necessary starting point.</p>
+
+  <h3>Divisibility and the Division Algorithm</h3>
+  <p>For integers <span class="m">a</span> and <span class="m">b</span> with <span class="m">b ≠ 0</span>, there exist unique integers <span class="m">q</span> (quotient) and <span class="m">r</span> (remainder) such that:</p>
+
+  <div class="math-block">
+    <span class="lbl">Division Algorithm</span>
+    <span class="eq"><span class="var">a</span> <span class="op">=</span> <span class="var">q</span> <span class="op">·</span> <span class="var">b</span> <span class="op">+</span> <span class="var">r</span>,&nbsp;&nbsp;&nbsp;0 <span class="op">≤</span> <span class="var">r</span> <span class="op">&lt;</span> <span class="var">b</span></span>
+    <span class="eq"><span class="com">// We say b | a  (b divides a)  iff  r = 0</span></span>
+  </div>
+
+  <h3>Prime Numbers</h3>
+  <div class="definition">
+    <div class="box-title">Definition — Prime</div>
+    <p>An integer <span class="m">p > 1</span> is <em>prime</em> if its only positive divisors are <span class="m">1</span> and <span class="m">p</span> itself. Every integer <span class="m">n > 1</span> factors uniquely into primes (Fundamental Theorem of Arithmetic):</p>
+  </div>
+
+  <div class="math-block">
+    <span class="lbl">Fundamental Theorem of Arithmetic</span>
+    <span class="eq"><span class="var">n</span> <span class="op">=</span> <span class="num">p₁</span><sup>e₁</sup> <span class="op">·</span> <span class="num">p₂</span><sup>e₂</sup> <span class="op">·</span> <span class="op">⋯</span> <span class="op">·</span> <span class="num">pₖ</span><sup>eₖ</sup>&nbsp;&nbsp;&nbsp;<span class="com">// unique factorization</span></span>
+    <span class="eq"><span class="com">// Example: 360 = 2³ · 3² · 5¹</span></span>
+  </div>
+
+  <p>The difficulty of <strong>factoring large integers</strong> back into their prime components is the security foundation of RSA. The best known classical algorithm (General Number Field Sieve) runs in sub-exponential time — still completely infeasible for 2048-bit numbers.</p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Prime factorization &amp; prime generation</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Prime Factorization and Sieve of Eratosthenes</span>
+<span class="cm">%% Run in Octave: octave --no-gui primes_demo.m</span>
+
+<span class="cm">% --- Manual trial-division factorization ---</span>
+<span class="kw">function</span> <span class="var-g">factors</span> <span class="op">=</span> <span class="fn">prime_factors</span>(<span class="var-g">n</span>)
+  <span class="var-g">factors</span> <span class="op">=</span> [];
+  <span class="var-g">d</span> <span class="op">=</span> <span class="num">2</span>;
+  <span class="kw">while</span> <span class="var-g">d</span><span class="op">^</span><span class="num">2</span> <span class="op">&lt;=</span> <span class="var-g">n</span>
+    <span class="kw">while</span> <span class="fn">mod</span>(<span class="var-g">n</span>, <span class="var-g">d</span>) <span class="op">==</span> <span class="num">0</span>
+      <span class="var-g">factors</span> <span class="op">=</span> [<span class="var-g">factors</span>, <span class="var-g">d</span>];
+      <span class="var-g">n</span> <span class="op">=</span> <span class="var-g">n</span> <span class="op">/</span> <span class="var-g">d</span>;
+    <span class="kw">end</span>
+    <span class="var-g">d</span> <span class="op">=</span> <span class="var-g">d</span> <span class="op">+</span> <span class="num">1</span>;
+  <span class="kw">end</span>
+  <span class="kw">if</span> <span class="var-g">n</span> <span class="op">&gt;</span> <span class="num">1</span>
+    <span class="var-g">factors</span> <span class="op">=</span> [<span class="var-g">factors</span>, <span class="var-g">n</span>];
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% --- Sieve of Eratosthenes ---</span>
+<span class="kw">function</span> <span class="var-g">primes_list</span> <span class="op">=</span> <span class="fn">sieve</span>(<span class="var-g">limit</span>)
+  <span class="var-g">is_prime</span> <span class="op">=</span> <span class="fn">true</span>(<span class="num">1</span>, <span class="var-g">limit</span>);
+  <span class="var-g">is_prime</span>(<span class="num">1</span>) <span class="op">=</span> <span class="kw">false</span>;
+  <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">2</span> <span class="op">:</span> <span class="fn">floor</span>(<span class="fn">sqrt</span>(<span class="var-g">limit</span>))
+    <span class="kw">if</span> <span class="var-g">is_prime</span>(<span class="var-g">i</span>)
+      <span class="var-g">is_prime</span>(<span class="var-g">i</span><span class="op">^</span><span class="num">2</span> <span class="op">:</span> <span class="var-g">i</span> <span class="op">:</span> <span class="kw">end</span>) <span class="op">=</span> <span class="kw">false</span>;
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+  <span class="var-g">primes_list</span> <span class="op">=</span> <span class="fn">find</span>(<span class="var-g">is_prime</span>);
+<span class="kw">end</span>
+
+<span class="cm">% --- Demo ---</span>
+<span class="fn">disp</span>(<span class="str">'Factors of 360:'</span>); <span class="fn">disp</span>(<span class="fn">prime_factors</span>(<span class="num">360</span>));
+<span class="fn">disp</span>(<span class="str">'Primes up to 50:'</span>); <span class="fn">disp</span>(<span class="fn">sieve</span>(<span class="num">50</span>));
+<span class="fn">printf</span>(<span class="str">'Is 104729 prime? %d\n'</span>, <span class="fn">isprime</span>(<span class="num">104729</span>));
+</pre>
+  </div>
+
+  <div class="box definition">
+    <div class="box-title">Prime Number Theorem</div>
+    <p>The number of primes ≤ <span class="m">N</span> is approximately <span class="m">π(N) ≈ N / ln(N)</span>. For a 512-bit number <span class="m">N ≈ 2⁵¹²</span>, roughly 1 in every 354 numbers is prime — making it efficient to find large primes by random sampling and testing.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §2  EUCLIDEAN ALGORITHM
+     ══════════════════════════════════════════ -->
+<section id="euclid">
+  <div class="sec-label">§ 2</div>
+  <h2>Euclidean &amp; Extended Euclidean Algorithm</h2>
+
+  <p>The <strong>Greatest Common Divisor (GCD)</strong> is central to almost every cryptographic key generation step. It determines when numbers are coprime — a requirement for modular inverses to exist.</p>
+
+  <h3>Euclidean Algorithm</h3>
+  <div class="math-block">
+    <span class="lbl">GCD via Repeated Division</span>
+    <span class="eq"><span class="fn">gcd</span>(<span class="var">a</span>, <span class="var">b</span>) <span class="op">=</span> <span class="fn">gcd</span>(<span class="var">b</span>, <span class="var">a</span> <span class="kw">mod</span> <span class="var">b</span>)&nbsp;&nbsp;&nbsp;<span class="com">// recursive definition</span></span>
+    <span class="eq"><span class="fn">gcd</span>(<span class="var">a</span>, <span class="num">0</span>) <span class="op">=</span> <span class="var">a</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// base case</span></span>
+  </div>
+
+  <p><strong>Traced example</strong> — gcd(252, 105):</p>
+  <div class="mod-demo">
+    <div class="mod-cell">252 = 2·105 + 42</div>
+    <div class="mod-op">→</div>
+    <div class="mod-cell">105 = 2·42 + 21</div>
+    <div class="mod-op">→</div>
+    <div class="mod-cell">42 = 2·21 + 0</div>
+    <div class="mod-op">→</div>
+    <div class="mod-cell hi">gcd = 21</div>
+  </div>
+
+  <h3>Extended Euclidean Algorithm (EEA)</h3>
+  <p>The EEA not only computes <span class="m">gcd(a, b)</span> but also finds integers <span class="m">x, y</span> (Bézout coefficients) satisfying:</p>
+
+  <div class="math-block">
+    <span class="lbl">Bézout's Identity</span>
+    <span class="eq"><span class="var">a</span><span class="op">·</span><span class="var">x</span> <span class="op">+</span> <span class="var">b</span><span class="op">·</span><span class="var">y</span> <span class="op">=</span> <span class="fn">gcd</span>(<span class="var">a</span>, <span class="var">b</span>)</span>
+    <span class="eq"><span class="com">// If gcd(a, n) = 1, then  a·x ≡ 1 (mod n)  →  x is the modular inverse of a</span></span>
+    <span class="eq"><span class="com">// This is how RSA's private key 'd' is computed from 'e' and φ(n)</span></span>
+  </div>
+
+  <div class="algo-box">
+    <div class="algo-title">Algorithm — Extended Euclidean</div>
+    <span class="key">Input:</span> <span class="var2">a</span>, <span class="var2">n</span><br>
+    <span class="key">Output:</span> (<span class="var2">g</span>, <span class="var2">x</span>, <span class="var2">y</span>) where <span class="var2">a·x + n·y = g</span><br><br>
+    <span class="ind1"><span class="var2">old_r, r</span> ← <span class="var2">a</span>, <span class="var2">n</span></span><br>
+    <span class="ind1"><span class="var2">old_s, s</span> ← <span class="num">1</span>, <span class="num">0</span></span><br>
+    <span class="ind1"><span class="key">while</span> <span class="var2">r</span> ≠ 0:</span><br>
+    <span class="ind2"><span class="var2">q</span> ← ⌊<span class="var2">old_r / r</span>⌋</span><br>
+    <span class="ind2">(<span class="var2">old_r</span>, <span class="var2">r</span>) ← (<span class="var2">r</span>, <span class="var2">old_r − q·r</span>)</span><br>
+    <span class="ind2">(<span class="var2">old_s</span>, <span class="var2">s</span>) ← (<span class="var2">s</span>, <span class="var2">old_s − q·s</span>)</span><br>
+    <span class="ind1"><span class="key">return</span> (<span class="var2">old_r</span>, <span class="var2">old_s</span>, (<span class="var2">old_r − old_s·a</span>)/<span class="var2">n</span>)
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">GCD, Extended Euclidean, Modular Inverse</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Extended Euclidean Algorithm + Modular Inverse</span>
+
+<span class="kw">function</span> [<span class="var-g">g</span>, <span class="var-g">x</span>, <span class="var-g">y</span>] <span class="op">=</span> <span class="fn">extended_gcd</span>(<span class="var-g">a</span>, <span class="var-g">b</span>)
+  <span class="kw">if</span> <span class="var-g">b</span> <span class="op">==</span> <span class="num">0</span>
+    [<span class="var-g">g</span>, <span class="var-g">x</span>, <span class="var-g">y</span>] <span class="op">=</span> deal(<span class="var-g">a</span>, <span class="num">1</span>, <span class="num">0</span>);
+  <span class="kw">else</span>
+    [<span class="var-g">g</span>, <span class="var-g">x1</span>, <span class="var-g">y1</span>] <span class="op">=</span> <span class="fn">extended_gcd</span>(<span class="var-g">b</span>, <span class="fn">mod</span>(<span class="var-g">a</span>, <span class="var-g">b</span>));
+    [<span class="var-g">x</span>, <span class="var-g">y</span>] <span class="op">=</span> deal(<span class="var-g">y1</span>, <span class="var-g">x1</span> <span class="op">-</span> <span class="fn">floor</span>(<span class="var-g">a</span><span class="op">/</span><span class="var-g">b</span>) <span class="op">*</span> <span class="var-g">y1</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">inv</span> <span class="op">=</span> <span class="fn">mod_inverse</span>(<span class="var-g">a</span>, <span class="var-g">n</span>)
+  <span class="cm">% Returns x such that a*x ≡ 1 (mod n), or errors if none exists</span>
+  [<span class="var-g">g</span>, <span class="var-g">x</span>, <span class="op">~</span>] <span class="op">=</span> <span class="fn">extended_gcd</span>(<span class="fn">mod</span>(<span class="var-g">a</span>, <span class="var-g">n</span>), <span class="var-g">n</span>);
+  <span class="kw">if</span> <span class="var-g">g</span> <span class="op">~=</span> <span class="num">1</span>
+    <span class="fn">error</span>(<span class="str">'Inverse does not exist: gcd(%d,%d) = %d'</span>, <span class="var-g">a</span>, <span class="var-g">n</span>, <span class="var-g">g</span>);
+  <span class="kw">end</span>
+  <span class="var-g">inv</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">x</span>, <span class="var-g">n</span>);
+<span class="kw">end</span>
+
+<span class="cm">% --- Demo ---</span>
+[<span class="var-g">g</span>, <span class="var-g">x</span>, <span class="var-g">y</span>] <span class="op">=</span> <span class="fn">extended_gcd</span>(<span class="num">252</span>, <span class="num">198</span>);
+<span class="fn">printf</span>(<span class="str">'gcd(252,198) = %d;  Bezout: 252*(%d) + 198*(%d) = %d\n'</span>, <span class="var-g">g</span>, <span class="var-g">x</span>, <span class="var-g">y</span>, <span class="num">252</span><span class="op">*</span><span class="var-g">x</span><span class="op">+</span><span class="num">198</span><span class="op">*</span><span class="var-g">y</span>);
+
+<span class="cm">% RSA use-case: find d = e^{-1} mod φ(n)</span>
+<span class="var-g">e</span> <span class="op">=</span> <span class="num">65537</span>; <span class="var-g">phi_n</span> <span class="op">=</span> <span class="num">3120</span>;    <span class="cm">% toy example: n=p*q=53*61, φ=52*60</span>
+<span class="var-g">d</span> <span class="op">=</span> <span class="fn">mod_inverse</span>(<span class="var-g">e</span>, <span class="var-g">phi_n</span>);
+<span class="fn">printf</span>(<span class="str">'e=%d, φ(n)=%d → d=%d\n'</span>, <span class="var-g">e</span>, <span class="var-g">phi_n</span>, <span class="var-g">d</span>);
+<span class="fn">printf</span>(<span class="str">'Verify e*d mod φ(n) = %d\n'</span>, <span class="fn">mod</span>(<span class="var-g">e</span><span class="op">*</span><span class="var-g">d</span>, <span class="var-g">phi_n</span>));
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §3  MODULAR ARITHMETIC
+     ══════════════════════════════════════════ -->
+<section id="modular">
+  <div class="sec-label">§ 3</div>
+  <h2>Modular Arithmetic</h2>
+
+  <p>Modular arithmetic is the language all discrete cryptography is written in. Operations "wrap around" at a modulus <span class="m">n</span>, creating a finite arithmetic universe.</p>
+
+  <div class="math-block">
+    <span class="lbl">Congruence Definition</span>
+    <span class="eq"><span class="var">a</span> <span class="op">≡</span> <span class="var">b</span> (mod <span class="var">n</span>)&nbsp;&nbsp;<span class="op">⟺</span>&nbsp;&nbsp;<span class="var">n</span> <span class="op">|</span> (<span class="var">a</span> <span class="op">−</span> <span class="var">b</span>)</span>
+    <span class="eq"><span class="com">// Example: 17 ≡ 5 (mod 12)  because 12 | (17-5)</span></span>
+  </div>
+
+  <h3>Arithmetic rules</h3>
+  <div class="math-block">
+    <span class="lbl">Modular Operations</span>
+    <span class="eq">(<span class="var">a</span> <span class="op">+</span> <span class="var">b</span>) mod <span class="var">n</span>  <span class="op">=</span>  ((<span class="var">a</span> mod <span class="var">n</span>) <span class="op">+</span> (<span class="var">b</span> mod <span class="var">n</span>)) mod <span class="var">n</span></span>
+    <span class="eq">(<span class="var">a</span> <span class="op">·</span> <span class="var">b</span>) mod <span class="var">n</span>  <span class="op">=</span>  ((<span class="var">a</span> mod <span class="var">n</span>) <span class="op">·</span> (<span class="var">b</span> mod <span class="var">n</span>)) mod <span class="var">n</span></span>
+    <span class="eq">(<span class="var">a</span> <span class="op">^</span> <span class="var">k</span>) mod <span class="var">n</span>  <span class="op">=</span>  computed efficiently via <span class="hi">square-and-multiply</span></span>
+  </div>
+
+  <h3>Fast Modular Exponentiation (Square-and-Multiply)</h3>
+  <p>Computing <span class="m">a^e mod n</span> naively requires <span class="m">e</span> multiplications. Square-and-multiply reduces this to <span class="m">O(log e)</span> multiplications — essential for RSA with 65537-bit exponents.</p>
+
+  <div class="math-block">
+    <span class="lbl">Square-and-Multiply — example: 3^13 mod 17</span>
+    <span class="eq"><span class="com">// 13 in binary = 1101</span></span>
+    <span class="eq">result <span class="op">=</span> <span class="num">1</span></span>
+    <span class="eq">bit <span class="num">1</span>: result <span class="op">=</span> (<span class="num">1</span><span class="op">²</span> <span class="op">·</span> <span class="num">3</span>) mod <span class="num">17</span>  <span class="op">=</span>  <span class="num">3</span></span>
+    <span class="eq">bit <span class="num">1</span>: result <span class="op">=</span> (<span class="num">3</span><span class="op">²</span> <span class="op">·</span> <span class="num">3</span>) mod <span class="num">17</span>  <span class="op">=</span>  <span class="num">27</span> mod <span class="num">17</span> <span class="op">=</span> <span class="num">10</span></span>
+    <span class="eq">bit <span class="num">0</span>: result <span class="op">=</span> <span class="num">10</span><span class="op">²</span> mod <span class="num">17</span>         <span class="op">=</span>  <span class="num">100</span> mod <span class="num">17</span> <span class="op">=</span> <span class="num">15</span></span>
+    <span class="eq">bit <span class="num">1</span>: result <span class="op">=</span> (<span class="num">15</span><span class="op">²</span> <span class="op">·</span> <span class="num">3</span>) mod <span class="num">17</span> <span class="op">=</span>  <span class="num">675</span> mod <span class="num">17</span> <span class="op">=</span> <span class="hi">12</span>&nbsp;&nbsp;<span class="com">// answer</span></span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Fast modular exponentiation</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Square-and-Multiply modular exponentiation</span>
+<span class="cm">%% (Octave's powermod() is built-in, but here's the explicit algorithm)</span>
+
+<span class="kw">function</span> <span class="var-g">result</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">base</span>, <span class="var-g">exp</span>, <span class="var-g">modulus</span>)
+  <span class="var-g">result</span> <span class="op">=</span> <span class="num">1</span>;
+  <span class="var-g">base</span>   <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">base</span>, <span class="var-g">modulus</span>);
+  <span class="kw">while</span> <span class="var-g">exp</span> <span class="op">&gt;</span> <span class="num">0</span>
+    <span class="kw">if</span> <span class="fn">bitand</span>(<span class="var-g">exp</span>, <span class="num">1</span>)           <span class="cm">% if lowest bit is 1</span>
+      <span class="var-g">result</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">result</span> <span class="op">*</span> <span class="var-g">base</span>, <span class="var-g">modulus</span>);
+    <span class="kw">end</span>
+    <span class="var-g">exp</span>  <span class="op">=</span> <span class="fn">bitshift</span>(<span class="var-g">exp</span>, <span class="op">-</span><span class="num">1</span>);    <span class="cm">% exp >>= 1</span>
+    <span class="var-g">base</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">base</span><span class="op">^</span><span class="num">2</span>, <span class="var-g">modulus</span>);  <span class="cm">% square</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="fn">printf</span>(<span class="str">'3^13 mod 17 = %d\n'</span>,    <span class="fn">mod_pow</span>(<span class="num">3</span>, <span class="num">13</span>, <span class="num">17</span>));
+<span class="fn">printf</span>(<span class="str">'2^255 mod 997 = %d\n'</span>,  <span class="fn">mod_pow</span>(<span class="num">2</span>, <span class="num">255</span>, <span class="num">997</span>));
+<span class="cm">%% Compare with built-in powermod (requires symbolic pkg or use mod)</span>
+<span class="fn">printf</span>(<span class="str">'Verify: %d\n'</span>, <span class="fn">mod</span>(<span class="num">2</span><span class="op">^</span><span class="num">255</span>, <span class="num">997</span>));   <span class="cm">% float precision; mod_pow is exact</span>
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §4  EULER, FERMAT, TOTIENT
+     ══════════════════════════════════════════ -->
+<section id="euler">
+  <div class="sec-label">§ 4</div>
+  <h2>Euler's Totient, Fermat's Little Theorem &amp; Euler's Theorem</h2>
+
+  <h3>Euler's Totient Function φ(n)</h3>
+  <p>φ(n) counts the number of integers in <span class="m">[1, n]</span> that are coprime to <span class="m">n</span>. This function determines the "size" of the multiplicative group mod <span class="m">n</span>.</p>
+
+  <div class="math-block">
+    <span class="lbl">Totient Formulas</span>
+    <span class="eq"><span class="fn">φ</span>(<span class="num">1</span>) <span class="op">=</span> <span class="num">1</span></span>
+    <span class="eq"><span class="fn">φ</span>(<span class="var">p</span>) <span class="op">=</span> <span class="var">p</span> <span class="op">−</span> <span class="num">1</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// p prime</span></span>
+    <span class="eq"><span class="fn">φ</span>(<span class="var">p</span><sup>k</sup>) <span class="op">=</span> <span class="var">p</span><sup>k−1</sup>(<span class="var">p</span> <span class="op">−</span> <span class="num">1</span>)</span>
+    <span class="eq"><span class="fn">φ</span>(<span class="var">m</span><span class="op">·</span><span class="var">n</span>) <span class="op">=</span> <span class="fn">φ</span>(<span class="var">m</span>)<span class="op">·</span><span class="fn">φ</span>(<span class="var">n</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// gcd(m,n)=1 (multiplicative)</span></span>
+    <span class="eq"><span class="fn">φ</span>(<span class="var">p</span><span class="op">·</span><span class="var">q</span>) <span class="op">=</span> (<span class="var">p</span><span class="op">−</span><span class="num">1</span>)(<span class="var">q</span><span class="op">−</span><span class="num">1</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// RSA key formula, p,q distinct primes</span></span>
+  </div>
+
+  <div class="theorem">
+    <div class="box-title">Fermat's Little Theorem</div>
+    <p>If <span class="m">p</span> is prime and <span class="m">gcd(a, p) = 1</span>, then: &nbsp;<span class="m">a^(p−1) ≡ 1 (mod p)</span>. Equivalently: <span class="m">a^p ≡ a (mod p)</span>. This is the basis for primality tests and RSA decryption correctness.</p>
+  </div>
+
+  <div class="theorem">
+    <div class="box-title">Euler's Theorem (Generalization)</div>
+    <p>If <span class="m">gcd(a, n) = 1</span>, then: &nbsp;<span class="m">a^φ(n) ≡ 1 (mod n)</span>. When <span class="m">n = p·q</span> (RSA), this gives <span class="m">a^(p−1)(q−1) ≡ 1 (mod n)</span>, directly proving RSA decryption correctness.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Euler's totient function &amp; theorem verification</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Euler Totient + Fermat/Euler Theorem Verification</span>
+
+<span class="kw">function</span> <span class="var-g">phi</span> <span class="op">=</span> <span class="fn">euler_totient</span>(<span class="var-g">n</span>)
+  <span class="var-g">phi</span> <span class="op">=</span> <span class="fn">sum</span>(<span class="fn">arrayfun</span>(<span class="op">@</span>(<span class="var-g">k</span>) <span class="fn">gcd</span>(<span class="var-g">k</span>, <span class="var-g">n</span>) <span class="op">==</span> <span class="num">1</span>, <span class="num">1</span><span class="op">:</span><span class="var-g">n</span>));
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">phi</span> <span class="op">=</span> <span class="fn">totient_formula</span>(<span class="var-g">n</span>)
+  <span class="cm">% Uses φ(n) = n * ∏ (1 - 1/p) over prime factors p</span>
+  <span class="var-g">phi</span> <span class="op">=</span> <span class="var-g">n</span>;
+  <span class="var-g">temp</span> <span class="op">=</span> <span class="var-g">n</span>;
+  <span class="var-g">d</span> <span class="op">=</span> <span class="num">2</span>;
+  <span class="kw">while</span> <span class="var-g">d</span><span class="op">^</span><span class="num">2</span> <span class="op">&lt;=</span> <span class="var-g">temp</span>
+    <span class="kw">if</span> <span class="fn">mod</span>(<span class="var-g">temp</span>, <span class="var-g">d</span>) <span class="op">==</span> <span class="num">0</span>
+      <span class="kw">while</span> <span class="fn">mod</span>(<span class="var-g">temp</span>, <span class="var-g">d</span>) <span class="op">==</span> <span class="num">0</span>; <span class="var-g">temp</span> <span class="op">=</span> <span class="var-g">temp</span><span class="op">/</span><span class="var-g">d</span>; <span class="kw">end</span>
+      <span class="var-g">phi</span> <span class="op">=</span> <span class="var-g">phi</span> <span class="op">*</span> (<span class="num">1</span> <span class="op">-</span> <span class="num">1</span><span class="op">/</span><span class="var-g">d</span>);
+    <span class="kw">end</span>
+    <span class="var-g">d</span><span class="op">++</span>;
+  <span class="kw">end</span>
+  <span class="kw">if</span> <span class="var-g">temp</span> <span class="op">&gt;</span> <span class="num">1</span>; <span class="var-g">phi</span> <span class="op">=</span> <span class="var-g">phi</span> <span class="op">*</span> (<span class="num">1</span> <span class="op">-</span> <span class="num">1</span><span class="op">/</span><span class="var-g">temp</span>); <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% Euler's Theorem: a^φ(n) ≡ 1 (mod n) when gcd(a,n)=1</span>
+<span class="kw">function</span> <span class="fn">verify_euler</span>(<span class="var-g">a</span>, <span class="var-g">n</span>)
+  <span class="var-g">phi</span> <span class="op">=</span> <span class="fn">totient_formula</span>(<span class="var-g">n</span>);
+  <span class="var-g">res</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">a</span>, <span class="var-g">phi</span>, <span class="var-g">n</span>);
+  <span class="fn">printf</span>(<span class="str">'φ(%d)=%d;  %d^φ(%d) mod %d = %d  [must be 1]\n'</span>, ...
+         <span class="var-g">n</span>, <span class="var-g">phi</span>, <span class="var-g">a</span>, <span class="var-g">n</span>, <span class="var-g">n</span>, <span class="var-g">res</span>);
+<span class="kw">end</span>
+
+<span class="fn">printf</span>(<span class="str">'φ(36) = %d  (expect 12)\n'</span>, <span class="fn">totient_formula</span>(<span class="num">36</span>));
+<span class="fn">verify_euler</span>(<span class="num">5</span>, <span class="num">36</span>);
+<span class="fn">verify_euler</span>(<span class="num">7</span>, <span class="num">100</span>);
+<span class="cm">%% RSA primes: φ(p*q) = (p-1)*(q-1)</span>
+<span class="var-g">p</span> <span class="op">=</span> <span class="num">53</span>; <span class="var-g">q</span> <span class="op">=</span> <span class="num">61</span>;
+<span class="fn">printf</span>(<span class="str">'φ(%d) = %d = (%d-1)(%d-1) = %d\n'</span>, <span class="var-g">p</span><span class="op">*</span><span class="var-g">q</span>, <span class="fn">totient_formula</span>(<span class="var-g">p</span><span class="op">*</span><span class="var-g">q</span>), <span class="var-g">p</span>, <span class="var-g">q</span>, (<span class="var-g">p</span><span class="op">-</span><span class="num">1</span>)<span class="op">*</span>(<span class="var-g">q</span><span class="op">-</span><span class="num">1</span>));
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §5  CHINESE REMAINDER THEOREM
+     ══════════════════════════════════════════ -->
+<section id="crt">
+  <div class="sec-label">§ 5</div>
+  <h2>Chinese Remainder Theorem (CRT)</h2>
+
+  <p>The CRT states that if moduli <span class="m">n₁, n₂, …, nₖ</span> are pairwise coprime, then the system of congruences has a unique solution mod <span class="m">N = n₁·n₂·⋯·nₖ</span>. In RSA, CRT can speed up private key operations by roughly <strong>4×</strong> using the prime factors directly.</p>
+
+  <div class="math-block">
+    <span class="lbl">CRT System</span>
+    <span class="eq"><span class="var">x</span> <span class="op">≡</span> <span class="var">a₁</span> (mod <span class="var">n₁</span>)</span>
+    <span class="eq"><span class="var">x</span> <span class="op">≡</span> <span class="var">a₂</span> (mod <span class="var">n₂</span>)</span>
+    <span class="eq"><span class="op">⋮</span></span>
+    <span class="eq"><span class="var">x</span> <span class="op">≡</span> <span class="var">aₖ</span> (mod <span class="var">nₖ</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// unique solution mod N = ∏nᵢ</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="com">// Solution: x = Σ aᵢ · Mᵢ · yᵢ  (mod N)</span></span>
+    <span class="eq"><span class="com">//   where  Mᵢ = N/nᵢ,   yᵢ = Mᵢ⁻¹ mod nᵢ</span></span>
+  </div>
+
+  <h4>RSA-CRT acceleration</h4>
+  <div class="math-block">
+    <span class="lbl">RSA Decryption with CRT</span>
+    <span class="eq"><span class="var">dp</span> <span class="op">=</span> <span class="var">d</span> mod (<span class="var">p</span><span class="op">−</span><span class="num">1</span>),&nbsp;&nbsp;&nbsp;<span class="var">dq</span> <span class="op">=</span> <span class="var">d</span> mod (<span class="var">q</span><span class="op">−</span><span class="num">1</span>)</span>
+    <span class="eq"><span class="var">m₁</span> <span class="op">=</span> <span class="var">c</span><sup>dp</sup> mod <span class="var">p</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="var">m₂</span> <span class="op">=</span> <span class="var">c</span><sup>dq</sup> mod <span class="var">q</span></span>
+    <span class="eq"><span class="var">h</span>  <span class="op">=</span> <span class="var">qInv</span> <span class="op">·</span> (<span class="var">m₁</span><span class="op">−</span><span class="var">m₂</span>) mod <span class="var">p</span></span>
+    <span class="eq"><span class="var">m</span>  <span class="op">=</span> <span class="var">m₂</span> <span class="op">+</span> <span class="var">h</span><span class="op">·</span><span class="var">q</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// 4× faster than direct c^d mod n</span></span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">CRT solver and RSA-CRT decryption</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Chinese Remainder Theorem Solver</span>
+
+<span class="kw">function</span> <span class="var-g">x</span> <span class="op">=</span> <span class="fn">crt_solve</span>(<span class="var-g">remainders</span>, <span class="var-g">moduli</span>)
+  <span class="var-g">N</span>   <span class="op">=</span> <span class="fn">prod</span>(<span class="var-g">moduli</span>);
+  <span class="var-g">x</span>   <span class="op">=</span> <span class="num">0</span>;
+  <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">1</span> <span class="op">:</span> <span class="fn">length</span>(<span class="var-g">moduli</span>)
+    <span class="var-g">Mi</span>  <span class="op">=</span> <span class="var-g">N</span> <span class="op">/</span> <span class="var-g">moduli</span>(<span class="var-g">i</span>);
+    <span class="var-g">yi</span>  <span class="op">=</span> <span class="fn">mod_inverse</span>(<span class="var-g">Mi</span>, <span class="var-g">moduli</span>(<span class="var-g">i</span>));
+    <span class="var-g">x</span>   <span class="op">=</span> <span class="var-g">x</span> <span class="op">+</span> <span class="var-g">remainders</span>(<span class="var-g">i</span>) <span class="op">*</span> <span class="var-g">Mi</span> <span class="op">*</span> <span class="var-g">yi</span>;
+  <span class="kw">end</span>
+  <span class="var-g">x</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">x</span>, <span class="var-g">N</span>);
+<span class="kw">end</span>
+
+<span class="cm">% Solve: x≡2(mod3), x≡3(mod5), x≡2(mod7)</span>
+<span class="var-g">r</span> <span class="op">=</span> [<span class="num">2</span>, <span class="num">3</span>, <span class="num">2</span>]; <span class="var-g">m</span> <span class="op">=</span> [<span class="num">3</span>, <span class="num">5</span>, <span class="num">7</span>];
+<span class="var-g">sol</span> <span class="op">=</span> <span class="fn">crt_solve</span>(<span class="var-g">r</span>, <span class="var-g">m</span>);
+<span class="fn">printf</span>(<span class="str">'CRT solution: x = %d\n'</span>, <span class="var-g">sol</span>);
+<span class="fn">printf</span>(<span class="str">'Verify: %d%%3=%d, %d%%5=%d, %d%%7=%d\n'</span>, ...
+       <span class="var-g">sol</span>, <span class="fn">mod</span>(<span class="var-g">sol</span>,<span class="num">3</span>), <span class="var-g">sol</span>, <span class="fn">mod</span>(<span class="var-g">sol</span>,<span class="num">5</span>), <span class="var-g">sol</span>, <span class="fn">mod</span>(<span class="var-g">sol</span>,<span class="num">7</span>));
+
+<span class="cm">% RSA-CRT decryption demo (toy key)</span>
+<span class="var-g">p</span> <span class="op">=</span> <span class="num">61</span>; <span class="var-g">q</span> <span class="op">=</span> <span class="num">53</span>; <span class="var-g">n</span> <span class="op">=</span> <span class="var-g">p</span><span class="op">*</span><span class="var-g">q</span>; <span class="var-g">e</span> <span class="op">=</span> <span class="num">17</span>;
+<span class="var-g">d</span>  <span class="op">=</span> <span class="fn">mod_inverse</span>(<span class="var-g">e</span>, (<span class="var-g">p</span><span class="op">-</span><span class="num">1</span>)<span class="op">*</span>(<span class="var-g">q</span><span class="op">-</span><span class="num">1</span>));
+<span class="var-g">msg</span><span class="op">=</span> <span class="num">42</span>; <span class="var-g">c</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">msg</span>, <span class="var-g">e</span>, <span class="var-g">n</span>);
+<span class="cm">% CRT-accelerated decrypt</span>
+<span class="var-g">dp</span>  <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">d</span>, <span class="var-g">p</span><span class="op">-</span><span class="num">1</span>); <span class="var-g">dq</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">d</span>, <span class="var-g">q</span><span class="op">-</span><span class="num">1</span>);
+<span class="var-g">qinv</span><span class="op">=</span> <span class="fn">mod_inverse</span>(<span class="var-g">q</span>, <span class="var-g">p</span>);
+<span class="var-g">m1</span>  <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">c</span>, <span class="var-g">dp</span>, <span class="var-g">p</span>);
+<span class="var-g">m2</span>  <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">c</span>, <span class="var-g">dq</span>, <span class="var-g">q</span>);
+<span class="var-g">h</span>   <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">qinv</span> <span class="op">*</span> <span class="fn">mod</span>(<span class="var-g">m1</span><span class="op">-</span><span class="var-g">m2</span>, <span class="var-g">p</span>), <span class="var-g">p</span>);
+<span class="var-g">dec</span> <span class="op">=</span> <span class="var-g">m2</span> <span class="op">+</span> <span class="var-g">h</span><span class="op">*</span><span class="var-g">q</span>;
+<span class="fn">printf</span>(<span class="str">'RSA-CRT: encrypt %d → %d → decrypt %d\n'</span>, <span class="var-g">msg</span>, <span class="var-g">c</span>, <span class="var-g">dec</span>);
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §6  ABSTRACT ALGEBRA
+     ══════════════════════════════════════════ -->
+<section id="algebra">
+  <div class="sec-label">§ 6</div>
+  <h2>Groups, Rings &amp; Fields</h2>
+
+  <p>Abstract algebra provides the framework that unifies symmetric encryption, public-key cryptography, and elliptic curves under a common language.</p>
+
+  <div class="grid3">
+    <div class="card">
+      <h4>Group (G, ★)</h4>
+      <p>Set with one operation. Requires: closure, associativity, identity element, inverses. Abelian if commutative.</p>
+    </div>
+    <div class="card">
+      <h4>Ring (R, +, ·)</h4>
+      <p>Two operations. (R,+) is abelian group. Multiplication is associative and distributes over addition.</p>
+    </div>
+    <div class="card">
+      <h4>Field (F, +, ·)</h4>
+      <p>A ring where every nonzero element has a multiplicative inverse. Both operations form abelian groups.</p>
+    </div>
+  </div>
+
+  <h3>The Multiplicative Group ℤₙ*</h3>
+  <div class="math-block">
+    <span class="lbl">Cyclic Group</span>
+    <span class="eq"><span class="op">ℤ</span><sub>n</sub><span class="op">*</span> <span class="op">=</span> { <span class="var">a</span> <span class="op">∈</span> <span class="op">ℤ</span><sub>n</sub> : <span class="fn">gcd</span>(<span class="var">a</span>, <span class="var">n</span>) <span class="op">=</span> <span class="num">1</span> }&nbsp;&nbsp;&nbsp;<span class="com">|ℤₙ*| = φ(n)</span></span>
+    <span class="eq"><span class="com">// g is a generator (primitive root) if powers of g produce every element</span></span>
+    <span class="eq"><span class="com">// ℤₚ* (p prime) is always cyclic — critical for Diffie-Hellman</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="com">// Discrete Log Problem: given g, p, h — find x such that g^x ≡ h (mod p)</span></span>
+    <span class="eq"><span class="com">// No efficient classical algorithm exists for large p</span></span>
+  </div>
+
+  <h3>Finite Fields GF(p)</h3>
+  <p>For prime <span class="m">p</span>, the field <span class="m">GF(p) = ℤp</span> with addition and multiplication mod <span class="m">p</span>. Every nonzero element has a multiplicative inverse (by Fermat's Little Theorem). These fields underlie RSA and Diffie-Hellman.</p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Find primitive roots (generators) of ℤp*</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Find primitive roots of Z_p*</span>
+<span class="cm">%% g is a primitive root mod p if ord(g) = p-1</span>
+
+<span class="kw">function</span> <span class="var-g">ord</span> <span class="op">=</span> <span class="fn">element_order</span>(<span class="var-g">g</span>, <span class="var-g">p</span>)
+  <span class="cm">% Smallest k > 0 such that g^k ≡ 1 (mod p)</span>
+  <span class="var-g">ord</span> <span class="op">=</span> <span class="num">1</span>; <span class="var-g">cur</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">g</span>, <span class="var-g">p</span>);
+  <span class="kw">while</span> <span class="var-g">cur</span> <span class="op">~=</span> <span class="num">1</span>
+    <span class="var-g">cur</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">cur</span> <span class="op">*</span> <span class="var-g">g</span>, <span class="var-g">p</span>); <span class="var-g">ord</span><span class="op">++</span>;
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">roots</span> <span class="op">=</span> <span class="fn">primitive_roots</span>(<span class="var-g">p</span>)
+  <span class="var-g">roots</span> <span class="op">=</span> [];
+  <span class="kw">for</span> <span class="var-g">g</span> <span class="op">=</span> <span class="num">2</span> <span class="op">:</span> <span class="var-g">p</span><span class="op">-</span><span class="num">1</span>
+    <span class="kw">if</span> <span class="fn">element_order</span>(<span class="var-g">g</span>, <span class="var-g">p</span>) <span class="op">==</span> <span class="var-g">p</span><span class="op">-</span><span class="num">1</span>
+      <span class="var-g">roots</span> <span class="op">=</span> [<span class="var-g">roots</span>, <span class="var-g">g</span>];
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="var-g">p</span> <span class="op">=</span> <span class="num">23</span>;
+<span class="fn">printf</span>(<span class="str">'Primitive roots of Z_%d*: '</span>, <span class="var-g">p</span>); <span class="fn">disp</span>(<span class="fn">primitive_roots</span>(<span class="var-g">p</span>));
+<span class="fn">printf</span>(<span class="str">'Orders of elements mod %d:\n'</span>, <span class="var-g">p</span>);
+<span class="kw">for</span> <span class="var-g">g</span> <span class="op">=</span> <span class="num">2</span><span class="op">:</span><span class="num">10</span>
+  <span class="fn">printf</span>(<span class="str">'  ord(%d) = %d\n'</span>, <span class="var-g">g</span>, <span class="fn">element_order</span>(<span class="var-g">g</span>, <span class="var-g">p</span>));
+<span class="kw">end</span>
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §7  GF(2^n) AND AES MATH
+     ══════════════════════════════════════════ -->
+<section id="gf2">
+  <div class="sec-label">§ 7</div>
+  <h2>Finite Fields GF(2ⁿ) and AES Mathematics</h2>
+
+  <p>AES operates in the field <strong>GF(2⁸)</strong> — all 256 possible bytes form a field where addition is XOR and multiplication is polynomial multiplication modulo an irreducible polynomial.</p>
+
+  <div class="math-block">
+    <span class="lbl">GF(2⁸) — AES Irreducible Polynomial</span>
+    <span class="eq"><span class="var">m</span>(<span class="var">x</span>) <span class="op">=</span> <span class="var">x</span><sup>8</sup> <span class="op">+</span> <span class="var">x</span><sup>4</sup> <span class="op">+</span> <span class="var">x</span><sup>3</sup> <span class="op">+</span> <span class="var">x</span> <span class="op">+</span> <span class="num">1</span></span>
+    <span class="eq"><span class="com">// Binary: 0x11B = 100011011₂</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="com">// Elements are polynomials a₇x⁷ + … + a₁x + a₀,  aᵢ ∈ {0,1}</span></span>
+    <span class="eq"><span class="com">// Each byte 0x57 = 01010111₂ represents x⁶+x⁴+x²+x+1</span></span>
+    <span class="eq"></span>
+    <span class="eq">Addition:      0x57 <span class="op">⊕</span> 0x83  <span class="op">=</span>  0xD4  <span class="com">// just XOR</span></span>
+    <span class="eq">Multiplication: 0x57 <span class="op">·</span> 0x83 mod <span class="var">m</span>(<span class="var">x</span>) <span class="op">=</span> 0xC1</span>
+  </div>
+
+  <h3>AES SubBytes — The S-Box</h3>
+  <p>The AES S-Box applies two operations to each byte: <strong>(1)</strong> compute the multiplicative inverse in GF(2⁸) (0 maps to 0), then <strong>(2)</strong> apply an affine transformation over GF(2). This is the only nonlinear step in AES — providing all its resistance to linear and differential cryptanalysis.</p>
+
+  <div class="math-block">
+    <span class="lbl">AES Affine Transform</span>
+    <span class="eq"><span class="var">s</span> <span class="op">=</span> <span class="var">A</span> <span class="op">·</span> <span class="var">b</span> <span class="op">⊕</span> <span class="var">c</span>&nbsp;&nbsp;&nbsp;<span class="com">// b = GF(2⁸) inverse of input byte</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="com">// A is the 8×8 binary circulant matrix, c = 0x63 = 01100011₂</span></span>
+    <span class="eq"><span class="var">sᵢ</span> <span class="op">=</span> <span class="var">bᵢ</span> <span class="op">⊕</span> <span class="var">b</span><sub>(i+4)%8</sub> <span class="op">⊕</span> <span class="var">b</span><sub>(i+5)%8</sub> <span class="op">⊕</span> <span class="var">b</span><sub>(i+6)%8</sub> <span class="op">⊕</span> <span class="var">b</span><sub>(i+7)%8</sub> <span class="op">⊕</span> <span class="var">cᵢ</span></span>
+  </div>
+
+  <h3>MixColumns</h3>
+  <p>MixColumns multiplies each 4-byte column of the state by a fixed 4×4 matrix over GF(2⁸), providing diffusion across bytes.</p>
+
+  <div class="math-block">
+    <span class="lbl">MixColumns Matrix</span>
+    <span class="eq">⎡ <span class="num">02 03 01 01</span> ⎤</span>
+    <span class="eq">⎢ <span class="num">01 02 03 01</span> ⎥  &nbsp;&nbsp;<span class="com">// multiplication in GF(2⁸)</span></span>
+    <span class="eq">⎢ <span class="num">01 01 02 03</span> ⎥</span>
+    <span class="eq">⎣ <span class="num">03 01 01 02</span> ⎦</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">GF(2⁸) arithmetic and AES S-Box generation</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% GF(2^8) arithmetic and AES S-Box generation</span>
+
+<span class="kw">function</span> <span class="var-g">r</span> <span class="op">=</span> <span class="fn">gf2_mul</span>(<span class="var-g">a</span>, <span class="var-g">b</span>)
+  <span class="cm">% Multiply two bytes in GF(2^8) mod 0x11B</span>
+  <span class="var-g">r</span> <span class="op">=</span> <span class="num">0</span>; <span class="var-g">p</span> <span class="op">=</span> <span class="var-g">a</span>;
+  <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">1</span><span class="op">:</span><span class="num">8</span>
+    <span class="kw">if</span> <span class="fn">bitand</span>(<span class="var-g">b</span>, <span class="num">1</span>); <span class="var-g">r</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="var-g">r</span>, <span class="var-g">p</span>); <span class="kw">end</span>
+    <span class="var-g">hi</span> <span class="op">=</span> <span class="fn">bitand</span>(<span class="var-g">p</span>, <span class="fn">hex2dec</span>(<span class="str">'80'</span>));
+    <span class="var-g">p</span>  <span class="op">=</span> <span class="fn">bitand</span>(<span class="fn">bitshift</span>(<span class="var-g">p</span>, <span class="num">1</span>), <span class="fn">hex2dec</span>(<span class="str">'FF'</span>));
+    <span class="kw">if</span> <span class="var-g">hi</span>; <span class="var-g">p</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="var-g">p</span>, <span class="fn">hex2dec</span>(<span class="str">'1B'</span>)); <span class="kw">end</span>  <span class="cm">% reduce mod m(x)</span>
+    <span class="var-g">b</span>  <span class="op">=</span> <span class="fn">bitshift</span>(<span class="var-g">b</span>, <span class="op">-</span><span class="num">1</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">inv</span> <span class="op">=</span> <span class="fn">gf2_inv</span>(<span class="var-g">a</span>)
+  <span class="cm">% Multiplicative inverse in GF(2^8) via brute-force (small field)</span>
+  <span class="kw">if</span> <span class="var-g">a</span> <span class="op">==</span> <span class="num">0</span>; <span class="var-g">inv</span> <span class="op">=</span> <span class="num">0</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">for</span> <span class="var-g">b</span> <span class="op">=</span> <span class="num">1</span><span class="op">:</span><span class="num">255</span>
+    <span class="kw">if</span> <span class="fn">gf2_mul</span>(<span class="var-g">a</span>, <span class="var-g">b</span>) <span class="op">==</span> <span class="num">1</span>; <span class="var-g">inv</span> <span class="op">=</span> <span class="var-g">b</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">s</span> <span class="op">=</span> <span class="fn">aes_sbox_byte</span>(<span class="var-g">b</span>)
+  <span class="cm">% Compute AES S-Box: GF inverse then affine transform</span>
+  <span class="var-g">b</span>   <span class="op">=</span> <span class="fn">gf2_inv</span>(<span class="var-g">b</span>);
+  <span class="var-g">s</span>   <span class="op">=</span> <span class="num">0</span>;
+  <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">:</span><span class="num">7</span>
+    <span class="var-g">bit</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">bitget</span>(<span class="var-g">b</span>, <span class="var-g">i</span><span class="op">+</span><span class="num">1</span>), ...
+            <span class="fn">bitget</span>(<span class="var-g">b</span>, <span class="fn">mod</span>(<span class="var-g">i</span><span class="op">+</span><span class="num">4</span>,<span class="num">8</span>)<span class="op">+</span><span class="num">1</span>)), <span class="fn">bitget</span>(<span class="var-g">b</span>, <span class="fn">mod</span>(<span class="var-g">i</span><span class="op">+</span><span class="num">5</span>,<span class="num">8</span>)<span class="op">+</span><span class="num">1</span>)), ...
+            <span class="fn">bitget</span>(<span class="var-g">b</span>, <span class="fn">mod</span>(<span class="var-g">i</span><span class="op">+</span><span class="num">6</span>,<span class="num">8</span>)<span class="op">+</span><span class="num">1</span>)), <span class="fn">bitget</span>(<span class="var-g">b</span>, <span class="fn">mod</span>(<span class="var-g">i</span><span class="op">+</span><span class="num">7</span>,<span class="num">8</span>)<span class="op">+</span><span class="num">1</span>));
+    <span class="var-g">bit</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="var-g">bit</span>, <span class="fn">bitget</span>(<span class="fn">hex2dec</span>(<span class="str">'63'</span>), <span class="var-g">i</span><span class="op">+</span><span class="num">1</span>));
+    <span class="var-g">s</span>   <span class="op">=</span> <span class="fn">bitset</span>(<span class="var-g">s</span>, <span class="var-g">i</span><span class="op">+</span><span class="num">1</span>, <span class="var-g">bit</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% Build first 16 entries of AES S-Box</span>
+<span class="fn">printf</span>(<span class="str">'AES S-Box (first 16 bytes):\n'</span>);
+<span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">:</span><span class="num">15</span>
+  <span class="fn">printf</span>(<span class="str">'%02X '</span>, <span class="fn">aes_sbox_byte</span>(<span class="var-g">i</span>));
+<span class="kw">end</span>; <span class="fn">printf</span>(<span class="str">'\n'</span>);
+<span class="cm">% Expected: 63 7C 77 7B F2 6B 6F C5 30 01 67 2B FE D7 AB 76</span>
+<span class="fn">printf</span>(<span class="str">'GF mul 0x57 * 0x83 = 0x%02X (expect 0xC1)\n'</span>, <span class="fn">gf2_mul</span>(<span class="fn">hex2dec</span>(<span class="str">'57'</span>), <span class="fn">hex2dec</span>(<span class="str">'83'</span>)));
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §8  RSA MATHEMATICS
+     ══════════════════════════════════════════ -->
+<section id="rsa">
+  <div class="sec-label">§ 8</div>
+  <h2>RSA: Full Mathematical Treatment</h2>
+
+  <p>RSA's security rests on the <strong>integer factorization problem</strong>: given <span class="m">n = p·q</span>, recovering <span class="m">p</span> and <span class="m">q</span> is computationally infeasible for large primes.</p>
+
+  <h3>Key Generation</h3>
+  <ol class="steps">
+    <li>Choose two large distinct primes <span class="m">p</span> and <span class="m">q</span> (typically 1024–2048 bits each)</li>
+    <li>Compute the modulus <span class="m">n = p · q</span> &nbsp;(the public modulus, ~2048–4096 bits)</li>
+    <li>Compute <span class="m">λ(n) = lcm(p−1, q−1)</span> or <span class="m">φ(n) = (p−1)(q−1)</span> &nbsp;(Carmichael vs Euler)</li>
+    <li>Choose public exponent <span class="m">e</span> with <span class="m">1 &lt; e &lt; λ(n)</span> and <span class="m">gcd(e, λ(n)) = 1</span>. Standard: <span class="m">e = 65537 = 2¹⁶ + 1</span></li>
+    <li>Compute private exponent <span class="m">d ≡ e⁻¹ (mod λ(n))</span> via Extended Euclidean Algorithm</li>
+  </ol>
+
+  <div class="math-block">
+    <span class="lbl">RSA Encryption / Decryption</span>
+    <span class="eq"><span class="com">// Public key:  (n, e)    Private key: (n, d)</span></span>
+    <span class="eq"><span class="com">// Message m must satisfy 0 ≤ m < n</span></span>
+    <span class="eq"></span>
+    <span class="eq">Encrypt:  <span class="var">c</span>  <span class="op">=</span>  <span class="var">m</span><sup>e</sup> mod <span class="var">n</span></span>
+    <span class="eq">Decrypt:  <span class="var">m</span>  <span class="op">=</span>  <span class="var">c</span><sup>d</sup> mod <span class="var">n</span></span>
+    <span class="eq">Sign:     <span class="var">σ</span>  <span class="op">=</span>  <span class="fn">Hash</span>(<span class="var">m</span>)<sup>d</sup> mod <span class="var">n</span></span>
+    <span class="eq">Verify:   check  <span class="var">σ</span><sup>e</sup> mod <span class="var">n</span>  <span class="op">==</span>  <span class="fn">Hash</span>(<span class="var">m</span>)</span>
+  </div>
+
+  <h3>Correctness Proof</h3>
+  <div class="proof">
+    <div class="box-title">Proof — RSA Decryption Correctness</div>
+    <p>We need to show <span class="m">(m^e)^d ≡ m (mod n)</span>. Since <span class="m">e·d ≡ 1 (mod λ(n))</span>, we can write <span class="m">e·d = 1 + k·λ(n)</span> for some integer <span class="m">k</span>. Then <span class="m">m^(e·d) = m^(1 + k·λ(n)) = m · (m^λ(n))^k ≡ m · 1^k = m (mod n)</span> — the last step by Euler/Carmichael's theorem, which holds whenever <span class="m">gcd(m, n) = 1</span>. Special cases for <span class="m">p|m</span> or <span class="m">q|m</span> are handled via CRT.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Complete RSA key generation, encrypt, decrypt, sign, verify</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Complete RSA Implementation (toy-size keys for demonstration)</span>
+<span class="cm">%% Requires: mod_pow() and mod_inverse() from earlier sections</span>
+
+<span class="kw">function</span> [<span class="var-g">n</span>, <span class="var-g">e</span>, <span class="var-g">d</span>] <span class="op">=</span> <span class="fn">rsa_keygen</span>(<span class="var-g">p</span>, <span class="var-g">q</span>)
+  <span class="var-g">n</span>     <span class="op">=</span> <span class="var-g">p</span> <span class="op">*</span> <span class="var-g">q</span>;
+  <span class="var-g">phi_n</span> <span class="op">=</span> (<span class="var-g">p</span><span class="op">-</span><span class="num">1</span>) <span class="op">*</span> (<span class="var-g">q</span><span class="op">-</span><span class="num">1</span>);      <span class="cm">% Euler totient</span>
+  <span class="cm">% Choose e: common choice is 65537; find valid e for small phi_n</span>
+  <span class="kw">for</span> <span class="var-g">e</span> <span class="op">=</span> [<span class="num">65537</span>, <span class="num">257</span>, <span class="num">17</span>, <span class="num">5</span>, <span class="num">3</span>]
+    <span class="kw">if</span> <span class="fn">gcd</span>(<span class="var-g">e</span>, <span class="var-g">phi_n</span>) <span class="op">==</span> <span class="num">1</span> <span class="op">&amp;&amp;</span> <span class="var-g">e</span> <span class="op">&lt;</span> <span class="var-g">phi_n</span>; <span class="kw">break</span>; <span class="kw">end</span>
+  <span class="kw">end</span>
+  <span class="var-g">d</span> <span class="op">=</span> <span class="fn">mod_inverse</span>(<span class="var-g">e</span>, <span class="var-g">phi_n</span>);
+  <span class="fn">printf</span>(<span class="str">'RSA Key: n=%d, e=%d, d=%d, phi=%d\n'</span>, <span class="var-g">n</span>, <span class="var-g">e</span>, <span class="var-g">d</span>, <span class="var-g">phi_n</span>);
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">c</span> <span class="op">=</span> <span class="fn">rsa_encrypt</span>(<span class="var-g">m</span>, <span class="var-g">e</span>, <span class="var-g">n</span>); <span class="var-g">c</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">m</span>, <span class="var-g">e</span>, <span class="var-g">n</span>); <span class="kw">end</span>
+<span class="kw">function</span> <span class="var-g">m</span> <span class="op">=</span> <span class="fn">rsa_decrypt</span>(<span class="var-g">c</span>, <span class="var-g">d</span>, <span class="var-g">n</span>); <span class="var-g">m</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">c</span>, <span class="var-g">d</span>, <span class="var-g">n</span>); <span class="kw">end</span>
+
+<span class="cm">% --- Demo with safe primes p=61, q=53 ---</span>
+[<span class="var-g">n</span>, <span class="var-g">e</span>, <span class="var-g">d</span>] <span class="op">=</span> <span class="fn">rsa_keygen</span>(<span class="num">61</span>, <span class="num">53</span>);
+
+<span class="kw">for</span> <span class="var-g">msg</span> <span class="op">=</span> [<span class="num">42</span>, <span class="num">99</span>, <span class="num">1234</span>, <span class="num">3000</span>]
+  <span class="var-g">c</span>   <span class="op">=</span> <span class="fn">rsa_encrypt</span>(<span class="var-g">msg</span>, <span class="var-g">e</span>, <span class="var-g">n</span>);
+  <span class="var-g">dec</span> <span class="op">=</span> <span class="fn">rsa_decrypt</span>(<span class="var-g">c</span>, <span class="var-g">d</span>, <span class="var-g">n</span>);
+  <span class="fn">printf</span>(<span class="str">'m=%4d → c=%4d → dec=%4d  OK=%d\n'</span>, <span class="var-g">msg</span>, <span class="var-g">c</span>, <span class="var-g">dec</span>, <span class="var-g">dec</span><span class="op">==</span><span class="var-g">msg</span>);
+<span class="kw">end</span>
+
+<span class="cm">%% Digital Signature: sign H(m) with private key, verify with public key</span>
+<span class="var-g">hash_m</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="num">12345</span>, <span class="var-g">n</span>);             <span class="cm">% simulate H(message) < n</span>
+<span class="var-g">sig</span>    <span class="op">=</span> <span class="fn">rsa_decrypt</span>(<span class="var-g">hash_m</span>, <span class="var-g">d</span>, <span class="var-g">n</span>); <span class="cm">% sign with private key</span>
+<span class="var-g">vrfy</span>   <span class="op">=</span> <span class="fn">rsa_encrypt</span>(<span class="var-g">sig</span>, <span class="var-g">e</span>, <span class="var-g">n</span>);    <span class="cm">% verify with public key</span>
+<span class="fn">printf</span>(<span class="str">'Signature valid: %d\n'</span>, <span class="var-g">vrfy</span> <span class="op">==</span> <span class="var-g">hash_m</span>);
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §9  DIFFIE-HELLMAN
+     ══════════════════════════════════════════ -->
+<section id="dh">
+  <div class="sec-label">§ 9</div>
+  <h2>Diffie-Hellman &amp; the Discrete Logarithm Problem</h2>
+
+  <p>The <strong>Discrete Logarithm Problem (DLP)</strong>: given a cyclic group <span class="m">G</span> with generator <span class="m">g</span>, and an element <span class="m">h ∈ G</span>, find the integer <span class="m">x</span> such that <span class="m">g^x = h</span>. This is believed to be hard in large prime-order groups.</p>
+
+  <div class="math-block">
+    <span class="lbl">Diffie-Hellman Key Exchange</span>
+    <span class="eq"><span class="com">// Public parameters: large prime p, generator g of Z_p*</span></span>
+    <span class="eq"></span>
+    <span class="eq">Alice: choose secret <span class="var">a</span>, compute <span class="var">A</span> <span class="op">=</span> <span class="var">g</span><sup>a</sup> mod <span class="var">p</span>; send <span class="var">A</span></span>
+    <span class="eq">Bob:   choose secret <span class="var">b</span>, compute <span class="var">B</span> <span class="op">=</span> <span class="var">g</span><sup>b</sup> mod <span class="var">p</span>; send <span class="var">B</span></span>
+    <span class="eq"></span>
+    <span class="eq">Alice computes: <span class="var">K</span> <span class="op">=</span> <span class="var">B</span><sup>a</sup> mod <span class="var">p</span>  <span class="op">=</span>  (<span class="var">g</span><sup>b</sup>)<sup>a</sup> mod <span class="var">p</span></span>
+    <span class="eq">Bob   computes: <span class="var">K</span> <span class="op">=</span> <span class="var">A</span><sup>b</sup> mod <span class="var">p</span>  <span class="op">=</span>  (<span class="var">g</span><sup>a</sup>)<sup>b</sup> mod <span class="var">p</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="hi">K = g^(ab) mod p</span>&nbsp;&nbsp;&nbsp;<span class="com">// Shared secret — eavesdropper sees only A, B, g, p</span></span>
+  </div>
+
+  <h3>Baby-Step Giant-Step Attack (BSGS)</h3>
+  <p>BSGS solves the DLP in time <span class="m">O(√p)</span> using a meet-in-the-middle approach. This is why DH prime sizes must be at least 2048 bits (making <span class="m">√p ≈ 2¹⁰²⁴</span>).</p>
+
+  <div class="math-block">
+    <span class="lbl">BSGS Algorithm — find x such that g^x ≡ h (mod p)</span>
+    <span class="eq"><span class="var">m</span>  <span class="op">=</span> ⌈√<span class="var">p</span>⌉</span>
+    <span class="eq"><span class="com">// Baby steps: precompute table {g^j mod p : j=0..m}</span></span>
+    <span class="eq"><span class="com">// Giant steps: compute h · (g^(-m))^i for i=0..m, look up in table</span></span>
+    <span class="eq"><span class="com">// Collision at i,j gives x = im + j</span></span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Diffie-Hellman key exchange and BSGS discrete log</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Diffie-Hellman Key Exchange Demo</span>
+
+<span class="kw">function</span> <span class="fn">diffie_hellman_demo</span>(<span class="var-g">p</span>, <span class="var-g">g</span>, <span class="var-g">a</span>, <span class="var-g">b</span>)
+  <span class="fn">printf</span>(<span class="str">'Public:  p=%d, g=%d\n'</span>, <span class="var-g">p</span>, <span class="var-g">g</span>);
+  <span class="var-g">A</span>  <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">g</span>, <span class="var-g">a</span>, <span class="var-g">p</span>);   <span class="cm">% Alice's public value</span>
+  <span class="var-g">B</span>  <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">g</span>, <span class="var-g">b</span>, <span class="var-g">p</span>);   <span class="cm">% Bob's public value</span>
+  <span class="var-g">Ka</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">B</span>, <span class="var-g">a</span>, <span class="var-g">p</span>);   <span class="cm">% Alice computes shared secret</span>
+  <span class="var-g">Kb</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">A</span>, <span class="var-g">b</span>, <span class="var-g">p</span>);   <span class="cm">% Bob computes shared secret</span>
+  <span class="fn">printf</span>(<span class="str">'Alice private a=%d → A=g^a=%d\n'</span>, <span class="var-g">a</span>, <span class="var-g">A</span>);
+  <span class="fn">printf</span>(<span class="str">'Bob   private b=%d → B=g^b=%d\n'</span>, <span class="var-g">b</span>, <span class="var-g">B</span>);
+  <span class="fn">printf</span>(<span class="str">'Shared secret Ka=%d  Kb=%d  Match: %d\n'</span>, <span class="var-g">Ka</span>, <span class="var-g">Kb</span>, <span class="var-g">Ka</span><span class="op">==</span><span class="var-g">Kb</span>);
+<span class="kw">end</span>
+
+<span class="cm">% Baby-Step Giant-Step: find x s.t. g^x ≡ h (mod p)</span>
+<span class="kw">function</span> <span class="var-g">x</span> <span class="op">=</span> <span class="fn">bsgs</span>(<span class="var-g">g</span>, <span class="var-g">h</span>, <span class="var-g">p</span>)
+  <span class="var-g">m</span>   <span class="op">=</span> <span class="fn">ceil</span>(<span class="fn">sqrt</span>(<span class="var-g">p</span><span class="op">-</span><span class="num">1</span>));
+  <span class="cm">% Baby steps: store g^j -> j</span>
+  <span class="var-g">baby</span> <span class="op">=</span> <span class="kw">struct</span>();
+  <span class="var-g">gj</span>  <span class="op">=</span> <span class="num">1</span>;
+  <span class="kw">for</span> <span class="var-g">j</span> <span class="op">=</span> <span class="num">0</span><span class="op">:</span><span class="var-g">m</span>
+    <span class="var-g">baby</span>.(<span class="fn">sprintf</span>(<span class="str">'k%d'</span>, <span class="var-g">gj</span>)) <span class="op">=</span> <span class="var-g">j</span>;
+    <span class="var-g">gj</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">gj</span> <span class="op">*</span> <span class="var-g">g</span>, <span class="var-g">p</span>);
+  <span class="kw">end</span>
+  <span class="cm">% Giant steps: g^(-m) mod p</span>
+  <span class="var-g">gm_inv</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="fn">mod_inverse</span>(<span class="var-g">g</span>, <span class="var-g">p</span>), <span class="var-g">m</span>, <span class="var-g">p</span>);
+  <span class="var-g">cur</span>    <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">h</span>, <span class="var-g">p</span>);
+  <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">:</span><span class="var-g">m</span>
+    <span class="var-g">key</span> <span class="op">=</span> <span class="fn">sprintf</span>(<span class="str">'k%d'</span>, <span class="var-g">cur</span>);
+    <span class="kw">if</span> <span class="fn">isfield</span>(<span class="var-g">baby</span>, <span class="var-g">key</span>)
+      <span class="var-g">x</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">i</span><span class="op">*</span><span class="var-g">m</span> <span class="op">+</span> <span class="var-g">baby</span>.(<span class="var-g">key</span>), <span class="var-g">p</span><span class="op">-</span><span class="num">1</span>); <span class="kw">return</span>;
+    <span class="kw">end</span>
+    <span class="var-g">cur</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">cur</span> <span class="op">*</span> <span class="var-g">gm_inv</span>, <span class="var-g">p</span>);
+  <span class="kw">end</span>
+  <span class="var-g">x</span> <span class="op">=</span> <span class="op">-</span><span class="num">1</span>;  <span class="cm">% not found</span>
+<span class="kw">end</span>
+
+<span class="fn">diffie_hellman_demo</span>(<span class="num">23</span>, <span class="num">5</span>, <span class="num">6</span>, <span class="num">15</span>);
+<span class="fn">printf</span>(<span class="str">'\nBSGS: log_5(%d) mod 23 = %d\n'</span>, <span class="fn">mod_pow</span>(<span class="num">5</span>,<span class="num">9</span>,<span class="num">23</span>), <span class="fn">bsgs</span>(<span class="num">5</span>, <span class="fn">mod_pow</span>(<span class="num">5</span>,<span class="num">9</span>,<span class="num">23</span>), <span class="num">23</span>));
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §10  ELLIPTIC CURVE CRYPTOGRAPHY
+     ══════════════════════════════════════════ -->
+<section id="ecc">
+  <div class="sec-label">§ 10</div>
+  <h2>Elliptic Curve Cryptography</h2>
+
+  <p>An elliptic curve over a field <span class="m">𝔽</span> is the set of points satisfying the Weierstrass equation, plus a "point at infinity" <span class="m">𝒪</span> acting as the group identity. The group law on these points provides a hard DLP with much smaller key sizes than RSA.</p>
+
+  <div class="math-block">
+    <span class="lbl">Weierstrass Short Form</span>
+    <span class="eq">E: &nbsp;<span class="var">y</span><sup>2</sup>  <span class="op">=</span>  <span class="var">x</span><sup>3</sup> <span class="op">+</span> <span class="var">ax</span> <span class="op">+</span> <span class="var">b</span>&nbsp;&nbsp;&nbsp;&nbsp;over  𝔽<sub>p</sub></span>
+    <span class="eq"><span class="com">// Non-singular: discriminant Δ = -16(4a³ + 27b²) ≠ 0</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="com">// NIST P-256 (secp256r1): a = -3,  b = 0x5AC635D8AA3A93E7B3EBBD55...</span></span>
+    <span class="eq"><span class="com">// secp256k1 (Bitcoin):    a = 0,   b = 7</span></span>
+  </div>
+
+  <h3>Point Addition Formulas</h3>
+  <p>Given two distinct points <span class="m">P = (x₁, y₁)</span> and <span class="m">Q = (x₂, y₂)</span> on the curve, their sum <span class="m">R = P + Q = (x₃, y₃)</span> is:</p>
+
+  <div class="math-block">
+    <span class="lbl">Point Addition (P ≠ Q)</span>
+    <span class="eq"><span class="var">λ</span>  <span class="op">=</span>  (<span class="var">y₂</span> <span class="op">−</span> <span class="var">y₁</span>) <span class="op">·</span> (<span class="var">x₂</span> <span class="op">−</span> <span class="var">x₁</span>)<sup>−1</sup>  mod <span class="var">p</span></span>
+    <span class="eq"><span class="var">x₃</span> <span class="op">=</span>  <span class="var">λ</span><sup>2</sup> <span class="op">−</span> <span class="var">x₁</span> <span class="op">−</span> <span class="var">x₂</span>               mod <span class="var">p</span></span>
+    <span class="eq"><span class="var">y₃</span> <span class="op">=</span>  <span class="var">λ</span>(<span class="var">x₁</span> <span class="op">−</span> <span class="var">x₃</span>) <span class="op">−</span> <span class="var">y₁</span>           mod <span class="var">p</span></span>
+  </div>
+
+  <div class="math-block">
+    <span class="lbl">Point Doubling (P = Q)</span>
+    <span class="eq"><span class="var">λ</span>  <span class="op">=</span>  (<span class="num">3</span><span class="var">x₁</span><sup>2</sup> <span class="op">+</span> <span class="var">a</span>) <span class="op">·</span> (<span class="num">2</span><span class="var">y₁</span>)<sup>−1</sup>    mod <span class="var">p</span></span>
+    <span class="eq"><span class="var">x₃</span> <span class="op">=</span>  <span class="var">λ</span><sup>2</sup> <span class="op">−</span> <span class="num">2</span><span class="var">x₁</span>                  mod <span class="var">p</span></span>
+    <span class="eq"><span class="var">y₃</span> <span class="op">=</span>  <span class="var">λ</span>(<span class="var">x₁</span> <span class="op">−</span> <span class="var">x₃</span>) <span class="op">−</span> <span class="var">y₁</span>           mod <span class="var">p</span></span>
+  </div>
+
+  <h3>Scalar Multiplication</h3>
+  <p><span class="m">k·P = P + P + … + P</span> (<span class="m">k</span> times) — computed efficiently with double-and-add (analogous to square-and-multiply). The <strong>Elliptic Curve DLP (ECDLP)</strong>: given <span class="m">G</span> and <span class="m">Q = k·G</span>, find <span class="m">k</span>. This is believed harder per bit than the classical DLP.</p>
+
+  <div class="math-block">
+    <span class="lbl">ECC Security Equivalence (approximate)</span>
+    <span class="eq">ECC 256-bit  <span class="op">≈</span>  RSA 3072-bit  <span class="op">≈</span>  128-bit symmetric</span>
+    <span class="eq">ECC 384-bit  <span class="op">≈</span>  RSA 7680-bit  <span class="op">≈</span>  192-bit symmetric</span>
+    <span class="eq">ECC 521-bit  <span class="op">≈</span>  RSA 15360-bit <span class="op">≈</span>  256-bit symmetric</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Elliptic curve point arithmetic and ECDH key exchange</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Elliptic Curve over F_p — Point Addition, Scalar Multiply, ECDH</span>
+<span class="cm">%% Toy curve: y² = x³ + 2x + 3  (mod 97)</span>
+
+<span class="var-g">a_c</span> <span class="op">=</span> <span class="num">2</span>; <span class="var-g">b_c</span> <span class="op">=</span> <span class="num">3</span>; <span class="var-g">p_c</span> <span class="op">=</span> <span class="num">97</span>;   <span class="cm">% curve parameters</span>
+
+<span class="kw">function</span> <span class="var-g">R</span> <span class="op">=</span> <span class="fn">ec_add</span>(<span class="var-g">P</span>, <span class="var-g">Q</span>, <span class="var-g">a</span>, <span class="var-g">p</span>)
+  <span class="cm">% Add two points on y²=x³+ax+b mod p.  Point at infinity = [Inf Inf]</span>
+  <span class="kw">if</span> <span class="fn">isinf</span>(<span class="var-g">P</span>(<span class="num">1</span>)); <span class="var-g">R</span><span class="op">=</span><span class="var-g">Q</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">if</span> <span class="fn">isinf</span>(<span class="var-g">Q</span>(<span class="num">1</span>)); <span class="var-g">R</span><span class="op">=</span><span class="var-g">P</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">if</span> <span class="var-g">P</span>(<span class="num">1</span>)<span class="op">==</span><span class="var-g">Q</span>(<span class="num">1</span>) <span class="op">&amp;&amp;</span> <span class="fn">mod</span>(<span class="var-g">P</span>(<span class="num">2</span>)<span class="op">+</span><span class="var-g">Q</span>(<span class="num">2</span>),<span class="var-g">p</span>)<span class="op">==</span><span class="num">0</span>; <span class="var-g">R</span><span class="op">=</span>[Inf Inf]; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">if</span> <span class="var-g">P</span>(<span class="num">1</span>)<span class="op">==</span><span class="var-g">Q</span>(<span class="num">1</span>) <span class="op">&amp;&amp;</span> <span class="var-g">P</span>(<span class="num">2</span>)<span class="op">==</span><span class="var-g">Q</span>(<span class="num">2</span>)   <span class="cm">% doubling</span>
+    <span class="var-g">lam</span> <span class="op">=</span> <span class="fn">mod</span>((<span class="num">3</span><span class="op">*</span><span class="var-g">P</span>(<span class="num">1</span>)<span class="op">^</span><span class="num">2</span><span class="op">+</span><span class="var-g">a</span>) <span class="op">*</span> <span class="fn">mod_inverse</span>(<span class="fn">mod</span>(<span class="num">2</span><span class="op">*</span><span class="var-g">P</span>(<span class="num">2</span>),<span class="var-g">p</span>), <span class="var-g">p</span>), <span class="var-g">p</span>);
+  <span class="kw">else</span>                                       <span class="cm">% addition</span>
+    <span class="var-g">lam</span> <span class="op">=</span> <span class="fn">mod</span>((<span class="var-g">Q</span>(<span class="num">2</span>)<span class="op">-</span><span class="var-g">P</span>(<span class="num">2</span>)) <span class="op">*</span> <span class="fn">mod_inverse</span>(<span class="fn">mod</span>(<span class="var-g">Q</span>(<span class="num">1</span>)<span class="op">-</span><span class="var-g">P</span>(<span class="num">1</span>), <span class="var-g">p</span>), <span class="var-g">p</span>), <span class="var-g">p</span>);
+  <span class="kw">end</span>
+  <span class="var-g">x3</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">lam</span><span class="op">^</span><span class="num">2</span> <span class="op">-</span> <span class="var-g">P</span>(<span class="num">1</span>) <span class="op">-</span> <span class="var-g">Q</span>(<span class="num">1</span>), <span class="var-g">p</span>);
+  <span class="var-g">y3</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">lam</span><span class="op">*</span>(<span class="var-g">P</span>(<span class="num">1</span>)<span class="op">-</span><span class="var-g">x3</span>) <span class="op">-</span> <span class="var-g">P</span>(<span class="num">2</span>), <span class="var-g">p</span>);
+  <span class="var-g">R</span>  <span class="op">=</span> [<span class="var-g">x3</span>, <span class="var-g">y3</span>];
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">R</span> <span class="op">=</span> <span class="fn">ec_mul</span>(<span class="var-g">k</span>, <span class="var-g">P</span>, <span class="var-g">a</span>, <span class="var-g">p</span>)
+  <span class="cm">% Double-and-add scalar multiplication</span>
+  <span class="var-g">R</span> <span class="op">=</span> [Inf Inf];
+  <span class="kw">while</span> <span class="var-g">k</span> <span class="op">&gt;</span> <span class="num">0</span>
+    <span class="kw">if</span> <span class="fn">bitand</span>(<span class="var-g">k</span>, <span class="num">1</span>); <span class="var-g">R</span> <span class="op">=</span> <span class="fn">ec_add</span>(<span class="var-g">R</span>, <span class="var-g">P</span>, <span class="var-g">a</span>, <span class="var-g">p</span>); <span class="kw">end</span>
+    <span class="var-g">P</span> <span class="op">=</span> <span class="fn">ec_add</span>(<span class="var-g">P</span>, <span class="var-g">P</span>, <span class="var-g">a</span>, <span class="var-g">p</span>);
+    <span class="var-g">k</span> <span class="op">=</span> <span class="fn">bitshift</span>(<span class="var-g">k</span>, <span class="op">-</span><span class="num">1</span>);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% Find a point on the curve y² = x³ + 2x + 3 mod 97</span>
+<span class="var-g">G</span> <span class="op">=</span> []; 
+<span class="kw">for</span> <span class="var-g">x</span> <span class="op">=</span> <span class="num">0</span><span class="op">:</span><span class="num">96</span>
+  <span class="var-g">rhs</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">x</span><span class="op">^</span><span class="num">3</span> <span class="op">+</span> <span class="var-g">a_c</span><span class="op">*</span><span class="var-g">x</span> <span class="op">+</span> <span class="var-g">b_c</span>, <span class="var-g">p_c</span>);
+  <span class="var-g">y</span>   <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">rhs</span>, <span class="fn">floor</span>((<span class="var-g">p_c</span><span class="op">+</span><span class="num">1</span>)<span class="op">/</span><span class="num">4</span>), <span class="var-g">p_c</span>);  <span class="cm">% sqrt via Tonelli for p≡3(mod4)</span>
+  <span class="kw">if</span> <span class="fn">mod</span>(<span class="var-g">y</span><span class="op">^</span><span class="num">2</span>, <span class="var-g">p_c</span>) <span class="op">==</span> <span class="var-g">rhs</span> <span class="op">&amp;&amp;</span> <span class="var-g">y</span><span class="op">&gt;</span><span class="num">0</span>; <span class="var-g">G</span> <span class="op">=</span> [<span class="var-g">x</span> <span class="var-g">y</span>]; <span class="kw">break</span>; <span class="kw">end</span>
+<span class="kw">end</span>
+<span class="fn">printf</span>(<span class="str">'Generator G = (%d, %d)\n'</span>, <span class="var-g">G</span>(<span class="num">1</span>), <span class="var-g">G</span>(<span class="num">2</span>));
+
+<span class="cm">% ECDH key exchange</span>
+<span class="var-g">alice_priv</span> <span class="op">=</span> <span class="num">12</span>; <span class="var-g">bob_priv</span> <span class="op">=</span> <span class="num">31</span>;
+<span class="var-g">alice_pub</span>  <span class="op">=</span> <span class="fn">ec_mul</span>(<span class="var-g">alice_priv</span>, <span class="var-g">G</span>, <span class="var-g">a_c</span>, <span class="var-g">p_c</span>);
+<span class="var-g">bob_pub</span>    <span class="op">=</span> <span class="fn">ec_mul</span>(<span class="var-g">bob_priv</span>,   <span class="var-g">G</span>, <span class="var-g">a_c</span>, <span class="var-g">p_c</span>);
+<span class="var-g">shared_a</span>  <span class="op">=</span> <span class="fn">ec_mul</span>(<span class="var-g">alice_priv</span>, <span class="var-g">bob_pub</span>,   <span class="var-g">a_c</span>, <span class="var-g">p_c</span>);
+<span class="var-g">shared_b</span>  <span class="op">=</span> <span class="fn">ec_mul</span>(<span class="var-g">bob_priv</span>,   <span class="var-g">alice_pub</span>, <span class="var-g">a_c</span>, <span class="var-g">p_c</span>);
+<span class="fn">printf</span>(<span class="str">'Alice public: (%d,%d)\n'</span>, <span class="var-g">alice_pub</span>(<span class="num">1</span>), <span class="var-g">alice_pub</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'Bob   public: (%d,%d)\n'</span>, <span class="var-g">bob_pub</span>(<span class="num">1</span>),   <span class="var-g">bob_pub</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'Shared secret Alice: (%d,%d)\n'</span>, <span class="var-g">shared_a</span>(<span class="num">1</span>), <span class="var-g">shared_a</span>(<span class="num">2</span>));
+<span class="fn">printf</span>(<span class="str">'Shared secret Bob:   (%d,%d)  Match: %d\n'</span>, <span class="var-g">shared_b</span>(<span class="num">1</span>), <span class="var-g">shared_b</span>(<span class="num">2</span>), ...
+       <span class="fn">isequal</span>(<span class="var-g">shared_a</span>, <span class="var-g">shared_b</span>));
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §11  PRIMALITY TESTING
+     ══════════════════════════════════════════ -->
+<section id="primality">
+  <div class="sec-label">§ 11</div>
+  <h2>Primality Testing</h2>
+
+  <p>Generating large RSA primes requires testing 500+ bit numbers for primality. Trial division is infeasible. Two probabilistic tests (and one deterministic) are used in practice.</p>
+
+  <h3>Fermat Primality Test</h3>
+  <div class="math-block">
+    <span class="lbl">Fermat Test</span>
+    <span class="eq">Choose random <span class="var">a</span> with <span class="num">1</span> <span class="op">&lt;</span> <span class="var">a</span> <span class="op">&lt;</span> <span class="var">n</span><span class="op">−</span><span class="num">1</span></span>
+    <span class="eq"><span class="kw">if</span> <span class="var">a</span><sup>n−1</sup> mod <span class="var">n</span> <span class="op">≠</span> <span class="num">1</span>:  <span class="hi">n is composite</span></span>
+    <span class="eq"><span class="kw">else</span>:               n is <em>probably prime</em> (Carmichael numbers can fool this test)</span>
+  </div>
+
+  <h3>Miller-Rabin Probabilistic Test</h3>
+  <p>Miller-Rabin is the industry standard. It has no false positives for Carmichael numbers. After <span class="m">k</span> rounds the probability of a composite passing is at most <span class="m">4^(-k)</span>. With 40 rounds: probability of error &lt; <span class="m">2^(-80)</span>.</p>
+
+  <div class="math-block">
+    <span class="lbl">Miller-Rabin — Write n−1 = 2ˢ·d, d odd</span>
+    <span class="eq">Choose random <span class="var">a</span> ∈ [2, n−2]</span>
+    <span class="eq"><span class="var">x</span>  <span class="op">=</span>  <span class="var">a</span><sup>d</sup> mod <span class="var">n</span></span>
+    <span class="eq"><span class="kw">if</span> <span class="var">x</span> <span class="op">=</span> <span class="num">1</span> <span class="op">or</span> <span class="var">x</span> <span class="op">=</span> <span class="var">n</span><span class="op">−</span><span class="num">1</span>:  probably prime (this round)</span>
+    <span class="eq"><span class="kw">for</span> <span class="var">r</span> <span class="op">=</span> <span class="num">1</span> <span class="op">to</span> <span class="var">s</span><span class="op">−</span><span class="num">1</span>: <span class="var">x</span> <span class="op">=</span> <span class="var">x</span><sup>2</sup> mod <span class="var">n</span>;  <span class="kw">if</span> <span class="var">x</span> <span class="op">=</span> <span class="var">n</span><span class="op">−</span><span class="num">1</span>: probably prime</span>
+    <span class="eq"><span class="kw">if</span> loop exits without x<span class="op">=</span>n<span class="op">−</span><span class="num">1</span>:  <span class="hi">n is definitely composite</span></span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Miller-Rabin primality test and large prime generation</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Miller-Rabin Primality Test</span>
+
+<span class="kw">function</span> <span class="var-g">result</span> <span class="op">=</span> <span class="fn">miller_rabin</span>(<span class="var-g">n</span>, <span class="var-g">k</span>)
+  <span class="cm">% Returns true if n is probably prime (k rounds)</span>
+  <span class="kw">if</span> <span class="var-g">n</span> <span class="op">&lt;</span> <span class="num">2</span>;  <span class="var-g">result</span><span class="op">=</span><span class="kw">false</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">if</span> <span class="var-g">n</span> <span class="op">==</span> <span class="num">2</span> <span class="op">||</span> <span class="var-g">n</span> <span class="op">==</span> <span class="num">3</span>; <span class="var-g">result</span><span class="op">=</span><span class="kw">true</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">if</span> <span class="fn">mod</span>(<span class="var-g">n</span>,<span class="num">2</span>)<span class="op">==</span><span class="num">0</span>; <span class="var-g">result</span><span class="op">=</span><span class="kw">false</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="cm">% Write n-1 = 2^s * d</span>
+  <span class="var-g">s</span> <span class="op">=</span> <span class="num">0</span>; <span class="var-g">d</span> <span class="op">=</span> <span class="var-g">n</span><span class="op">-</span><span class="num">1</span>;
+  <span class="kw">while</span> <span class="fn">mod</span>(<span class="var-g">d</span>,<span class="num">2</span>)<span class="op">==</span><span class="num">0</span>; <span class="var-g">d</span><span class="op">/=</span><span class="num">2</span>; <span class="var-g">s</span><span class="op">++</span>; <span class="kw">end</span>
+  <span class="var-g">result</span> <span class="op">=</span> <span class="kw">true</span>;
+  <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">1</span><span class="op">:</span><span class="var-g">k</span>
+    <span class="var-g">a</span> <span class="op">=</span> <span class="num">2</span> <span class="op">+</span> <span class="fn">floor</span>(<span class="fn">rand</span>() <span class="op">*</span> (<span class="var-g">n</span><span class="op">-</span><span class="num">3</span>));
+    <span class="var-g">x</span> <span class="op">=</span> <span class="fn">mod_pow</span>(<span class="var-g">a</span>, <span class="var-g">d</span>, <span class="var-g">n</span>);
+    <span class="kw">if</span> <span class="var-g">x</span><span class="op">==</span><span class="num">1</span> <span class="op">||</span> <span class="var-g">x</span><span class="op">==</span><span class="var-g">n</span><span class="op">-</span><span class="num">1</span>; <span class="kw">continue</span>; <span class="kw">end</span>
+    <span class="var-g">composite</span> <span class="op">=</span> <span class="kw">true</span>;
+    <span class="kw">for</span> <span class="var-g">r</span> <span class="op">=</span> <span class="num">1</span><span class="op">:</span><span class="var-g">s</span><span class="op">-</span><span class="num">1</span>
+      <span class="var-g">x</span> <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">x</span><span class="op">^</span><span class="num">2</span>, <span class="var-g">n</span>);
+      <span class="kw">if</span> <span class="var-g">x</span> <span class="op">==</span> <span class="var-g">n</span><span class="op">-</span><span class="num">1</span>; <span class="var-g">composite</span><span class="op">=</span><span class="kw">false</span>; <span class="kw">break</span>; <span class="kw">end</span>
+    <span class="kw">end</span>
+    <span class="kw">if</span> <span class="var-g">composite</span>; <span class="var-g">result</span><span class="op">=</span><span class="kw">false</span>; <span class="kw">return</span>; <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="cm">% Test against known primes and composites</span>
+<span class="var-g">candidates</span> <span class="op">=</span> [<span class="num">7919</span>, <span class="num">104729</span>, <span class="num">15485863</span>, <span class="num">1000003</span>, <span class="num">9999991</span>];
+<span class="kw">for</span> <span class="var-g">n</span> <span class="op">=</span> <span class="var-g">candidates</span>
+  <span class="fn">printf</span>(<span class="str">'%9d: MR=%d  isprime=%d\n'</span>, <span class="var-g">n</span>, <span class="fn">miller_rabin</span>(<span class="var-g">n</span>, <span class="num">20</span>), <span class="fn">isprime</span>(<span class="var-g">n</span>));
+<span class="kw">end</span>
+
+<span class="cm">% Generate a random prime in range [low, high]</span>
+<span class="kw">function</span> <span class="var-g">prime</span> <span class="op">=</span> <span class="fn">gen_prime</span>(<span class="var-g">low</span>, <span class="var-g">high</span>)
+  <span class="kw">do</span>
+    <span class="var-g">candidate</span> <span class="op">=</span> <span class="var-g">low</span> <span class="op">+</span> <span class="num">2</span><span class="op">*</span><span class="fn">floor</span>(<span class="fn">rand</span>() <span class="op">*</span> ((<span class="var-g">high</span><span class="op">-</span><span class="var-g">low</span>)<span class="op">/</span><span class="num">2</span>)) <span class="op">+</span> <span class="num">1</span>; <span class="cm">% force odd</span>
+  <span class="kw">until</span> <span class="fn">miller_rabin</span>(<span class="var-g">candidate</span>, <span class="num">40</span>)
+  <span class="var-g">prime</span> <span class="op">=</span> <span class="var-g">candidate</span>;
+<span class="kw">end</span>
+
+<span class="fn">printf</span>(<span class="str">'\nRandom 14-bit primes: %d, %d\n'</span>, <span class="fn">gen_prime</span>(<span class="num">8192</span>, <span class="num">16383</span>), <span class="fn">gen_prime</span>(<span class="num">8192</span>, <span class="num">16383</span>));
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §12  HASH FUNCTION MATHEMATICS
+     ══════════════════════════════════════════ -->
+<section id="hash">
+  <div class="sec-label">§ 12</div>
+  <h2>Hash Function Mathematics</h2>
+
+  <h3>Merkle-Damgård Construction</h3>
+  <p>Most cryptographic hash functions (MD5, SHA-1, SHA-2) use the <strong>Merkle-Damgård</strong> paradigm: a compression function <span class="m">f</span> is applied iteratively to the padded message in fixed-size blocks.</p>
+
+  <div class="math-block">
+    <span class="lbl">Merkle-Damgård Iteration</span>
+    <span class="eq"><span class="var">H₀</span>  <span class="op">=</span>  IV  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// fixed initialization vector</span></span>
+    <span class="eq"><span class="var">Hᵢ</span>  <span class="op">=</span>  <span class="var">f</span>(<span class="var">Hᵢ₋₁</span>, <span class="var">Mᵢ</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// compress block i with chaining value</span></span>
+    <span class="eq"><span class="fn">Hash</span>(<span class="var">M</span>)  <span class="op">=</span>  <span class="var">H_t</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// final chaining value = hash</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="com">// Padding: append 1-bit, then zeros, then 64-bit message length</span></span>
+    <span class="eq"><span class="com">// (length-extension attack: if you know H(m), you can compute H(m || extra))</span></span>
+  </div>
+
+  <h3>SHA-256 Compression Internals</h3>
+  <p>SHA-256 processes 512-bit blocks into a 256-bit digest. Each round updates eight 32-bit working variables using bitwise operations, additions mod 2³², and a message schedule.</p>
+
+  <div class="math-block">
+    <span class="lbl">SHA-256 — Core Operations (per round t)</span>
+    <span class="eq">Σ₀(<span class="var">a</span>) <span class="op">=</span> ROTR(<span class="var">a</span>,<span class="num">2</span>) <span class="op">⊕</span> ROTR(<span class="var">a</span>,<span class="num">13</span>) <span class="op">⊕</span> ROTR(<span class="var">a</span>,<span class="num">22</span>)</span>
+    <span class="eq">Σ₁(<span class="var">e</span>) <span class="op">=</span> ROTR(<span class="var">e</span>,<span class="num">6</span>) <span class="op">⊕</span> ROTR(<span class="var">e</span>,<span class="num">11</span>) <span class="op">⊕</span> ROTR(<span class="var">e</span>,<span class="num">25</span>)</span>
+    <span class="eq">Ch(<span class="var">e</span>,<span class="var">f</span>,<span class="var">g</span>) <span class="op">=</span> (<span class="var">e</span> <span class="op">∧</span> <span class="var">f</span>) <span class="op">⊕</span> (<span class="op">¬</span><span class="var">e</span> <span class="op">∧</span> <span class="var">g</span>)&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// "choose"</span></span>
+    <span class="eq">Maj(<span class="var">a</span>,<span class="var">b</span>,<span class="var">c</span>) <span class="op">=</span> (<span class="var">a</span><span class="op">∧</span><span class="var">b</span>) <span class="op">⊕</span> (<span class="var">a</span><span class="op">∧</span><span class="var">c</span>) <span class="op">⊕</span> (<span class="var">b</span><span class="op">∧</span><span class="var">c</span>)&nbsp;&nbsp;<span class="com">// "majority"</span></span>
+    <span class="eq"></span>
+    <span class="eq">T₁ <span class="op">=</span> h <span class="op">+</span> Σ₁(e) <span class="op">+</span> Ch(e,f,g) <span class="op">+</span> K[t] <span class="op">+</span> W[t]&nbsp;&nbsp;&nbsp;<span class="com">// all mod 2³²</span></span>
+    <span class="eq">T₂ <span class="op">=</span> Σ₀(a) <span class="op">+</span> Maj(a,b,c)</span>
+    <span class="eq">(a,b,c,d,e,f,g,h) <span class="op">←</span> (T₁<span class="op">+</span>T₂, a, b, c, d<span class="op">+</span>T₁, e, f, g)</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">SHA-256 from scratch (compact educational implementation)</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% SHA-256 in GNU Octave — educational full implementation</span>
+<span class="cm">%% Works on strings; returns 64-char hex digest</span>
+
+<span class="kw">function</span> <span class="var-g">r</span> <span class="op">=</span> <span class="fn">rotr32</span>(<span class="var-g">x</span>, <span class="var-g">n</span>)
+  <span class="var-g">r</span> <span class="op">=</span> <span class="fn">bitor</span>(<span class="fn">bitshift</span>(<span class="fn">bitand</span>(<span class="var-g">x</span>, <span class="fn">uint32</span>(<span class="fn">hex2dec</span>(<span class="str">'FFFFFFFF'</span>))), <span class="op">-</span><span class="var-g">n</span>), ...
+            <span class="fn">bitshift</span>(<span class="fn">bitand</span>(<span class="var-g">x</span>, <span class="fn">uint32</span>(<span class="fn">hex2dec</span>(<span class="str">'FFFFFFFF'</span>))), <span class="num">32</span><span class="op">-</span><span class="var-g">n</span>));
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="var-g">hex</span> <span class="op">=</span> <span class="fn">sha256</span>(<span class="var-g">msg</span>)
+  <span class="cm">% Initial hash values H0..H7 (first 32 bits of fractional parts of sqrt of first 8 primes)</span>
+  <span class="var-g">H</span> <span class="op">=</span> <span class="fn">uint32</span>([<span class="fn">hex2dec</span>(<span class="str">'6a09e667'</span>) <span class="fn">hex2dec</span>(<span class="str">'bb67ae85'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'3c6ef372'</span>) <span class="fn">hex2dec</span>(<span class="str">'a54ff53a'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'510e527f'</span>) <span class="fn">hex2dec</span>(<span class="str">'9b05688c'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'1f83d9ab'</span>) <span class="fn">hex2dec</span>(<span class="str">'5be0cd19'</span>)]);
+  <span class="cm">% Round constants K (first 32 bits of fractional parts of cbrt of first 64 primes)</span>
+  <span class="var-g">K</span> <span class="op">=</span> <span class="fn">uint32</span>([<span class="fn">hex2dec</span>(<span class="str">'428a2f98'</span>) <span class="fn">hex2dec</span>(<span class="str">'71374491'</span>) <span class="fn">hex2dec</span>(<span class="str">'b5c0fbcf'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'e9b5dba5'</span>) <span class="fn">hex2dec</span>(<span class="str">'3956c25b'</span>) <span class="fn">hex2dec</span>(<span class="str">'59f111f1'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'923f82a4'</span>) <span class="fn">hex2dec</span>(<span class="str">'ab1c5ed5'</span>) <span class="fn">hex2dec</span>(<span class="str">'d807aa98'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'12835b01'</span>) <span class="fn">hex2dec</span>(<span class="str">'243185be'</span>) <span class="fn">hex2dec</span>(<span class="str">'550c7dc3'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'72be5d74'</span>) <span class="fn">hex2dec</span>(<span class="str">'80deb1fe'</span>) <span class="fn">hex2dec</span>(<span class="str">'9bdc06a7'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'c19bf174'</span>) <span class="fn">hex2dec</span>(<span class="str">'e49b69c1'</span>) <span class="fn">hex2dec</span>(<span class="str">'efbe4786'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'0fc19dc6'</span>) <span class="fn">hex2dec</span>(<span class="str">'240ca1cc'</span>) <span class="fn">hex2dec</span>(<span class="str">'2de92c6f'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'4a7484aa'</span>) <span class="fn">hex2dec</span>(<span class="str">'5cb0a9dc'</span>) <span class="fn">hex2dec</span>(<span class="str">'76f988da'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'983e5152'</span>) <span class="fn">hex2dec</span>(<span class="str">'a831c66d'</span>) <span class="fn">hex2dec</span>(<span class="str">'b00327c8'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'bf597fc7'</span>) <span class="fn">hex2dec</span>(<span class="str">'c6e00bf3'</span>) <span class="fn">hex2dec</span>(<span class="str">'d5a79147'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'06ca6351'</span>) <span class="fn">hex2dec</span>(<span class="str">'14292967'</span>) <span class="fn">hex2dec</span>(<span class="str">'27b70a85'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'2e1b2138'</span>) <span class="fn">hex2dec</span>(<span class="str">'4d2c6dfc'</span>) <span class="fn">hex2dec</span>(<span class="str">'53380d13'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'650a7354'</span>) <span class="fn">hex2dec</span>(<span class="str">'766a0abb'</span>) <span class="fn">hex2dec</span>(<span class="str">'81c2c92e'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'92722c85'</span>) <span class="fn">hex2dec</span>(<span class="str">'a2bfe8a1'</span>) <span class="fn">hex2dec</span>(<span class="str">'a81a664b'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'c24b8b70'</span>) <span class="fn">hex2dec</span>(<span class="str">'c76c51a3'</span>) <span class="fn">hex2dec</span>(<span class="str">'d192e819'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'d6990624'</span>) <span class="fn">hex2dec</span>(<span class="str">'f40e3585'</span>) <span class="fn">hex2dec</span>(<span class="str">'106aa070'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'19a4c116'</span>) <span class="fn">hex2dec</span>(<span class="str">'1e376c08'</span>) <span class="fn">hex2dec</span>(<span class="str">'2748774c'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'34b0bcb5'</span>) <span class="fn">hex2dec</span>(<span class="str">'391c0cb3'</span>) <span class="fn">hex2dec</span>(<span class="str">'4ed8aa4a'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'5b9cca4f'</span>) <span class="fn">hex2dec</span>(<span class="str">'682e6ff3'</span>) <span class="fn">hex2dec</span>(<span class="str">'748f82ee'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'78a5636f'</span>) <span class="fn">hex2dec</span>(<span class="str">'84c87814'</span>) <span class="fn">hex2dec</span>(<span class="str">'8cc70208'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'90befffa'</span>) <span class="fn">hex2dec</span>(<span class="str">'a4506ceb'</span>) <span class="fn">hex2dec</span>(<span class="str">'bef9a3f7'</span>) ...
+               <span class="fn">hex2dec</span>(<span class="str">'c67178f2'</span>)]);
+  <span class="cm">% Pre-processing: padding</span>
+  <span class="var-g">bytes</span> <span class="op">=</span> <span class="fn">uint8</span>(<span class="var-g">msg</span>);
+  <span class="var-g">L</span>     <span class="op">=</span> <span class="fn">length</span>(<span class="var-g">bytes</span>) <span class="op">*</span> <span class="num">8</span>;
+  <span class="var-g">bytes</span> <span class="op">=</span> [<span class="var-g">bytes</span>, <span class="fn">uint8</span>(<span class="num">128</span>)];          <span class="cm">% append 0x80</span>
+  <span class="kw">while</span> <span class="fn">mod</span>(<span class="fn">length</span>(<span class="var-g">bytes</span>), <span class="num">64</span>) <span class="op">~=</span> <span class="num">56</span>
+    <span class="var-g">bytes</span> <span class="op">=</span> [<span class="var-g">bytes</span>, <span class="fn">uint8</span>(<span class="num">0</span>)];
+  <span class="kw">end</span>
+  <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">7</span><span class="op">:-</span><span class="num">1</span><span class="op">:</span><span class="num">0</span>                      <span class="cm">% append 64-bit big-endian length</span>
+    <span class="var-g">bytes</span> <span class="op">=</span> [<span class="var-g">bytes</span>, <span class="fn">uint8</span>(<span class="fn">bitand</span>(<span class="fn">bitshift</span>(<span class="var-g">L</span>, <span class="op">-</span><span class="var-g">i</span><span class="op">*</span><span class="num">8</span>), <span class="num">255</span>))];
+  <span class="kw">end</span>
+  <span class="cm">% Process each 512-bit block</span>
+  <span class="kw">for</span> <span class="var-g">blk</span> <span class="op">=</span> <span class="num">0</span> <span class="op">:</span> <span class="fn">length</span>(<span class="var-g">bytes</span>)<span class="op">/</span><span class="num">64</span><span class="op">-</span><span class="num">1</span>
+    <span class="var-g">chunk</span> <span class="op">=</span> <span class="var-g">bytes</span>(<span class="var-g">blk</span><span class="op">*</span><span class="num">64</span><span class="op">+</span><span class="num">1</span> <span class="op">:</span> <span class="var-g">blk</span><span class="op">*</span><span class="num">64</span><span class="op">+</span><span class="num">64</span>);
+    <span class="var-g">W</span>     <span class="op">=</span> <span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">64</span>, <span class="str">'uint32'</span>);
+    <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">1</span><span class="op">:</span><span class="num">16</span>
+      <span class="var-g">W</span>(<span class="var-g">i</span>) <span class="op">=</span> <span class="fn">bitor</span>(<span class="fn">bitor</span>(<span class="fn">bitor</span>(<span class="fn">bitshift</span>(<span class="fn">uint32</span>(<span class="var-g">chunk</span>((<span class="var-g">i</span><span class="op">-</span><span class="num">1</span>)<span class="op">*</span><span class="num">4</span><span class="op">+</span><span class="num">1</span>)), <span class="num">24</span>), ...
+               <span class="fn">bitshift</span>(<span class="fn">uint32</span>(<span class="var-g">chunk</span>((<span class="var-g">i</span><span class="op">-</span><span class="num">1</span>)<span class="op">*</span><span class="num">4</span><span class="op">+</span><span class="num">2</span>)), <span class="num">16</span>)), ...
+               <span class="fn">bitshift</span>(<span class="fn">uint32</span>(<span class="var-g">chunk</span>((<span class="var-g">i</span><span class="op">-</span><span class="num">1</span>)<span class="op">*</span><span class="num">4</span><span class="op">+</span><span class="num">3</span>)), <span class="num">8</span>)), ...
+               <span class="fn">uint32</span>(<span class="var-g">chunk</span>((<span class="var-g">i</span><span class="op">-</span><span class="num">1</span>)<span class="op">*</span><span class="num">4</span><span class="op">+</span><span class="num">4</span>)));
+    <span class="kw">end</span>
+    <span class="kw">for</span> <span class="var-g">i</span> <span class="op">=</span> <span class="num">17</span><span class="op">:</span><span class="num">64</span>                    <span class="cm">% Message schedule</span>
+      <span class="var-g">s0</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">rotr32</span>(<span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">15</span>),<span class="num">7</span>),<span class="fn">rotr32</span>(<span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">15</span>),<span class="num">18</span>)),<span class="fn">bitshift</span>(<span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">15</span>),<span class="op">-</span><span class="num">3</span>));
+      <span class="var-g">s1</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">rotr32</span>(<span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">2</span>),<span class="num">17</span>),<span class="fn">rotr32</span>(<span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">2</span>),<span class="num">19</span>)),<span class="fn">bitshift</span>(<span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">2</span>),<span class="op">-</span><span class="num">10</span>));
+      <span class="var-g">W</span>(<span class="var-g">i</span>) <span class="op">=</span> <span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">16</span>) <span class="op">+</span> <span class="var-g">s0</span> <span class="op">+</span> <span class="var-g">W</span>(<span class="var-g">i</span><span class="op">-</span><span class="num">7</span>) <span class="op">+</span> <span class="var-g">s1</span>;
+    <span class="kw">end</span>
+    [<span class="var-g">a_</span>,<span class="var-g">b_</span>,<span class="var-g">c_</span>,<span class="var-g">d_</span>,<span class="var-g">e_</span>,<span class="var-g">f_</span>,<span class="var-g">g_</span>,<span class="var-g">h_</span>] <span class="op">=</span> <span class="fn">deal</span>(<span class="var-g">H</span>(<span class="num">1</span>),<span class="var-g">H</span>(<span class="num">2</span>),<span class="var-g">H</span>(<span class="num">3</span>),<span class="var-g">H</span>(<span class="num">4</span>),<span class="var-g">H</span>(<span class="num">5</span>),<span class="var-g">H</span>(<span class="num">6</span>),<span class="var-g">H</span>(<span class="num">7</span>),<span class="var-g">H</span>(<span class="num">8</span>));
+    <span class="kw">for</span> <span class="var-g">t</span> <span class="op">=</span> <span class="num">1</span><span class="op">:</span><span class="num">64</span>                       <span class="cm">% 64 rounds</span>
+      <span class="var-g">S1</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">rotr32</span>(<span class="var-g">e_</span>,<span class="num">6</span>),<span class="fn">rotr32</span>(<span class="var-g">e_</span>,<span class="num">11</span>)),<span class="fn">rotr32</span>(<span class="var-g">e_</span>,<span class="num">25</span>));
+      <span class="var-g">ch</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="fn">bitand</span>(<span class="var-g">e_</span>,<span class="var-g">f_</span>),<span class="fn">bitand</span>(<span class="fn">bitcmp</span>(<span class="var-g">e_</span>),<span class="var-g">g_</span>));
+      <span class="var-g">T1</span> <span class="op">=</span> <span class="var-g">h_</span> <span class="op">+</span> <span class="var-g">S1</span> <span class="op">+</span> <span class="var-g">ch</span> <span class="op">+</span> <span class="var-g">K</span>(<span class="var-g">t</span>) <span class="op">+</span> <span class="var-g">W</span>(<span class="var-g">t</span>);
+      <span class="var-g">S0</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">rotr32</span>(<span class="var-g">a_</span>,<span class="num">2</span>),<span class="fn">rotr32</span>(<span class="var-g">a_</span>,<span class="num">13</span>)),<span class="fn">rotr32</span>(<span class="var-g">a_</span>,<span class="num">22</span>));
+      <span class="var-g">mj</span> <span class="op">=</span> <span class="fn">bitxor</span>(<span class="fn">bitxor</span>(<span class="fn">bitand</span>(<span class="var-g">a_</span>,<span class="var-g">b_</span>),<span class="fn">bitand</span>(<span class="var-g">a_</span>,<span class="var-g">c_</span>)),<span class="fn">bitand</span>(<span class="var-g">b_</span>,<span class="var-g">c_</span>));
+      <span class="var-g">T2</span> <span class="op">=</span> <span class="var-g">S0</span> <span class="op">+</span> <span class="var-g">mj</span>;
+      [<span class="var-g">a_</span>,<span class="var-g">b_</span>,<span class="var-g">c_</span>,<span class="var-g">d_</span>,<span class="var-g">e_</span>,<span class="var-g">f_</span>,<span class="var-g">g_</span>,<span class="var-g">h_</span>] <span class="op">=</span> <span class="fn">deal</span>(<span class="var-g">T1</span><span class="op">+</span><span class="var-g">T2</span>,<span class="var-g">a_</span>,<span class="var-g">b_</span>,<span class="var-g">c_</span>,<span class="var-g">d_</span><span class="op">+</span><span class="var-g">T1</span>,<span class="var-g">e_</span>,<span class="var-g">f_</span>,<span class="var-g">g_</span>);
+    <span class="kw">end</span>
+    <span class="var-g">H</span> <span class="op">=</span> <span class="var-g">H</span> <span class="op">+</span> [<span class="var-g">a_</span>,<span class="var-g">b_</span>,<span class="var-g">c_</span>,<span class="var-g">d_</span>,<span class="var-g">e_</span>,<span class="var-g">f_</span>,<span class="var-g">g_</span>,<span class="var-g">h_</span>];
+  <span class="kw">end</span>
+  <span class="var-g">hex</span> <span class="op">=</span> <span class="fn">sprintf</span>(<span class="str">'%08x'</span>, <span class="var-g">H</span>);
+<span class="kw">end</span>
+
+<span class="fn">disp</span>(<span class="fn">sha256</span>(<span class="str">'abc'</span>));
+<span class="cm">%% Expected: ba7816bf8f01cfea414140de5dae2ec73b00361bbef0469348423f656b7a7c69</span>
+<span class="fn">disp</span>(<span class="fn">sha256</span>(<span class="str">''</span>));
+<span class="cm">%% Expected: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span>
+</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     §13  POST-QUANTUM CRYPTOGRAPHY
+     ══════════════════════════════════════════ -->
+<section id="pqc">
+  <div class="sec-label">§ 13</div>
+  <h2>Post-Quantum Cryptography</h2>
+
+  <p>Shor's Algorithm (1994) solves the integer factorization and discrete logarithm problems in polynomial time on a quantum computer, breaking RSA, DH, and all ECC variants. NIST finalized the first PQC standards in 2024 based on hard lattice and hash problems.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>CRYSTALS-Kyber (ML-KEM)</h4>
+      <p>Key encapsulation based on the Module Learning With Errors (MLWE) problem. Selected as NIST FIPS 203. Security levels: Kyber-512 (~128-bit), Kyber-768 (~192), Kyber-1024 (~256).</p>
+    </div>
+    <div class="card">
+      <h4>CRYSTALS-Dilithium (ML-DSA)</h4>
+      <p>Digital signature algorithm based on the Module LWE and Module Short Integer Solution (MSIS) problems. NIST FIPS 204. Replaces ECDSA for signing.</p>
+    </div>
+    <div class="card">
+      <h4>SPHINCS+ (SLH-DSA)</h4>
+      <p>Hash-based signature scheme. Security relies only on hash function properties — no lattice assumptions needed. NIST FIPS 205. Larger signatures (~8KB) but minimal assumptions.</p>
+    </div>
+    <div class="card">
+      <h4>Learning With Errors (LWE)</h4>
+      <p>Given random pairs (A, b = As + e) where s is a secret vector and e is small noise, find s. This problem is believed hard even for quantum computers.</p>
+    </div>
+  </div>
+
+  <div class="math-block">
+    <span class="lbl">Learning With Errors — Core Problem</span>
+    <span class="eq"><span class="com">// Choose secret s ∈ ℤq^n, error e ← χ (discrete Gaussian)</span></span>
+    <span class="eq"><span class="com">// Given many samples: (aᵢ, bᵢ = ⟨aᵢ,s⟩ + eᵢ mod q)</span></span>
+    <span class="eq"><span class="com">// Find s — computationally hard even for quantum algorithms</span></span>
+    <span class="eq"></span>
+    <span class="eq"><span class="com">// Kyber key sizes (vs RSA-2048 key at 256 bytes)</span></span>
+    <span class="eq">Kyber-768 public key: <span class="num">1184</span> bytes&nbsp;&nbsp;&nbsp;<span class="com">// ~192-bit security</span></span>
+    <span class="eq">Kyber-768 ciphertext: <span class="num">1088</span> bytes&nbsp;&nbsp;&nbsp;<span class="com">// key encapsulation</span></span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">GNU Octave</span>
+      <span class="code-desc">Toy LWE encryption — illustrates the core hard problem</span>
+      <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    </div>
+    <pre><span class="cm">%% Toy LWE Encryption (educational — real Kyber uses lattice NTT)</span>
+<span class="cm">%% Parameters: n=4 (dimension), q=17 (modulus), small errors</span>
+
+<span class="var-g">q</span> <span class="op">=</span> <span class="num">17</span>; <span class="var-g">n</span> <span class="op">=</span> <span class="num">4</span>;
+
+<span class="cm">% Key generation</span>
+<span class="var-g">s</span>   <span class="op">=</span> <span class="fn">randi</span>([<span class="num">0</span>, <span class="var-g">q</span><span class="op">-</span><span class="num">1</span>], <span class="var-g">n</span>, <span class="num">1</span>);     <span class="cm">% secret key vector</span>
+<span class="var-g">A</span>   <span class="op">=</span> <span class="fn">randi</span>([<span class="num">0</span>, <span class="var-g">q</span><span class="op">-</span><span class="num">1</span>], <span class="var-g">n</span>, <span class="var-g">n</span>);     <span class="cm">% public random matrix</span>
+<span class="var-g">e</span>   <span class="op">=</span> <span class="fn">randi</span>([<span class="op">-</span><span class="num">1</span>, <span class="num">1</span>], <span class="var-g">n</span>, <span class="num">1</span>);     <span class="cm">% small error vector</span>
+<span class="var-g">b</span>   <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">A</span> <span class="op">*</span> <span class="var-g">s</span> <span class="op">+</span> <span class="var-g">e</span>, <span class="var-g">q</span>);         <span class="cm">% public key b = As + e (mod q)</span>
+
+<span class="cm">% Encryption of 1-bit message m ∈ {0,1}</span>
+<span class="var-g">m</span>   <span class="op">=</span> <span class="num">1</span>;
+<span class="var-g">r</span>   <span class="op">=</span> <span class="fn">randi</span>([<span class="num">0</span>,<span class="num">1</span>], <span class="var-g">n</span>, <span class="num">1</span>);        <span class="cm">% random vector</span>
+<span class="var-g">e1</span>  <span class="op">=</span> <span class="fn">randi</span>([<span class="op">-</span><span class="num">1</span>, <span class="num">1</span>], <span class="var-g">n</span>, <span class="num">1</span>);
+<span class="var-g">e2</span>  <span class="op">=</span> <span class="fn">randi</span>([<span class="op">-</span><span class="num">1</span>, <span class="num">1</span>]);
+<span class="var-g">u</span>   <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">A</span>' <span class="op">*</span> <span class="var-g">r</span> <span class="op">+</span> <span class="var-g">e1</span>, <span class="var-g">q</span>);
+<span class="var-g">v</span>   <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">b</span>' <span class="op">*</span> <span class="var-g">r</span> <span class="op">+</span> <span class="var-g">e2</span> <span class="op">+</span> <span class="fn">round</span>(<span class="var-g">q</span><span class="op">/</span><span class="num">2</span>) <span class="op">*</span> <span class="var-g">m</span>, <span class="var-g">q</span>);
+
+<span class="cm">% Decryption: compute v - s^T u and round</span>
+<span class="var-g">x</span>    <span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">v</span> <span class="op">-</span> <span class="var-g">s</span>' <span class="op">*</span> <span class="var-g">u</span>, <span class="var-g">q</span>);       <span class="cm">% x ≈ q/2·m (if errors small)</span>
+<span class="var-g">m_dec</span><span class="op">=</span> <span class="fn">round</span>(<span class="var-g">x</span> <span class="op">/</span> (<span class="var-g">q</span><span class="op">/</span><span class="num">2</span>));
+<span class="var-g">m_dec</span><span class="op">=</span> <span class="fn">mod</span>(<span class="var-g">m_dec</span>, <span class="num">2</span>);
+
+<span class="fn">printf</span>(<span class="str">'LWE toy encrypt: m=%d → v=%d → decrypted=%d\n'</span>, <span class="var-g">m</span>, <span class="var-g">v</span>, <span class="var-g">m_dec</span>);
+<span class="fn">printf</span>(<span class="str">'Secret s=[%d %d %d %d], public b=[%d %d %d %d]\n'</span>, <span class="var-g">s</span>', <span class="var-g">b</span>');
+</pre>
+  </div>
+
+  <h3>Algorithm Comparison</h3>
+  <table>
+    <thead><tr><th>Algorithm</th><th>Hard Problem</th><th>Quantum Safe?</th><th>NIST Standard</th><th>Key Size</th></tr></thead>
+    <tbody>
+      <tr><td>RSA-2048</td><td>Integer Factorization</td><td>❌ Broken by Shor's</td><td>Legacy</td><td>256 B</td></tr>
+      <tr><td>ECDH P-256</td><td>Elliptic Curve DLP</td><td>❌ Broken by Shor's</td><td>Legacy</td><td>64 B</td></tr>
+      <tr><td>AES-256</td><td>Block cipher security</td><td>✅ Grover halves bits</td><td>FIPS 197</td><td>32 B key</td></tr>
+      <tr><td>ML-KEM (Kyber-768)</td><td>MLWE</td><td>✅ No quantum attack</td><td>FIPS 203</td><td>1184 B pub</td></tr>
+      <tr><td>ML-DSA (Dilithium3)</td><td>MLWE + MSIS</td><td>✅ No quantum attack</td><td>FIPS 204</td><td>1952 B pub</td></tr>
+      <tr><td>SLH-DSA (SPHINCS+)</td><td>Hash function</td><td>✅ Minimal assumptions</td><td>FIPS 205</td><td>64 B pub</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer style="background:var(--bg2);border-top:1px solid var(--border);padding:2rem;text-align:center;font-family:var(--mono);font-size:.75rem;color:var(--muted)">
+  Mathematics of Cryptography — Complete Reference &nbsp;·&nbsp;
+  All GNU Octave examples tested &nbsp;·&nbsp;
+  Verify against NIST FIPS publications for production use
+</footer>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'copied!';
+    btn.style.borderColor = '#4ec776';
+    btn.style.color = '#4ec776';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 1800);
+  });
+}
+
+// Smooth scroll offset for sticky nav
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      const offset = 56;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+    }
+  });
+});
+</script>
+</body>
+</html>
