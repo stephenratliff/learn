@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GNU Octave — Beginner's Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ─── DESIGN TOKENS ─────────────────────────────────────── */
+  :root {
+    --bg:          #090d19;
+    --bg-2:        #0f1628;
+    --bg-3:        #141c35;
+    --surface:     #192040;
+    --surface-2:   #1e2a4a;
+    --border:      rgba(0,212,170,0.15);
+    --accent:      #00d4aa;
+    --accent-dim:  #00a882;
+    --amber:       #f59e0b;
+    --amber-dim:   #d97706;
+    --coral:       #ff6b6b;
+    --text:        #d4e0f7;
+    --text-muted:  #6b7fa8;
+    --text-dim:    #8fa3cc;
+    --code-bg:     #0a0f1e;
+    --code-border: rgba(0,212,170,0.2);
+    --radius:      8px;
+    --sidebar-w:   280px;
+  }
+
+  /* ─── RESET & BASE ──────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    line-height: 1.75;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ─── SIDEBAR ───────────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--bg-2);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--amber));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  .sidebar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #fff;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .sidebar-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    padding: 12px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--surface);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--amber));
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* Nav list */
+  nav { padding: 12px 0 24px; flex: 1; }
+
+  .nav-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    padding: 10px 24px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 24px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    transition: all 0.15s ease;
+    border-left: 2px solid transparent;
+    line-height: 1.3;
+    font-family: 'Lora', serif;
+  }
+
+  .nav-item:hover {
+    color: #fff;
+    background: rgba(0,212,170,0.05);
+    border-left-color: rgba(0,212,170,0.3);
+  }
+
+  .nav-item.active {
+    color: var(--accent);
+    background: rgba(0,212,170,0.08);
+    border-left-color: var(--accent);
+    font-weight: 500;
+  }
+
+  .nav-item.done { color: var(--text-dim); }
+
+  .nav-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    min-width: 18px;
+    flex-shrink: 0;
+  }
+
+  .nav-check {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--text-muted);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-left: auto;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    color: transparent;
+    transition: all 0.2s;
+  }
+
+  .nav-item.done .nav-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  /* ─── MAIN CONTENT ──────────────────────────────────────── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    max-width: 900px;
+    padding: 60px 56px 120px;
+  }
+
+  /* ─── HERO ──────────────────────────────────────────────── */
+  .hero {
+    text-align: center;
+    padding: 48px 0 64px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 72px;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse at center, rgba(0,212,170,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    max-width: 480px;
+    margin: 0 auto 28px;
+    font-style: italic;
+  }
+
+  .hero-tags {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── SECTIONS ──────────────────────────────────────────── */
+  .section {
+    margin-bottom: 80px;
+    scroll-margin-top: 32px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.25);
+    border-radius: 4px;
+    padding: 3px 7px;
+    margin-top: 6px;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+  }
+
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+    line-height: 1.15;
+  }
+
+  .section h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--amber);
+    margin: 28px 0 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .section p {
+    margin-bottom: 14px;
+    color: var(--text-dim);
+    font-size: 0.96rem;
+  }
+
+  .section ul, .section ol {
+    padding-left: 1.4em;
+    margin-bottom: 14px;
+    color: var(--text-dim);
+    font-size: 0.96rem;
+  }
+
+  .section li { margin-bottom: 5px; }
+
+  /* ─── CODE BLOCKS ───────────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius);
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    position: relative;
+  }
+
+  pre .copy-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.63rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    opacity: 0;
+  }
+
+  pre:hover .copy-btn { opacity: 1; }
+  pre .copy-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+  pre .copy-btn.copied { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+
+  pre code {
+    display: block;
+    padding: 20px 22px;
+    color: #c8d8f0;
+  }
+
+  /* Inline code */
+  p code, li code, td code {
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.18);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 0.8em;
+    color: var(--accent);
+  }
+
+  /* Syntax highlighting */
+  .kw   { color: #c792ea; }   /* keywords */
+  .fn   { color: #82aaff; }   /* functions */
+  .str  { color: #c3e88d; }   /* strings */
+  .num  { color: #f78c6c; }   /* numbers */
+  .cmt  { color: #546e7a; font-style: italic; } /* comments */
+  .op   { color: var(--accent); }   /* operators / prompt */
+  .var  { color: #ffcb6b; }   /* variables */
+  .out  { color: #6b8ba4; }   /* output values */
+
+  /* ─── TABLES ────────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; margin: 16px 0 20px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.87rem;
+  }
+
+  thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    padding: 10px 14px;
+    text-align: left;
+    background: rgba(0,212,170,0.06);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ─── CALLOUTS ──────────────────────────────────────────── */
+  .tip {
+    border-left: 3px solid var(--amber);
+    background: rgba(245,158,11,0.07);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+
+  .tip strong {
+    font-family: 'Syne', sans-serif;
+    color: var(--amber);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .note {
+    border-left: 3px solid var(--accent);
+    background: rgba(0,212,170,0.06);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+
+  .note strong {
+    font-family: 'Syne', sans-serif;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ─── MARK DONE BUTTON ──────────────────────────────────── */
+  .mark-done-wrap {
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mark-done-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mark-done-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,170,0.08);
+  }
+
+  .mark-done-btn.done-state {
+    border-color: var(--accent);
+    background: rgba(0,212,170,0.12);
+    color: var(--accent);
+  }
+
+  .done-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── CHEAT SHEET ───────────────────────────────────────── */
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 20px;
+  }
+
+  .cheat-card {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .cheat-card h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+    margin-bottom: 10px;
+  }
+
+  .cheat-card code {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    color: #c8d8f0;
+    line-height: 1.7;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  /* ─── MOBILE TOGGLE ─────────────────────────────────────── */
+  #menu-toggle {
+    display: none;
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 200;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* ─── SCROLLBAR ─────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* ─── RESPONSIVE ────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 260px; }
+    #main { padding: 48px 28px 100px; }
+    .hero h1 { font-size: 2.4rem; }
+    .cheat-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 680px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; padding: 60px 20px 80px; }
+    #menu-toggle { display: block; }
+    .hero h1 { font-size: 2rem; }
+    .section h2 { font-size: 1.45rem; }
+    .cheat-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Mobile menu toggle -->
+<button id="menu-toggle" onclick="toggleSidebar()" title="Toggle menu">☰</button>
+
+<!-- ─── SIDEBAR ──────────────────────────────────────────────── -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="logo-icon">Oct</div>
+      <div>
+        <div class="sidebar-title">GNU Octave</div>
+        <div class="sidebar-subtitle">Beginner's Guide</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Progress</span>
+      <span id="progress-text">0 / 15</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <nav id="nav-list">
+    <!-- Injected by JS -->
+  </nav>
+</aside>
+
+<!-- ─── MAIN ────────────────────────────────────────────────── -->
+<main id="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Complete Beginner's Guide</div>
+    <h1>GNU <span>Octave</span></h1>
+    <p class="hero-sub">From zero to numerical computing — one section at a time.</p>
+    <div class="hero-tags">
+      <span class="tag">15 sections</span>
+      <span class="tag">Code examples</span>
+      <span class="tag">Progress tracking</span>
+      <span class="tag">Free &amp; Open Source</span>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1 ── -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>What is Octave?</h2>
+    </div>
+    <p><strong style="color:#fff">GNU Octave</strong> is a free, open-source programming language designed primarily for numerical computation. It is largely compatible with MATLAB, making it a popular free alternative in academia, engineering, and science.</p>
+    <h3>What can you do with it?</h3>
+    <ul>
+      <li>Solve linear algebra problems</li>
+      <li>Perform statistical analysis</li>
+      <li>Plot graphs and visualizations</li>
+      <li>Process signals and images</li>
+      <li>Simulate mathematical models</li>
+      <li>Write reusable scripts and functions</li>
+    </ul>
+    <div class="tip"><strong>💡 Good to know</strong>Octave code is mostly compatible with MATLAB — skills you learn here transfer directly.</div>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(1, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-1"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2 ── -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Installation</h2>
+    </div>
+    <h3>Windows</h3>
+    <p>Go to <code>https://octave.org/download</code>, download the <code>.exe</code> installer, and run it.</p>
+    <h3>macOS</h3>
+    <p>Using Homebrew:</p>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">$</span> brew install octave</code></pre>
+    <p>Or download the <code>.dmg</code> from the official website.</p>
+    <h3>Linux (Ubuntu / Debian)</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">$</span> sudo apt update
+<span class="op">$</span> sudo apt install octave</code></pre>
+    <h3>Verify Installation</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">$</span> octave --version</code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(2, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-2"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3 ── -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>The Octave Interface</h2>
+    </div>
+    <p>When you launch Octave, you'll see several panels:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Panel</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>Command Window</code></td><td>Where you type commands and see output</td></tr>
+        <tr><td><code>Workspace</code></td><td>Shows all currently defined variables</td></tr>
+        <tr><td><code>Command History</code></td><td>A log of all commands you've entered</td></tr>
+        <tr><td><code>File Browser</code></td><td>Navigate your filesystem</td></tr>
+        <tr><td><code>Editor</code></td><td>Write and save <code>.m</code> script files</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tip"><strong>💡 Tip</strong>You can run Octave from the terminal by typing <code>octave</code> (CLI mode) or <code>octave --gui</code> for the graphical interface.</div>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(3, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-3"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4 ── -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Basic Arithmetic &amp; the Command Line</h2>
+    </div>
+    <p>The Command Window works like a powerful calculator. Type an expression and press <strong style="color:#fff">Enter</strong>.</p>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="num">2</span> + <span class="num">3</span>
+<span class="out">ans = 5</span>
+
+<span class="op">&gt;&gt;</span> <span class="num">10</span> - <span class="num">4</span>
+<span class="out">ans = 6</span>
+
+<span class="op">&gt;&gt;</span> <span class="num">3</span> * <span class="num">7</span>
+<span class="out">ans = 21</span>
+
+<span class="op">&gt;&gt;</span> <span class="num">15</span> / <span class="num">4</span>
+<span class="out">ans = 3.7500</span>
+
+<span class="op">&gt;&gt;</span> <span class="num">2</span> ^ <span class="num">8</span>        <span class="cmt">% Exponentiation</span>
+<span class="out">ans = 256</span>
+
+<span class="op">&gt;&gt;</span> <span class="fn">mod</span>(<span class="num">17</span>, <span class="num">5</span>)   <span class="cmt">% Modulo (remainder)</span>
+<span class="out">ans = 2</span></code></pre>
+    <h3>Suppressing Output</h3>
+    <p>Add a <strong style="color:#fff">semicolon (<code>;</code>)</strong> at the end of a line to suppress its output:</p>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="var">x</span> = <span class="num">42</span>;    <span class="cmt">% No output shown</span>
+<span class="op">&gt;&gt;</span> <span class="var">x</span>          <span class="cmt">% Now show it</span>
+<span class="out">x = 42</span></code></pre>
+    <h3>Comments</h3>
+    <p>Use <code>%</code> to write comments (Octave ignores everything after it):</p>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="num">5</span> + <span class="num">3</span>   <span class="cmt">% This adds 5 and 3</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(4, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-4"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 5 ── -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Variables</h2>
+    </div>
+    <p>Variables store data for later use. Octave is <strong style="color:#fff">case-sensitive</strong> — <code>myVar</code> and <code>myvar</code> are different variables.</p>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="var">x</span> = <span class="num">10</span>
+<span class="out">x = 10</span>
+
+<span class="op">&gt;&gt;</span> <span class="var">name</span> = <span class="str">"Alice"</span>
+<span class="out">name = Alice</span>
+
+<span class="op">&gt;&gt;</span> <span class="var">pi_approx</span> = <span class="num">3.14159</span>
+<span class="out">pi_approx = 3.1416</span></code></pre>
+    <h3>Naming Rules</h3>
+    <ul>
+      <li>Must start with a letter</li>
+      <li>Can contain letters, numbers, and underscores</li>
+      <li>Cannot use reserved words like <code>for</code>, <code>if</code>, <code>end</code></li>
+    </ul>
+    <h3>Workspace Commands</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">who</span>          <span class="cmt">% List all variables</span>
+<span class="fn">whos</span>         <span class="cmt">% List variables with size and type</span>
+<span class="fn">clear</span> <span class="var">x</span>     <span class="cmt">% Delete variable x</span>
+<span class="fn">clear</span>        <span class="cmt">% Delete ALL variables</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(5, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-5"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 6 ── -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Data Types</h2>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Type</th><th>Example</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>double</code></td><td><code>3.14</code></td><td>Default numeric type (floating point)</td></tr>
+        <tr><td><code>int32</code></td><td><code>int32(5)</code></td><td>32-bit integer</td></tr>
+        <tr><td><code>char</code></td><td><code>'hello'</code></td><td>Single-quoted string (character array)</td></tr>
+        <tr><td><code>string</code></td><td><code>"hello"</code></td><td>Double-quoted string</td></tr>
+        <tr><td><code>logical</code></td><td><code>true</code>, <code>false</code></td><td>Boolean values</td></tr>
+        <tr><td><code>cell</code></td><td><code>{1, "hi", [1 2]}</code></td><td>Array holding mixed types</td></tr>
+        <tr><td><code>struct</code></td><td><code>s.name = "Bob"</code></td><td>Named fields (like a record)</td></tr>
+      </tbody>
+    </table></div>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="fn">class</span>(<span class="num">3.14</span>)
+<span class="out">ans = double</span>
+
+<span class="op">&gt;&gt;</span> <span class="fn">class</span>(<span class="str">"hello"</span>)
+<span class="out">ans = char</span>
+
+<span class="op">&gt;&gt;</span> <span class="fn">class</span>(<span class="kw">true</span>)
+<span class="out">ans = logical</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(6, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-6"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 7 ── -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>Vectors and Matrices</h2>
+    </div>
+    <p>Matrices are the core data structure in Octave. A vector is simply a 1-row or 1-column matrix.</p>
+    <h3>Creating Vectors</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="cmt">% Row vector (spaces or commas)</span>
+<span class="op">&gt;&gt;</span> <span class="var">v</span> = [<span class="num">1</span> <span class="num">2</span> <span class="num">3</span> <span class="num">4</span> <span class="num">5</span>]
+<span class="out">v = 1   2   3   4   5</span>
+
+<span class="cmt">% Column vector (semicolons)</span>
+<span class="op">&gt;&gt;</span> <span class="var">c</span> = [<span class="num">10</span>; <span class="num">20</span>; <span class="num">30</span>]
+<span class="out">c =
+   10
+   20
+   30</span></code></pre>
+    <h3>Ranges</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="num">1</span>:<span class="num">5</span>            <span class="cmt">% 1 to 5, step 1</span>
+<span class="out">ans = 1   2   3   4   5</span>
+
+<span class="op">&gt;&gt;</span> <span class="num">0</span>:<span class="num">0.5</span>:<span class="num">2</span>        <span class="cmt">% 0 to 2, step 0.5</span>
+<span class="out">ans = 0.0000   0.5000   1.0000   1.5000   2.0000</span>
+
+<span class="op">&gt;&gt;</span> <span class="num">10</span>:-<span class="num">2</span>:<span class="num">2</span>        <span class="cmt">% Count down</span>
+<span class="out">ans = 10   8   6   4   2</span></code></pre>
+    <h3>Creating Matrices</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="var">A</span> = [<span class="num">1</span> <span class="num">2</span> <span class="num">3</span>; <span class="num">4</span> <span class="num">5</span> <span class="num">6</span>; <span class="num">7</span> <span class="num">8</span> <span class="num">9</span>]
+<span class="out">A =
+   1   2   3
+   4   5   6
+   7   8   9</span></code></pre>
+    <h3>Useful Matrix Builders</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">zeros</span>(<span class="num">3</span>, <span class="num">3</span>)       <span class="cmt">% 3×3 matrix of zeros</span>
+<span class="fn">ones</span>(<span class="num">2</span>, <span class="num">4</span>)        <span class="cmt">% 2×4 matrix of ones</span>
+<span class="fn">eye</span>(<span class="num">4</span>)            <span class="cmt">% 4×4 identity matrix</span>
+<span class="fn">rand</span>(<span class="num">3</span>)           <span class="cmt">% 3×3 random values (0–1)</span>
+<span class="fn">linspace</span>(<span class="num">0</span>,<span class="num">1</span>,<span class="num">5</span>)  <span class="cmt">% 5 evenly spaced points from 0 to 1</span></code></pre>
+    <h3>Indexing</h3>
+    <div class="note"><strong>📌 Note</strong>Octave uses <strong>1-based indexing</strong> — the first element is index 1, not 0.</div>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="var">v</span> = [<span class="num">10</span> <span class="num">20</span> <span class="num">30</span> <span class="num">40</span> <span class="num">50</span>];
+<span class="op">&gt;&gt;</span> <span class="var">v</span>(<span class="num">1</span>)           <span class="cmt">% First element → 10</span>
+<span class="op">&gt;&gt;</span> <span class="var">v</span>(<span class="kw">end</span>)         <span class="cmt">% Last element  → 50</span>
+<span class="op">&gt;&gt;</span> <span class="var">v</span>(<span class="num">2</span>:<span class="num">4</span>)         <span class="cmt">% Elements 2–4  → 20 30 40</span>
+
+<span class="op">&gt;&gt;</span> <span class="var">A</span>(<span class="num">2</span>, <span class="num">3</span>)        <span class="cmt">% Row 2, Col 3</span>
+<span class="op">&gt;&gt;</span> <span class="var">A</span>(<span class="num">1</span>, :)        <span class="cmt">% Entire first row</span>
+<span class="op">&gt;&gt;</span> <span class="var">A</span>(:, <span class="num">2</span>)        <span class="cmt">% Entire second column</span></code></pre>
+    <h3>Size Commands</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">size</span>(<span class="var">A</span>)       <span class="cmt">% [rows, cols]</span>
+<span class="fn">rows</span>(<span class="var">A</span>)       <span class="cmt">% Number of rows</span>
+<span class="fn">columns</span>(<span class="var">A</span>)   <span class="cmt">% Number of columns</span>
+<span class="fn">length</span>(<span class="var">v</span>)    <span class="cmt">% Length of a vector</span>
+<span class="fn">numel</span>(<span class="var">A</span>)     <span class="cmt">% Total number of elements</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(7, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-7"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 8 ── -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>Matrix Operations</h2>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Operator</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>A + B</code></td><td>Element-wise addition</td></tr>
+        <tr><td><code>A - B</code></td><td>Element-wise subtraction</td></tr>
+        <tr><td><code>A * B</code></td><td>Matrix multiplication</td></tr>
+        <tr><td><code>A ^ 2</code></td><td>Matrix power (A × A)</td></tr>
+        <tr><td><code>A'</code></td><td>Transpose</td></tr>
+        <tr><td><code>A .* B</code></td><td>Element-wise multiplication</td></tr>
+        <tr><td><code>A ./ B</code></td><td>Element-wise division</td></tr>
+        <tr><td><code>A .^ 2</code></td><td>Element-wise squaring</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tip"><strong>⚠️ Key Distinction</strong><code>*</code> is matrix multiplication. <code>.*</code> is element-by-element multiplication. This is one of the most common beginner mistakes.</div>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="var">A</span> = [<span class="num">1</span> <span class="num">2</span>; <span class="num">3</span> <span class="num">4</span>];
+<span class="op">&gt;&gt;</span> <span class="var">B</span> = [<span class="num">5</span> <span class="num">6</span>; <span class="num">7</span> <span class="num">8</span>];
+
+<span class="op">&gt;&gt;</span> <span class="var">A</span> * <span class="var">B</span>           <span class="cmt">% Matrix multiply</span>
+<span class="out">ans =
+   19   22
+   43   50</span>
+
+<span class="op">&gt;&gt;</span> <span class="var">A</span> .* <span class="var">B</span>          <span class="cmt">% Element-wise multiply</span>
+<span class="out">ans =
+    5   12
+   21   32</span></code></pre>
+    <h3>Linear Algebra</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">det</span>(<span class="var">A</span>)       <span class="cmt">% Determinant</span>
+<span class="fn">inv</span>(<span class="var">A</span>)       <span class="cmt">% Inverse</span>
+<span class="fn">rank</span>(<span class="var">A</span>)      <span class="cmt">% Rank</span>
+<span class="fn">eig</span>(<span class="var">A</span>)       <span class="cmt">% Eigenvalues (and eigenvectors)</span>
+<span class="var">A</span> \ <span class="var">b</span>        <span class="cmt">% Solve Ax = b (better than inv(A)*b)</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(8, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-8"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 9 ── -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2>Built-in Functions</h2>
+    </div>
+    <h3>Math</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">sqrt</span>(<span class="num">16</span>)      <span class="cmt">% → 4</span>
+<span class="fn">abs</span>(-<span class="num">5</span>)       <span class="cmt">% → 5</span>
+<span class="fn">floor</span>(<span class="num">3.7</span>)   <span class="cmt">% → 3  (round down)</span>
+<span class="fn">ceil</span>(<span class="num">3.2</span>)    <span class="cmt">% → 4  (round up)</span>
+<span class="fn">round</span>(<span class="num">3.5</span>)   <span class="cmt">% → 4  (round nearest)</span>
+<span class="fn">log</span>(<span class="fn">exp</span>(<span class="num">1</span>))  <span class="cmt">% Natural log → 1</span>
+<span class="fn">log2</span>(<span class="num">8</span>)     <span class="cmt">% → 3</span>
+<span class="fn">log10</span>(<span class="num">100</span>)  <span class="cmt">% → 2</span>
+<span class="fn">exp</span>(<span class="num">1</span>)       <span class="cmt">% e¹ ≈ 2.7183</span></code></pre>
+    <h3>Trigonometry (radians)</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">sin</span>(pi/<span class="num">2</span>)    <span class="cmt">% → 1</span>
+<span class="fn">cos</span>(<span class="num">0</span>)       <span class="cmt">% → 1</span>
+<span class="fn">tan</span>(pi/<span class="num">4</span>)   <span class="cmt">% → 1</span>
+<span class="fn">asin</span>(<span class="num">1</span>)     <span class="cmt">% → pi/2</span></code></pre>
+    <h3>Statistics</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="var">v</span> = [<span class="num">4</span> <span class="num">7</span> <span class="num">2</span> <span class="num">9</span> <span class="num">1</span> <span class="num">5</span>];
+<span class="fn">sum</span>(<span class="var">v</span>)       <span class="cmt">% Sum of elements</span>
+<span class="fn">mean</span>(<span class="var">v</span>)      <span class="cmt">% Average</span>
+<span class="fn">median</span>(<span class="var">v</span>)   <span class="cmt">% Median</span>
+<span class="fn">std</span>(<span class="var">v</span>)       <span class="cmt">% Standard deviation</span>
+<span class="fn">var</span>(<span class="var">v</span>)       <span class="cmt">% Variance</span>
+<span class="fn">min</span>(<span class="var">v</span>)       <span class="cmt">% Minimum</span>
+<span class="fn">max</span>(<span class="var">v</span>)       <span class="cmt">% Maximum</span>
+<span class="fn">sort</span>(<span class="var">v</span>)      <span class="cmt">% Sort ascending</span>
+<span class="fn">cumsum</span>(<span class="var">v</span>)   <span class="cmt">% Cumulative sum</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(9, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-9"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 10 ── -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2>Control Flow</h2>
+    </div>
+    <h3>if / elseif / else</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="var">x</span> = <span class="num">15</span>;
+
+<span class="kw">if</span> <span class="var">x</span> > <span class="num">20</span>
+  <span class="fn">disp</span>(<span class="str">"x is greater than 20"</span>);
+<span class="kw">elseif</span> <span class="var">x</span> > <span class="num">10</span>
+  <span class="fn">disp</span>(<span class="str">"x is between 10 and 20"</span>);
+<span class="kw">else</span>
+  <span class="fn">disp</span>(<span class="str">"x is 10 or less"</span>);
+<span class="kw">end</span></code></pre>
+    <h3>Comparison &amp; Logical Operators</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Operator</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>==</code></td><td>Equal to</td></tr>
+        <tr><td><code>~=</code></td><td>Not equal to</td></tr>
+        <tr><td><code>&lt;</code> / <code>&gt;</code></td><td>Less / greater than</td></tr>
+        <tr><td><code>&lt;=</code> / <code>&gt;=</code></td><td>Less / greater or equal</td></tr>
+        <tr><td><code>&amp;&amp;</code></td><td>Logical AND (scalars)</td></tr>
+        <tr><td><code>||</code></td><td>Logical OR (scalars)</td></tr>
+        <tr><td><code>!</code> or <code>~</code></td><td>Logical NOT</td></tr>
+      </tbody>
+    </table></div>
+    <h3>for Loop</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="kw">for</span> <span class="var">i</span> = <span class="num">1</span>:<span class="num">5</span>
+  <span class="fn">printf</span>(<span class="str">"i = %d\n"</span>, <span class="var">i</span>);
+<span class="kw">end</span></code></pre>
+    <h3>while Loop</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="var">n</span> = <span class="num">1</span>;
+<span class="kw">while</span> <span class="var">n</span> <= <span class="num">5</span>
+  <span class="fn">disp</span>(<span class="var">n</span>);
+  <span class="var">n</span> = <span class="var">n</span> + <span class="num">1</span>;
+<span class="kw">end</span></code></pre>
+    <h3>break and continue</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="kw">for</span> <span class="var">i</span> = <span class="num">1</span>:<span class="num">10</span>
+  <span class="kw">if</span> <span class="var">i</span> == <span class="num">4</span>
+    <span class="kw">continue</span>;    <span class="cmt">% Skip this iteration</span>
+  <span class="kw">end</span>
+  <span class="kw">if</span> <span class="var">i</span> == <span class="num">7</span>
+    <span class="kw">break</span>;       <span class="cmt">% Exit the loop</span>
+  <span class="kw">end</span>
+  <span class="fn">disp</span>(<span class="var">i</span>);
+<span class="kw">end</span>
+<span class="cmt">% Prints: 1, 2, 3, 5, 6</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(10, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-10"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 11 ── -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2>Functions</h2>
+    </div>
+    <p>Functions are reusable blocks of code. Save them in their own <code>.m</code> file with the same name as the function.</p>
+    <h3>Basic Function (save as add_numbers.m)</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="kw">function</span> <span class="var">result</span> = <span class="fn">add_numbers</span>(<span class="var">a</span>, <span class="var">b</span>)
+  <span class="var">result</span> = <span class="var">a</span> + <span class="var">b</span>;
+<span class="kw">end</span></code></pre>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="fn">add_numbers</span>(<span class="num">3</span>, <span class="num">7</span>)
+<span class="out">ans = 10</span></code></pre>
+    <h3>Multiple Return Values</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="kw">function</span> [<span class="var">mn</span>, <span class="var">mx</span>] = <span class="fn">min_max</span>(<span class="var">v</span>)
+  <span class="var">mn</span> = <span class="fn">min</span>(<span class="var">v</span>);
+  <span class="var">mx</span> = <span class="fn">max</span>(<span class="var">v</span>);
+<span class="kw">end</span></code></pre>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> [<span class="var">lo</span>, <span class="var">hi</span>] = <span class="fn">min_max</span>([<span class="num">3</span> <span class="num">1</span> <span class="num">9</span> <span class="num">4</span>]);
+<span class="op">&gt;&gt;</span> <span class="var">lo</span>
+<span class="out">lo = 1</span>
+<span class="op">&gt;&gt;</span> <span class="var">hi</span>
+<span class="out">hi = 9</span></code></pre>
+    <h3>Anonymous Functions</h3>
+    <p>Quick one-liner functions using the <code>@</code> symbol:</p>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> <span class="var">square</span> = @(<span class="var">x</span>) <span class="var">x</span>.^<span class="num">2</span>;
+<span class="op">&gt;&gt;</span> <span class="fn">square</span>(<span class="num">5</span>)
+<span class="out">ans = 25</span>
+
+<span class="op">&gt;&gt;</span> <span class="var">f</span> = @(<span class="var">x</span>, <span class="var">y</span>) <span class="var">x</span>^<span class="num">2</span> + <span class="var">y</span>^<span class="num">2</span>;
+<span class="op">&gt;&gt;</span> <span class="fn">f</span>(<span class="num">3</span>, <span class="num">4</span>)
+<span class="out">ans = 25</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(11, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-11"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 12 ── -->
+  <section class="section" id="s12">
+    <div class="section-header">
+      <span class="section-num">12</span>
+      <h2>Scripts (.m Files)</h2>
+    </div>
+    <p>A <strong style="color:#fff">script</strong> is a plain text file with a <code>.m</code> extension containing a sequence of Octave commands. Unlike functions, scripts share the base workspace.</p>
+    <h3>How to create and run</h3>
+    <ol>
+      <li>Open the <strong>Editor</strong> panel (or any text editor)</li>
+      <li>Write your code and save as <code>my_script.m</code></li>
+      <li>Run from the Command Window: type <code>my_script</code> and press Enter</li>
+    </ol>
+    <h3>Example: circle_stats.m</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="cmt">% circle_stats.m — Circle area and circumference</span>
+<span class="var">radius</span> = <span class="num">7</span>;
+
+<span class="var">area</span> = pi * <span class="var">radius</span>^<span class="num">2</span>;
+<span class="var">circumference</span> = <span class="num">2</span> * pi * <span class="var">radius</span>;
+
+<span class="fn">printf</span>(<span class="str">"Radius:        %.2f\n"</span>, <span class="var">radius</span>);
+<span class="fn">printf</span>(<span class="str">"Area:          %.4f\n"</span>, <span class="var">area</span>);
+<span class="fn">printf</span>(<span class="str">"Circumference: %.4f\n"</span>, <span class="var">circumference</span>);</code></pre>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="op">&gt;&gt;</span> circle_stats
+<span class="out">Radius:        7.00
+Area:          153.9380
+Circumference: 43.9823</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(12, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-12"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 13 ── -->
+  <section class="section" id="s13">
+    <div class="section-header">
+      <span class="section-num">13</span>
+      <h2>Plotting &amp; Visualization</h2>
+    </div>
+    <h3>Basic Line Plot</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="var">x</span> = <span class="num">0</span>:<span class="num">0.1</span>:<span class="num">2</span>*pi;
+<span class="var">y</span> = <span class="fn">sin</span>(<span class="var">x</span>);
+
+<span class="fn">plot</span>(<span class="var">x</span>, <span class="var">y</span>);
+<span class="fn">title</span>(<span class="str">"Sine Wave"</span>);
+<span class="fn">xlabel</span>(<span class="str">"x (radians)"</span>);
+<span class="fn">ylabel</span>(<span class="str">"sin(x)"</span>);
+<span class="fn">grid</span> on;</code></pre>
+    <h3>Line Style Options</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Code</th><th>Meaning</th><th>Code</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>r</code></td><td>Red</td><td><code>-</code></td><td>Solid line</td></tr>
+        <tr><td><code>b</code></td><td>Blue</td><td><code>--</code></td><td>Dashed line</td></tr>
+        <tr><td><code>g</code></td><td>Green</td><td><code>o</code></td><td>Circle markers</td></tr>
+        <tr><td><code>k</code></td><td>Black</td><td><code>*</code></td><td>Star markers</td></tr>
+      </tbody>
+    </table></div>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">plot</span>(<span class="var">x</span>, <span class="var">y</span>, <span class="str">'r--'</span>, <span class="str">'LineWidth'</span>, <span class="num">2</span>);  <span class="cmt">% Red dashed, thicker</span></code></pre>
+    <h3>Multiple Lines</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="var">x</span> = <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">2</span>*pi, <span class="num">100</span>);
+<span class="fn">plot</span>(<span class="var">x</span>, <span class="fn">sin</span>(<span class="var">x</span>), <span class="str">'b-'</span>, <span class="var">x</span>, <span class="fn">cos</span>(<span class="var">x</span>), <span class="str">'r--'</span>);
+<span class="fn">legend</span>(<span class="str">"sin(x)"</span>, <span class="str">"cos(x)"</span>);
+<span class="fn">grid</span> on;</code></pre>
+    <h3>Subplots</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">subplot</span>(<span class="num">2</span>, <span class="num">1</span>, <span class="num">1</span>);       <span class="cmt">% 2 rows, 1 col, plot #1</span>
+<span class="fn">plot</span>(<span class="var">x</span>, <span class="fn">sin</span>(<span class="var">x</span>));  <span class="fn">title</span>(<span class="str">"Sine"</span>);
+
+<span class="fn">subplot</span>(<span class="num">2</span>, <span class="num">1</span>, <span class="num">2</span>);       <span class="cmt">% 2 rows, 1 col, plot #2</span>
+<span class="fn">plot</span>(<span class="var">x</span>, <span class="fn">cos</span>(<span class="var">x</span>));  <span class="fn">title</span>(<span class="str">"Cosine"</span>);</code></pre>
+    <h3>Other Plot Types</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">bar</span>([<span class="num">3</span> <span class="num">7</span> <span class="num">2</span> <span class="num">5</span> <span class="num">9</span>]);               <span class="cmt">% Bar chart</span>
+<span class="fn">scatter</span>(<span class="fn">rand</span>(<span class="num">1</span>,<span class="num">50</span>), <span class="fn">rand</span>(<span class="num">1</span>,<span class="num">50</span>));  <span class="cmt">% Scatter plot</span>
+<span class="fn">hist</span>(<span class="fn">randn</span>(<span class="num">1</span>, <span class="num">1000</span>), <span class="num">30</span>);        <span class="cmt">% Histogram</span>
+
+<span class="cmt">% 3D surface</span>
+[<span class="var">X</span>, <span class="var">Y</span>] = <span class="fn">meshgrid</span>(-<span class="num">3</span>:<span class="num">0.1</span>:<span class="num">3</span>, -<span class="num">3</span>:<span class="num">0.1</span>:<span class="num">3</span>);
+<span class="var">Z</span> = <span class="fn">sin</span>(<span class="var">X</span>) .* <span class="fn">cos</span>(<span class="var">Y</span>);
+<span class="fn">surf</span>(<span class="var">X</span>, <span class="var">Y</span>, <span class="var">Z</span>);</code></pre>
+    <h3>Saving Figures</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">saveas</span>(<span class="fn">gcf</span>, <span class="str">"my_plot.png"</span>);    <span class="cmt">% Save as PNG</span>
+<span class="fn">print</span>(<span class="str">"my_plot.pdf"</span>, <span class="str">"-dpdf"</span>); <span class="cmt">% Save as PDF</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(13, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-13"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 14 ── -->
+  <section class="section" id="s14">
+    <div class="section-header">
+      <span class="section-num">14</span>
+      <h2>File I/O</h2>
+    </div>
+    <h3>Writing and Reading Text Files</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="cmt">% Write to a file</span>
+<span class="var">fid</span> = <span class="fn">fopen</span>(<span class="str">"data.txt"</span>, <span class="str">"w"</span>);
+<span class="fn">fprintf</span>(<span class="var">fid</span>, <span class="str">"Hello, World!\n"</span>);
+<span class="fn">fprintf</span>(<span class="var">fid</span>, <span class="str">"Value: %f\n"</span>, <span class="num">3.14</span>);
+<span class="fn">fclose</span>(<span class="var">fid</span>);
+
+<span class="cmt">% Read a file line by line</span>
+<span class="var">fid</span> = <span class="fn">fopen</span>(<span class="str">"data.txt"</span>, <span class="str">"r"</span>);
+<span class="var">line</span> = <span class="fn">fgetl</span>(<span class="var">fid</span>);
+<span class="kw">while</span> <span class="fn">ischar</span>(<span class="var">line</span>)
+  <span class="fn">disp</span>(<span class="var">line</span>);
+  <span class="var">line</span> = <span class="fn">fgetl</span>(<span class="var">fid</span>);
+<span class="kw">end</span>
+<span class="fn">fclose</span>(<span class="var">fid</span>);</code></pre>
+    <h3>CSV Files</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="cmt">% Save matrix to CSV</span>
+<span class="var">A</span> = [<span class="num">1</span> <span class="num">2</span> <span class="num">3</span>; <span class="num">4</span> <span class="num">5</span> <span class="num">6</span>; <span class="num">7</span> <span class="num">8</span> <span class="num">9</span>];
+<span class="fn">csvwrite</span>(<span class="str">"matrix.csv"</span>, <span class="var">A</span>);
+
+<span class="cmt">% Load CSV</span>
+<span class="var">B</span> = <span class="fn">csvread</span>(<span class="str">"matrix.csv"</span>);</code></pre>
+    <h3>Saving &amp; Loading Variables</h3>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="fn">save</span>(<span class="str">"workspace.mat"</span>);            <span class="cmt">% Save all variables</span>
+<span class="fn">save</span>(<span class="str">"results.mat"</span>, <span class="str">"x"</span>, <span class="str">"y"</span>);   <span class="cmt">% Save specific ones</span>
+<span class="fn">load</span>(<span class="str">"workspace.mat"</span>);           <span class="cmt">% Reload them</span></code></pre>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(14, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-14"></span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 15 ── -->
+  <section class="section" id="s15">
+    <div class="section-header">
+      <span class="section-num">15</span>
+      <h2>Tips, Shortcuts &amp; Cheat Sheet</h2>
+    </div>
+    <h3>Essential Commands</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Command</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>help func</code></td><td>Show documentation for a function</td></tr>
+        <tr><td><code>doc func</code></td><td>Open full documentation page</td></tr>
+        <tr><td><code>clc</code></td><td>Clear the Command Window</td></tr>
+        <tr><td><code>clear</code></td><td>Clear all variables</td></tr>
+        <tr><td><code>close all</code></td><td>Close all figure windows</td></tr>
+        <tr><td><code>pwd</code></td><td>Print current working directory</td></tr>
+        <tr><td><code>cd /path</code></td><td>Change directory</td></tr>
+        <tr><td><code>ls</code></td><td>List files in current directory</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Keyboard Shortcuts</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><code>↑ / ↓</code></td><td>Scroll command history</td></tr>
+        <tr><td><code>Tab</code></td><td>Autocomplete variable/function name</td></tr>
+        <tr><td><code>Ctrl+C</code></td><td>Cancel a running computation</td></tr>
+        <tr><td><code>Ctrl+L</code></td><td>Clear the screen</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Vectorization — Write Faster Code</h3>
+    <p>Avoid slow loops by letting Octave operate on entire vectors at once:</p>
+    <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code><span class="cmt">% Slow (loop)</span>
+<span class="kw">for</span> <span class="var">i</span> = <span class="num">1</span>:<span class="num">1000</span>
+  <span class="var">y</span>(<span class="var">i</span>) = <span class="fn">sin</span>(<span class="var">i</span> * <span class="num">0.01</span>);
+<span class="kw">end</span>
+
+<span class="cmt">% Fast (vectorized)</span>
+<span class="var">x</span> = (<span class="num">1</span>:<span class="num">1000</span>) * <span class="num">0.01</span>;
+<span class="var">y</span> = <span class="fn">sin</span>(<span class="var">x</span>);</code></pre>
+    <h3>Quick-Reference Cheat Sheet</h3>
+    <div class="cheat-grid">
+      <div class="cheat-card"><h4>Arithmetic</h4><code>+  -  *  /  ^  mod()</code></div>
+      <div class="cheat-card"><h4>Comparison</h4><code>==  ~=  &lt;  &gt;  &lt;=  &gt;=</code></div>
+      <div class="cheat-card"><h4>Logical</h4><code>&amp;&amp;  ||  !  ~</code></div>
+      <div class="cheat-card"><h4>Matrix</h4><code>[1 2; 3 4]  A'  A*B  A.*B  A\b</code></div>
+      <div class="cheat-card"><h4>Ranges</h4><code>start:step:end<br>linspace(a,b,n)</code></div>
+      <div class="cheat-card"><h4>Indexing</h4><code>v(i)  A(r,c)  A(1,:)  A(:,2)</code></div>
+      <div class="cheat-card"><h4>Control</h4><code>if/elseif/else/end<br>for/end  while/end</code></div>
+      <div class="cheat-card"><h4>Functions</h4><code>function y=f(x) ... end<br>f = @(x) x.^2</code></div>
+      <div class="cheat-card"><h4>Plotting</h4><code>plot(x,y)  title()  xlabel()<br>ylabel()  grid on  legend()</code></div>
+      <div class="cheat-card"><h4>Output</h4><code>disp()  printf()  fprintf()</code></div>
+      <div class="cheat-card"><h4>Help</h4><code>help func  doc func</code></div>
+      <div class="cheat-card"><h4>Workspace</h4><code>who  whos  clear  save  load</code></div>
+    </div>
+    <div class="mark-done-wrap">
+      <button class="mark-done-btn" onclick="markDone(15, this)">Mark as done ✓</button>
+      <span class="done-label" id="done-label-15"></span>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ─── SECTION DATA ────────────────────────────────────────────
+  const sections = [
+    { id: 's1',  label: 'What is Octave?' },
+    { id: 's2',  label: 'Installation' },
+    { id: 's3',  label: 'The Interface' },
+    { id: 's4',  label: 'Arithmetic & CLI' },
+    { id: 's5',  label: 'Variables' },
+    { id: 's6',  label: 'Data Types' },
+    { id: 's7',  label: 'Vectors & Matrices' },
+    { id: 's8',  label: 'Matrix Operations' },
+    { id: 's9',  label: 'Built-in Functions' },
+    { id: 's10', label: 'Control Flow' },
+    { id: 's11', label: 'Functions' },
+    { id: 's12', label: 'Scripts (.m Files)' },
+    { id: 's13', label: 'Plotting' },
+    { id: 's14', label: 'File I/O' },
+    { id: 's15', label: 'Tips & Cheat Sheet' },
+  ];
+
+  // ─── STATE ───────────────────────────────────────────────────
+  let done = new Set(JSON.parse(localStorage.getItem('octave_done') || '[]'));
+
+  // ─── BUILD NAV ───────────────────────────────────────────────
+  const nav = document.getElementById('nav-list');
+  nav.innerHTML = '<div class="nav-section-label">Sections</div>';
+  sections.forEach((s, i) => {
+    const n = i + 1;
+    const el = document.createElement('div');
+    el.className = 'nav-item' + (done.has(n) ? ' done' : '');
+    el.id = 'nav-' + n;
+    el.innerHTML = `
+      <span class="nav-num">${String(n).padStart(2,'0')}</span>
+      <span>${s.label}</span>
+      <span class="nav-check">${done.has(n) ? '✓' : ''}</span>`;
+    el.onclick = () => {
+      document.getElementById(s.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (window.innerWidth <= 680) closeSidebar();
+    };
+    nav.appendChild(el);
+  });
+
+  // ─── PROGRESS ────────────────────────────────────────────────
+  function updateProgress() {
+    const pct = (done.size / 15) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = `${done.size} / 15`;
+    localStorage.setItem('octave_done', JSON.stringify([...done]));
+  }
+  updateProgress();
+
+  // Restore done-state buttons
+  done.forEach(n => {
+    const btn = document.querySelector(`#s${n} .mark-done-btn`);
+    if (btn) {
+      btn.textContent = '✓ Done';
+      btn.classList.add('done-state');
+    }
+    const lbl = document.getElementById(`done-label-${n}`);
+    if (lbl) lbl.textContent = 'Section complete';
+  });
+
+  // ─── MARK DONE ───────────────────────────────────────────────
+  function markDone(n, btn) {
+    if (done.has(n)) {
+      done.delete(n);
+      btn.textContent = 'Mark as done ✓';
+      btn.classList.remove('done-state');
+      document.getElementById(`done-label-${n}`).textContent = '';
+      document.getElementById(`nav-${n}`).classList.remove('done');
+      document.querySelector(`#nav-${n} .nav-check`).textContent = '';
+    } else {
+      done.add(n);
+      btn.textContent = '✓ Done';
+      btn.classList.add('done-state');
+      document.getElementById(`done-label-${n}`).textContent = 'Section complete';
+      document.getElementById(`nav-${n}`).classList.add('done');
+      document.querySelector(`#nav-${n} .nav-check`).textContent = '✓';
+    }
+    updateProgress();
+  }
+
+  // ─── ACTIVE NAV ON SCROLL ────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = sections.findIndex(s => s.id === e.target.id) + 1;
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const navEl = document.getElementById('nav-' + idx);
+        if (navEl) navEl.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (el) observer.observe(el);
+  });
+
+  // ─── SECTION REVEAL ──────────────────────────────────────────
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revealObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.06 });
+
+  document.querySelectorAll('.section').forEach(s => revealObserver.observe(s));
+
+  // ─── COPY CODE ───────────────────────────────────────────────
+  function copyCode(btn) {
+    const code = btn.parentElement.querySelector('code');
+    const text = code.innerText
+      .replace(/^>> /gm, '')
+      .replace(/^ans = .*/gm, '')
+      .replace(/^\$ /gm, '')
+      .split('\n').filter(l => l.trim()).join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+
+  // ─── MOBILE SIDEBAR ──────────────────────────────────────────
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+  document.getElementById('main').addEventListener('click', () => {
+    if (window.innerWidth <= 680) closeSidebar();
+  });
+</script>
+</body>
+</html>

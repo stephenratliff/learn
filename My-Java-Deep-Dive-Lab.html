@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Deep Dive – Interactive Handbook</title>
+<style>
+:root {
+  --bg: #0b1220;
+  --panel: #111827;
+  --panel-2: #0f172a;
+  --teal: #22d3ee;
+  --amber: #f59e0b;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --border: #1f2937;
+  --green: #10b981;
+  --red: #ef4444;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  line-height: 1.65;
+}
+.app { display: flex; }
+.sidebar {
+  width: 300px;
+  position: fixed;
+  top: 0; left: 0; height: 100vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 24px;
+  z-index: 40;
+}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+.logo { font-size: 20px; font-weight: 800; letter-spacing: .5px; margin-bottom: 24px; background: linear-gradient(90deg, var(--teal), var(--amber)); -webkit-background-clip: text; color: transparent; }
+.sidebar nav a {
+  display: block;
+  padding: 10px 12px;
+  margin: 4px 0;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  border: 1px solid transparent;
+  transition: all .2s;
+}
+.sidebar nav a:hover { background: var(--panel-2); color: var(--text); border-color: var(--border); }
+.sidebar nav a.active { background: rgba(34,211,238,.1); color: var(--teal); border-color: rgba(34,211,238,.3); }
+.content { margin-left: 300px; flex: 1; padding: 0 32px; max-width: 1200px; }
+.mobile-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 50; background: var(--panel); border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:var(--text); cursor:pointer; }
+.hero { padding: 80px 0 40px; text-align: center; }
+.hero h1 { font-size: clamp(36px,5vw,60px); margin:0; background:linear-gradient(90deg, var(--teal), var(--amber)); -webkit-background-clip:text; color:transparent; font-weight:800; }
+.hero p { color: var(--muted); max-width: 800px; margin: 18px auto; font-size: 18px; }
+.badges { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
+.badge { padding:6px 12px; background: var(--panel-2); border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted); }
+.badge.teal { color: var(--teal); border-color: rgba(34,211,238,.3); }
+.section { padding: 64px 0; border-bottom: 1px solid var(--border); opacity: 0; transform: translateY(20px); transition: .6s; }
+.section.visible { opacity: 1; transform: none; }
+h2 { font-size: 30px; margin: 0 0 24px; display:flex; align-items:center; gap:12px; }
+h2 .num { color: var(--teal); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 18px; }
+h3 { color: var(--amber); margin: 32px 0 12px; font-size: 20px; }
+.card { background: var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px; margin:24px 0; }
+.callout { border-left:4px solid var(--amber); background: rgba(245,158,11,.08); padding:16px 20px; border-radius:8px; margin:20px 0; }
+.callout.why { border-color: var(--teal); background: rgba(34,211,238,.08); }
+.callout strong { color: var(--amber); }
+.callout.why strong { color: var(--teal); }
+.code-block { background:#020617; border:1px solid #1e293b; border-radius:12px; overflow:hidden; margin:24px 0; transition: outline .3s; }
+.code-block.active { outline: 2px solid var(--teal); }
+.code-header { display:flex; justify-content:space-between; align-items:center; padding:8px 14px; background:#0f172a; border-bottom:1px solid #1e293b; font-family:'JetBrains Mono', monospace; font-size:12px; }
+.filename { color: var(--muted); }
+.actions button { background:transparent; border:1px solid #334155; color:var(--text); padding:4px 10px; border-radius:6px; margin-left:6px; cursor:pointer; font-size:12px; }
+.actions button:hover { border-color: var(--teal); color: var(--teal); }
+pre { margin:0; padding:18px; overflow-x:auto; font-size:13px; line-height:1.7; }
+code { font-family:'JetBrains Mono','Cascadia Code',Consolas,monospace; }
+.kw { color:#22d3ee } .dt { color:#67e8f9 } .str { color:#f59e0b } .cmt { color:#64748b; font-style:italic } .num { color:#fbbf24 } .ann { color:#a78bfa }
+table { width:100%; border-collapse:collapse; margin:16px 0; font-size:14px; }
+th,td { border:1px solid var(--border); padding:10px 12px; text-align:left; }
+th { background:#0f172a; color:var(--teal); }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:900px){ .grid-2{grid-template-columns:1fr} }
+.console { background:#000; color:#22d3ee; padding:14px; border-radius:8px; min-height:60px; font-family:'JetBrains Mono',monospace; white-space:pre-wrap; font-size:13px; border:1px solid #1e293b; }
+.runner textarea { width:100%; background:#020617; color:var(--text); border:1px solid #1e293b; border-radius:8px; padding:12px; font-family:'JetBrains Mono',monospace; font-size:12px; min-height:140px; }
+.runner .runbar { display:flex; justify-content:space-between; align-items:center; margin:8px 0; }
+.btn { background:linear-gradient(90deg,var(--teal),#06b6d4); color:#001016; border:none; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; }
+.btn:hover { filter:brightness(1.1) }
+.btn.outline { background:transparent; border:1px solid var(--teal); color:var(--teal); }
+.quiz-q { background:var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:18px; margin:14px 0; }
+.quiz-q.correct { border-color: var(--green); background: rgba(16,185,129,.08); }
+.quiz-q.wrong { border-color: var(--red); background: rgba(239,68,68,.08); }
+.quiz-q h4 { margin:0 0 10px; font-size:15px; }
+.quiz-q label { display:block; padding:6px 0; cursor:pointer; color:var(--muted); }
+.quiz-q label:hover { color:var(--text); }
+.chip { display:inline-block; padding:7px 14px; background:#0f172a; border:1px solid var(--border); border-radius:999px; margin:6px; cursor:pointer; font-size:13px; transition:.2s; }
+.chip:hover { border-color:var(--teal); color:var(--teal); }
+footer { padding:60px 0 40px; text-align:center; color:var(--muted); }
+@media(max-width:1024px){ .sidebar{transform:translateX(-100%); transition:.3s} .sidebar.open{transform:translateX(0)} .content{margin-left:0; padding:0 20px} .mobile-toggle{display:block} }
+@media print { .sidebar, .mobile-toggle, .actions button, .btn { display:none !important } body{ background:white; color:black } .card, .code-block { border:1px solid #ccc; break-inside:avoid } }
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="logo">JAVA DEEP DIVE</div>
+  <nav id="nav">
+    <a href="#setup">1. Setup & Anatomy</a>
+    <a href="#core">2. Core Syntax Deep Dive</a>
+    <a href="#oop">3. Object-Oriented Mastery</a>
+    <a href="#exceptions">4. Exception Handling</a>
+    <a href="#collections">5. Collections Framework</a>
+    <a href="#streams">6. Lambdas & Streams</a>
+    <a href="#io">7. File I/O and NIO.2</a>
+    <a href="#concurrency">8. Concurrency Essentials</a>
+    <a href="#network">9. Networking & HTTP Client</a>
+    <a href="#projects">10. Practical Projects</a>
+    <a href="#playground">11. Interactive Playground</a>
+  </nav>
+</aside>
+
+<main class="content">
+<button class="mobile-toggle" id="menuBtn">☰</button>
+<header class="hero">
+  <h1>Java Deep Dive – Interactive Handbook</h1>
+  <p>For intermediate developers who want more than tutorials. Built on JDK 21 LTS, this handbook teaches tradeoffs, internals, and production patterns—not just syntax.</p>
+  <div class="badges">
+    <span class="badge teal">JDK 21 LTS</span>
+    <span class="badge">Virtual Threads</span>
+    <span class="badge">Records • Sealed • Pattern Matching</span>
+    <span class="badge">Streams • NIO.2 • HttpClient</span>
+  </div>
+</header>
+
+<section id="setup" class="section">
+<h2><span class="num">01</span> Setup & Anatomy</h2>
+<div class="card">
+<p><strong>Why JDK 21 LTS?</strong> It's the current long-term support release (supported until 2031), and it's where modern Java stabilized: virtual threads, record patterns, pattern matching for switch, and sequenced collections. If you're on 17, you can follow along—most features exist—but 21 removes preview flags and gives you the best performance.</p>
+<p>Install via SDKMAN: <code>sdk install java 21.0.2-tem</code> or Homebrew: <code>brew install openjdk@21</code>. Verify with <code>java -version</code>.</p>
+<p><strong>Project structure:</strong> Use Maven/Gradle standard layout. It matters because tools expect it:</p>
+<pre style="background:#020617;padding:12px;border-radius:8px">my-app/
+ ├─ src/main/java/com/example/
+ │   └─ App.java
+ ├─ src/test/java/
+ └─ pom.xml</pre>
+<p>Compile: <code>javac -d out src/main/java/com/example/*.java</code> Run: <code>java -cp out com.example.App</code></p>
+<h3>Main method evolution</h3>
+<p>Traditional (still required for public APIs): <code>public static void main(String[] args)</code>. Java 21 introduced JEP 445 (preview) allowing simplified launch: <code>void main()</code> in an unnamed class, and instance main methods. Java 25 makes this stable. For learning, use the classic form—then drop ceremony in scripts.</p>
+</div>
+<div class="callout why"><strong>Why it matters:</strong> Understanding the entry point and module system prevents classpath hell. Modules give strong encapsulation—your internals stay internal.</div>
+
+<div class="code-block" data-filename="HelloWorld.java" data-tags="basics main">
+<div class="code-header"><span class="filename">HelloWorld.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, Stephen! JDK " + Runtime.version());
+    }
+}</code></pre>
+</div>
+
+<div class="code-block" data-filename="module-info.java" data-tags="modules">
+<div class="code-header"><span class="filename">module-info.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">module com.example.hello {
+    // no exports needed for simple app
+    requires java.base; // implicit
+}</code></pre>
+</div>
+</section>
+
+<section id="core" class="section">
+<h2><span class="num">02</span> Core Syntax Deep Dive</h2>
+<div class="card">
+<p><strong>Primitives vs Wrappers:</strong> Primitives (<code>int, long, double</code> etc) live on stack, no identity. Wrappers (<code>Integer</code>) are objects, nullable, live on heap. Autoboxing is convenient but in hot loops creates garbage. Integer cache covers -128 to 127—<code>==</code> works there by accident, fails outside. Always use <code>.equals()</code> for wrappers.</p>
+<p><strong>var:</strong> Local type inference (Java 10). The compiler infers from RHS. It's not dynamic—type is fixed at compile time. Use for generics noise: <code>var map = new HashMap&lt;String, List&lt;User&gt;&gt;();</code> Don't use when type isn't obvious from initializer.</p>
+<p><strong>Text Blocks ("""):</strong> Java 15. Preserve formatting, strip incidental indent. Perfect for SQL, JSON, HTML. No more <code>+ "\n"</code> concat.</p>
+<p><strong>Switch expressions:</strong> Java 14. Use arrow <code>-></code> to avoid fall-through, yield a value, and be exhaustive with sealed types. Combined with pattern matching (Java 21), switch becomes a powerful type-safe dispatcher.</p>
+</div>
+
+<div class="code-block" data-filename="DataTypesDemo.java" data-tags="var textblocks">
+<div class="code-header"><span class="filename">DataTypesDemo.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">public class DataTypesDemo {
+    public static void main(String[] args) {
+        // primitives vs wrappers
+        int a = 127;
+        Integer b = 127;
+        Integer c = 127;
+        System.out.println(b == c); // true (cached)
+
+        Integer d = 128;
+        Integer e = 128;
+        System.out.println(d == e); // false! different objects
+
+        // var - type inferred as ArrayList<String>
+        var names = new java.util.ArrayList<String>();
+        names.add("Stephen");
+
+        // text block - perfect for JSON
+        String json = """
+            {
+              "name": "%s",
+              "jdk": 21,
+              "features": ["records","virtual-threads"]
+            }
+            """.formatted(names.get(0));
+        System.out.println(json);
+    }
+}</code></pre>
+</div>
+
+<div class="code-block" data-filename="SwitchPatternDemo.java" data-tags="switch pattern">
+<div class="code-header"><span class="filename">SwitchPatternDemo.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">public class SwitchPatternDemo {
+    static String describe(Object obj) {
+        // pattern matching for switch - Java 21
+        return switch (obj) {
+            case null -> "null";
+            case String s when s.isBlank() -> "empty string";
+            case String s -> "String length " + s.length();
+            case Integer i -> "int " + i;
+            case Long l -> "long " + l;
+            default -> "unknown " + obj.getClass().getSimpleName();
+        };
+    }
+
+    public static void main(String[] args) {
+        System.out.println(describe("Hi"));
+        System.out.println(describe(42));
+        System.out.println(describe(null));
+    }
+}</code></pre>
+</div>
+<div class="callout why"><strong>Why it matters:</strong> Pattern matching removes ceremony and ClassCastException risk. Switch expressions force you to handle all cases—compiler helps you when you add new types.</div>
+</section>
+
+<section id="oop" class="section">
+<h2><span class="num">03</span> Object-Oriented Mastery</h2>
+<div class="card">
+<p>Java is OOP-first but modernized. <strong>Encapsulation:</strong> private fields, public behavior. <strong>Inheritance:</strong> use sparingly—prefer composition. <strong>Polymorphism:</strong> dynamic dispatch on overridden methods.</p>
+<p><strong>Interfaces now have:</strong> default methods (evolution without breaking), static methods, private methods (Java 9). Use them for capability traits.</p>
+<p><strong>Records (Java 16):</strong> immutable data carriers. Compiler generates constructor, accessors, equals, hashCode, toString. Perfect for DTOs, keys, tuples. You can add validation in compact constructor.</p>
+<p><strong>Sealed classes (Java 17):</strong> <code>sealed interface X permits A,B,C</code> restricts who can implement. Enables exhaustive switch—compiler warns if you miss a case. Critical for domain modeling.</p>
+</div>
+
+<div class="code-block" data-filename="Shapes.java" data-tags="oop inheritance">
+<div class="code-header"><span class="filename">Shapes.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">abstract class Shape {
+    abstract double area();
+    String name() { return getClass().getSimpleName(); }
+}
+
+final class Circle extends Shape {
+    private final double radius;
+    Circle(double radius) { this.radius = radius; }
+    @Override double area() { return Math.PI * radius * radius; }
+}
+
+final class Rectangle extends Shape {
+    private final double w, h;
+    Rectangle(double w, double h) { this.w = w; this.h = h; }
+    @Override double area() { return w * h; }
+}</code></pre>
+</div>
+
+<div class="code-block" data-filename="Point.java" data-tags="record">
+<div class="code-header"><span class="filename">Point.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">public record Point(int x, int y) {
+    // compact constructor for validation
+    public Point {
+        if (x < 0 || y < 0) throw new IllegalArgumentException("positive only");
+    }
+    // additional method
+    public double distanceFromOrigin() {
+        return Math.hypot(x, y);
+    }
+}</code></pre>
+</div>
+
+<div class="code-block" data-filename="Vehicle.java" data-tags="sealed pattern">
+<div class="code-header"><span class="filename">Vehicle.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">public sealed interface Vehicle permits Car, Truck, Bike { }
+
+final class Car implements Vehicle { int seats() { return 5; } }
+final class Truck implements Vehicle { int payloadKg() { return 2000; } }
+final class Bike implements Vehicle { }
+
+class VehicleDemo {
+    static String inspect(Vehicle v) {
+        return switch(v) {
+            case Car c -> "Car with " + c.seats() + " seats";
+            case Truck t -> "Truck payload " + t.payloadKg();
+            case Bike b -> "Bike";
+            // exhaustive - no default needed
+        };
+    }
+}</code></pre>
+</div>
+</section>
+
+<section id="exceptions" class="section">
+<h2><span class="num">04</span> Exception Handling & Best Practices</h2>
+<div class="card">
+<p><strong>Checked vs Unchecked:</strong> Checked (<code>IOException</code>) must be declared or caught—forces handling of recoverable conditions. Unchecked (<code>RuntimeException</code>) for programming bugs—don't catch broadly.</p>
+<p><strong>Try-with-resources:</strong> Anything implementing <code>AutoCloseable</code> is closed automatically, even on exception. Suppressed exceptions are attached—use <code>e.getSuppressed()</code> to debug.</p>
+<p><strong>Custom exceptions:</strong> Extend <code>Exception</code> for checked business errors, or <code>RuntimeException</code> for validation. Keep hierarchy shallow, include context.</p>
+</div>
+
+<div class="code-block" data-filename="FileReaderSafe.java" data-tags="exceptions">
+<div class="code-header"><span class="filename">FileReaderSafe.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.io.*;
+import java.nio.file.*;
+
+public class FileReaderSafe {
+    public static String readFirstLine(Path p) throws FileReadException {
+        // try-with-resources guarantees close
+        try (BufferedReader br = Files.newBufferedReader(p)) {
+            return br.readLine();
+        } catch (IOException e) {
+            throw new FileReadException("Cannot read " + p, e);
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            System.out.println(readFirstLine(Path.of("README.md")));
+        } catch (FileReadException e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+
+// custom checked exception
+class FileReadException extends Exception {
+    FileReadException(String msg, Throwable cause) { super(msg, cause); }
+}</code></pre>
+</div>
+</section>
+
+<section id="collections" class="section">
+<h2><span class="num">05</span> Collections Framework In Depth</h2>
+<div class="card">
+<p><strong>Lists:</strong> <code>ArrayList</code> backed by array—O(1) get, amortized O(1) add, O(n) insert middle. <code>LinkedList</code>—O(n) get, O(1) insert if you have iterator at position. In practice, ArrayList wins 99% of time due to cache locality.</p>
+<p><strong>Maps:</strong> <code>HashMap</code> O(1) average, buckets array length power of 2, hash spread via XOR. Load factor 0.75 triggers resize. When bucket >8 entries, treeifies to red-black tree (Java 8+) to prevent hash-DoS. <code>LinkedHashMap</code> maintains insertion order, <code>TreeMap</code> sorted O(log n).</p>
+<p><strong>Comparator vs Comparable:</strong> Comparable defines natural order (<code>class User implements Comparable</code>). Comparator is external strategy—prefer for multiple orderings.</p>
+</div>
+
+<div class="code-block" data-filename="CollectionsLab.java" data-tags="collections">
+<div class="code-header"><span class="filename">CollectionsLab.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.util.*;
+
+public class CollectionsLab {
+    public static void main(String[] args) {
+        // ArrayList vs LinkedList microbenchmark concept
+        List<Integer> array = new ArrayList<>();
+        List<Integer> linked = new LinkedList<>();
+
+        for (int i = 0; i < 100_000; i++) {
+            array.add(i);
+            linked.add(i);
+        }
+
+        long t1 = System.nanoTime();
+        array.get(50_000);
+        long t2 = System.nanoTime();
+        linked.get(50_000);
+        long t3 = System.nanoTime();
+        System.out.println("ArrayList get: " + (t2-t1)/1000 + "µs");
+        System.out.println("LinkedList get: " + (t3-t2)/1000 + "µs");
+
+        // HashMap internals demo
+        Map<String,Integer> counts = new HashMap<>(16, 0.75f);
+        counts.merge("java", 1, Integer::sum); // atomic merge
+        counts.merge("java", 1, Integer::sum);
+        System.out.println(counts); // {java=2}
+
+        // Comparator - sort by length then alphabetically
+        List<String> words = new ArrayList<>(List.of("stream","lambda","var","record"));
+        words.sort(Comparator.comparingInt(String::length).thenComparing(Comparator.naturalOrder()));
+        System.out.println(words);
+    }
+}</code></pre>
+</div>
+</section>
+
+<section id="streams" class="section">
+<h2><span class="num">06</span> Lambdas, Streams, and Functional Java</h2>
+<div class="card">
+<p>Lambdas are syntactic sugar for functional interfaces. Method references (<code>String::toUpperCase</code>) improve readability.</p>
+<p>Streams are lazy pipelines: intermediate ops (filter, map) build plan; terminal op (collect, forEach) triggers. Never mutate external state in streams—use collectors.</p>
+<p><strong>Collectors:</strong> <code>groupingBy</code>, <code>partitioningBy</code>, <code>summarizingDouble</code>. Parallel streams use ForkJoinPool.commonPool—only for CPU-bound, large data; otherwise overhead hurts.</p>
+</div>
+
+<div class="code-block" data-filename="StreamAnalytics.java" data-tags="stream lambda">
+<div class="code-header"><span class="filename">StreamAnalytics.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.util.*;
+import java.util.stream.*;
+
+public class StreamAnalytics {
+    record Employee(String name, String dept, double salary) {}
+
+    public static void main(String[] args) {
+        List<Employee> staff = List.of(
+            new Employee("Ada","Eng",120_000),
+            new Employee("Grace","Eng",135_000),
+            new Employee("Linus","Ops",95_000),
+            new Employee("Stephen","Eng",110_000),
+            new Employee("Margaret","HR",85_000)
+        );
+
+        // filter + map + collect
+        var highEarners = staff.stream()
+            .filter(e -> e.salary() > 100_000)
+            .map(Employee::name)
+            .toList(); // Java 16
+
+        // grouping and averaging
+        Map<String, Double> avgByDept = staff.stream()
+            .collect(Collectors.groupingBy(
+                Employee::dept,
+                Collectors.averagingDouble(Employee::salary)
+            ));
+
+        // summarizing
+        DoubleSummaryStatistics stats = staff.stream()
+            .collect(Collectors.summarizingDouble(Employee::salary));
+
+        System.out.println("High earners: " + highEarners);
+        System.out.println("Avg by dept: " + avgByDept);
+        System.out.println("Salary stats: " + stats);
+    }
+}</code></pre>
+</div>
+</section>
+
+<section id="io" class="section">
+<h2><span class="num">07</span> File I/O and NIO.2</h2>
+<div class="card">
+<p>Forget <code>java.io.File</code>. Use <code>java.nio.file.Path</code> and <code>Files</code>. For small files: <code>Files.readString()</code>/<code>writeString()</code> (Java 11). For large: <code>Files.lines(path)</code> returns lazy Stream—must close via try-with-resources.</p>
+<p><code>Files.walk()</code> traverses directories depth-first. Use with filter for finding files. Always handle <code>IOException</code> properly—it's checked for a reason.</p>
+</div>
+
+<div class="code-block" data-filename="FileWalker.java" data-tags="nio">
+<div class="code-header"><span class="filename">FileWalker.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.io.IOException;
+import java.nio.file.*;
+
+public class FileWalker {
+    public static void main(String[] args) throws IOException {
+        Path start = Path.of(".");
+        try (var stream = Files.walk(start, 3)) {
+            long javaFiles = stream
+                .filter(p -> p.toString().endsWith(".java"))
+                .peek(System.out::println)
+                .count();
+            System.out.println("Found " + javaFiles + " java files");
+        }
+    }
+}</code></pre>
+</div>
+
+<div class="code-block" data-filename="CsvProcessor.java" data-tags="nio stream">
+<div class="code-header"><span class="filename">CsvProcessor.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.nio.file.*;
+import java.io.IOException;
+
+public class CsvProcessor {
+    public static void main(String[] args) throws IOException {
+        Path csv = Path.of("data.csv");
+        // create sample
+        Files.writeString(csv, "id,name,score\n1,Ada,95\n2,Grace,98\n");
+
+        try (var lines = Files.lines(csv)) {
+            double avg = lines.skip(1) // header
+                .map(l -> l.split(","))
+                .mapToInt(arr -> Integer.parseInt(arr[2]))
+                .average()
+                .orElse(0);
+            System.out.println("Average score: " + avg);
+        }
+    }
+}</code></pre>
+</div>
+</section>
+
+<section id="concurrency" class="section">
+<h2><span class="num">08</span> Concurrency Essentials</h2>
+<div class="card">
+<p>Platform threads are OS threads—expensive (~1MB stack). Virtual threads (JDK 21) are JVM-managed, cheap (KBs). You can spawn millions.</p>
+<p><strong>Rule:</strong> For I/O-bound tasks (HTTP, DB), use virtual threads. For CPU-bound, use platform thread pool sized to cores.</p>
+<p><code>Executors.newVirtualThreadPerTaskExecutor()</code> creates a new virtual thread per task—no pooling needed. <code>CompletableFuture</code> composes async steps without blocking.</p>
+</div>
+
+<div class="code-block" data-filename="VirtualThreadWebFetcher.java" data-tags="virtual thread concurrency">
+<div class="code-header"><span class="filename">VirtualThreadWebFetcher.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.net.URI;
+import java.net.http.*;
+import java.util.List;
+import java.util.concurrent.*;
+
+public class VirtualThreadWebFetcher {
+    public static void main(String[] args) throws Exception {
+        List<String> urls = List.of(
+            "https://example.com",
+            "https://httpbin.org/delay/1",
+            "https://httpbin.org/get"
+        );
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<CompletableFuture<String>> futures = urls.stream()
+                .map(url -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        var req = HttpRequest.newBuilder(URI.create(url)).GET().build();
+                        return client.send(req, HttpResponse.BodyHandlers.ofString()).statusCode() + " " + url;
+                    } catch (Exception e) { return "ERR " + url; }
+                }, executor))
+                .toList();
+
+            futures.forEach(f -> System.out.println(f.join()));
+        }
+    }
+}</code></pre>
+</div>
+</section>
+
+<section id="network" class="section">
+<h2><span class="num">09</span> Networking and Modern HTTP Client</h2>
+<div class="card">
+<p><code>java.net.http.HttpClient</code> (Java 11) supports HTTP/1.1 and HTTP/2, sync and async, WebSocket. It's immutable and thread-safe—create one per app.</p>
+<p>For JSON, JDK has no built-in parser. For production use Jackson or Gson, but for learning, parse minimally or treat as string. Pattern: build request, send, handle BodyHandler.</p>
+</div>
+
+<div class="code-block" data-filename="ApiClient.java" data-tags="httpclient">
+<div class="code-header"><span class="filename">ApiClient.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.net.URI;
+import java.net.http.*;
+import java.time.Duration;
+
+public class ApiClient {
+    public static void main(String[] args) throws Exception {
+        HttpClient client = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .version(HttpClient.Version.HTTP_2)
+            .build();
+
+        HttpRequest req = HttpRequest.newBuilder()
+            .uri(URI.create("https://api.github.com/repos/openjdk/jdk"))
+            .header("User-Agent", "JavaDeepDive")
+            .GET()
+            .build();
+
+        HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
+        System.out.println("Status: " + res.statusCode());
+        // crude JSON field extract
+        String body = res.body();
+        int idx = body.indexOf("\"stargazers_count\":");
+        System.out.println(body.substring(idx, idx+30));
+    }
+}</code></pre>
+</div>
+</section>
+
+<section id="projects" class="section">
+<h2><span class="num">10</span> Practical Projects</h2>
+<p>Five complete, runnable programs using only JDK 21. Copy, compile, run.</p>
+
+<h3>Project A: To-Do CLI with persistence</h3>
+<div class="code-block" data-filename="TodoCLI.java" data-tags="project">
+<div class="code-header"><span class="filename">TodoCLI.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.nio.file.*;
+import java.util.*;
+
+public class TodoCLI {
+    static final Path FILE = Path.of("todos.txt");
+    record Todo(int id, String task, boolean done) {}
+    public static void main(String[] args) throws Exception {
+        if (args.length == 0) { System.out.println("Usage: add/list/done <text|id>"); return; }
+        List<String> lines = Files.exists(FILE) ? Files.readAllLines(FILE) : new ArrayList<>();
+        List<Todo> todos = new ArrayList<>();
+        for (String l: lines) { var p=l.split("\\|",3); todos.add(new Todo(Integer.parseInt(p[0]), p[1], Boolean.parseBoolean(p[2]))); }
+
+        switch(args[0]) {
+            case "add" -> { int id = todos.stream().mapToInt(Todo::id).max().orElse(0)+1; todos.add(new Todo(id, String.join(" ", Arrays.copyOfRange(args,1,args.length)), false)); }
+            case "list" -> todos.forEach(t -> System.out.printf("%d [%s] %s%n", t.id, t.done?"x":" ", t.task));
+            case "done" -> { int id = Integer.parseInt(args[1]); todos.replaceAll(t -> t.id==id? new Todo(t.id,t.task,true):t); }
+        }
+        List<String> out = todos.stream().map(t -> t.id+"|"+t.task+"|"+t.done).toList();
+        Files.write(FILE, out);
+    }
+}</code></pre>
+</div>
+
+<h3>Project B: CSV Sales Analyzer</h3>
+<div class="code-block" data-filename="CsvSalesAnalyzer.java" data-tags="project stream">
+<div class="code-header"><span class="filename">CsvSalesAnalyzer.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.nio.file.*;
+import java.util.*;
+import java.util.stream.*;
+
+public class CsvSalesAnalyzer {
+    record Sale(String product, int qty, double price) { double total(){ return qty*price; } }
+    public static void main(String[] args) throws Exception {
+        Path csv = Path.of("sales.csv");
+        if (!Files.exists(csv)) Files.writeString(csv, "product,qty,price\nCoffee,3,4.5\nTea,5,2.0\nCoffee,2,4.5\n");
+        try (var lines = Files.lines(csv)) {
+            Map<String, Double> revenue = lines.skip(1)
+                .map(l -> l.split(","))
+                .map(a -> new Sale(a[0], Integer.parseInt(a[1]), Double.parseDouble(a[2])))
+                .collect(Collectors.groupingBy(Sale::product, Collectors.summingDouble(Sale::total)));
+            revenue.forEach((k,v) -> System.out.printf("%s: $%.2f%n", k, v));
+        }
+    }
+}</code></pre>
+</div>
+
+<h3>Project C: Chat Server & Client (virtual threads)</h3>
+<div class="code-block" data-filename="ChatServer.java" data-tags="project concurrency">
+<div class="code-header"><span class="filename">ChatServer.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.io.*;
+import java.net.*;
+import java.util.concurrent.*;
+
+public class ChatServer {
+    static final ConcurrentHashMap<Socket, PrintWriter> clients = new ConcurrentHashMap<>();
+    public static void main(String[] args) throws IOException {
+        try (ServerSocket ss = new ServerSocket(8080)) {
+            System.out.println("Chat on 8080");
+            while (true) {
+                Socket s = ss.accept();
+                Thread.startVirtualThread(() -> handle(s));
+            }
+        }
+    }
+    static void handle(Socket s) {
+        try (s; var in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+             var out = new PrintWriter(s.getOutputStream(), true)) {
+            clients.put(s, out);
+            out.println("Welcome Stephen!");
+            String line;
+            while ((line = in.readLine()) != null) {
+                for (var w : clients.values()) w.println(line);
+            }
+        } catch (IOException ignored) {} finally { clients.remove(s); }
+    }
+}</code></pre>
+</div>
+
+<div class="code-block" data-filename="ChatClient.java" data-tags="project">
+<div class="code-header"><span class="filename">ChatClient.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.io.*;
+import java.net.*;
+
+public class ChatClient {
+    public static void main(String[] args) throws IOException {
+        try (Socket s = new Socket("localhost",8080);
+             var in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+             var out = new PrintWriter(s.getOutputStream(), true);
+             var sysIn = new BufferedReader(new InputStreamReader(System.in))) {
+            Thread.startVirtualThread(() -> in.lines().forEach(System.out::println));
+            String line;
+            while ((line = sysIn.readLine()) != null) out.println(line);
+        }
+    }
+}</code></pre>
+</div>
+
+<h3>Project D: Swing GUI Calculator</h3>
+<div class="code-block" data-filename="SwingCalculator.java" data-tags="project">
+<div class="code-header"><span class="filename">SwingCalculator.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import javax.swing.*;
+import java.awt.*;
+
+public class SwingCalculator {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame f = new JFrame("Calc");
+            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            JTextField display = new JTextField(); display.setEditable(false); display.setFont(new Font("Monospaced",Font.BOLD,24));
+            f.add(display, BorderLayout.NORTH);
+            JPanel p = new JPanel(new GridLayout(4,4,5,5));
+            String[] keys = {"7","8","9","/","4","5","6","*","1","2","3","-","0",".","=","+"};
+            final double[] acc = {0}; final String[] op = {""};
+            for (String k: keys) {
+                JButton b = new JButton(k);
+                b.addActionListener(e -> {
+                    String t = e.getActionCommand();
+                    if (t.matches("[0-9.]")) display.setText(display.getText()+t);
+                    else if (t.equals("=")) { double v=Double.parseDouble(display.getText()); acc[0]=switch(op[0]){case "+"->acc[0]+v;case"-"->acc[0]-v;case"*"->acc[0]*v;case"/"->acc[0]/v;default->v;}; display.setText(String.valueOf(acc[0])); op[0]=""; }
+                    else { acc[0]=Double.parseDouble(display.getText()); op[0]=t; display.setText(""); }
+                });
+                p.add(b);
+            }
+            f.add(p); f.setSize(300,400); f.setVisible(true);
+        });
+    }
+}</code></pre>
+</div>
+
+<h3>Project E: Directory Watcher Auto-Backup</h3>
+<div class="code-block" data-filename="DirectoryWatcher.java" data-tags="project nio">
+<div class="code-header"><span class="filename">DirectoryWatcher.java</span><div class="actions"><button class="copy">Copy</button><button class="download">Download</button></div></div>
+<pre><code class="language-java">import java.nio.file.*;
+import static java.nio.file.StandardWatchEventKinds.*;
+
+public class DirectoryWatcher {
+    public static void main(String[] args) throws Exception {
+        Path dir = Path.of("watch"); Path backup = Path.of("backup");
+        Files.createDirectories(dir); Files.createDirectories(backup);
+        WatchService ws = FileSystems.getDefault().newWatchService();
+        dir.register(ws, ENTRY_CREATE, ENTRY_MODIFY);
+        System.out.println("Watching " + dir.toAbsolutePath());
+        while (true) {
+            WatchKey key = ws.take();
+            for (WatchEvent<?> ev : key.pollEvents()) {
+                Path src = dir.resolve((Path)ev.context());
+                Path dst = backup.resolve(src.getFileName() + ".bak");
+                Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Backed up: " + src);
+            }
+            key.reset();
+        }
+    }
+}</code></pre>
+</div>
+</section>
+
+<section id="playground" class="section">
+<h2><span class="num">11</span> Interactive Playground</h2>
+
+<div class="grid-2">
+<div class="card">
+<h3>Quiz: Test Your Depth</h3>
+<div id="quiz"></div>
+<button class="btn" id="quizSubmit" style="margin-top:12px">Check Answers</button>
+<p id="quizResult" style="margin-top:10px;color:var(--muted)"></p>
+</div>
+
+<div class="card">
+<h3>Concept Mapper</h3>
+<p style="color:var(--muted)">Click a term to highlight related code examples in the handbook.</p>
+<div id="concepts">
+<span class="chip" data-term="record">record</span>
+<span class="chip" data-term="sealed">sealed</span>
+<span class="chip" data-term="virtual">virtual thread</span>
+<span class="chip" data-term="stream">stream</span>
+<span class="chip" data-term="switch">switch</span>
+<span class="chip" data-term="nio">NIO.2</span>
+<span class="chip" data-term="httpclient">HttpClient</span>
+</div>
+</div>
+</div>
+
+<h3 style="margin-top:32px">Simulated Code Runner</h3>
+<p style="color:var(--muted)">These run in-browser with precomputed JDK 21 output—edit safely, then hit Run.</p>
+
+<div class="runner code-block" style="padding:0">
+<div class="code-header"><span class="filename">Runner 1: HelloWorld</span></div>
+<div style="padding:12px">
+<textarea data-output="Hello, Stephen!
+JDK: 21.0.2">public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, Stephen!");
+        System.out.println("JDK: " + Runtime.version().feature());
+    }
+}</textarea>
+<div class="runbar"><button class="btn">Run</button><span style="font-size:12px;color:var(--muted)">Simulated JDK 21</span></div>
+<pre class="console"></pre>
+</div>
+</div>
+
+<div class="runner code-block" style="padding:0">
+<div class="code-header"><span class="filename">Runner 2: Stream Filter</span></div>
+<div style="padding:12px">
+<textarea data-output="[Ada, Grace, Stephen]">var staff = List.of("Ada","Grace","Linus","Stephen","Margaret");
+var result = staff.stream().filter(s -> s.length() > 4).toList();
+System.out.println(result);</textarea>
+<div class="runbar"><button class="btn">Run</button></div>
+<pre class="console"></pre>
+</div>
+</div>
+
+</section>
+
+<footer>
+  <p>Built for Stephen – Java Deep Dive 2026</p>
+  <button class="btn outline" id="printBtn">Print / Save as PDF</button>
+</footer>
+
+</main>
+</div>
+
+<script>
+document.getElementById('menuBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open')});
+const navLinks = document.querySelectorAll('#nav a');
+const sections = [...document.querySelectorAll('.section')];
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('visible');
+      navLinks.forEach(a=>a.classList.toggle('active', a.getAttribute('href')==='#'+e.target.id));
+    }
+  })
+},{threshold:0.2});
+sections.forEach(s=>obs.observe(s));
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function highlight(code){
+ let h=esc(code);
+ h=h.replace(/(\/\/.*?$)/gm,'<span class="cmt">$1</span>');
+ h=h.replace(/\/\*[\s\S]*?\*\//g,m=>`<span class="cmt">${m}</span>`);
+ h=h.replace(/("(?:\\.|[^"\\])*")/g,'<span class="str">$1</span>');
+ h=h.replace(/('(?:\\.|[^'\\])*')/g,'<span class="str">$1</span>');
+ h=h.replace(/@\w+/g,'<span class="ann">$&</span>');
+ const kw=['abstract','assert','break','case','catch','class','continue','default','do','else','enum','extends','final','finally','for','if','implements','import','instanceof','interface','module','new','package','permits','record','return','sealed','static','super','switch','synchronized','this','throw','throws','try','var','void','while','yield','private','protected','public','requires','exports','opens','uses','provides','transitive','non-sealed','when'];
+ h=h.replace(new RegExp('\\b('+kw.join('|')+')\\b','g'),'<span class="kw">$1</span>');
+ const types=['String','Integer','Long','Double','Boolean','List','Map','Set','Optional','Stream','Path','Files','HttpClient','CompletableFuture','System','Runtime','Thread'];
+ h=h.replace(new RegExp('\\b('+types.join('|')+')\\b','g'),'<span class="dt">$1</span>');
+ h=h.replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+ return h;
+}
+document.querySelectorAll('pre code').forEach(codeEl=>{
+ const raw = codeEl.textContent;
+ codeEl.innerHTML = highlight(raw);
+ const block = codeEl.closest('.code-block');
+ if(block){
+   const copyBtn = block.querySelector('.copy');
+   const dlBtn = block.querySelector('.download');
+   const filename = block.dataset.filename || 'Example.java';
+   if(copyBtn){copyBtn.onclick=async()=>{try{await navigator.clipboard.writeText(raw);copyBtn.textContent='Copied!';}catch{const ta=document.createElement('textarea');ta.value=raw;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();copyBtn.textContent='Copied!';}setTimeout(()=>copyBtn.textContent='Copy',1500)}}
+   if(dlBtn){dlBtn.onclick=()=>{const blob=new Blob([raw],{type:'text/x-java'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}}
+ }
+});
+
+// Quiz
+const quizData=[
+ {q:"Virtual threads became stable in which JDK?",o:["JDK 17","JDK 19 preview","JDK 21","JDK 11"],a:2,e:"JDK 21 LTS finalized virtual threads (JEP 444)."},
+ {q:"ArrayList get(index) is:",o:["O(n)","O(1)","O(log n)","O(n²)"],a:1,e:"Backed by array, random access constant time."},
+ {q:"What does a record auto-generate?",o:["Only constructor","Getters only","equals, hashCode, toString, accessor","Builder"],a:2,e:"Records are data carriers with full value semantics."},
+ {q:"Purpose of sealed classes?",o:["Faster code","Restrict inheritance hierarchy","Allow multiple inheritance","Make mutable"],a:1,e:"Sealed + permits enables exhaustive switches."},
+ {q:"try-with-resources requires:",o:["Serializable","Cloneable","AutoCloseable","Comparable"],a:2,e:"Ensures close() is called automatically."},
+ {q:"Switch expressions must be:",o:["Exhaustive for sealed types","Always have default","Use break","Cannot return value"],a:0,e:"Compiler enforces completeness."},
+ {q:"Pattern matching for instanceof avoids:",o:["null checks","Explicit cast","Exceptions","Imports"],a:1,e:"if(obj instanceof String s) gives you s directly."},
+ {q:"HashMap treeifies bucket at size:",o:["4","6","8","16"],a:2,e:"After 8 collisions to avoid DoS."},
+ {q:"var is:",o:["Dynamic typing","Compile-time inference","Object type","Deprecated"],a:1,e:"Type fixed at compile, inferred from RHS."},
+ {q:"Best use for virtual threads:",o:["CPU-heavy math","I/O-bound tasks","UI rendering","GC tuning"],a:1,e:"Millions of blocking I/O tasks cheaply."}
+];
+function renderQuiz(){
+ const c=document.getElementById('quiz'); c.innerHTML='';
+ quizData.forEach((item,i)=>{
+   const div=document.createElement('div'); div.className='quiz-q'; div.innerHTML=`<h4>${i+1}. ${item.q}</h4>`+item.o.map((opt,j)=>`<label><input type="radio" name="q${i}" value="${j}"> ${opt}</label>`).join('');
+   c.appendChild(div);
+ });
+}
+renderQuiz();
+document.getElementById('quizSubmit').onclick=()=>{
+ let score=0;
+ document.querySelectorAll('.quiz-q').forEach((div,i)=>{
+   const sel=div.querySelector('input:checked'); div.classList.remove('correct','wrong');
+   if(sel && +sel.value===quizData[i].a){score++; div.classList.add('correct')} else {div.classList.add('wrong')}
+   if(!div.querySelector('p')){const p=document.createElement('p');p.style.fontSize='12px';p.style.color='var(--muted)';p.textContent=quizData[i].e;div.appendChild(p)}
+ });
+ document.getElementById('quizResult').textContent=`Score: ${score}/${quizData.length} — ${score>=8?'Senior level!':'Review sections 2-8.'}`;
+};
+
+// Runners
+document.querySelectorAll('.runner').forEach(r=>{
+ const btn=r.querySelector('button'); const out=r.querySelector('.console'); const ta=r.querySelector('textarea');
+ btn.onclick=()=>{ out.textContent='> javac ...\n> java ...'; setTimeout(()=>{ out.textContent = ta.dataset.output || 'Done.' }, 500) }
+});
+
+// Concept mapper
+document.querySelectorAll('.chip').forEach(ch=>{
+ ch.onclick=()=>{
+   document.querySelectorAll('.code-block').forEach(b=>b.style.outline='');
+   const term=ch.dataset.term;
+   document.querySelectorAll(`.code-block[data-tags*="${term}"]`).forEach(b=>{
+     b.style.outline='2px solid var(--teal)'; b.scrollIntoView({behavior:'smooth', block:'center'});
+   });
+ }
+});
+
+document.getElementById('printBtn').onclick=()=>window.print();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+</body>
+</html>

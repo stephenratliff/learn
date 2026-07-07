@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>macOS Built-in Apache — Management Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;1,400&family=Fraunces:ital,wght@0,300;0,600;0,800;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --surface: #fffdf8;
+    --card: #ffffff;
+    --border: #e2d9cb;
+    --border2: #cdc3b3;
+    --accent: #c0392b;
+    --accent2: #2c5f8a;
+    --accent3: #2e7d32;
+    --accent4: #6d4c41;
+    --text: #1a1410;
+    --muted: #5c5045;
+    --faint: #9b8f82;
+    --highlight: #fff3cd;
+    --highlight-border: #e6c84a;
+    --info-bg: #e8f0f8;
+    --info-border: #2c5f8a;
+    --success-bg: #e8f5e9;
+    --success-border: #2e7d32;
+    --warn-bg: #fff8e1;
+    --warn-border: #f9a825;
+    --danger-bg: #fdecea;
+    --danger-border: #c0392b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* Noise texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 128px;
+  }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+    max-width: 1100px;
+    margin: 0 auto;
+    gap: 0;
+  }
+
+  /* Sidebar */
+  aside {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 40px 24px 40px 32px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    animation: fadeIn 0.5s ease both;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .sidebar-logo .apple-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--text);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--surface);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+  }
+
+  .nav-group { margin-bottom: 24px; }
+
+  .nav-group-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--faint);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-left: 2px;
+  }
+
+  aside a {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-size: 13.5px;
+    font-weight: 300;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    line-height: 1.4;
+  }
+
+  aside a:hover {
+    color: var(--text);
+    background: var(--bg);
+    border-left-color: var(--accent);
+  }
+
+  /* Main content */
+  main {
+    padding: 56px 56px 100px 56px;
+    max-width: 780px;
+  }
+
+  /* Header */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeDown 0.5s ease both;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  .header-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--faint);
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .header-meta span::before { content: '· '; color: var(--border2); }
+  .header-meta span:first-child::before { content: ''; }
+
+  /* Sections */
+  section {
+    margin-bottom: 52px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  section:nth-child(1) { animation-delay: 0.05s; }
+  section:nth-child(2) { animation-delay: 0.1s; }
+  section:nth-child(3) { animation-delay: 0.15s; }
+  section:nth-child(4) { animation-delay: 0.2s; }
+  section:nth-child(5) { animation-delay: 0.25s; }
+  section:nth-child(6) { animation-delay: 0.3s; }
+  section:nth-child(7) { animation-delay: 0.35s; }
+
+  .section-rule {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .section-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--danger-bg);
+    border: 1px solid rgba(192,57,43,0.2);
+    padding: 3px 9px;
+    border-radius: 3px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  .rule-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-size: 1.45rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent2);
+    letter-spacing: 0.06em;
+    margin: 28px 0 10px;
+    text-transform: uppercase;
+  }
+
+  p {
+    color: var(--muted);
+    margin-bottom: 14px;
+    font-weight: 300;
+  }
+
+  strong { font-weight: 600; color: var(--text); }
+
+  /* Inline code */
+  p code, li code, td code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    background: rgba(44, 95, 138, 0.08);
+    color: var(--accent2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid rgba(44, 95, 138, 0.15);
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: #1c1917;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 14px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .code-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 16px;
+    background: #28211e;
+    border-bottom: 1px solid #3a2e28;
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .code-dots span {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .code-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #6b5e56;
+    letter-spacing: 0.08em;
+    font-weight: 400;
+  }
+
+  .copy-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b5e56;
+    background: transparent;
+    border: 1px solid #3a2e28;
+    padding: 3px 9px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    color: #28c840;
+    border-color: #28c840;
+  }
+
+  pre {
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.9;
+  }
+
+  .t  { color: #e8ddd4; }           /* plain text */
+  .cmd{ color: #28c840; }           /* commands */
+  .fl { color: #79c0ff; }           /* flags */
+  .pt { color: #febc2e; }           /* paths */
+  .cm { color: #6b5e56; font-style: italic; } /* comments */
+  .kw { color: #c792ea; }           /* keywords/directives */
+  .st { color: #f78c6c; }           /* strings/values */
+  .hl { color: #ff5f57; }           /* highlight/warning */
+
+  /* Callouts */
+  .callout {
+    display: flex;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin: 14px 0;
+    font-size: 14px;
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  .callout-icon { flex-shrink: 0; font-size: 17px; }
+  .callout p { color: inherit; margin: 0; font-size: 14px; font-weight: 300; }
+
+  .callout.info    { background: var(--info-bg);    border: 1px solid rgba(44,95,138,0.25);   color: #1e4470; }
+  .callout.warning { background: var(--warn-bg);    border: 1px solid rgba(249,168,37,0.35);  color: #7a5c00; }
+  .callout.danger  { background: var(--danger-bg);  border: 1px solid rgba(192,57,43,0.25);   color: #8b2018; }
+  .callout.success { background: var(--success-bg); border: 1px solid rgba(46,125,50,0.25);   color: #1b5e20; }
+
+  /* Table */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin: 14px 0;
+    background: var(--card);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .ref-table th {
+    background: var(--bg);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--faint);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ref-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-weight: 300;
+    vertical-align: top;
+  }
+
+  .ref-table tr:last-child td { border-bottom: none; }
+  .ref-table tr:hover td { background: var(--bg); }
+
+  /* Lists */
+  ul, ol {
+    padding-left: 22px;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.9;
+    margin-bottom: 14px;
+  }
+
+  li { margin-bottom: 2px; }
+  ul li::marker { color: var(--accent); }
+  ol li::marker { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* Footer */
+  footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Animations */
+  @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeDown{ from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp  { from { opacity: 0; transform: translateY(12px);  } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { display: none; }
+    main { padding: 32px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar Navigation -->
+  <aside>
+    <div class="sidebar-logo">
+      <div class="apple-icon">⌘</div>
+      <span>Built-in Apache<br>Management Guide</span>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Overview</div>
+      <a href="#overview">What is Built-in Apache?</a>
+      <a href="#paths">Key File Paths</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Control</div>
+      <a href="#manage">Start / Stop / Restart</a>
+      <a href="#autostart">Auto-Start at Boot</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Configuration</div>
+      <a href="#httpd-conf">httpd.conf Basics</a>
+      <a href="#docroot">Document Root</a>
+      <a href="#modules">Enable Modules</a>
+      <a href="#userdir">Per-User Sites</a>
+      <a href="#vhosts">Virtual Hosts</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Utilities</div>
+      <a href="#logs">Logs & Diagnostics</a>
+      <a href="#sip">SIP Restrictions</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+
+    <div class="page-header">
+      <div class="eyebrow">macOS Sequoia · Apple Silicon M4 · Apache 2.4</div>
+      <h1>Built-in macOS Apache<br><em>Management &amp; Configuration</em></h1>
+      <div class="header-meta">
+        <span>System Apache — not Homebrew</span>
+        <span>Requires sudo</span>
+        <span>MacBook Air M4</span>
+      </div>
+    </div>
+
+    <!-- SECTION: Overview -->
+    <section id="overview">
+      <div class="section-rule">
+        <span class="section-tag">§ 01</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>What is the Built-in Apache?</h2>
+
+      <p>macOS ships with Apache HTTP Server pre-installed as a system service. It is <strong>not enabled by default</strong> on modern macOS (Ventura, Sonoma, Sequoia) — Apple removed the GUI toggle from System Preferences — but the binaries and config files are fully intact and manageable from Terminal.</p>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <p>The system Apache is <strong>intentionally limited</strong> on modern macOS due to System Integrity Protection (SIP). Many system paths under <code>/System/</code> are read-only. All config lives in <code>/etc/apache2/</code>, which you <em>can</em> edit with <code>sudo</code>.</p>
+      </div>
+
+      <p>The built-in Apache binary is at <code>/usr/sbin/httpd</code> and is managed via <code>/usr/sbin/apachectl</code>. All commands require <code>sudo</code>.</p>
+    </section>
+
+    <!-- SECTION: Paths -->
+    <section id="paths">
+      <div class="section-rule">
+        <span class="section-tag">§ 02</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Key File Paths</h2>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Purpose</th>
+            <th>Path</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Control binary</td><td><code>/usr/sbin/apachectl</code></td></tr>
+          <tr><td>Apache daemon</td><td><code>/usr/sbin/httpd</code></td></tr>
+          <tr><td>Main config file</td><td><code>/etc/apache2/httpd.conf</code></td></tr>
+          <tr><td>Extra configs directory</td><td><code>/etc/apache2/extra/</code></td></tr>
+          <tr><td>Virtual hosts config</td><td><code>/etc/apache2/extra/httpd-vhosts.conf</code></td></tr>
+          <tr><td>Per-user sites config</td><td><code>/etc/apache2/extra/httpd-userdir.conf</code></td></tr>
+          <tr><td>Default document root</td><td><code>/Library/WebServer/Documents/</code></td></tr>
+          <tr><td>Per-user document root</td><td><code>~/Sites/</code></td></tr>
+          <tr><td>Error log</td><td><code>/private/var/log/apache2/error_log</code></td></tr>
+          <tr><td>Access log</td><td><code>/private/var/log/apache2/access_log</code></td></tr>
+          <tr><td>LaunchDaemon plist</td><td><code>/System/Library/LaunchDaemons/org.apache.httpd.plist</code></td></tr>
+          <tr><td>Apache version info</td><td><code>httpd -v</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION: Manage -->
+    <section id="manage">
+      <div class="section-rule">
+        <span class="section-tag">§ 03</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Start, Stop &amp; Restart</h2>
+
+      <p>All <code>apachectl</code> commands require <code>sudo</code> because the built-in Apache binds to port 80, which needs root.</p>
+
+      <h3>// Core Service Commands</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal — apachectl</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Start Apache</span>
+<span class="cmd">sudo</span> <span class="t">apachectl start</span>
+
+<span class="cm"># Stop Apache</span>
+<span class="cmd">sudo</span> <span class="t">apachectl stop</span>
+
+<span class="cm"># Restart (full stop + start)</span>
+<span class="cmd">sudo</span> <span class="t">apachectl restart</span>
+
+<span class="cm"># Graceful restart — reloads config without dropping connections</span>
+<span class="cmd">sudo</span> <span class="t">apachectl graceful</span>
+
+<span class="cm"># Check syntax of httpd.conf before restarting</span>
+<span class="cmd">sudo</span> <span class="t">apachectl configtest</span>
+
+<span class="cm"># Print full status</span>
+<span class="cmd">sudo</span> <span class="t">apachectl status</span></pre>
+      </div>
+
+      <h3>// Check if Apache is Running</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Check if httpd process is alive</span>
+<span class="cmd">ps aux</span> <span class="t">| grep httpd</span>
+
+<span class="cm"># Check if port 80 is listening</span>
+<span class="cmd">sudo lsof</span> <span class="fl">-i</span> <span class="t">:80</span>
+
+<span class="cm"># Then open browser and visit:</span>
+<span class="st">http://localhost</span></pre>
+      </div>
+
+      <div class="callout success">
+        <span class="callout-icon">✅</span>
+        <p>If Apache is running correctly, <code>http://localhost</code> will show the default page — usually a file from <code>/Library/WebServer/Documents/</code>.</p>
+      </div>
+    </section>
+
+    <!-- SECTION: Autostart -->
+    <section id="autostart">
+      <div class="section-rule">
+        <span class="section-tag">§ 04</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Auto-Start Apache at Boot</h2>
+
+      <p>The built-in Apache is controlled by <code>launchctl</code> and a plist in the LaunchDaemons directory. Use these commands to enable or disable it persisting across reboots.</p>
+
+      <h3>// Enable Auto-Start (load at boot)</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal — launchctl</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo</span> <span class="t">launchctl load</span> <span class="fl">-w</span> <span class="pt">/System/Library/LaunchDaemons/org.apache.httpd.plist</span></pre>
+      </div>
+
+      <h3>// Disable Auto-Start</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal — launchctl</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo</span> <span class="t">launchctl unload</span> <span class="fl">-w</span> <span class="pt">/System/Library/LaunchDaemons/org.apache.httpd.plist</span></pre>
+      </div>
+
+      <h3>// Check Load Status</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo</span> <span class="t">launchctl list | grep apache</span>
+<span class="cm"># If running, you'll see a PID in the first column</span></pre>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-icon">🔒</span>
+        <p>The plist at <code>/System/Library/LaunchDaemons/</code> is protected by SIP. You can <code>load</code> and <code>unload</code> it, but you <strong>cannot edit or replace</strong> it without disabling SIP (not recommended).</p>
+      </div>
+    </section>
+
+    <!-- SECTION: httpd.conf -->
+    <section id="httpd-conf">
+      <div class="section-rule">
+        <span class="section-tag">§ 05</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Editing httpd.conf</h2>
+
+      <p>The main configuration file is <code>/etc/apache2/httpd.conf</code>. Always <strong>back it up</strong> before editing, then test the syntax before restarting.</p>
+
+      <h3>// Back Up &amp; Open</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Back up the original config</span>
+<span class="cmd">sudo cp</span> <span class="pt">/etc/apache2/httpd.conf</span> <span class="pt">/etc/apache2/httpd.conf.bak</span>
+
+<span class="cm"># Edit with nano</span>
+<span class="cmd">sudo nano</span> <span class="pt">/etc/apache2/httpd.conf</span>
+
+<span class="cm"># Or with vim</span>
+<span class="cmd">sudo vim</span> <span class="pt">/etc/apache2/httpd.conf</span>
+
+<span class="cm"># Or open directory in VS Code (edit file with sudo separately)</span>
+<span class="cmd">code</span> <span class="pt">/etc/apache2/</span></pre>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <p>VS Code and other GUI editors typically cannot save directly to <code>/etc/</code> without <code>sudo</code>. Use <code>nano</code> or <code>vim</code> with <code>sudo</code>, or use <code>sudo tee</code> to write from VS Code's terminal.</p>
+      </div>
+
+      <h3>// Change the Server Port</h3>
+      <p>Find the <code>Listen</code> directive and change it from port 80 to any open port:</p>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd.conf</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Default (requires sudo to bind):</span>
+<span class="kw">Listen</span> <span class="st">80</span>
+
+<span class="cm"># Change to port 8080 (no sudo needed to start):</span>
+<span class="kw">Listen</span> <span class="st">8080</span></pre>
+      </div>
+
+      <h3>// Set Server Name</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd.conf</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Uncomment and set (suppresses the ServerName warning):</span>
+<span class="kw">ServerName</span> <span class="st">localhost:80</span></pre>
+      </div>
+
+      <h3>// Always Test Config After Editing</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo</span> <span class="t">apachectl configtest</span>
+<span class="cm"># If "Syntax OK" — safe to restart</span>
+<span class="cmd">sudo</span> <span class="t">apachectl graceful</span></pre>
+      </div>
+    </section>
+
+    <!-- SECTION: Document Root -->
+    <section id="docroot">
+      <div class="section-rule">
+        <span class="section-tag">§ 06</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Document Root</h2>
+
+      <p>The default document root is <code>/Library/WebServer/Documents/</code>. You can change it to any directory — commonly your home <code>Sites</code> folder.</p>
+
+      <h3>// Change Document Root in httpd.conf</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd.conf — find and replace both lines</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Replace with your username:</span>
+<span class="kw">DocumentRoot</span> <span class="st">"/Users/YOUR_USERNAME/Sites"</span>
+<span class="kw">&lt;Directory</span> <span class="st">"/Users/YOUR_USERNAME/Sites"</span><span class="kw">&gt;</span></pre>
+      </div>
+
+      <h3>// Set Directory Permissions</h3>
+      <p>Inside the <code>&lt;Directory&gt;</code> block that matches your document root, set:</p>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd.conf — Directory block</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="kw">&lt;Directory</span> <span class="st">"/Users/YOUR_USERNAME/Sites"</span><span class="kw">&gt;</span>
+    <span class="kw">Options</span>      Indexes FollowSymLinks MultiViews
+    <span class="kw">AllowOverride</span> All
+    <span class="kw">Require</span>      all granted
+<span class="kw">&lt;/Directory&gt;</span></pre>
+      </div>
+
+      <h3>// Create the Sites Folder &amp; a Test Page</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">mkdir</span> <span class="fl">-p</span> <span class="pt">~/Sites</span>
+<span class="cmd">echo</span> <span class="st">"&lt;h1&gt;macOS Built-in Apache — Working!&lt;/h1&gt;"</span> &gt; <span class="pt">~/Sites/index.html</span></pre>
+      </div>
+    </section>
+
+    <!-- SECTION: Modules -->
+    <section id="modules">
+      <div class="section-rule">
+        <span class="section-tag">§ 07</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Enabling Modules</h2>
+
+      <p>Modules are enabled by uncommenting <code>LoadModule</code> lines in <code>httpd.conf</code>. Remove the leading <code>#</code> to activate a module.</p>
+
+      <h3>// Commonly Needed Modules</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd.conf — uncomment to enable</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># URL rewriting (.htaccess redirects)</span>
+<span class="kw">LoadModule</span> <span class="t">rewrite_module libexec/apache2/mod_rewrite.so</span>
+
+<span class="cm"># SSL / HTTPS support</span>
+<span class="kw">LoadModule</span> <span class="t">ssl_module libexec/apache2/mod_ssl.so</span>
+
+<span class="cm"># Per-user ~/Sites directories</span>
+<span class="kw">LoadModule</span> <span class="t">userdir_module libexec/apache2/mod_userdir.so</span>
+
+<span class="cm"># CGI script support</span>
+<span class="kw">LoadModule</span> <span class="t">cgi_module libexec/apache2/mod_cgi.so</span>
+
+<span class="cm"># Virtual hosts (usually already enabled)</span>
+<span class="kw">LoadModule</span> <span class="t">vhost_alias_module libexec/apache2/mod_vhost_alias.so</span>
+
+<span class="cm"># PHP (macOS removed bundled PHP in Monterey+)</span>
+<span class="cm"># Install PHP via Homebrew first, then:</span>
+<span class="kw">LoadModule</span> <span class="t">php_module /opt/homebrew/opt/php/lib/httpd/modules/libphp.so</span></pre>
+      </div>
+
+      <h3>// List All Available Modules</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># List compiled-in + loaded modules</span>
+<span class="cmd">httpd</span> <span class="fl">-M</span>
+
+<span class="cm"># List available .so files on disk</span>
+<span class="cmd">ls</span> <span class="pt">/usr/libexec/apache2/</span></pre>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <p>macOS Monterey and later removed the bundled PHP. Use <code>brew install php</code> for PHP support, then load the Homebrew PHP module as shown above.</p>
+      </div>
+    </section>
+
+    <!-- SECTION: Per-User Sites -->
+    <section id="userdir">
+      <div class="section-rule">
+        <span class="section-tag">§ 08</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Per-User Sites (~/Sites)</h2>
+
+      <p>macOS supports serving from each user's <code>~/Sites</code> folder at <code>http://localhost/~username/</code>. This requires enabling both the module and the include in <code>httpd.conf</code>.</p>
+
+      <h3>// Step 1 — Enable in httpd.conf</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd.conf — uncomment both lines</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># 1. Uncomment the userdir module:</span>
+<span class="kw">LoadModule</span> <span class="t">userdir_module libexec/apache2/mod_userdir.so</span>
+
+<span class="cm"># 2. Uncomment the include:</span>
+<span class="kw">Include</span> <span class="t">/private/etc/apache2/extra/httpd-userdir.conf</span></pre>
+      </div>
+
+      <h3>// Step 2 — Configure httpd-userdir.conf</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo nano</span> <span class="pt">/etc/apache2/extra/httpd-userdir.conf</span></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd-userdir.conf — uncomment this line</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="kw">Include</span> <span class="t">/private/etc/apache2/users/*.conf</span></pre>
+      </div>
+
+      <h3>// Step 3 — Create Your User Config</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal — replace YOUR_USERNAME</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo nano</span> <span class="pt">/etc/apache2/users/YOUR_USERNAME.conf</span></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">/etc/apache2/users/YOUR_USERNAME.conf</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="kw">&lt;Directory</span> <span class="st">"/Users/YOUR_USERNAME/Sites/"</span><span class="kw">&gt;</span>
+    <span class="kw">AddLanguage</span>   en .en
+    <span class="kw">AddHandler</span>    cgi-script .cgi .pl
+    <span class="kw">Options</span>       Indexes MultiViews FollowSymLinks
+    <span class="kw">AllowOverride</span> All
+    <span class="kw">Require</span>       all granted
+<span class="kw">&lt;/Directory&gt;</span></pre>
+      </div>
+
+      <h3>// Step 4 — Create Sites &amp; Restart</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">mkdir</span> <span class="fl">-p</span> <span class="pt">~/Sites</span>
+<span class="cmd">echo</span> <span class="st">"&lt;h1&gt;Hello from ~/Sites&lt;/h1&gt;"</span> &gt; <span class="pt">~/Sites/index.html</span>
+<span class="cmd">sudo</span> <span class="t">apachectl graceful</span>
+
+<span class="cm"># Visit in browser:</span>
+<span class="st">http://localhost/~YOUR_USERNAME/</span></pre>
+      </div>
+    </section>
+
+    <!-- SECTION: Virtual Hosts -->
+    <section id="vhosts">
+      <div class="section-rule">
+        <span class="section-tag">§ 09</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Virtual Hosts</h2>
+
+      <p>Virtual Hosts allow multiple local domain names to resolve to different directories on the same machine — e.g., <code>myapp.test</code> pointing to a specific project folder.</p>
+
+      <h3>// Step 1 — Enable Virtual Hosts in httpd.conf</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd.conf — uncomment</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="kw">Include</span> <span class="t">/private/etc/apache2/extra/httpd-vhosts.conf</span></pre>
+      </div>
+
+      <h3>// Step 2 — Edit httpd-vhosts.conf</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo nano</span> <span class="pt">/etc/apache2/extra/httpd-vhosts.conf</span></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">httpd-vhosts.conf — example config</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Always keep a default catch-all first</span>
+<span class="kw">&lt;VirtualHost</span> <span class="st">*:80</span><span class="kw">&gt;</span>
+    <span class="kw">ServerName</span>   localhost
+    <span class="kw">DocumentRoot</span> <span class="st">"/Library/WebServer/Documents"</span>
+<span class="kw">&lt;/VirtualHost&gt;</span>
+
+<span class="cm"># Your custom local project</span>
+<span class="kw">&lt;VirtualHost</span> <span class="st">*:80</span><span class="kw">&gt;</span>
+    <span class="kw">ServerName</span>   myapp.test
+    <span class="kw">DocumentRoot</span> <span class="st">"/Users/YOUR_USERNAME/Sites/myapp"</span>
+    <span class="kw">ErrorLog</span>     <span class="st">"/private/var/log/apache2/myapp-error.log"</span>
+    <span class="kw">CustomLog</span>    <span class="st">"/private/var/log/apache2/myapp-access.log"</span> combined
+    <span class="kw">&lt;Directory</span>  <span class="st">"/Users/YOUR_USERNAME/Sites/myapp"</span><span class="kw">&gt;</span>
+        <span class="kw">Options</span>      Indexes FollowSymLinks
+        <span class="kw">AllowOverride</span> All
+        <span class="kw">Require</span>      all granted
+    <span class="kw">&lt;/Directory&gt;</span>
+<span class="kw">&lt;/VirtualHost&gt;</span></pre>
+      </div>
+
+      <h3>// Step 3 — Add to /etc/hosts</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo nano</span> <span class="pt">/etc/hosts</span>
+
+<span class="cm"># Add at the bottom of the file:</span>
+<span class="st">127.0.0.1    myapp.test</span></pre>
+      </div>
+
+      <h3>// Step 4 — Flush DNS Cache &amp; Restart</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cmd">sudo</span> <span class="t">dscacheutil -flushcache</span>
+<span class="cmd">sudo</span> <span class="t">killall -HUP mDNSResponder</span>
+<span class="cmd">sudo</span> <span class="t">apachectl graceful</span>
+
+<span class="cm"># Now visit: http://myapp.test</span></pre>
+      </div>
+    </section>
+
+    <!-- SECTION: Logs -->
+    <section id="logs">
+      <div class="section-rule">
+        <span class="section-tag">§ 10</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>Logs &amp; Diagnostics</h2>
+
+      <h3>// Real-Time Log Tailing</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Watch error log live</span>
+<span class="cmd">tail</span> <span class="fl">-f</span> <span class="pt">/private/var/log/apache2/error_log</span>
+
+<span class="cm"># Watch access log live</span>
+<span class="cmd">tail</span> <span class="fl">-f</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># View last 50 errors</span>
+<span class="cmd">tail</span> <span class="fl">-n 50</span> <span class="pt">/private/var/log/apache2/error_log</span></pre>
+      </div>
+
+      <h3>// Useful Diagnostic Commands</h3>
+      <div class="code-block">
+        <div class="code-top">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-title">Terminal</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><span class="cm"># Check config syntax</span>
+<span class="cmd">sudo apachectl</span> <span class="t">configtest</span>
+
+<span class="cm"># View Apache version and compile settings</span>
+<span class="cmd">httpd</span> <span class="fl">-V</span>
+
+<span class="cm"># List all loaded modules</span>
+<span class="cmd">httpd</span> <span class="fl">-M</span>
+
+<span class="cm"># Print the full parsed config (all includes merged)</span>
+<span class="cmd">sudo httpd</span> <span class="fl">-t</span> <span class="fl">-D</span> DUMP_CONFIG <span class="st">2>&1</span>
+
+<span class="cm"># Force kill all httpd processes</span>
+<span class="cmd">sudo pkill</span> <span class="fl">-9</span> <span class="t">httpd</span>
+
+<span class="cm"># Restore original config from backup</span>
+<span class="cmd">sudo cp</span> <span class="pt">/etc/apache2/httpd.conf.bak</span> <span class="pt">/etc/apache2/httpd.conf</span></pre>
+      </div>
+    </section>
+
+    <!-- SECTION: SIP -->
+    <section id="sip">
+      <div class="section-rule">
+        <span class="section-tag">§ 11</span>
+        <div class="rule-line"></div>
+      </div>
+      <h2>SIP Restrictions</h2>
+
+      <p>System Integrity Protection (SIP) on Apple Silicon Macs prevents modification of system-owned files. Here's what you <strong>can</strong> and <strong>cannot</strong> do:</p>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Allowed?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Edit <code>/etc/apache2/httpd.conf</code></td><td><strong style="color:var(--accent3)">✅ Yes</strong> — with sudo</td></tr>
+          <tr><td>Edit <code>/etc/apache2/extra/*.conf</code></td><td><strong style="color:var(--accent3)">✅ Yes</strong> — with sudo</td></tr>
+          <tr><td>Edit <code>/etc/hosts</code></td><td><strong style="color:var(--accent3)">✅ Yes</strong> — with sudo</td></tr>
+          <tr><td>Edit LaunchDaemon plist</td><td><strong style="color:var(--accent)">🔒 No</strong> — SIP protected</td></tr>
+          <tr><td>Replace <code>/usr/sbin/httpd</code></td><td><strong style="color:var(--accent)">🔒 No</strong> — SIP protected</td></tr>
+          <tr><td>Write to <code>/Library/WebServer/Documents/</code></td><td><strong style="color:var(--accent3)">✅ Yes</strong> — with sudo</td></tr>
+          <tr><td>Write to <code>~/Sites/</code></td><td><strong style="color:var(--accent3)">✅ Yes</strong> — no sudo needed</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <p>If you need features blocked by SIP — or a newer Apache version — use the <strong>Homebrew-installed Apache</strong> (<code>brew install httpd</code>) which installs entirely to <code>/opt/homebrew/</code> and is fully under your control.</p>
+      </div>
+    </section>
+
+    <footer>
+      <span>macOS Built-in Apache Guide</span>
+      <span>MacBook Air M4 · May 2026</span>
+      <span>Generated with Claude</span>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'COPIED ✓';
+      btn.style.color = '#28c840';
+      btn.style.borderColor = '#28c840';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 1800);
+    });
+  }
+</script>
+</body>
+</html>

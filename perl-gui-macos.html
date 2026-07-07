@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building GUIs for Perl on macOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          #0d0f14;
+    --bg2:         #13161e;
+    --bg3:         #1a1f2e;
+    --border:      #252b3b;
+    --border2:     #2e3650;
+    --pearl:       #e8dfc8;
+    --pearl-dim:   #a89f8a;
+    --accent:      #ff6b35;
+    --accent2:     #ffc857;
+    --teal:        #3ddc97;
+    --blue:        #5b9cf6;
+    --purple:      #b07fff;
+    --red:         #ff5370;
+    --code-bg:     #0a0c12;
+    --code-border: #1e2535;
+    --glow:        rgba(255, 107, 53, 0.15);
+    --teal-glow:   rgba(61, 220, 151, 0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--pearl);
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── Grid lines ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(91,156,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,156,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    padding: 80px 40px 70px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -120px; left: -120px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    animation: pulse 6s ease-in-out infinite;
+  }
+
+  .hero-glow2 {
+    position: absolute;
+    bottom: -200px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(91,156,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    animation: pulse 8s ease-in-out infinite reverse;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+  }
+
+  .hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--teal);
+    background: rgba(61,220,151,0.08);
+    border: 1px solid rgba(61,220,151,0.2);
+    padding: 5px 12px;
+    border-radius: 3px;
+    margin-bottom: 24px;
+    animation: fadeSlideDown 0.6s ease both;
+  }
+
+  .hero-eyebrow::before {
+    content: '▶';
+    font-size: 8px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    animation: fadeSlideDown 0.6s 0.1s ease both;
+  }
+
+  .hero-title .line1 { color: var(--pearl); display: block; }
+  .hero-title .line2 {
+    display: block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    color: var(--pearl-dim);
+    max-width: 600px;
+    margin-bottom: 36px;
+    animation: fadeSlideDown 0.6s 0.2s ease both;
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    animation: fadeSlideDown 0.6s 0.3s ease both;
+  }
+
+  .badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 2px;
+    border: 1px solid var(--border2);
+    color: var(--pearl-dim);
+    background: var(--bg2);
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .badge:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .badge.primary {
+    background: rgba(255,107,53,0.1);
+    border-color: rgba(255,107,53,0.4);
+    color: var(--accent);
+  }
+
+  /* ── TOC ── */
+  .toc-strip {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .toc-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toc-inner::-webkit-scrollbar { display: none; }
+
+  .toc-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pearl-dim);
+    text-decoration: none;
+    padding: 14px 16px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .toc-link:hover {
+    color: var(--pearl);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 72px;
+    animation: fadeSlideDown 0.5s ease both;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .section-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(255,107,53,0.1);
+    border: 1px solid rgba(255,107,53,0.25);
+    padding: 4px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--pearl);
+  }
+
+  .section-title .hl { color: var(--accent2); }
+
+  p {
+    color: var(--pearl-dim);
+    margin-bottom: 16px;
+    line-height: 1.8;
+  }
+
+  strong { color: var(--pearl); font-weight: 700; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
+    margin: 20px 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .code-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--pearl-dim);
+    background: var(--bg3);
+    border-bottom: 1px solid var(--code-border);
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .code-lang {
+    color: var(--teal);
+  }
+
+  .code-copy-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--pearl-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 3px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .code-copy-btn:hover {
+    color: var(--teal);
+    border-color: var(--teal);
+  }
+
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+
+  code {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85em;
+    color: var(--pearl);
+  }
+
+  /* Syntax colors */
+  .kw   { color: var(--purple); }
+  .fn   { color: var(--blue); }
+  .str  { color: var(--teal); }
+  .num  { color: var(--accent2); }
+  .cmt  { color: #4a5568; font-style: italic; }
+  .var  { color: var(--accent); }
+  .op   { color: var(--pearl-dim); }
+
+  /* Inline code */
+  p code, li code, td code {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 0.82em;
+    color: var(--teal);
+  }
+
+  /* ── TABLES ── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead tr {
+    background: var(--bg3);
+  }
+
+  th {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--pearl-dim);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border2);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--pearl-dim);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr {
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover {
+    background: rgba(255,107,53,0.04);
+  }
+
+  td strong { color: var(--accent2); }
+
+  /* ── CALLOUT / NOTE ── */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: 5px;
+    margin: 20px 0;
+    border-left: 3px solid;
+  }
+
+  .callout.warn {
+    background: rgba(255,195,87,0.06);
+    border-color: var(--accent2);
+  }
+
+  .callout.tip {
+    background: rgba(61,220,151,0.06);
+    border-color: var(--teal);
+  }
+
+  .callout.info {
+    background: rgba(91,156,246,0.06);
+    border-color: var(--blue);
+  }
+
+  .callout-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    line-height: 1.6;
+  }
+
+  .callout p { margin: 0; }
+
+  .callout.warn p { color: var(--accent2); }
+  .callout.tip p  { color: var(--teal); }
+  .callout.info p { color: var(--blue); }
+
+  /* ── WIDGET CARDS ── */
+  .widget-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .widget-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    transition: all 0.25s;
+    cursor: default;
+  }
+
+  .widget-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--glow);
+    transform: translateY(-2px);
+  }
+
+  .widget-card h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 6px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .widget-card p {
+    font-size: 0.82rem;
+    color: var(--pearl-dim);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ── GEO MANAGER CARDS ── */
+  .geo-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 640px) {
+    .geo-cards { grid-template-columns: 1fr; }
+  }
+
+  .geo-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.25s;
+  }
+
+  .geo-card:hover {
+    border-color: var(--blue);
+    box-shadow: 0 0 18px rgba(91,156,246,0.12);
+  }
+
+  .geo-card .geo-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+
+  .geo-card h4 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--blue);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .geo-card p {
+    font-size: 0.8rem;
+    color: var(--pearl-dim);
+    margin: 0;
+  }
+
+  /* ── QUICK REF TABLE ── */
+  .quick-ref-table td:first-child code {
+    color: var(--accent2);
+    background: rgba(255,200,87,0.08);
+    border-color: rgba(255,200,87,0.2);
+  }
+
+  /* ── STEP BLOCKS (numbered) ── */
+  .steps {
+    counter-reset: step;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+  }
+
+  .step-num {
+    counter-increment: step;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step p { margin: 0; font-size: 0.9rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-camel {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 12px;
+    opacity: 0.6;
+  }
+
+  footer p {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--pearl-dim);
+    margin: 0;
+  }
+
+  footer span { color: var(--accent); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .hero, .main, .toc-strip { padding-left: 20px; padding-right: 20px; }
+    .hero-title { font-size: 2rem; }
+  }
+
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  ul, ol { padding-left: 20px; margin-bottom: 16px; }
+  li { color: var(--pearl-dim); margin-bottom: 6px; line-height: 1.7; }
+  li strong { color: var(--pearl); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ HERO -->
+<header class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Perl Programming Guide</div>
+    <h1 class="hero-title">
+      <span class="line1">Building GUIs for Perl</span>
+      <span class="line2">on macOS</span>
+    </h1>
+    <p class="hero-desc">
+      A complete guide to creating desktop GUI applications with Perl on Mac — from
+      installing Perl/Tk to building a full text editor with menus, dialogs, and keyboard shortcuts.
+    </p>
+    <div class="hero-badges">
+      <span class="badge primary">Perl / Tk</span>
+      <span class="badge">wxPerl</span>
+      <span class="badge">macOS</span>
+      <span class="badge">Homebrew</span>
+      <span class="badge">CPAN</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════ TOC -->
+<nav class="toc-strip">
+  <div class="toc-inner">
+    <a class="toc-link" href="#s0">Overview</a>
+    <a class="toc-link" href="#s1">Installation</a>
+    <a class="toc-link" href="#s2">Concepts</a>
+    <a class="toc-link" href="#s3">First App</a>
+    <a class="toc-link" href="#s4">Widgets</a>
+    <a class="toc-link" href="#s5">Geometry</a>
+    <a class="toc-link" href="#s6">Frames</a>
+    <a class="toc-link" href="#s7">Dialogs</a>
+    <a class="toc-link" href="#s8">Menus</a>
+    <a class="toc-link" href="#s9">Text Editor</a>
+    <a class="toc-link" href="#s10">wxPerl</a>
+    <a class="toc-link" href="#s11">Quick Ref</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════ MAIN -->
+<main class="main">
+
+  <!-- ── 0. Overview ── -->
+  <section class="section" id="s0">
+    <div class="section-header">
+      <span class="section-num">00</span>
+      <h2 class="section-title">Overview of <span class="hl">GUI Toolkits</span></h2>
+    </div>
+    <p>Perl has several GUI toolkit options on macOS. Here are the main ones, along with their key traits:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Toolkit</th>
+            <th>Module</th>
+            <th>Style</th>
+            <th>Difficulty</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Tk</strong></td><td><code>Perl/Tk</code></td><td>Classic, cross-platform</td><td>Beginner-friendly</td></tr>
+          <tr><td><strong>wxWidgets</strong></td><td><code>Wx</code></td><td>Native-looking widgets</td><td>Intermediate</td></tr>
+          <tr><td><strong>GTK3</strong></td><td><code>Gtk3</code></td><td>Modern, Linux-native feel</td><td>Intermediate</td></tr>
+          <tr><td><strong>Prima</strong></td><td><code>Prima</code></td><td>Lightweight, pure Perl-ish</td><td>Intermediate</td></tr>
+          <tr><td><strong>MacOS::Carbon</strong></td><td>Legacy</td><td>True native Mac</td><td>Advanced / Deprecated</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <p><strong>Tk (Perl/Tk)</strong> is the most beginner-friendly and widely documented. This guide focuses on it, with notes on <code>Wx</code> for native-looking UIs.</p>
+    </div>
+  </section>
+
+  <!-- ── 1. Installation ── -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Prerequisites <span class="hl">&amp; Installation</span></h2>
+    </div>
+
+    <p>Follow these steps in order to get Perl/Tk running on your Mac:</p>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:20px 0 8px;font-weight:700;">Install Homebrew</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Terminal</span><span class="code-lang">bash</span></div>
+      <pre><code><span class="cmt"># Install Homebrew if you haven't already</span>
+<span class="fn">/bin/bash</span> -c <span class="str">"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span></code></pre>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:20px 0 8px;font-weight:700;">Install Perl &amp; cpanm</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Terminal</span><span class="code-lang">bash</span></div>
+      <pre><code><span class="cmt"># Install Perl via Homebrew (recommended over system Perl)</span>
+brew install perl
+
+<span class="cmt"># Install cpanm (CPAN module manager)</span>
+brew install cpanminus
+<span class="cmt"># OR</span>
+<span class="fn">curl</span> -L https://cpanmin.us | <span class="fn">perl</span> - App::cpanminus</code></pre>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:20px 0 8px;font-weight:700;">Install the Tk Module</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Terminal</span><span class="code-lang">bash</span></div>
+      <pre><code><span class="cmt"># First install the Tcl/Tk native libraries</span>
+brew install tcl-tk
+
+<span class="cmt"># Then install Perl/Tk</span>
+cpanm Tk</code></pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p>If <code>cpanm Tk</code> fails, try:<br>
+      <code>LDFLAGS="-L$(brew --prefix tcl-tk)/lib" CPPFLAGS="-I$(brew --prefix tcl-tk)/include" cpanm Tk</code></p>
+    </div>
+  </section>
+
+  <!-- ── 2. Core Concepts ── -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Core <span class="hl">Tk Concepts</span></h2>
+    </div>
+
+    <p>Every Perl/Tk program follows this five-step structure:</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <p><code>use Tk;</code> — Load the Tk module</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <p><code>MainWindow->new(...)</code> — Create the root (top-level) window</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <p>Add <strong>widgets</strong> to the window — Buttons, Labels, Entry fields, etc.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <p>Choose a <strong>geometry manager</strong> — <code>pack()</code>, <code>grid()</code>, or <code>place()</code> — to position them</p>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <p><code>MainLoop;</code> — Hand control to the event loop</p>
+      </div>
+    </div>
+
+    <p><strong>Widgets</strong> are the building blocks (buttons, labels, text boxes, etc.). <strong>Geometry managers</strong> decide <em>where</em> widgets go on screen. <strong>MainLoop</strong> is the event loop — it keeps the window alive and responds to user input.</p>
+  </section>
+
+  <!-- ── 3. First Program ── -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Your <span class="hl">First Program</span></h2>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label"><span>hello.pl</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="cmt">#!/usr/bin/perl</span>
+<span class="kw">use</span> strict;
+<span class="kw">use</span> warnings;
+<span class="kw">use</span> Tk;
+
+<span class="cmt"># 1. Create the main window</span>
+<span class="kw">my</span> <span class="var">$mw</span> = MainWindow-><span class="fn">new</span>(
+    -title  => <span class="str">"Hello, Mac!"</span>,
+    -width  => <span class="num">300</span>,
+    -height => <span class="num">150</span>,
+);
+
+<span class="cmt"># 2. Add a Label widget</span>
+<span class="var">$mw</span>-><span class="fn">Label</span>(
+    -text => <span class="str">"Hello from Perl/Tk on macOS!"</span>,
+    -font => <span class="str">"Helvetica 16 bold"</span>,
+)-><span class="fn">pack</span>(-pady => <span class="num">20</span>);
+
+<span class="cmt"># 3. Add a Button that quits the app</span>
+<span class="var">$mw</span>-><span class="fn">Button</span>(
+    -text    => <span class="str">"Quit"</span>,
+    -command => <span class="kw">sub</span> { exit },
+)-><span class="fn">pack</span>();
+
+<span class="cmt"># 4. Start the event loop</span>
+<span class="fn">MainLoop</span>;</code></pre>
+    </div>
+
+    <p>Run it from your terminal with:</p>
+    <div class="code-block">
+      <div class="code-label"><span>Terminal</span><span class="code-lang">bash</span></div>
+      <pre><code>perl hello.pl</code></pre>
+    </div>
+  </section>
+
+  <!-- ── 4. Widgets ── -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Common <span class="hl">Widgets</span></h2>
+    </div>
+
+    <div class="widget-grid">
+      <div class="widget-card"><h4>Label</h4><p>Displays static text or images.</p></div>
+      <div class="widget-card"><h4>Button</h4><p>Triggers a callback via <code>-command</code> when clicked.</p></div>
+      <div class="widget-card"><h4>Entry</h4><p>Single-line text input. Bind to a variable with <code>-textvariable</code>.</p></div>
+      <div class="widget-card"><h4>Text</h4><p>Multi-line text area with full editing capabilities.</p></div>
+      <div class="widget-card"><h4>Checkbutton</h4><p>Toggle on/off. Tied to a scalar variable.</p></div>
+      <div class="widget-card"><h4>Radiobutton</h4><p>Mutually exclusive option group. Each shares a variable.</p></div>
+      <div class="widget-card"><h4>Listbox</h4><p>Scrollable list of selectable text items.</p></div>
+      <div class="widget-card"><h4>Scale</h4><p>A slider for numeric input within a defined range.</p></div>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:24px 0 10px;font-weight:700;">Label</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Widget Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="kw">my</span> <span class="var">$lbl</span> = <span class="var">$mw</span>-><span class="fn">Label</span>(-text => <span class="str">"I am a label"</span>, -fg => <span class="str">"blue"</span>);
+<span class="var">$lbl</span>-><span class="fn">pack</span>();</code></pre>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:24px 0 10px;font-weight:700;">Button</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Widget Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="var">$mw</span>-><span class="fn">Button</span>(
+    -text    => <span class="str">"Click Me"</span>,
+    -bg      => <span class="str">"#4A90D9"</span>,
+    -fg      => <span class="str">"white"</span>,
+    -command => <span class="kw">sub</span> { <span class="fn">print</span> <span class="str">"Button clicked!\n"</span> },
+)-><span class="fn">pack</span>(-pady => <span class="num">5</span>);</code></pre>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:24px 0 10px;font-weight:700;">Entry (single-line input)</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Widget Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="kw">my</span> <span class="var">$name</span> = <span class="str">""</span>;
+<span class="kw">my</span> <span class="var">$entry</span> = <span class="var">$mw</span>-><span class="fn">Entry</span>(-textvariable => \<span class="var">$name</span>, -width => <span class="num">25</span>);
+<span class="var">$entry</span>-><span class="fn">pack</span>();</code></pre>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:24px 0 10px;font-weight:700;">Scale (slider)</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Widget Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="kw">my</span> <span class="var">$vol</span> = <span class="num">50</span>;
+<span class="var">$mw</span>-><span class="fn">Scale</span>(
+    -label    => <span class="str">"Volume"</span>,
+    -from     => <span class="num">0</span>,
+    -to       => <span class="num">100</span>,
+    -variable => \<span class="var">$vol</span>,
+    -orient   => <span class="str">'horizontal'</span>,
+)-><span class="fn">pack</span>(-fill => <span class="str">'x'</span>, -padx => <span class="num">10</span>);</code></pre>
+    </div>
+  </section>
+
+  <!-- ── 5. Geometry ── -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Geometry <span class="hl">Management</span></h2>
+    </div>
+
+    <div class="geo-cards">
+      <div class="geo-card">
+        <div class="geo-icon">📦</div>
+        <h4>pack()</h4>
+        <p>Simple stacking — top, bottom, left, right. Most common for basic layouts.</p>
+      </div>
+      <div class="geo-card">
+        <div class="geo-icon">🔲</div>
+        <h4>grid()</h4>
+        <p>Row/column table layout. Great for forms. Never mix with pack() in the same container.</p>
+      </div>
+      <div class="geo-card">
+        <div class="geo-icon">📍</div>
+        <h4>place()</h4>
+        <p>Absolute pixel positioning. Full control, but brittle for resizing.</p>
+      </div>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:24px 0 10px;font-weight:700;">pack() — Simple Stacking</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Geometry Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="var">$widget</span>-><span class="fn">pack</span>(
+    -side   => <span class="str">'top'</span>,    <span class="cmt"># top, bottom, left, right</span>
+    -fill   => <span class="str">'x'</span>,      <span class="cmt"># x, y, both, none</span>
+    -expand => <span class="num">1</span>,        <span class="cmt"># allow widget to grow</span>
+    -padx   => <span class="num">5</span>,        <span class="cmt"># horizontal padding</span>
+    -pady   => <span class="num">5</span>,        <span class="cmt"># vertical padding</span>
+    -anchor => <span class="str">'w'</span>,      <span class="cmt"># n, s, e, w, center</span>
+);</code></pre>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:24px 0 10px;font-weight:700;">grid() — Table / Form Layout</h3>
+    <div class="code-block">
+      <div class="code-label"><span>Geometry Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="var">$mw</span>-><span class="fn">Label</span>(-text => <span class="str">"Name:"</span>)-><span class="fn">grid</span>(-row => <span class="num">0</span>, -column => <span class="num">0</span>, -sticky => <span class="str">'e'</span>);
+<span class="var">$mw</span>-><span class="fn">Entry</span>(-width => <span class="num">20</span>) -><span class="fn">grid</span>(-row => <span class="num">0</span>, -column => <span class="num">1</span>, -padx => <span class="num">5</span>);
+
+<span class="var">$mw</span>-><span class="fn">Label</span>(-text => <span class="str">"Email:"</span>)-><span class="fn">grid</span>(-row => <span class="num">1</span>, -column => <span class="num">0</span>, -sticky => <span class="str">'e'</span>);
+<span class="var">$mw</span>-><span class="fn">Entry</span>(-width => <span class="num">20</span>) -><span class="fn">grid</span>(-row => <span class="num">1</span>, -column => <span class="num">1</span>, -padx => <span class="num">5</span>);</code></pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Never mix <code>pack()</code> and <code>grid()</code> in the same container window</strong> — it will deadlock. You <em>can</em> use different managers in different <code>Frame</code> containers.</p>
+    </div>
+  </section>
+
+  <!-- ── 6. Frames ── -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Frames — <span class="hl">Organizing Layout</span></h2>
+    </div>
+
+    <p><code>Frame</code> is an invisible container widget used to group and organize other widgets. Use it to divide your window into logical regions and avoid geometry manager conflicts.</p>
+
+    <div class="code-block">
+      <div class="code-label"><span>Frame Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="cmt"># Top frame for inputs</span>
+<span class="kw">my</span> <span class="var">$top_frame</span> = <span class="var">$mw</span>-><span class="fn">Frame</span>(-bd => <span class="num">2</span>, -relief => <span class="str">'groove'</span>)-><span class="fn">pack</span>(
+    -fill => <span class="str">'x'</span>, -padx => <span class="num">10</span>, -pady => <span class="num">5</span>
+);
+
+<span class="var">$top_frame</span>-><span class="fn">Label</span>(-text => <span class="str">"Search:"</span>)-><span class="fn">pack</span>(-side => <span class="str">'left'</span>);
+<span class="kw">my</span> <span class="var">$search</span> = <span class="var">$top_frame</span>-><span class="fn">Entry</span>(-width => <span class="num">20</span>)-><span class="fn">pack</span>(-side => <span class="str">'left'</span>, -padx => <span class="num">5</span>);
+<span class="var">$top_frame</span>-><span class="fn">Button</span>(-text => <span class="str">"Go"</span>)-><span class="fn">pack</span>(-side => <span class="str">'left'</span>);
+
+<span class="cmt"># Bottom frame for output</span>
+<span class="kw">my</span> <span class="var">$bot_frame</span> = <span class="var">$mw</span>-><span class="fn">Frame</span>()-><span class="fn">pack</span>(-fill => <span class="str">'both'</span>, -expand => <span class="num">1</span>, -padx => <span class="num">10</span>);
+<span class="kw">my</span> <span class="var">$output</span> = <span class="var">$bot_frame</span>-><span class="fn">Text</span>(-width => <span class="num">50</span>, -height => <span class="num">15</span>)
+    -><span class="fn">pack</span>(-fill => <span class="str">'both'</span>, -expand => <span class="num">1</span>);</code></pre>
+    </div>
+  </section>
+
+  <!-- ── 7. Dialogs ── -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">Dialogs <span class="hl">&amp; Popups</span></h2>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label"><span>Dialogs Example</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="kw">use</span> Tk::Dialog;
+<span class="kw">use</span> Tk::MessageBox;
+
+<span class="cmt"># Simple message box</span>
+<span class="var">$mw</span>-><span class="fn">messageBox</span>(
+    -title   => <span class="str">"Info"</span>,
+    -message => <span class="str">"Operation complete!"</span>,
+    -type    => <span class="str">"OK"</span>,
+    -icon    => <span class="str">"info"</span>,
+);
+
+<span class="cmt"># Yes/No dialog</span>
+<span class="kw">my</span> <span class="var">$answer</span> = <span class="var">$mw</span>-><span class="fn">messageBox</span>(
+    -title   => <span class="str">"Confirm"</span>,
+    -message => <span class="str">"Are you sure you want to quit?"</span>,
+    -type    => <span class="str">"YesNo"</span>,
+    -icon    => <span class="str">"question"</span>,
+);
+exit <span class="kw">if</span> <span class="var">$answer</span> eq <span class="str">'Yes'</span>;
+
+<span class="cmt"># File open dialog</span>
+<span class="kw">my</span> <span class="var">$file</span> = <span class="var">$mw</span>-><span class="fn">getOpenFile</span>(
+    -title      => <span class="str">"Open File"</span>,
+    -filetypes  => [
+        [<span class="str">'Text Files'</span>, <span class="str">'.txt'</span>],
+        [<span class="str">'Perl Files'</span>, <span class="str">'.pl'</span> ],
+        [<span class="str">'All Files'</span>,  <span class="str">'*'</span>   ],
+    ],
+);
+<span class="fn">print</span> <span class="str">"Selected: <span class="var">$file</span>\n"</span> <span class="kw">if</span> <span class="var">$file</span>;</code></pre>
+    </div>
+  </section>
+
+  <!-- ── 8. Menus ── -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">Menu <span class="hl">Bar</span></h2>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label"><span>menus.pl</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="cmt"># Create a menu bar</span>
+<span class="kw">my</span> <span class="var">$menubar</span> = <span class="var">$mw</span>-><span class="fn">Menu</span>();
+<span class="var">$mw</span>-><span class="fn">configure</span>(-menu => <span class="var">$menubar</span>);
+
+<span class="cmt"># File menu</span>
+<span class="kw">my</span> <span class="var">$file_menu</span> = <span class="var">$menubar</span>-><span class="fn">cascade</span>(-label => <span class="str">"File"</span>, -tearoff => <span class="num">0</span>);
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"New"</span>,  -accelerator => <span class="str">"Cmd+N"</span>, -command => \&amp;new_file);
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Open"</span>, -accelerator => <span class="str">"Cmd+O"</span>, -command => \&amp;open_file);
+<span class="var">$file_menu</span>-><span class="fn">separator</span>();
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Quit"</span>, -accelerator => <span class="str">"Cmd+Q"</span>, -command => <span class="kw">sub</span> { exit });
+
+<span class="cmt"># Edit menu</span>
+<span class="kw">my</span> <span class="var">$edit_menu</span> = <span class="var">$menubar</span>-><span class="fn">cascade</span>(-label => <span class="str">"Edit"</span>, -tearoff => <span class="num">0</span>);
+<span class="var">$edit_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Cut"</span>,   -accelerator => <span class="str">"Cmd+X"</span>);
+<span class="var">$edit_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Copy"</span>,  -accelerator => <span class="str">"Cmd+C"</span>);
+<span class="var">$edit_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Paste"</span>, -accelerator => <span class="str">"Cmd+V"</span>);
+
+<span class="cmt"># Keyboard shortcut bindings</span>
+<span class="var">$mw</span>-><span class="fn">bind</span>(<span class="str">'&lt;Command-q&gt;'</span> => <span class="kw">sub</span> { exit });
+
+<span class="kw">sub</span> new_file  { <span class="fn">print</span> <span class="str">"New!\n"</span>  }
+<span class="kw">sub</span> open_file { <span class="fn">print</span> <span class="str">"Open!\n"</span> }</code></pre>
+    </div>
+  </section>
+
+  <!-- ── 9. Text Editor ── -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title">Complete Example — <span class="hl">Text Editor</span></h2>
+    </div>
+
+    <p>A real-world application combining menus, a toolbar, a scrollable text area, a status bar, file dialogs, and keyboard shortcuts.</p>
+
+    <div class="code-block">
+      <div class="code-label"><span>editor.pl</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="cmt">#!/usr/bin/perl</span>
+<span class="kw">use</span> strict;
+<span class="kw">use</span> warnings;
+<span class="kw">use</span> Tk;
+
+<span class="kw">my</span> <span class="var">$mw</span> = MainWindow-><span class="fn">new</span>(-title => <span class="str">"Perl Text Editor"</span>);
+<span class="var">$mw</span>-><span class="fn">minsize</span>(<span class="num">500</span>, <span class="num">400</span>);
+
+<span class="kw">my</span> <span class="var">$current_file</span> = <span class="kw">undef</span>;
+
+<span class="cmt"># ── Menu Bar ─────────────────────────────────────</span>
+<span class="kw">my</span> <span class="var">$menubar</span>   = <span class="var">$mw</span>-><span class="fn">Menu</span>();
+<span class="var">$mw</span>-><span class="fn">configure</span>(-menu => <span class="var">$menubar</span>);
+
+<span class="kw">my</span> <span class="var">$file_menu</span> = <span class="var">$menubar</span>-><span class="fn">cascade</span>(-label => <span class="str">"File"</span>, -tearoff => <span class="num">0</span>);
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"New"</span>,       -command => \&amp;new_doc);
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Open..."</span>,   -command => \&amp;open_doc);
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Save"</span>,      -command => \&amp;save_doc);
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Save As..."</span>,-command => \&amp;save_as_doc);
+<span class="var">$file_menu</span>-><span class="fn">separator</span>();
+<span class="var">$file_menu</span>-><span class="fn">command</span>(-label => <span class="str">"Quit"</span>,      -command => <span class="kw">sub</span> { exit });
+
+<span class="cmt"># ── Toolbar ──────────────────────────────────────</span>
+<span class="kw">my</span> <span class="var">$toolbar</span> = <span class="var">$mw</span>-><span class="fn">Frame</span>(-bd => <span class="num">1</span>, -relief => <span class="str">'raised'</span>)
+    -><span class="fn">pack</span>(-fill => <span class="str">'x'</span>);
+
+<span class="var">$toolbar</span>-><span class="fn">Button</span>(-text => <span class="str">"New"</span>,  -command => \&amp;new_doc) -><span class="fn">pack</span>(-side => <span class="str">'left'</span>, -padx => <span class="num">2</span>, -pady => <span class="num">2</span>);
+<span class="var">$toolbar</span>-><span class="fn">Button</span>(-text => <span class="str">"Open"</span>, -command => \&amp;open_doc)-><span class="fn">pack</span>(-side => <span class="str">'left'</span>, -padx => <span class="num">2</span>, -pady => <span class="num">2</span>);
+<span class="var">$toolbar</span>-><span class="fn">Button</span>(-text => <span class="str">"Save"</span>, -command => \&amp;save_doc)-><span class="fn">pack</span>(-side => <span class="str">'left'</span>, -padx => <span class="num">2</span>, -pady => <span class="num">2</span>);
+
+<span class="cmt"># ── Status Bar ───────────────────────────────────</span>
+<span class="kw">my</span> <span class="var">$status_text</span> = <span class="str">"Ready"</span>;
+<span class="kw">my</span> <span class="var">$statusbar</span> = <span class="var">$mw</span>-><span class="fn">Label</span>(
+    -textvariable => \<span class="var">$status_text</span>,
+    -relief => <span class="str">'sunken'</span>, -anchor => <span class="str">'w'</span>,
+)-><span class="fn">pack</span>(-fill => <span class="str">'x'</span>, -side => <span class="str">'bottom'</span>);
+
+<span class="cmt"># ── Text Area with Scrollbar ─────────────────────</span>
+<span class="kw">my</span> <span class="var">$text_frame</span> = <span class="var">$mw</span>-><span class="fn">Frame</span>()-><span class="fn">pack</span>(-fill => <span class="str">'both'</span>, -expand => <span class="num">1</span>);
+
+<span class="kw">my</span> <span class="var">$scrollbar</span> = <span class="var">$text_frame</span>-><span class="fn">Scrollbar</span>();
+<span class="kw">my</span> <span class="var">$text</span> = <span class="var">$text_frame</span>-><span class="fn">Text</span>(
+    -yscrollcommand => [<span class="var">$scrollbar</span>, <span class="str">'set'</span>],
+    -font => <span class="str">"Courier 13"</span>, -wrap => <span class="str">'word'</span>, -undo => <span class="num">1</span>,
+)-><span class="fn">pack</span>(-side => <span class="str">'left'</span>, -fill => <span class="str">'both'</span>, -expand => <span class="num">1</span>);
+<span class="var">$scrollbar</span>-><span class="fn">configure</span>(-command => [<span class="var">$text</span>, <span class="str">'yview'</span>]);
+<span class="var">$scrollbar</span>-><span class="fn">pack</span>(-side => <span class="str">'right'</span>, -fill => <span class="str">'y'</span>);
+
+<span class="cmt"># ── Keyboard Shortcuts ────────────────────────────</span>
+<span class="var">$mw</span>-><span class="fn">bind</span>(<span class="str">'&lt;Command-n&gt;'</span> => \&amp;new_doc);
+<span class="var">$mw</span>-><span class="fn">bind</span>(<span class="str">'&lt;Command-o&gt;'</span> => \&amp;open_doc);
+<span class="var">$mw</span>-><span class="fn">bind</span>(<span class="str">'&lt;Command-s&gt;'</span> => \&amp;save_doc);
+<span class="var">$mw</span>-><span class="fn">bind</span>(<span class="str">'&lt;Command-z&gt;'</span> => <span class="kw">sub</span> { <span class="var">$text</span>-><span class="fn">eventGenerate</span>(<span class="str">'&lt;&lt;Undo&gt;&gt;'</span>) });
+<span class="var">$mw</span>-><span class="fn">bind</span>(<span class="str">'&lt;Command-y&gt;'</span> => <span class="kw">sub</span> { <span class="var">$text</span>-><span class="fn">eventGenerate</span>(<span class="str">'&lt;&lt;Redo&gt;&gt;'</span>) });
+
+<span class="cmt"># ── Subroutines ───────────────────────────────────</span>
+<span class="kw">sub</span> new_doc {
+    <span class="var">$text</span>-><span class="fn">delete</span>(<span class="str">'1.0'</span>, <span class="str">'end'</span>);
+    <span class="var">$current_file</span> = <span class="kw">undef</span>;
+    <span class="var">$mw</span>-><span class="fn">title</span>(<span class="str">"Perl Text Editor - Untitled"</span>);
+    <span class="var">$status_text</span> = <span class="str">"New document"</span>;
+}
+
+<span class="kw">sub</span> open_doc {
+    <span class="kw">my</span> <span class="var">$file</span> = <span class="var">$mw</span>-><span class="fn">getOpenFile</span>(
+        -filetypes => [[<span class="str">'Text Files'</span>, <span class="str">'.txt'</span>], [<span class="str">'All Files'</span>, <span class="str">'*'</span>]]
+    );
+    <span class="kw">return</span> <span class="kw">unless</span> <span class="var">$file</span>;
+    <span class="fn">open</span>(<span class="kw">my</span> <span class="var">$fh</span>, <span class="str">'&lt;'</span>, <span class="var">$file</span>) <span class="kw">or do</span> { <span class="var">$status_text</span> = <span class="str">"Error opening <span class="var">$file</span>"</span>; <span class="kw">return</span> };
+    <span class="var">$text</span>-><span class="fn">delete</span>(<span class="str">'1.0'</span>, <span class="str">'end'</span>);
+    <span class="var">$text</span>-><span class="fn">insert</span>(<span class="str">'end'</span>, <span class="kw">do</span> { <span class="kw">local</span> $/; &lt;<span class="var">$fh</span>&gt; });
+    <span class="fn">close</span> <span class="var">$fh</span>;
+    <span class="var">$current_file</span> = <span class="var">$file</span>;
+    <span class="var">$mw</span>-><span class="fn">title</span>(<span class="str">"Perl Text Editor - <span class="var">$file</span>"</span>);
+    <span class="var">$status_text</span> = <span class="str">"Opened: <span class="var">$file</span>"</span>;
+}
+
+<span class="kw">sub</span> save_doc {
+    <span class="kw">return</span> <span class="fn">save_as_doc</span>() <span class="kw">unless</span> <span class="var">$current_file</span>;
+    <span class="fn">open</span>(<span class="kw">my</span> <span class="var">$fh</span>, <span class="str">'&gt;'</span>, <span class="var">$current_file</span>) <span class="kw">or do</span> { <span class="var">$status_text</span> = <span class="str">"Error saving!"</span>; <span class="kw">return</span> };
+    <span class="fn">print</span> <span class="var">$fh</span> <span class="var">$text</span>-><span class="fn">get</span>(<span class="str">'1.0'</span>, <span class="str">'end'</span>);
+    <span class="fn">close</span> <span class="var">$fh</span>;
+    <span class="var">$status_text</span> = <span class="str">"Saved: <span class="var">$current_file</span>"</span>;
+}
+
+<span class="kw">sub</span> save_as_doc {
+    <span class="kw">my</span> <span class="var">$file</span> = <span class="var">$mw</span>-><span class="fn">getSaveFile</span>(
+        -filetypes   => [[<span class="str">'Text Files'</span>, <span class="str">'.txt'</span>], [<span class="str">'All Files'</span>, <span class="str">'*'</span>]],
+        -initialfile => <span class="str">"untitled.txt"</span>,
+    );
+    <span class="kw">return</span> <span class="kw">unless</span> <span class="var">$file</span>;
+    <span class="var">$current_file</span> = <span class="var">$file</span>;
+    <span class="fn">save_doc</span>();
+    <span class="var">$mw</span>-><span class="fn">title</span>(<span class="str">"Perl Text Editor - <span class="var">$file</span>"</span>);
+}
+
+<span class="fn">MainLoop</span>;</code></pre>
+    </div>
+  </section>
+
+  <!-- ── 10. wxPerl ── -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2 class="section-title">Going Native with <span class="hl">wxPerl</span></h2>
+    </div>
+
+    <p>For a more macOS-native look and feel, use <strong>wxPerl</strong>. It uses native macOS widgets with proper Aqua styling.</p>
+
+    <div class="code-block">
+      <div class="code-label"><span>Terminal</span><span class="code-lang">bash</span></div>
+      <pre><code>brew install wxwidgets
+cpanm Wx</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label"><span>wx_hello.pl</span><span class="code-lang">perl</span></div>
+      <pre><code><span class="cmt">#!/usr/bin/perl</span>
+<span class="kw">use</span> strict;
+<span class="kw">use</span> warnings;
+<span class="kw">use</span> Wx;
+
+<span class="kw">my</span> <span class="var">$app</span> = Wx::SimpleApp-><span class="fn">new</span>();
+
+<span class="kw">my</span> <span class="var">$frame</span> = Wx::Frame-><span class="fn">new</span>(
+    <span class="kw">undef</span>, <span class="num">-1</span>, <span class="str">"wxPerl on Mac"</span>,
+    Wx::DefaultPosition, [<span class="num">400</span>, <span class="num">300</span>]
+);
+
+<span class="kw">my</span> <span class="var">$panel</span>  = Wx::Panel-><span class="fn">new</span>(<span class="var">$frame</span>);
+<span class="kw">my</span> <span class="var">$button</span> = Wx::Button-><span class="fn">new</span>(<span class="var">$panel</span>, <span class="num">-1</span>, <span class="str">"Click Me"</span>, [<span class="num">100</span>, <span class="num">100</span>]);
+
+Wx::Event::<span class="fn">EVT_BUTTON</span>(<span class="var">$frame</span>, <span class="var">$button</span>, <span class="kw">sub</span> {
+    Wx::<span class="fn">MessageBox</span>(<span class="str">"Hello from wxPerl!"</span>, <span class="str">"Hi"</span>, Wx::OK, <span class="var">$frame</span>);
+});
+
+<span class="var">$frame</span>-><span class="fn">Show</span>(<span class="num">1</span>);
+<span class="var">$app</span>-><span class="fn">MainLoop</span>();</code></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🍎</span>
+      <p>wxPerl uses <strong>native macOS widgets</strong>, so your app looks and behaves like a real Mac application with proper Aqua styling — buttons, dropdowns, and dialogs all match the OS.</p>
+    </div>
+  </section>
+
+  <!-- ── 11. Quick Reference ── -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2 class="section-title">Quick <span class="hl">Reference Card</span></h2>
+    </div>
+
+    <div class="table-wrap">
+      <table class="quick-ref-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Code</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Create window</td><td><code>my $mw = MainWindow->new(-title => "App")</code></td></tr>
+          <tr><td>Add label</td><td><code>$mw->Label(-text => "Hi")->pack()</code></td></tr>
+          <tr><td>Add button</td><td><code>$mw->Button(-text => "OK", -command => \&func)->pack()</code></td></tr>
+          <tr><td>Read entry</td><td><code>$entry->get()</code></td></tr>
+          <tr><td>Write to Text</td><td><code>$text->insert('end', "text\n")</code></td></tr>
+          <tr><td>Clear Text</td><td><code>$text->delete('1.0', 'end')</code></td></tr>
+          <tr><td>Show dialog</td><td><code>$mw->messageBox(-message => "Done", -type => "OK")</code></td></tr>
+          <tr><td>Open file dialog</td><td><code>$mw->getOpenFile(-filetypes => [...])</code></td></tr>
+          <tr><td>Save file dialog</td><td><code>$mw->getSaveFile(...)</code></td></tr>
+          <tr><td>Bind key</td><td><code>$mw->bind('&lt;Command-s&gt;' => \&save)</code></td></tr>
+          <tr><td>Start event loop</td><td><code>MainLoop;</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="color:var(--pearl);font-size:1rem;margin:32px 0 14px;font-weight:700;">Key Takeaways</h3>
+    <ul>
+      <li><strong>Perl/Tk</strong> is the easiest way to start — install via <code>brew install tcl-tk</code> then <code>cpanm Tk</code>.</li>
+      <li>The <strong>event loop</strong> (<code>MainLoop</code>) is what makes the GUI interactive — everything runs through callbacks.</li>
+      <li>Use <strong><code>pack()</code></strong> for simple layouts, <strong><code>grid()</code></strong> for form-like layouts, and <strong><code>Frame</code></strong> widgets to organize groups.</li>
+      <li>For a native macOS look, use <strong>wxPerl</strong> (<code>cpanm Wx</code>) instead of Tk.</li>
+      <li>Always use <code>use strict; use warnings;</code> — GUI debugging without them is painful!</li>
+    </ul>
+  </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════ FOOTER -->
+<footer>
+  <div class="footer-camel">🐪</div>
+  <p>Perl GUI on macOS &nbsp;·&nbsp; <span>Perl/Tk &amp; wxPerl</span> &nbsp;·&nbsp; Built with Space Mono &amp; Syne</p>
+</footer>
+
+<script>
+  // Copy button functionality
+  document.querySelectorAll('.code-copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pre = btn.closest('.code-block').querySelector('pre');
+      const text = pre.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.color = 'var(--teal)';
+        btn.style.borderColor = 'var(--teal)';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        }, 1500);
+      });
+    });
+  });
+
+  // Add copy buttons to all code blocks
+  document.querySelectorAll('.code-block').forEach(block => {
+    const label = block.querySelector('.code-label');
+    if (label) {
+      const btn = document.createElement('button');
+      btn.className = 'code-copy-btn';
+      btn.textContent = 'Copy';
+      label.appendChild(btn);
+    }
+  });
+
+  // Fade-in sections on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.05 });
+
+  document.querySelectorAll('.section').forEach(s => {
+    s.style.opacity = '0';
+    s.style.transform = 'translateY(18px)';
+    s.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(s);
+  });
+
+  // Active TOC highlighting
+  const sections = document.querySelectorAll('section[id]');
+  const tocLinks = document.querySelectorAll('.toc-link');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    tocLinks.forEach(l => {
+      l.style.color = l.getAttribute('href') === '#' + current ? 'var(--accent)' : '';
+      l.style.borderBottomColor = l.getAttribute('href') === '#' + current ? 'var(--accent)' : 'transparent';
+    });
+  });
+</script>
+</body>
+</html>

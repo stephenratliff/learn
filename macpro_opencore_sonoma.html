@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mac Pro 2013 → macOS Sonoma 14 via OpenCore Legacy Patcher</title>
+<style>
+/* ── Design tokens — warm copper / proven-hardware palette ── */
+:root {
+  --bg:          #0B0907;
+  --bg-card:     #131110;
+  --bg-inset:    #1C1916;
+  --bg-code:     #0E0C0A;
+  --border:      #2C2824;
+  --border-hi:   #413B34;
+
+  --txt:         #E8DDD4;
+  --txt-muted:   #7A6F67;
+  --txt-dim:     #4A4440;
+
+  --copper:      #C8853A;
+  --copper-hi:   #E8A854;
+  --copper-glow: rgba(200,133,58,.12);
+  --green:       #32D74B;
+  --amber:       #FF9F0A;
+  --red:         #FF453A;
+  --blue:        #5B9FFF;
+
+  --radius:      8px;
+  --radius-lg:   14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ── PROGRESS ── */
+#progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--copper), var(--copper-hi));
+  z-index: 999;
+  width: 0%;
+  transition: width .08s linear;
+}
+
+/* ─────────────────── HERO ─────────────────── */
+.hero {
+  position: relative;
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 90px 24px 70px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 25%,
+      rgba(200,133,58,.10) 0%, transparent 70%),
+    var(--bg);
+}
+
+/* Mac Pro 2013 side-profile cylinder illustration */
+.hero-art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero-art svg {
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 260px;
+  height: 440px;
+  opacity: .13;
+}
+
+.hero-eyebrow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--copper-hi);
+  margin-bottom: 22px;
+  background: rgba(200,133,58,.10);
+  border: 1px solid rgba(200,133,58,.28);
+  padding: 5px 16px;
+  border-radius: 20px;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--copper);
+  box-shadow: 0 0 8px var(--copper);
+}
+
+.hero h1 {
+  position: relative;
+  font-size: clamp(2rem, 5.2vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  color: var(--txt);
+  max-width: 800px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--copper-hi);
+}
+
+.hero-sub {
+  position: relative;
+  margin-top: 22px;
+  font-size: 1.05rem;
+  color: var(--txt-muted);
+  max-width: 580px;
+  line-height: 1.65;
+}
+
+.hero-badges {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 32px;
+  justify-content: center;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  padding: 5px 13px;
+  border-radius: 6px;
+  border: 1px solid;
+}
+.badge-copper { color: var(--copper-hi); border-color: rgba(200,133,58,.35); background: rgba(200,133,58,.08); }
+.badge-green  { color: var(--green);     border-color: rgba(50,215,75,.30);   background: rgba(50,215,75,.06); }
+.badge-amber  { color: var(--amber);     border-color: rgba(255,159,10,.30);  background: rgba(255,159,10,.06); }
+.badge-blue   { color: var(--blue);      border-color: rgba(91,159,255,.30);  background: rgba(91,159,255,.06); }
+
+/* ── SWEET SPOT BANNER ── */
+.sweet-spot {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.ss-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: 28px 0 0;
+}
+
+.ss-col {
+  background: var(--bg-card);
+  padding: 20px 22px;
+}
+
+.ss-col:nth-child(2) {
+  background: #1A1410;
+  border-top: 2px solid var(--copper);
+  position: relative;
+}
+
+.ss-col:nth-child(2)::after {
+  content: '★ Sweet Spot';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--copper-hi);
+  background: var(--bg-card);
+  padding: 2px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(200,133,58,.35);
+  white-space: nowrap;
+}
+
+.ss-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ss-col:nth-child(1) .ss-title { color: var(--txt-muted); }
+.ss-col:nth-child(2) .ss-title { color: var(--copper-hi); }
+.ss-col:nth-child(3) .ss-title { color: var(--txt-muted); }
+
+.ss-body { font-size: 12.5px; color: var(--txt-muted); line-height: 1.6; }
+
+.ss-tag {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  padding: 3px 9px;
+  border-radius: 4px;
+}
+.ss-tag-ok     { color: var(--green);     background: rgba(50,215,75,.08);   border: 1px solid rgba(50,215,75,.2); }
+.ss-tag-caution{ color: var(--amber);     background: rgba(255,159,10,.08);  border: 1px solid rgba(255,159,10,.2); }
+.ss-tag-stable { color: var(--copper-hi); background: rgba(200,133,58,.08);  border: 1px solid rgba(200,133,58,.25); }
+
+@media (max-width: 640px) {
+  .ss-inner { grid-template-columns: 1fr; }
+  .ss-col:nth-child(2)::after { top: -11px; }
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: sticky;
+  top: 24px;
+  padding-top: 36px;
+  padding-right: 28px;
+}
+
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--txt-dim);
+  margin-bottom: 10px;
+  padding-left: 2px;
+}
+
+.toc-list { list-style: none; }
+.toc-list li { margin-bottom: 1px; }
+.toc-list a {
+  display: block;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  color: var(--txt-muted);
+  text-decoration: none;
+  border-radius: 5px;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+  line-height: 1.4;
+}
+.toc-list a:hover, .toc-list a.active {
+  color: var(--txt);
+  background: var(--bg-inset);
+  border-left-color: var(--copper);
+}
+.toc-group { margin-bottom: 6px; }
+.toc-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-dim);
+  padding: 8px 10px 3px;
+}
+
+/* ── MAIN ── */
+.main { padding-top: 40px; min-width: 0; }
+
+/* ── SECTION ── */
+.section {
+  margin-bottom: 58px;
+  scroll-margin-top: 24px;
+}
+
+/* Square-bracket section numbers — differs from Sequoia guide's circles */
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-num {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--copper);
+  letter-spacing: .05em;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.section h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--txt);
+}
+
+.section h3 {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--copper-hi);
+  margin: 26px 0 10px;
+  letter-spacing: -.01em;
+}
+
+.section p { margin-bottom: 14px; }
+
+/* ── ADMONITIONS ── */
+.adm {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px 14px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid;
+  margin: 18px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.adm-icon { font-size: 17px; margin-top: 1px; }
+.adm-title { font-weight: 700; margin-bottom: 4px; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; }
+
+.adm.critical { background: rgba(255,69,58,.06);  border-color: rgba(255,69,58,.3);  color: #F0A0A0; }
+.adm.critical .adm-title { color: var(--red); }
+.adm.warn     { background: rgba(255,159,10,.06); border-color: rgba(255,159,10,.3); color: #D4B06A; }
+.adm.warn .adm-title     { color: var(--amber); }
+.adm.info     { background: rgba(91,159,255,.05); border-color: rgba(91,159,255,.25); color: var(--txt-muted); }
+.adm.info .adm-title     { color: var(--blue); }
+.adm.tip      { background: rgba(50,215,75,.05);  border-color: rgba(50,215,75,.25);  color: #80C880; }
+.adm.tip .adm-title      { color: var(--green); }
+.adm.copper   { background: rgba(200,133,58,.06); border-color: rgba(200,133,58,.28); color: var(--txt-muted); }
+.adm.copper .adm-title   { color: var(--copper-hi); }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  position: relative;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 14px 0;
+  overflow: hidden;
+}
+
+.code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+  background: rgba(255,255,255,.025);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-lang {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt-dim);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+}
+
+.copy-btn {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt-dim);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+}
+.copy-btn:hover { color: var(--txt); border-color: var(--border-hi); }
+.copy-btn.copied { color: var(--green); border-color: rgba(50,215,75,.4); }
+
+.code-block pre {
+  padding: 14px 16px;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  overflow-x: auto;
+  line-height: 1.65;
+  white-space: pre;
+  color: var(--txt);
+}
+
+.code-block pre .c   { color: var(--txt-dim); }
+.code-block pre .p   { color: var(--copper); user-select: none; }
+.code-block pre .g   { color: var(--green); }
+.code-block pre .a   { color: var(--amber); }
+
+code {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12.5px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--copper-hi);
+}
+
+/* ── STEP LIST ── */
+.step-list { list-style: none; counter-reset: steps; }
+.step-list li {
+  counter-increment: steps;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0 12px;
+  margin-bottom: 12px;
+  align-items: start;
+}
+.step-list li::before {
+  content: counter(steps);
+  width: 26px; height: 26px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-hi);
+  border-radius: 5px;   /* square-ish, not circular — different feel */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'SF Mono', Consolas, monospace;
+  color: var(--copper);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist input[type="checkbox"] {
+  width: 16px; height: 16px;
+  accent-color: var(--copper);
+  margin-top: 3px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.checklist label { cursor: pointer; line-height: 1.5; }
+.checklist input:checked + label { color: var(--txt-dim); text-decoration: line-through; }
+
+/* ── SPEC TABLE ── */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 14px 0;
+}
+.spec-table th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-dim);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.spec-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.spec-table tr:last-child td { border-bottom: none; }
+.spec-table td:first-child { color: var(--txt-muted); white-space: nowrap; font-size: 12.5px; width: 200px; }
+.spec-table tbody tr:hover td { background: var(--bg-inset); }
+
+/* ── STATUS GRID ── */
+.status-grid { display: flex; flex-direction: column; gap: 5px; margin: 14px 0; }
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  padding: 8px 11px;
+  border-radius: 6px;
+  background: var(--bg-inset);
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-green  { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+.dot-amber  { background: var(--amber);  box-shadow: 0 0 5px var(--amber); }
+.dot-red    { background: var(--red);    box-shadow: 0 0 5px var(--red); }
+.dot-copper { background: var(--copper); box-shadow: 0 0 5px var(--copper); }
+.status-label { flex: 1; color: var(--txt); }
+.status-note  { font-size: 12px; color: var(--txt-dim); text-align: right; }
+
+/* ── CARD GRID ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--copper);
+  border-radius: var(--radius);
+  padding: 15px 16px;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-body { font-size: 13px; color: var(--txt-muted); line-height: 1.55; }
+
+/* ── ACCORDION ── */
+.accordion {
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.accordion summary {
+  padding: 13px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--txt);
+  background: var(--bg-card);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: background .12s;
+}
+.accordion summary::-webkit-details-marker { display: none; }
+.accordion summary::after { content: '▾'; font-size: 14px; color: var(--txt-muted); transition: transform .2s; }
+.accordion[open] summary { border-bottom-color: var(--border); background: var(--bg-inset); }
+.accordion[open] summary::after { transform: rotate(-180deg); }
+.accordion-body {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--txt-muted);
+  line-height: 1.65;
+  background: var(--bg-card);
+}
+.accordion-body p { margin-bottom: 10px; }
+.accordion-body p:last-child { margin-bottom: 0; }
+
+/* ── PHASE LABEL ── */
+.phase-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin-bottom: 10px;
+}
+.phase-line {
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--copper);
+  opacity: .6;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin: 44px 0;
+}
+
+/* ── RULE CALLOUT ── */
+.rule-callout {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--copper-hi);
+  border-left: 3px solid var(--copper);
+  padding: 10px 16px;
+  margin: 18px 0;
+  background: var(--copper-glow);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  letter-spacing: -.01em;
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 12.5px;
+  color: var(--txt-dim);
+  border-top: 1px solid var(--border);
+}
+footer a { color: var(--copper-hi); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<header class="hero">
+  <div class="hero-art">
+    <!-- Mac Pro 2013 side-profile cylinder with vertical vent slats -->
+    <svg viewBox="0 0 260 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Main cylinder body -->
+      <rect x="30" y="40" width="200" height="360" rx="100" fill="#0D0B09" stroke="#3A3228" stroke-width="2"/>
+      <!-- Top cap -->
+      <ellipse cx="130" cy="40" rx="100" ry="22" fill="#181412" stroke="#3A3228" stroke-width="1.5"/>
+      <!-- Bottom cap -->
+      <ellipse cx="130" cy="400" rx="100" ry="22" fill="#141210" stroke="#2C2824" stroke-width="1.5"/>
+      <!-- Vertical vent slats — the distinctive trash-can rib pattern -->
+      <g opacity="0.8">
+        <rect x="44" y="55" width="6" height="330" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="56" y="48" width="6" height="344" rx="3" fill="#1E1A16" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="68" y="44" width="6" height="352" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="80" y="42" width="6" height="356" rx="3" fill="#1E1A16" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="92" y="41" width="6" height="358" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="104" y="40" width="6" height="360" rx="3" fill="#1E1A16" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="116" y="40" width="6" height="360" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="128" y="40" width="6" height="360" rx="3" fill="#1E1A16" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="140" y="40" width="6" height="360" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="152" y="40" width="6" height="360" rx="3" fill="#1E1A16" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="164" y="41" width="6" height="358" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="176" y="42" width="6" height="356" rx="3" fill="#1E1A16" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="188" y="44" width="6" height="352" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="200" y="48" width="6" height="344" rx="3" fill="#1E1A16" stroke="#2C2824" stroke-width=".5"/>
+        <rect x="210" y="55" width="6" height="330" rx="3" fill="#221E1A" stroke="#2C2824" stroke-width=".5"/>
+      </g>
+      <!-- Logo band center ring -->
+      <rect x="30" y="196" width="200" height="48" fill="#0E0C0A" stroke="#2C2824" stroke-width="1"/>
+      <rect x="30" y="196" width="200" height="1.5" fill="#3A3228"/>
+      <rect x="30" y="244" width="200" height="1.5" fill="#3A3228"/>
+      <!-- Apple mark suggestion -->
+      <circle cx="130" cy="220" r="14" fill="none" stroke="#2C2824" stroke-width="1.5"/>
+      <circle cx="130" cy="220" r="8" fill="#131110" stroke="#3A3228" stroke-width="1"/>
+      <!-- I/O ports at bottom ring -->
+      <rect x="75" y="378" width="110" height="18" rx="5" fill="#0D0B09" stroke="#2C2824" stroke-width="1"/>
+      <rect x="82" y="382" width="10" height="10" rx="2" fill="#181614"/>
+      <rect x="98" y="382" width="10" height="10" rx="2" fill="#181614"/>
+      <rect x="114" y="382" width="10" height="10" rx="2" fill="#181614"/>
+      <rect x="130" y="382" width="10" height="10" rx="2" fill="#181614"/>
+      <rect x="146" y="382" width="10" height="10" rx="2" fill="#181614"/>
+      <rect x="162" y="382" width="10" height="10" rx="2" fill="#181614"/>
+      <!-- Thunderbolt connection ring indicator -->
+      <circle cx="130" cy="400" rx="1" ry="1" r="3" fill="#2A2620"/>
+    </svg>
+  </div>
+
+  <div class="hero-eyebrow">OpenCore Legacy Patcher · MacPro6,1</div>
+
+  <h1>Mac Pro 2013 to<br><em>macOS Sonoma 14</em></h1>
+
+  <p class="hero-sub">
+    The best balance of modern features and hardware stability for the Late 2013 Mac Pro.
+    A field-tested guide using OpenCore Legacy Patcher — fully covering AMD FirePro GPU patches,
+    the permanent boot setup, and a safe update workflow.
+  </p>
+
+  <div class="hero-badges">
+    <span class="badge badge-copper">macOS Sonoma 14</span>
+    <span class="badge badge-green">MacPro6,1</span>
+    <span class="badge badge-amber">OCLP Required</span>
+    <span class="badge badge-blue">AMD FirePro GCN</span>
+  </div>
+</header>
+
+<!-- ══════════════════ SWEET SPOT PANEL ══════════════════ -->
+<div class="sweet-spot">
+  <div class="ss-inner">
+    <div class="ss-col">
+      <div class="ss-title">macOS Ventura 13</div>
+      <div class="ss-body">Last <em>natively supported</em> macOS for MacPro6,1. Stable, no OCLP patches required. Lacks newer UI, Continuity Camera, and Safari improvements.</div>
+      <span class="ss-tag ss-tag-ok">Native — No Patches Needed</span>
+    </div>
+    <div class="ss-col">
+      <div class="ss-title">macOS Sonoma 14 ✦</div>
+      <div class="ss-body">OCLP support is fully mature and battle-tested. Desktop widgets, improved Stage Manager, video conferencing upgrades, Safari 17, Game Mode. Excellent FirePro GPU compatibility.</div>
+      <span class="ss-tag ss-tag-stable">Recommended — Maximum Stability</span>
+    </div>
+    <div class="ss-col">
+      <div class="ss-title">macOS Sequoia 15</div>
+      <div class="ss-body">Newest option, OCLP support exists but is less mature. Some users report additional edge-case issues. Apple Intelligence unavailable on Intel anyway.</div>
+      <span class="ss-tag ss-tag-caution">Possible — Less Tested</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ LAYOUT ══════════════════ -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" aria-label="Table of contents">
+    <div class="sidebar-label">On this page</div>
+    <ul class="toc-list">
+      <div class="toc-group">
+        <div class="toc-group-label">Overview</div>
+        <li><a href="#hardware">Your Hardware</a></li>
+        <li><a href="#compatibility">Compatibility Matrix</a></li>
+        <li><a href="#caveats">Caveats — Read First</a></li>
+      </div>
+      <div class="toc-group">
+        <div class="toc-group-label">Preparation</div>
+        <li><a href="#checklist">Pre-Flight Checklist</a></li>
+        <li><a href="#backup">Back Up Everything</a></li>
+        <li><a href="#download">Download OCLP</a></li>
+      </div>
+      <div class="toc-group">
+        <div class="toc-group-label">Installation</div>
+        <li><a href="#build-oc">Build OpenCore</a></li>
+        <li><a href="#installer">Create Sonoma Installer</a></li>
+        <li><a href="#install">Install Sonoma</a></li>
+      </div>
+      <div class="toc-group">
+        <div class="toc-group-label">Post-Install</div>
+        <li><a href="#root-patches">Apply Root Patches</a></li>
+        <li><a href="#verify">Verify &amp; Test</a></li>
+        <li><a href="#updates">Handling Updates</a></li>
+        <li><a href="#permanent">Permanent Boot</a></li>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+      </div>
+    </ul>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ─── HARDWARE ─── -->
+    <section class="section" id="hardware">
+      <div class="section-header">
+        <span class="section-num">[01]</span>
+        <h2>Your Hardware: MacPro6,1</h2>
+      </div>
+
+      <p>
+        The Late 2013 Mac Pro — the iconic cylindrical "trash can" — packs a pair of AMD FirePro
+        GPUs around a shared thermal core in a form factor that still turns heads. Despite Apple
+        officially ending support at Ventura 13, the underlying hardware is genuinely capable of
+        running Sonoma 14 with the right driver injection. The machine was designed to last, and it will.
+      </p>
+
+      <table class="spec-table">
+        <thead><tr><th>Component</th><th>Details</th></tr></thead>
+        <tbody>
+          <tr><td>Model Identifier</td><td><code>MacPro6,1</code></td></tr>
+          <tr><td>Year</td><td>Late 2013 (released December 2013)</td></tr>
+          <tr><td>CPU</td><td>Intel Xeon E5 (Ivy Bridge-EP) — 4, 6, 8, or 12-core configurations</td></tr>
+          <tr><td>GPUs</td><td>Dual AMD FirePro: <strong>D300</strong> (2×2 GB), <strong>D500</strong> (2×3 GB), or <strong>D700</strong> (2×6 GB). All use the AMD GCN 1.1 / Hawaii architecture. All support Metal.</td></tr>
+          <tr><td>Memory</td><td>4-channel DDR3 ECC 1866 MHz, 4 DIMM slots, up to 64 GB</td></tr>
+          <tr><td>Storage (stock)</td><td>PCIe SSD blade (proprietary), replaceable with NVMe adapters (e.g. OWC Accelsior)</td></tr>
+          <tr><td>Thunderbolt</td><td>6× Thunderbolt 2 ports (20 Gb/s each) — supports TB1 and TB2 devices; TB3 via Apple adapter</td></tr>
+          <tr><td>USB</td><td>4× USB 3.0 (rear)</td></tr>
+          <tr><td>HDMI</td><td>1× HDMI 1.4</td></tr>
+          <tr><td>Officially supported through</td><td>macOS Ventura 13 (dropped from Sonoma 14)</td></tr>
+          <tr><td>This guide targets</td><td>macOS Sonoma 14 via OpenCore Legacy Patcher</td></tr>
+        </tbody>
+      </table>
+
+      <div class="adm copper">
+        <div class="adm-icon">🔍</div>
+        <div>
+          <div class="adm-title">Identify Your GPU Model</div>
+          Run <code>system_profiler SPDisplaysDataType | grep "Chipset Model"</code> in Terminal
+          to confirm whether you have D300, D500, or D700 cards. OCLP auto-configures the correct
+          legacy GCN driver for all three variants.
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── COMPATIBILITY ─── -->
+    <section class="section" id="compatibility">
+      <div class="section-header">
+        <span class="section-num">[02]</span>
+        <h2>Compatibility Matrix — Sonoma 14</h2>
+      </div>
+
+      <p>
+        Sonoma 14 represents the most thoroughly tested OCLP target for the Mac Pro 6,1.
+        Here is the complete picture of what works, what has caveats, and what remains non-functional.
+      </p>
+
+      <div class="status-grid">
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">CPU, RAM, NVMe/SSD — full speed</div><div class="status-note">Fully functional</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">AMD FirePro Metal GPU acceleration</div><div class="status-note">After root patches — works excellently</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">Thunderbolt 2 (all 6 ports)</div><div class="status-note">Fully functional</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">USB 3.0 (all 4 ports)</div><div class="status-note">Fully functional</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">HDMI audio and video out</div><div class="status-note">Fully functional</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">Wi-Fi &amp; Bluetooth (original BCM94360)</div><div class="status-note">Full — AirDrop, Handoff, Continuity</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">iMessage, FaceTime, App Store, iCloud</div><div class="status-note">Functional</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">Time Machine backups</div><div class="status-note">Fully functional</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">Sonoma Desktop Widgets</div><div class="status-note">Functional with GPU patches</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">Sonoma Game Mode</div><div class="status-note">Functional (CPU-side optimizations)</div></div>
+        <div class="status-row"><div class="dot dot-green"></div><div class="status-label">Safari 17, Stage Manager improvements</div><div class="status-note">Fully functional</div></div>
+        <div class="status-row"><div class="dot dot-amber"></div><div class="status-label">Sleep / Wake reliability</div><div class="status-note">Varies by display; usually stable</div></div>
+        <div class="status-row"><div class="dot dot-amber"></div><div class="status-label">GPU in software-rendering mode (before patching)</div><div class="status-note">Very slow — patch immediately post-install</div></div>
+        <div class="status-row"><div class="dot dot-amber"></div><div class="status-label">Sidecar (iPad as display)</div><div class="status-note">Non-functional on legacy GPU stack</div></div>
+        <div class="status-row"><div class="dot dot-amber"></div><div class="status-label">Continuity Camera (iPhone as webcam)</div><div class="status-note">Hardware limitation</div></div>
+        <div class="status-row"><div class="dot dot-red"></div><div class="status-label">System Integrity Protection — full</div><div class="status-note">Partially disabled by OCLP (required)</div></div>
+        <div class="status-row"><div class="dot dot-red"></div><div class="status-label">Apple Secure Boot</div><div class="status-note">Disabled</div></div>
+        <div class="status-row"><div class="dot dot-red"></div><div class="status-label">Rapid Security Response (RSR) updates</div><div class="status-note">Incompatible — blocked automatically</div></div>
+      </div>
+    </section>
+
+    <!-- ─── CAVEATS ─── -->
+    <section class="section" id="caveats">
+      <div class="section-header">
+        <span class="section-num">[03]</span>
+        <h2>Caveats &amp; Limitations — Read First</h2>
+      </div>
+
+      <div class="adm critical">
+        <div class="adm-icon">⚠</div>
+        <div>
+          <div class="adm-title">Unsupported Configuration</div>
+          Apple does not support this setup. Genius Bar and AppleCare service may be declined
+          for systems running unsupported macOS versions. You assume responsibility for
+          maintaining your patched installation.
+        </div>
+      </div>
+
+      <div class="adm critical">
+        <div class="adm-icon">🔐</div>
+        <div>
+          <div class="adm-title">SIP Is Partially Disabled</div>
+          Root patching requires lowering System Integrity Protection so OCLP can write into
+          the sealed system volume. <code>AMFI</code> is also modified. Your system will not pass
+          Apple's standard security posture checks. For most workstation users this is an acceptable tradeoff.
+        </div>
+      </div>
+
+      <div class="adm warn">
+        <div class="adm-icon">🔄</div>
+        <div>
+          <div class="adm-title">Root Patches Must Be Re-Applied After Every macOS Update</div>
+          Each Sonoma point release (14.x → 14.x+1) re-seals the system volume, erasing your
+          GPU driver patches. <strong>After every update: launch OCLP → Post-Install Root Patches
+          → Start Root Patching → Reboot.</strong> Skipping this leaves you in software-rendering mode.
+        </div>
+      </div>
+
+      <div class="adm info">
+        <div class="adm-icon">📡</div>
+        <div>
+          <div class="adm-title">Rapid Security Responses Are Blocked</div>
+          Apple's in-between mini security patches (RSRs) are incompatible with OCLP-patched systems
+          and will be automatically blocked. Full point-release updates work normally.
+        </div>
+      </div>
+
+      <div class="adm tip">
+        <div class="adm-icon">✦</div>
+        <div>
+          <div class="adm-title">Why Sonoma Is the Smart Choice</div>
+          Sonoma 14 is the version where OCLP support for MacPro6,1 is most mature. The team has
+          had over a year of user feedback and patch refinement specifically targeting this macOS
+          version on this hardware. Dozens of OCLP releases have been tested against Sonoma. The
+          AMD FirePro root patches are reliable and well-documented. You are not on the bleeding edge.
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ─── CHECKLIST ─── -->
+    <section class="section" id="checklist">
+      <div class="phase-label"><span class="phase-line"></span>Preparation Phase</div>
+      <div class="section-header">
+        <span class="section-num">[04]</span>
+        <h2>Pre-Flight Checklist</h2>
+      </div>
+
+      <p>Work through this list completely before you start. Check each item as you confirm it.</p>
+
+      <ul class="checklist">
+        <li><input type="checkbox" id="c1"><label for="c1"><strong>16 GB+ USB flash drive</strong> — this becomes your Sonoma installer. A second drive for OpenCore (or a 32 GB+ single drive for both) is ideal.</label></li>
+        <li><input type="checkbox" id="c2"><label for="c2"><strong>Running macOS Ventura or Monterey</strong> — OCLP needs a reasonably recent base OS to build and install OpenCore from.</label></li>
+        <li><input type="checkbox" id="c3"><label for="c3"><strong>Stable internet connection</strong> — Sonoma installer is approximately 13 GB; downloading via Ethernet is fastest.</label></li>
+        <li><input type="checkbox" id="c4"><label for="c4"><strong>Full Time Machine backup verified</strong> — completed, and spot-checked with a test restore. Non-negotiable.</label></li>
+        <li><input type="checkbox" id="c5"><label for="c5"><strong>Bootable clone drive</strong> (strongly recommended) — an immediately bootable fallback if the install fails mid-way.</label></li>
+        <li><input type="checkbox" id="c6"><label for="c6"><strong>Admin password ready</strong> — OCLP root patching requires sudo access multiple times.</label></li>
+        <li><input type="checkbox" id="c7"><label for="c7"><strong>Apple ID credentials noted</strong> — you may need to re-authenticate iMessage and the App Store after migration.</label></li>
+        <li><input type="checkbox" id="c8"><label for="c8"><strong>FileVault disabled</strong> — temporarily. System Settings → Privacy &amp; Security → FileVault → Turn Off. Re-enable after setup is confirmed stable.</label></li>
+        <li><input type="checkbox" id="c9"><label for="c9"><strong>Display connected</strong> — via HDMI or Thunderbolt. Confirm it shows a picture before starting.</label></li>
+        <li><input type="checkbox" id="c10"><label for="c10"><strong>GPU model confirmed</strong> — run <code>system_profiler SPDisplaysDataType</code> to see D300/D500/D700.</label></li>
+        <li><input type="checkbox" id="c11"><label for="c11"><strong>This guide saved offline</strong> — print it or save the HTML file. You'll need it during reboots when no browser is available.</label></li>
+      </ul>
+    </section>
+
+    <!-- ─── BACKUP ─── -->
+    <section class="section" id="backup">
+      <div class="section-header">
+        <span class="section-num">[05]</span>
+        <h2>Back Up Everything</h2>
+      </div>
+
+      <p>
+        The installation process writes to your internal SSD's EFI partition and reinstalls
+        the operating system. If something goes wrong between steps, your drive could be in
+        a partially modified state. <strong>A current backup is the only way to recover.</strong>
+      </p>
+
+      <h3>Time Machine (Required Minimum)</h3>
+      <ol class="step-list">
+        <li>Connect an external drive at least as large as your internal SSD.</li>
+        <li>Open <strong>System Settings → General → Time Machine</strong>. Select your external drive as the backup destination.</li>
+        <li>Click <strong>Back Up Now</strong> and wait for the full backup to complete. Don't cancel partway through.</li>
+        <li>Verify: click the Time Machine icon in the menu bar → <em>Browse Time Machine Backups</em>. Navigate to a few recent files and confirm they're accessible.</li>
+      </ol>
+
+      <h3>Bootable Clone (Strongly Recommended)</h3>
+      <p>
+        A bootable clone is a complete, immediately usable copy of your current system on a separate
+        external drive. If anything in the install process fails, you can boot from the clone and
+        be back to work in under a minute, with zero data loss.
+      </p>
+      <p>
+        Use <strong>Carbon Copy Cloner</strong> or <strong>SuperDuper!</strong> to create one.
+        After cloning, test it: hold <kbd>Option (⌥)</kbd> at startup, select the clone drive,
+        and confirm it boots fully before proceeding.
+      </p>
+
+      <div class="adm tip">
+        <div class="adm-icon">✓</div>
+        <div>
+          <div class="adm-title">Test Before You Trust</div>
+          An untested backup is hope, not a backup. Actually boot from your clone drive — or
+          restore a single test file from Time Machine — and confirm it works before touching
+          the installation process.
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── DOWNLOAD ─── -->
+    <section class="section" id="download">
+      <div class="section-header">
+        <span class="section-num">[06]</span>
+        <h2>Download OpenCore Legacy Patcher</h2>
+      </div>
+
+      <p>
+        OpenCore Legacy Patcher is a free, open-source project maintained by the Dortania team.
+        Download only from the official GitHub repository — never from third-party mirrors,
+        which may bundle modified or outdated versions.
+      </p>
+
+      <div class="code-block">
+        <div class="code-bar"><span class="code-lang">Official Download</span></div>
+        <pre>https://github.com/dortania/OpenCore-Legacy-Patcher/releases/latest</pre>
+      </div>
+
+      <ol class="step-list">
+        <li>Open the URL above. Find the latest release that explicitly lists Sonoma 14 support in its release notes (look for "macOS 14" in the description).</li>
+        <li>Download <strong>OpenCore-Patcher.app.zip</strong> (the GUI application).</li>
+        <li>Unzip it. Move <strong>OpenCore-Patcher.app</strong> to your <code>/Applications</code> folder.</li>
+        <li>Launch it once. If Gatekeeper blocks it: <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.</li>
+        <li>Make note of the OCLP version number. You'll need to match future OCLP releases to future Sonoma point updates.</li>
+      </ol>
+
+      <h3>Verifying the Download (Recommended)</h3>
+
+      <div class="code-block">
+        <div class="code-bar"><span class="code-lang">Terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><span class="c"># Verify checksum against the value listed on the GitHub release page</span>
+<span class="p">% </span>shasum -a 256 ~/Downloads/OpenCore-Patcher.app.zip</pre>
+      </div>
+
+      <div class="adm warn">
+        <div class="adm-icon">📌</div>
+        <div>
+          <div class="adm-title">Version Pinning Is Important</div>
+          When Sonoma receives a point update (e.g. 14.4 → 14.5), always check for a new
+          compatible OCLP release before applying the macOS update. Using an outdated OCLP
+          against a new macOS build can result in failed root patches or boot issues.
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ─── BUILD OPENCORE ─── -->
+    <section class="section" id="build-oc">
+      <div class="phase-label"><span class="phase-line"></span>Installation Phase</div>
+      <div class="section-header">
+        <span class="section-num">[07]</span>
+        <h2>Build and Install OpenCore</h2>
+      </div>
+
+      <p>
+        OCLP detects your Mac Pro 6,1 automatically and builds a tailored OpenCore EFI — a
+        custom bootloader that sits between the Mac's firmware and macOS, injecting the patches,
+        hardware spoofing, and boot arguments needed to run Sonoma. Install it to a USB drive first.
+        You can move it to the internal drive later once you've confirmed everything works.
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">🔧 Hardware Spoofing</div>
+          <div class="card-body">OpenCore presents the MacPro6,1 as a supported Mac model so the Sonoma installer and system services don't reject the hardware.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📦 Kext Injection</div>
+          <div class="card-body">Legacy kexts (kernel extensions) for AMD GCN GPU support are staged for post-install root patching.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙ Boot Arguments</div>
+          <div class="card-body">Arguments like <code>amfi_get_out_of_my_way</code> and <code>ipc_control_port_options=0</code> are injected at boot to allow OCLP's modifications.</div>
+        </div>
+      </div>
+
+      <h3>Building OpenCore and Writing to a USB Drive</h3>
+      <ol class="step-list">
+        <li>Open <strong>OpenCore-Patcher.app</strong>. The main window shows your detected model: <code>MacPro6,1</code>. Click <strong>"Build and Install OpenCore"</strong>.</li>
+        <li>OCLP builds a custom OpenCore EFI for your specific configuration (10–30 seconds). Watch the build log for any errors — there should be none on a standard MacPro6,1.</li>
+        <li>When the build succeeds, click <strong>"Install to Disk"</strong>. A drive picker appears.</li>
+        <li>Select your <strong>USB flash drive</strong>. OCLP writes the EFI to the USB drive's hidden EFI partition without erasing its data partition.</li>
+        <li>Confirm: you'll see "OpenCore has been successfully installed to [USB drive name]."</li>
+      </ol>
+
+      <div class="adm info">
+        <div class="adm-icon">ℹ</div>
+        <div>
+          <div class="adm-title">OCLP Auto-Configures Everything for MacPro6,1</div>
+          The builder handles: hardware model ID spoof, AMD Legacy GCN driver path, NVMe boot support,
+          USB port mapping, Thunderbolt 2 passthrough, NVRAM settings, and all required boot arguments.
+          No manual <code>config.plist</code> editing is needed for standard MacPro6,1 hardware.
+        </div>
+      </div>
+
+      <div class="adm warn">
+        <div class="adm-icon">💾</div>
+        <div>
+          <div class="adm-title">If You Have a Non-Standard GPU</div>
+          If you have installed an eGPU or swapped the original AMD FirePro cards for a different
+          GPU model, OCLP may not auto-configure correctly. Stick with the original D300/D500/D700
+          FirePro cards for this guide; eGPU configurations require additional customization.
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── INSTALLER ─── -->
+    <section class="section" id="installer">
+      <div class="section-header">
+        <span class="section-num">[08]</span>
+        <h2>Create the macOS Sonoma Installer</h2>
+      </div>
+
+      <p>
+        You need a bootable Sonoma installer on a USB drive (16 GB minimum; 32 GB recommended
+        if you want OpenCore and the installer on the same drive). OCLP can create this for you,
+        or you can do it manually via Terminal.
+      </p>
+
+      <h3>Method A — Via OCLP GUI (Easiest)</h3>
+      <ol class="step-list">
+        <li>In OCLP's main window, click <strong>"Create macOS Installer"</strong>.</li>
+        <li>Choose <strong>"Download macOS Installer"</strong>. Select <strong>macOS Sonoma</strong> from the list — pick the latest 14.x point release.</li>
+        <li>OCLP downloads the full installer from Apple's servers (approximately 13 GB). This takes 20–60 minutes.</li>
+        <li>Once downloaded, click <strong>"Flash Installer to Drive"</strong>. Select your 16 GB+ USB drive. <strong>This erases the drive.</strong></li>
+        <li>Enter your administrator password. Flashing takes 5–15 minutes.</li>
+      </ol>
+
+      <h3>Method B — Via Terminal (If You Already Have the Installer)</h3>
+      <p>
+        If you downloaded the <em>Install macOS Sonoma</em> app from the App Store previously,
+        create the USB installer with:
+      </p>
+
+      <div class="code-block">
+        <div class="code-bar"><span class="code-lang">Terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><span class="c"># Replace /Volumes/MyVolume with your USB drive's volume name</span>
+<span class="p">% </span>sudo /Applications/Install\ macOS\ Sonoma.app/Contents/Resources/createinstallmedia \
+    --volume /Volumes/MyVolume
+
+<span class="c"># Expected output:</span>
+<span class="c"># Erasing disk: 0%... 10%... 20%... 100%</span>
+<span class="c"># Copying essential files...</span>
+<span class="c"># Making disk bootable...</span>
+<span class="c"># Install media now available at "/Volumes/Install macOS Sonoma"</span></pre>
+      </div>
+
+      <div class="adm warn">
+        <div class="adm-icon">⚠</div>
+        <div>
+          <div class="adm-title">Always Use the Latest Sonoma Installer</div>
+          If your installer was downloaded months ago, it may be an older 14.x build that is now
+          incompatible with the latest OCLP root patches. Re-download a fresh copy when in doubt —
+          use OCLP's built-in downloader to guarantee a current version.
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── INSTALL ─── -->
+    <section class="section" id="install">
+      <div class="section-header">
+        <span class="section-num">[09]</span>
+        <h2>Install macOS Sonoma</h2>
+      </div>
+
+      <div class="adm critical">
+        <div class="adm-icon">🔌</div>
+        <div>
+          <div class="adm-title">Both USB Drives Must Be Connected</div>
+          You need the <strong>OpenCore USB</strong> and the <strong>Sonoma Installer USB</strong>
+          plugged in simultaneously. OpenCore boots first; from within its picker you then select
+          the Sonoma installer. Remove neither drive until installation is complete.
+        </div>
+      </div>
+
+      <h3>Booting Into OpenCore</h3>
+      <ol class="step-list">
+        <li>Plug in both USB drives. Power on (or restart) your Mac Pro.</li>
+        <li><strong>Hold Option (⌥) immediately at startup.</strong> The macOS Startup Manager shows available boot volumes as hard drive icons.</li>
+        <li>Select the entry labeled <strong>"EFI Boot"</strong> (your OpenCore USB). Press Return.</li>
+        <li>The OpenCore boot picker appears — a black screen with icons for each bootable volume. Select <strong>"Install macOS Sonoma"</strong> (your installer USB). Press Return.</li>
+      </ol>
+
+      <div class="adm info">
+        <div class="adm-icon">🖥</div>
+        <div>
+          <div class="adm-title">The Screen Will Look Wrong — That's Expected</div>
+          Before root patches are applied, your AMD FirePro GPUs run in software-rendering mode.
+          Text may be fuzzy, resolution may be wrong, and animations will be slow. The installer
+          itself will still work correctly. Proceed normally.
+        </div>
+      </div>
+
+      <h3>Running the Sonoma Installer</h3>
+      <ol class="step-list">
+        <li>The macOS installer environment loads. Select your language when prompted.</li>
+        <li>
+          <strong>Erase your destination first (recommended for a clean install):</strong>
+          Open <em>Disk Utility</em> from the Utilities menu. Select your internal SSD.
+          Click <strong>Erase</strong>. Format: <strong>APFS</strong>, Scheme: <strong>GUID Partition Map</strong>.
+          Name it (e.g. <code>Macintosh HD</code>). Click Erase, then quit Disk Utility.
+        </li>
+        <li>Select <strong>"Install macOS Sonoma"</strong>. Choose your internal SSD as the destination. Click <strong>Install</strong>.</li>
+        <li>
+          The installer copies files (≈5 minutes), then reboots. <strong>Keep both USB drives plugged in.</strong>
+          When the OpenCore picker reappears, select the <em>macOS Installer</em> stage 2 entry.
+          OCLP may auto-select it; if it does, leave it.
+        </li>
+        <li>The Mac Pro will reboot 2–4 more times during installation. Each time, the OpenCore picker will appear — select the installer stage entry. It will eventually boot into the macOS Sonoma Setup Assistant.</li>
+        <li>Complete the Setup Assistant: region, keyboard layout, Wi-Fi, Apple ID, privacy settings, etc.</li>
+      </ol>
+
+      <div class="rule-callout">
+        After setup is complete: do not install any software, do not run Software Update.
+        Apply root patches first — the system is currently running on software rendering.
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ─── ROOT PATCHES ─── -->
+    <section class="section" id="root-patches">
+      <div class="phase-label"><span class="phase-line"></span>Post-Installation Phase</div>
+      <div class="section-header">
+        <span class="section-num">[10]</span>
+        <h2>Apply Root Patches — The Critical Step</h2>
+      </div>
+
+      <p>
+        Root patching re-injects the legacy AMD GCN GPU driver stack into Sonoma's sealed system
+        volume, giving your FirePro D-series cards their full Metal acceleration back.
+        <strong>Without this step your Mac Pro is borderline unusable as a desktop.</strong>
+        With it, performance is excellent.
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">📥 What Gets Injected</div>
+          <div class="card-body">Legacy <code>AMDRadeonX4000</code> and related GCN-architecture kernel extensions (kexts) for the FirePro Hawaii GPU core.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ What You Gain</div>
+          <div class="card-body">Full Metal GPU acceleration, proper display resolution, hardware video decode, QuickLook, Spotlight previews, full UI compositing.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔄 When Required Again</div>
+          <div class="card-body">After every macOS Sonoma point update (14.x → 14.y). Each update re-seals the system volume, removing the patches.</div>
+        </div>
+      </div>
+
+      <h3>Step-by-Step Root Patching</h3>
+      <ol class="step-list">
+        <li>Boot into your new macOS Sonoma via the OpenCore picker. Log in.</li>
+        <li>
+          Transfer <strong>OpenCore-Patcher.app</strong> to this new Sonoma installation.
+          Options: AirDrop from another Mac, copy from a USB drive, or re-download from GitHub.
+        </li>
+        <li>Launch <strong>OpenCore-Patcher.app</strong>.</li>
+        <li>Click <strong>"Post-Install Root Patches"</strong>.</li>
+        <li>
+          OCLP analyzes your system. For MacPro6,1, the patch list will include:
+          <ul style="margin: 8px 0 0 18px; line-height: 2.1; font-size: 13.5px; color: var(--txt-muted);">
+            <li>AMD Legacy GCN (Graphics Core Next) kexts</li>
+            <li>AMD Legacy Polaris/Vega kexts (may appear; only relevant ones are applied)</li>
+            <li>Miscellaneous patching for AMFI and SIP configuration</li>
+          </ul>
+        </li>
+        <li>Click <strong>"Start Root Patching"</strong>. Enter your administrator password.</li>
+        <li>
+          OCLP performs these operations in sequence:
+          <ul style="margin: 8px 0 0 18px; line-height: 2.1; font-size: 13.5px; color: var(--txt-muted);">
+            <li>Remounts system volume as writable (read-write)</li>
+            <li>Copies legacy kexts into <code>/System/Library/Extensions/</code></li>
+            <li>Rebuilds the kernel extension cache (<code>kmutil</code>)</li>
+            <li>Creates a new system snapshot and re-seals the volume</li>
+          </ul>
+        </li>
+        <li>When complete, click <strong>Reboot</strong>. Via the OpenCore picker, boot into macOS Sonoma.</li>
+        <li>After login, the display should be at native resolution with full GPU acceleration active.</li>
+      </ol>
+
+      <h3>Confirming GPU Acceleration is Active</h3>
+
+      <div class="code-block">
+        <div class="code-bar"><span class="code-lang">Terminal — GPU Check</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><span class="c"># Confirm GPU model and Metal support</span>
+<span class="p">% </span>system_profiler SPDisplaysDataType | grep -E "Chipset|VRAM|Metal"
+
+<span class="c"># Expected output for D700 (example):</span>
+<span class="c">#   Chipset Model: AMD FirePro D700</span>
+<span class="c">#   VRAM (Total): 6144 MB</span>
+<span class="c">#   Metal: Supported, feature set macOS GPUFamily1 v4</span>
+
+<span class="c"># Confirm SIP status (partially disabled is expected and correct)</span>
+<span class="p">% </span>csrutil status
+
+<span class="c"># Check root patch marker left by OCLP</span>
+<span class="p">% </span>ls /System/Library/Extensions/ | grep AMDRadeonX4000
+<span class="c"># Should return AMDRadeonX4000.kext — confirms injection succeeded</span></pre>
+      </div>
+
+      <div class="adm copper">
+        <div class="adm-icon">🔧</div>
+        <div>
+          <div class="adm-title">If Root Patching Fails</div>
+          Check the OCLP log for specifics. Common issues: insufficient free disk space (OCLP needs ~2 GB),
+          wrong OCLP version for your macOS build, or a corrupted system snapshot. See the
+          Troubleshooting section below for detailed fixes.
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── VERIFY ─── -->
+    <section class="section" id="verify">
+      <div class="section-header">
+        <span class="section-num">[11]</span>
+        <h2>Verify &amp; Test Your System</h2>
+      </div>
+
+      <p>Run through this checklist after rebooting with root patches applied.</p>
+
+      <ul class="checklist">
+        <li><input type="checkbox" id="v1"><label for="v1"><strong>Display at native resolution</strong> — auto-detected after GPU patches. If wrong, open System Settings → Displays and set manually.</label></li>
+        <li><input type="checkbox" id="v2"><label for="v2"><strong>Metal acceleration confirmed</strong> — run the Terminal check above. Should show <em>Metal: Supported</em>.</label></li>
+        <li><input type="checkbox" id="v3"><label for="v3"><strong>UI is fluid</strong> — open Mission Control (F3 or swipe up). Animations should be smooth and instant, not sluggish.</label></li>
+        <li><input type="checkbox" id="v4"><label for="v4"><strong>Video playback</strong> — play a 4K video in QuickTime. Confirm smooth hardware-accelerated playback without dropped frames.</label></li>
+        <li><input type="checkbox" id="v5"><label for="v5"><strong>Sonoma Desktop Widgets</strong> — right-click the Desktop → Edit Widgets. Confirm the widget picker opens and a widget can be placed.</label></li>
+        <li><input type="checkbox" id="v6"><label for="v6"><strong>Audio</strong> — test HDMI audio (via your display) and any connected headphones or optical output.</label></li>
+        <li><input type="checkbox" id="v7"><label for="v7"><strong>USB 3.0</strong> — copy a large file to a USB 3.0 drive. Speed above 200 MB/s confirms USB 3.0 is working correctly.</label></li>
+        <li><input type="checkbox" id="v8"><label for="v8"><strong>Thunderbolt 2</strong> — connect a TB2 device and confirm it mounts or functions.</label></li>
+        <li><input type="checkbox" id="v9"><label for="v9"><strong>Wi-Fi and Bluetooth</strong> — confirm Wi-Fi connects. Test AirDrop to a nearby iPhone or Mac.</label></li>
+        <li><input type="checkbox" id="v10"><label for="v10"><strong>iMessage / FaceTime</strong> — sign into iMessage, send and receive a test message.</label></li>
+        <li><input type="checkbox" id="v11"><label for="v11"><strong>App Store</strong> — sign in, download a small free app to confirm authentication and download work.</label></li>
+        <li><input type="checkbox" id="v12"><label for="v12"><strong>Sleep / Wake</strong> — put the machine to sleep (Apple menu → Sleep), wake via keyboard, and confirm the display returns correctly.</label></li>
+        <li><input type="checkbox" id="v13"><label for="v13"><strong>Time Machine</strong> — run a new backup to your backup drive and confirm it completes without errors on Sonoma.</label></li>
+      </ul>
+    </section>
+
+    <!-- ─── UPDATES ─── -->
+    <section class="section" id="updates">
+      <div class="section-header">
+        <span class="section-num">[12]</span>
+        <h2>Handling Future Sonoma Updates</h2>
+      </div>
+
+      <div class="rule-callout">
+        The golden rule: update OCLP before you update macOS, always.
+      </div>
+
+      <p>
+        Every Sonoma point release (14.x) re-seals the system volume, removing your root patches.
+        Following the correct sequence every time keeps your Mac Pro running with full GPU acceleration.
+        Doing it out of order risks being stuck in software-rendering mode until you can re-patch.
+      </p>
+
+      <h3>The Safe Update Sequence — Every Time</h3>
+      <ol class="step-list">
+        <li>A software update notification appears. <strong>Close it. Do not update yet.</strong></li>
+        <li>Go to <code>github.com/dortania/OpenCore-Legacy-Patcher/releases</code> and look for a release whose notes mention the new macOS version. Download it if available.</li>
+        <li>Open the new OCLP → <strong>Build and Install OpenCore</strong> → install to your boot drive (USB or internal EFI, wherever you have OpenCore). This updates the bootloader.</li>
+        <li>Now apply the macOS update: <strong>System Settings → General → Software Update → Update Now</strong>.</li>
+        <li>The Mac Pro reboots through the update (OpenCore handles the boot transitions). Once on the desktop of the new Sonoma version: launch OCLP → <strong>Post-Install Root Patches → Start Root Patching</strong>.</li>
+        <li>Reboot one final time. GPU acceleration is restored.</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-bar"><span class="code-lang">Update Cheat Sheet</span></div>
+        <pre><span class="c">━━ BEFORE every macOS update: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+  1. Check OCLP releases for compatibility with new macOS build
+  2. Update OpenCore: OCLP → Build and Install OpenCore
+
+<span class="c">━━ AFTER every macOS update: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+  1. Open OCLP
+  2. Post-Install Root Patches → Start Root Patching
+  3. Reboot
+
+<span class="c">━━ NEVER: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+  ✗ Apply a Rapid Security Response (RSR) update
+  ✗ Update macOS without checking OCLP compatibility first
+  ✗ Skip root patching after a system update</pre>
+      </div>
+
+      <h3>Checking the Current macOS Build vs OCLP Support</h3>
+
+      <div class="code-block">
+        <div class="code-bar"><span class="code-lang">Terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><span class="c"># Check your exact macOS build version</span>
+<span class="p">% </span>sw_vers
+<span class="c"># ProductName:   macOS</span>
+<span class="c"># ProductVersion: 14.x.x</span>
+<span class="c"># BuildVersion:  23Axxxx  ← match this against OCLP release notes</span></pre>
+      </div>
+    </section>
+
+    <!-- ─── PERMANENT BOOT ─── -->
+    <section class="section" id="permanent">
+      <div class="section-header">
+        <span class="section-num">[13]</span>
+        <h2>Going USB-Free: Permanent OpenCore on the Internal Drive</h2>
+      </div>
+
+      <p>
+        Once you've confirmed Sonoma runs correctly via the USB OpenCore stick — GPU acceleration
+        active, all tests passing — you can install OpenCore permanently onto the internal SSD's
+        EFI partition. The Mac Pro will then boot Sonoma automatically, with no USB drive required.
+      </p>
+
+      <ol class="step-list">
+        <li>Confirm you are booted into Sonoma with root patches applied and all hardware verified.</li>
+        <li>Open <strong>OpenCore-Patcher.app</strong> → <strong>Build and Install OpenCore</strong>.</li>
+        <li>In the <em>Install to Disk</em> dialog, select your <strong>internal SSD</strong>
+            (e.g., <em>APPLE SSD AP0512</em>) instead of the USB drive.</li>
+        <li>Confirm the selection. OCLP writes the OpenCore EFI to the internal EFI partition.</li>
+        <li>Restart. The Mac Pro should now show the OpenCore picker automatically, with a 5-second countdown before booting Sonoma.</li>
+        <li>
+          <strong>Optionally suppress the picker</strong> for instant boots:
+          In OCLP → Settings → set ShowPicker to <em>Off</em>. You can still access it anytime
+          by holding <kbd>Escape</kbd> or <kbd>Space</kbd> at power-on.
+        </li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-bar"><span class="code-lang">Terminal — Verify Internal EFI Contents</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><span class="c"># List disks to find your internal SSD disk identifier</span>
+<span class="p">% </span>diskutil list
+
+<span class="c"># Mount its EFI partition (substitute disk0 if needed)</span>
+<span class="p">% </span>sudo diskutil mount disk0s1
+
+<span class="c"># Confirm OpenCore EFI is present</span>
+<span class="p">% </span>ls /Volumes/EFI/EFI/
+<span class="c"># Should show: APPLE   BOOT   OC</span>
+
+<span class="c"># Unmount when done</span>
+<span class="p">% </span>sudo diskutil unmount /Volumes/EFI</pre>
+      </div>
+
+      <div class="adm tip">
+        <div class="adm-icon">💾</div>
+        <div>
+          <div class="adm-title">Keep the USB OpenCore Stick</div>
+          Even after installing OpenCore internally, keep your USB OpenCore stick in a drawer.
+          If something ever goes wrong with the internal EFI — a failed update, a corrupted
+          snapshot — you can boot from the USB and recover without needing any other hardware.
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── TROUBLESHOOTING ─── -->
+    <section class="section" id="troubleshooting">
+      <div class="section-header">
+        <span class="section-num">[14]</span>
+        <h2>Troubleshooting</h2>
+      </div>
+
+      <details class="accordion">
+        <summary>Holding Option (⌥) at startup doesn't show OpenCore / EFI Boot</summary>
+        <div class="accordion-body">
+          <p>The OpenCore USB may not have been written correctly. Confirm by plugging the USB into a different Mac and running <code>diskutil list</code> — you should see an EFI partition with at least a few hundred MB used on the USB disk.</p>
+          <p>Re-run OCLP → Build and Install OpenCore, select the USB drive again, and try a different USB port on the Mac Pro. All four USB 3.0 ports on the back are bootable.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>OpenCore picker appears but "Install macOS Sonoma" is not listed</summary>
+        <div class="accordion-body">
+          <p>The installer USB isn't being detected. Try: unplug and re-plug the installer USB into a different USB port, then wait 10 seconds. If it still doesn't appear, the installer USB was not created correctly — recreate it using OCLP's <em>Create macOS Installer</em> tool.</p>
+          <p>Confirm the installer USB has an entry in <code>diskutil list</code> showing a large partition labeled "Install macOS Sonoma" before booting.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>System is very slow after installation — sluggish UI, blurry fonts</summary>
+        <div class="accordion-body">
+          <p>This is software-rendering mode — your FirePro GPUs do not yet have their drivers. This is normal and expected before root patching. Boot fully into Sonoma, open OCLP, click Post-Install Root Patches, and run the patching. Reboot. The UI will be normal afterward.</p>
+          <p>If patching was already run and the system is still slow, check: did the reboot after patching happen via the OpenCore picker? Booting without OpenCore may cause the patches to not take effect.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Black screen after reboot following root patching</summary>
+        <div class="accordion-body">
+          <p>Power off completely (hold the power button for 5 seconds, or unplug). Wait 15 seconds. Power back on. A hard power cycle lets the Mac Pro's SMC fully reset, which sometimes resolves GPU initialization stalls.</p>
+          <p>Try a different display port. For external displays, try HDMI first — it has a simpler signal chain than Thunderbolt. If using a TB2→DisplayPort or TB2→HDMI adapter, try a different adapter or a direct Thunderbolt connection.</p>
+          <p>If still black: hold Option at startup and select OpenCore, then in the OpenCore picker press Space on the Sonoma entry and choose verbose mode (<code>-v</code>). The boot log will show where the GPU driver is failing.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>OCLP root patching fails — "Cannot mount system volume" or similar error</summary>
+        <div class="accordion-body">
+          <p>This usually indicates a snapshot issue. Try from Terminal:</p>
+          <div class="code-block">
+            <div class="code-bar"><span class="code-lang">Terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="p">% </span>diskutil apfs listSnapshots /
+<span class="c"># If multiple snapshots are listed, note the most recent</span>
+
+<span class="p">% </span>sudo bless --mount / --bootefi --create-snapshot
+<span class="c"># Then re-try OCLP root patching</span></pre>
+          </div>
+          <p>Also check that you have at least 3 GB of free space on the system volume. OCLP needs room to stage the kexts and rebuild the cache.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>iMessage or FaceTime says "Contact Apple Support to Activate"</summary>
+        <div class="accordion-body">
+          <p>This is common after major macOS reinstalls. Steps to fix:</p>
+          <p>1. Sign out of Apple ID completely: System Settings → Apple ID → Sign Out. Restart. Sign back in.</p>
+          <p>2. If still failing: in OCLP → Utilities → Find the iMessage repair option. This regenerates correct ROM and MLB identifiers matching your MacPro6,1 board's original values. Run it, then sign out and back into Apple ID.</p>
+          <p>3. Wait up to 24 hours after a fresh Apple ID sign-in — Apple's activation servers sometimes require time to verify re-used hardware.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>After a macOS Sonoma update, the system is slow again (no GPU acceleration)</summary>
+        <div class="accordion-body">
+          <p>This is expected and correct behavior. Every Sonoma update re-seals the system volume, removing your root patches. Open OCLP → Post-Install Root Patches → Start Root Patching → Reboot. GPU acceleration returns immediately.</p>
+          <p>If root patching fails after an update, it's likely you need a newer OCLP version that supports the new Sonoma build. Check <code>github.com/dortania/OpenCore-Legacy-Patcher/releases</code> for a release that lists your new Sonoma build version.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Kernel panic / system crash after applying patches</summary>
+        <div class="accordion-body">
+          <p>A kernel panic on a freshly patched system usually means an OCLP version mismatch. Check your exact macOS build: run <code>sw_vers</code> in Terminal and compare the <em>BuildVersion</em> against OCLP release notes. Download the correct OCLP version, re-patch, and reboot.</p>
+          <p>If panics persist, boot from your backup clone and re-assess. Running a clean Sonoma install immediately followed by root patching (before any other changes) is the most reliable way to establish a stable baseline.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Wi-Fi or Bluetooth stops working after Sonoma install</summary>
+        <div class="accordion-body">
+          <p>The original BCM94360 Wi-Fi/Bluetooth card in the MacPro6,1 is natively supported by Sonoma and requires no additional patches. If Wi-Fi is missing:</p>
+          <p>Toggle it off and on: System Settings → Wi-Fi → toggle the switch. If still missing, check OCLP's Post-Install patches — sometimes a Wi-Fi patch is included for BCM cards; run it and reboot.</p>
+          <p>If you have replaced the original Wi-Fi card with a third-party card, additional kexts may be needed. The standard guide covers only original hardware.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Thunderbolt 2 devices not recognized</summary>
+        <div class="accordion-body">
+          <p>Try a cold boot with the Thunderbolt device already connected. The Mac Pro sometimes needs the device present at boot to initialize the TB2 controller correctly under OCLP.</p>
+          <p>Confirm the device works with a known-good TB2 cable. If using a TB2→TB3 adapter (Apple's $49 adapter), connect first and then hot-plug the TB3 device — don't connect them together before plugging in.</p>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>How do I revert to macOS Ventura if things go wrong?</summary>
+        <div class="accordion-body">
+          <p>Boot from your backup clone or Time Machine backup. Ventura is natively supported on the Mac Pro 6,1 — no OCLP needed. You can also create a Ventura installer USB and do a clean install from it: download the Ventura installer from the App Store, use <code>createinstallmedia</code> to create the USB, and install without any OpenCore involvement.</p>
+          <p>Removing OpenCore from the internal EFI: mount the EFI partition (<code>sudo diskutil mount disk0s1</code>), open the EFI folder in Finder, delete the <code>OC</code> and <code>BOOT</code> folders under <code>/Volumes/EFI/EFI/</code>, and unmount. The Mac Pro will boot normally from firmware again.</p>
+        </div>
+      </details>
+
+      <div class="adm tip" style="margin-top: 20px;">
+        <div class="adm-icon">💬</div>
+        <div>
+          <div class="adm-title">Community Resources</div>
+          The OCLP GitHub Discussions and Issues pages have years of accumulated MacPro6,1 specific
+          troubleshooting. The MacRumors Mac Pro (Late 2013) forum thread is also a goldmine.
+          Search your exact error message before opening a new thread — someone has almost certainly
+          hit it before.
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer>
+  <p style="margin-bottom: 8px;">
+    <strong>OpenCore Legacy Patcher</strong> by the Dortania team ·
+    <a href="https://github.com/dortania/OpenCore-Legacy-Patcher" target="_blank" rel="noopener">
+      github.com/dortania/OpenCore-Legacy-Patcher ↗
+    </a>
+  </p>
+  <p>
+    For educational use. Running unsupported macOS configurations carries inherent risk.
+    Maintain current backups at all times. · MacPro6,1 · macOS Sonoma 14
+  </p>
+</footer>
+
+<script>
+  // Reading progress bar
+  window.addEventListener('scroll', () => {
+    const p = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+    document.getElementById('progress').style.width = (p * 100) + '%';
+  });
+
+  // Active TOC highlighting
+  const links = document.querySelectorAll('.toc-list a');
+  const sections = document.querySelectorAll('section[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting)
+        links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-20% 0% -72% 0%', threshold: 0 });
+  sections.forEach(s => obs.observe(s));
+
+  // Copy buttons
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText.replace(/^[%$] /gm, '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+</script>
+</body>
+</html>

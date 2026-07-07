@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Dialects &mdash; Algorithms in Python, Perl &amp; Octave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/material-darker.min.css">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" id="MathJax-script" async></script>
+<style>
+:root{
+  --bg:#14161c; --bg2:#191c24; --panel:#1b1e27; --code:#13151d;
+  --ink:#e9e7df; --soft:#9c998c; --faint:#6c6a61;
+  --line:#272b35; --line2:#343945;
+  --teal:#4fd1c5; --gold:#d9b36b; --rust:#e0795f;
+  --py:#5aa0e0; --pl:#c884e6; --oct:#e69248;
+  --shadow:0 16px 44px rgba(0,0,0,.5);
+  --maxw:1200px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Spectral",Georgia,serif; font-size:18px; line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:-2;
+  background:
+    radial-gradient(900px 520px at 78% -8%, rgba(79,209,197,.10), transparent 60%),
+    radial-gradient(760px 480px at 8% 6%, rgba(200,132,230,.08), transparent 55%);
+}
+body::after{
+  content:""; position:fixed; inset:0; z-index:-1; opacity:.5;
+  background-image:radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size:22px 22px;
+}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:50;
+  background:linear-gradient(90deg,var(--py),var(--pl),var(--oct))}
+
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+em{color:#f0eee6}
+strong{color:#fff;font-weight:600}
+
+.wrap{display:flex;gap:0;max-width:var(--maxw);margin:0 auto;align-items:flex-start}
+
+/* ---------- sidebar ---------- */
+.toc{position:sticky;top:0;height:100vh;flex:0 0 256px;padding:30px 20px 40px;
+  border-right:1px solid var(--line);overflow-y:auto}
+.toc .brand{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:21px;line-height:1.05;letter-spacing:-.01em}
+.toc .brand b{background:linear-gradient(90deg,var(--py),var(--pl) 55%,var(--oct));-webkit-background-clip:text;background-clip:text;color:transparent}
+.toc .brand small{display:block;font-family:"JetBrains Mono",monospace;font-weight:400;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);margin-top:10px}
+.toc nav{margin-top:22px;font-size:14px}
+.toc nav a{display:block;color:var(--soft);padding:5px 10px;border-left:2px solid transparent;border-radius:0 6px 6px 0;line-height:1.32}
+.toc nav a:hover{color:var(--ink);background:rgba(255,255,255,.04);text-decoration:none}
+.toc nav a.sub{padding-left:22px;font-size:13px;color:var(--faint)}
+.toc nav a.active{color:var(--teal);border-left-color:var(--teal);background:rgba(79,209,197,.08)}
+.toc nav .grp{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:18px 0 6px 10px}
+
+/* ---------- main ---------- */
+.content{flex:1 1 auto;min-width:0;padding:0 56px 120px}
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:14px;
+  padding:14px 0 12px;margin-bottom:8px;
+  background:linear-gradient(var(--bg) 72%,rgba(20,22,28,0));backdrop-filter:blur(2px)}
+.topbar .tlabel{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+.langswitch{display:flex;gap:6px;margin-left:auto}
+.langswitch button{font-family:"JetBrains Mono",monospace;font-size:12px;padding:6px 13px;border-radius:8px;
+  border:1px solid var(--line2);background:transparent;cursor:pointer;transition:.15s}
+.langswitch button[data-lang=py]{color:var(--py)}
+.langswitch button[data-lang=pl]{color:var(--pl)}
+.langswitch button[data-lang=oct]{color:var(--oct)}
+.langswitch button:hover{border-color:currentColor}
+.langswitch button.active{background:rgba(255,255,255,.07);border-color:currentColor;font-weight:600}
+
+.hero{padding:36px 0 10px;border-bottom:1px solid var(--line)}
+.hero .kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal)}
+.hero h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(38px,6vw,68px);line-height:1.02;letter-spacing:-.02em;margin:14px 0 0}
+.hero h1 .three{background:linear-gradient(90deg,var(--py),var(--pl) 52%,var(--oct));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:20px;color:#d6d3c8;max-width:60ch;margin:18px 0 28px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid var(--line2)}
+.chip.py{color:var(--py);border-color:rgba(90,160,224,.5)}
+.chip.pl{color:var(--pl);border-color:rgba(200,132,230,.5)}
+.chip.oct{color:var(--oct);border-color:rgba(230,146,72,.5)}
+
+section{padding:48px 0 8px;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:32px;letter-spacing:-.01em;margin:0 0 6px;line-height:1.1}
+h2 .num{display:block;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--rust);margin-bottom:10px}
+h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:22px;margin:34px 0 6px;color:#f2f0e8}
+.lead{font-size:19.5px;color:#cfccc1;max-width:66ch}
+p{max-width:70ch}
+
+/* ---------- boxes ---------- */
+.box{margin:22px 0;padding:18px 20px 16px;border-radius:11px;border:1px solid var(--line2);font-size:17px}
+.box>*:first-child{margin-top:0}.box>*:last-child{margin-bottom:0}
+.box .label{display:block;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:9px;font-weight:500}
+.def{background:rgba(79,209,197,.06);border-left:4px solid var(--teal)}.def .label{color:var(--teal)}
+.thm{background:rgba(217,179,107,.07);border-left:4px solid var(--gold)}.thm .label{color:var(--gold)}.thm .stmt{font-style:italic;color:#efe9da}
+.proof{background:rgba(255,255,255,.015);border:1px dashed var(--line2);font-size:16.5px}.proof .label{color:var(--rust)}
+.proof::after{content:"\220E";float:right;color:var(--soft);margin-top:-2px}
+.note{background:rgba(224,121,95,.06);border-left:4px solid var(--rust)}.note .label{color:var(--rust)}
+.key{background:linear-gradient(135deg,rgba(79,209,197,.12),rgba(200,132,230,.08));border:1px solid var(--line2)}
+.key .label{color:var(--teal)}
+
+/* ---------- code blocks ---------- */
+.codeblock{margin:22px 0;border:1px solid var(--line2);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:var(--code)}
+.codebar{display:flex;align-items:center;gap:5px;background:#0e1016;padding:8px 10px;border-bottom:1px solid var(--line)}
+.ltab{font-family:"JetBrains Mono",monospace;font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid transparent;background:transparent;cursor:pointer;transition:.15s}
+.ltab[data-lang=py]{color:var(--py)}
+.ltab[data-lang=pl]{color:var(--pl)}
+.ltab[data-lang=oct]{color:var(--oct)}
+.ltab:hover{background:rgba(255,255,255,.05)}
+.ltab.active{background:rgba(255,255,255,.08);border-color:currentColor;font-weight:600}
+.codebar .fname{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint)}
+.copy{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--soft);background:transparent;border:1px solid var(--line2);border-radius:6px;padding:4px 10px;cursor:pointer;margin-left:10px;transition:.15s}
+.copy:hover{color:var(--ink);border-color:var(--teal)}
+.pane{display:none}.pane.active{display:block}
+pre{margin:0;padding:16px 18px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.65;tab-size:4}
+pre code{font-family:inherit;background:none;padding:0;color:#dfe6e9;white-space:pre}
+code:not(pre code){font-family:"JetBrains Mono",monospace;font-size:.85em;background:rgba(255,255,255,.06);border:1px solid var(--line2);border-radius:5px;padding:1px 6px;color:var(--teal)}
+
+/* highlight.js token palette */
+.hljs-comment,.hljs-quote{color:#6b7184;font-style:italic}
+.hljs-keyword,.hljs-selector-tag,.hljs-literal{color:var(--teal)}
+.hljs-built_in,.hljs-type{color:#74cfd6}
+.hljs-string,.hljs-meta-string{color:#e3b778}
+.hljs-number{color:#e69a72}
+.hljs-title,.hljs-title.function_,.hljs-section,.hljs-name{color:var(--gold)}
+.hljs-params{color:#dcd9cf}
+.hljs-variable,.hljs-template-variable{color:#d9d6cc}
+.hljs-meta{color:var(--pl)}
+.hljs-attr,.hljs-attribute{color:var(--py)}
+.hljs-symbol,.hljs-operator{color:#bfc6cb}
+
+/* ---------- tables ---------- */
+.tbl{margin:22px 0;overflow-x:auto;border-radius:11px;border:1px solid var(--line2)}
+table{border-collapse:collapse;width:100%;background:var(--panel);font-size:15.5px}
+th,td{padding:10px 15px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#0e1016;color:#dfe6e9;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:500}
+tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:rgba(255,255,255,.02)}
+td code{background:rgba(255,255,255,.05)}
+.th-py{color:var(--py)}.th-pl{color:var(--pl)}.th-oct{color:var(--oct)}
+
+/* ---------- widgets ---------- */
+.widget{background:var(--panel);border:1px solid var(--line2);border-top:3px solid var(--teal);border-radius:13px;padding:22px;margin:28px 0;box-shadow:var(--shadow)}
+.whead{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.tagi{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#06231f;background:var(--teal);padding:4px 9px;border-radius:5px;font-weight:600}
+.widget h4{font-family:"Bricolage Grotesque",sans-serif;margin:0;font-size:19px;color:#f2f0e8}
+.wdesc{font-size:15px;color:var(--soft);margin:8px 0 16px;max-width:70ch}
+.controls{display:flex;flex-wrap:wrap;gap:13px 16px;align-items:center;margin-bottom:16px}
+.ctl{display:flex;flex-direction:column;gap:5px}
+.ctl label{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+select,input[type=text],input[type=number]{font-family:"JetBrains Mono",monospace;font-size:13.5px;padding:7px 10px;border:1px solid var(--line2);border-radius:7px;background:#0e1016;color:var(--ink)}
+input[type=range]{accent-color:var(--teal);width:150px}
+.btn{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.03em;padding:8px 15px;border:0;border-radius:7px;background:var(--teal);color:#06231f;cursor:pointer;font-weight:600;transition:.15s}
+.btn:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.alt{background:var(--pl);color:#1c0a23}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line2)}
+.btn.ghost:hover{border-color:var(--teal);color:var(--teal)}
+.readout{font-family:"JetBrains Mono",monospace;font-size:13px;display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;color:var(--soft)}
+.readout b{color:var(--ink);font-weight:700}
+canvas{max-width:100%;display:block;border-radius:8px}
+
+.bars{display:flex;align-items:flex-end;gap:2px;height:220px;padding:10px;background:#0e1016;border-radius:8px;overflow:hidden}
+.bar{flex:1 1 0;background:#2f6f6a;border-radius:3px 3px 0 0;transition:height .05s linear,background .05s}
+.bar.cmp{background:var(--gold)}.bar.swp{background:var(--rust)}.bar.done{background:var(--teal)}
+.chk{display:flex;align-items:center;gap:7px;font-family:"JetBrains Mono",monospace;font-size:12px;cursor:pointer;color:var(--soft)}
+.chk input{accent-color:var(--teal)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 15px;margin-top:12px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.cells{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.cell{min-width:44px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--line2);border-radius:7px;background:#0e1016;font-family:"JetBrains Mono",monospace;font-size:14px;position:relative;transition:.2s}
+.cell .ix{font-size:9px;color:var(--faint);position:absolute;top:2px}
+.cell.range{background:rgba(79,209,197,.1)}
+.cell.lo{box-shadow:inset 0 -4px 0 var(--teal)}
+.cell.hi{box-shadow:inset 0 -4px 0 var(--rust)}
+.cell.lo.hi{box-shadow:inset 0 -4px 0 var(--teal),inset 0 4px 0 var(--rust)}
+.cell.mid{background:var(--gold);color:#1d1604;transform:translateY(-4px)}
+.cell.out{opacity:.28}
+.cell.found{background:var(--teal);color:#06231f;border-color:var(--teal)}
+.mt-result{font-family:"JetBrains Mono",monospace;font-size:14px;background:#0e1016;color:#dfe6e9;padding:15px;border-radius:8px;margin-top:14px;line-height:1.7}
+.mt-result .hl{color:var(--gold)}
+
+/* hash lab */
+.htrow{display:flex;align-items:center;gap:10px;margin:5px 0}
+.htidx{width:54px;flex:none;text-align:right;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--soft)}
+.htchain{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-height:30px;align-items:center;background:#0e1016;border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.htchip{background:var(--teal);color:#06231f;border-radius:5px;padding:3px 9px;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600;animation:pop .2s ease}
+.htchip.coll{background:var(--rust);color:#241007}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+
+footer{padding:40px 0 10px;color:var(--soft)}
+footer .big{font-family:"Bricolage Grotesque",sans-serif;font-size:24px;color:var(--ink);font-weight:700;margin-bottom:6px}
+.muted{font-size:13px;font-family:"JetBrains Mono",monospace;color:var(--faint);margin-top:22px}
+
+.toc-toggle{display:none}
+@media(max-width:980px){
+  .content{padding:0 26px 100px}
+  .wrap{flex-direction:column}
+  .toc{position:static;height:auto;width:100%;flex-basis:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .toc nav{display:none}.toc nav.open{display:block}
+  .toc-toggle{display:inline-block;margin-top:14px}
+}
+@media(max-width:560px){
+  body{font-size:17px}
+  .langswitch button{padding:5px 9px}
+  h2{font-size:26px}
+}
+
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="wrap">
+<aside class="toc">
+  <div class="brand"><b>Three&nbsp;Dialects</b><small>Algorithms &middot; py &middot; pl &middot; oct</small></div>
+  <button class="btn ghost toc-toggle" onclick="document.getElementById('navlist').classList.toggle('open')">&#9776; Contents</button>
+  <nav id="navlist">
+    <div class="grp">Theory</div>
+    <a href="#foundations">0 &middot; Foundations</a>
+    <a href="#asymptotics">1 &middot; Asymptotic Analysis</a>
+    <a href="#asymptotics" class="sub">&#9654; Growth explorer</a>
+    <a href="#recurrences">2 &middot; Recurrences &amp; Master Thm</a>
+    <div class="grp">Core algorithms</div>
+    <a href="#searching">3 &middot; Searching</a>
+    <a href="#searching" class="sub">&#9654; Binary search stepper</a>
+    <a href="#sorting">4 &middot; Sorting</a>
+    <a href="#sorting" class="sub">&#9654; Sorting visualizer</a>
+    <a href="#hashing">5 &middot; Hashing</a>
+    <a href="#hashing" class="sub">&#9654; Hash table explorer</a>
+    <a href="#dp">6 &middot; Dynamic Programming</a>
+    <a href="#greedy">7 &middot; Greedy Algorithms</a>
+    <a href="#graphs">8 &middot; Graph Algorithms</a>
+    <div class="grp">Reference</div>
+    <a href="#idioms">9 &middot; Three Dialects Cheat Sheet</a>
+    <a href="#reference">10 &middot; Complexity Reference</a>
+  </nav>
+</aside>
+<main class="content">
+<div class="topbar">
+  <span class="tlabel">View every snippet in</span>
+  <div class="langswitch">
+    <button data-lang="py" class="active">Python</button>
+    <button data-lang="pl">Perl</button>
+    <button data-lang="oct">Octave</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="kicker">A field guide to algorithms</div>
+  <h1>One logic,<br><span class="three">three dialects.</span></h1>
+  <p>The same algorithm, written three ways &mdash; in <strong>Python</strong> for clarity, <strong>Perl</strong> for text-and-glue expressiveness, and <strong>GNU&nbsp;Octave</strong> for numerical muscle. With proofs of <em>why</em> each works and live labs to watch them run.</p>
+  <div class="chips">
+    <span class="chip py">Python 3</span><span class="chip pl">Perl 5</span><span class="chip oct">GNU Octave</span>
+    <span class="chip">proofs</span><span class="chip">4 interactive labs</span>
+  </div>
+</header>
+
+<section id="foundations">
+  <h2><span class="num">Section 0</span>Foundations &amp; the Three Dialects</h2>
+  <p class="lead">An <strong>algorithm</strong> is a finite, unambiguous procedure that transforms input into output in a finite number of well-defined steps. Three properties must hold: every step is <em>definite</em>, the procedure is <em>effective</em> (each step mechanically doable), and it always <em>terminates</em>.</p>
+
+  <div class="box def">
+    <span class="label">The cost model</span>
+    <p>We count <strong>elementary operations</strong> &mdash; a comparison, an arithmetic step, an array access &mdash; each at unit cost, on an idealized machine with random access to memory (the <em>RAM model</em>). This lets us talk about running time as a function of input size \(n\) without drowning in hardware detail.</p>
+  </div>
+
+  <h3>Why three languages?</h3>
+  <p>An algorithm is a pattern of <em>thought</em>, not a pile of syntax. Writing the same routine in three very different languages makes the pattern stand out from the dialect. Each language also has a temperament worth knowing:</p>
+  <div class="box note">
+    <span class="label">Temperaments</span>
+    <p><strong class="th-py">Python</strong> reads like pseudocode &mdash; comprehensions, slices, and built-in dicts make intent obvious. <strong class="th-pl">Perl</strong> is the text-wrangler's tool: hashes, regexes, and <code>map</code>/<code>grep</code> make it terse for parsing and glue. <strong class="th-oct">Octave</strong> thinks in vectors and matrices, with 1-based indexing and logical-mask operations that turn loops into one-liners &mdash; ideal for numerical work.</p>
+  </div>
+  <p>Use the <strong>language switch</strong> at the top right (or the tabs on any code block) to read the whole guide in whichever dialect you prefer &mdash; every snippet flips at once.</p>
+
+  <h3>A first taste: never loop when math will do</h3>
+  <p>Summing \(1+2+\dots+n\) with a loop is \(O(n)\). Gauss's closed form is \(O(1)\) &mdash; the purest example of why choosing the right algorithm beats any amount of fast code.</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">sum_to_n(n)</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def sum_to_n(n):
+    return n * (n + 1) // 2        # Gauss: O(1), no loop needed</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub sum_to_n {
+    my $n = shift;
+    return $n * ($n + 1) / 2;      # the closed form beats any loop
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function s = sum_to_n(n)
+  s = n * (n + 1) / 2;             % closed form, constant time
+end</code></pre></div></div>
+  <div class="box key">
+    <span class="label">The thesis of this guide</span>
+    <p>Two things make a program good: an algorithm that is <em>correct</em> (provable) and <em>efficient</em> (analyzable). The labs let you <em>see</em> the behavior; the proofs tell you it holds for every input, not just the ones you tried.</p>
+  </div>
+</section>
+
+<section id="asymptotics">
+  <h2><span class="num">Section 1</span>Asymptotic Analysis</h2>
+  <p class="lead">We care how cost <em>scales</em>, not the constants that change with every CPU. Asymptotic notation captures growth as \(n\to\infty\).</p>
+
+  <div class="box def">
+    <span class="label">Big-O, Omega, Theta</span>
+    <p>\(f(n)=O(g(n))\): there exist \(c,n_0>0\) with \(0\le f(n)\le c\,g(n)\) for all \(n\ge n_0\) (an upper bound).</p>
+    <p>\(f(n)=\Omega(g(n))\): a lower bound. \(f(n)=\Theta(g(n))\): both at once &mdash; same growth rate.</p>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Proposition 1.1</span>
+    <p class="stmt">\(3n^2+5n+2 = O(n^2)\).</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p>For all \(n\ge 1\), \(5n\le 5n^2\) and \(2\le 2n^2\), so \(3n^2+5n+2\le 3n^2+5n^2+2n^2 = 10n^2\). Taking \(c=10,\ n_0=1\) satisfies the definition, hence \(3n^2+5n+2=O(n^2)\). &#8718;</p>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Proposition 1.2</span>
+    <p class="stmt">\(n^2 \ne O(n)\).</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p>Suppose \(n^2=O(n)\). Then there exist \(c,n_0>0\) with \(n^2\le c\,n\) for all \(n\ge n_0\). Dividing by \(n\) gives \(n\le c\) for all \(n\ge n_0\). But \(n\) grows without bound, so any \(n>\max(c,n_0)\) breaks the inequality &mdash; a contradiction. So \(n^2\ne O(n)\). &#8718;</p>
+  </div>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Class</th><th>Name</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>\(O(1)\)</td><td>constant</td><td>array index, hash lookup</td></tr>
+      <tr><td>\(O(\log n)\)</td><td>logarithmic</td><td>binary search</td></tr>
+      <tr><td>\(O(n)\)</td><td>linear</td><td>linear scan</td></tr>
+      <tr><td>\(O(n\log n)\)</td><td>linearithmic</td><td>merge sort</td></tr>
+      <tr><td>\(O(n^2)\)</td><td>quadratic</td><td>insertion sort (worst)</td></tr>
+      <tr><td>\(O(2^n)\)</td><td>exponential</td><td>naive subset search</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="widget" id="growthlab">
+    <div class="whead"><span class="tagi">&#9654; Lab 1</span><h4>Growth Explorer</h4></div>
+    <p class="wdesc">Toggle complexity curves and drag \(n\). On a linear axis the higher classes erupt; switch to a logarithmic axis to see them as straight lines of different slope. This is why an \(O(n^2)\) routine that is fine at \(n=100\) is hopeless at \(n=10^6\).</p>
+    <div class="controls">
+      <div class="ctl"><label>n = <span id="gn-val">60</span></label><input type="range" id="gn" min="2" max="200" value="60"></div>
+      <div class="ctl"><label>y-axis</label><select id="gscale"><option value="linear">linear</option><option value="log">logarithmic</option></select></div>
+      <div id="gtoggles" style="display:flex;flex-wrap:wrap;gap:8px 14px"></div>
+    </div>
+    <canvas id="gcanvas" width="660" height="300"></canvas>
+    <div class="readout" id="greadout"></div>
+  </div>
+</section>
+
+<section id="recurrences">
+  <h2><span class="num">Section 2</span>Recurrences &amp; the Master Theorem</h2>
+  <p class="lead">Divide-and-conquer algorithms describe their own cost recursively. Solving the recurrence gives the running time.</p>
+
+  <div class="box thm">
+    <span class="label">Claim</span>
+    <p class="stmt">The recurrence \(T(n)=2T(n/2)+n,\ T(1)=1\) satisfies \(T(n)=O(n\log n)\).</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof &middot; substitution</span>
+    <p>Guess \(T(n)\le c\,n\log_2 n\) for some \(c>0\) and all \(n\ge 2\), and assume it for \(n/2\). Then
+    \[T(n)=2T(n/2)+n\le 2\left(c\tfrac n2\log_2\tfrac n2\right)+n = c\,n(\log_2 n-1)+n = c\,n\log_2 n-(c-1)n.\]
+    For any \(c\ge 1\) the term \(-(c-1)n\le 0\), so \(T(n)\le c\,n\log_2 n\), closing the induction. Hence \(T(n)=O(n\log n)\). &#8718;</p>
+  </div>
+
+  <div class="box def">
+    <span class="label">Master Theorem</span>
+    <p>For \(T(n)=a\,T(n/b)+f(n)\) with \(a\ge 1,\ b>1\), compare \(f(n)\) with \(n^{\log_b a}\):</p>
+    <p><strong>Case 1.</strong> \(f(n)=O(n^{\log_b a-\varepsilon})\Rightarrow T(n)=\Theta(n^{\log_b a})\) (leaves dominate).</p>
+    <p><strong>Case 2.</strong> \(f(n)=\Theta(n^{\log_b a})\Rightarrow T(n)=\Theta(n^{\log_b a}\log n)\) (balanced).</p>
+    <p><strong>Case 3.</strong> \(f(n)=\Omega(n^{\log_b a+\varepsilon})\) with regularity \(\Rightarrow T(n)=\Theta(f(n))\) (root dominates).</p>
+  </div>
+
+  <div class="box note">
+    <span class="label">Two applications you will meet below</span>
+    <p><strong>Merge sort:</strong> \(T(n)=2T(n/2)+\Theta(n)\). Here \(a=b=2\), \(n^{\log_b a}=n\), \(f(n)=\Theta(n)\) &mdash; Case 2 gives \(\Theta(n\log n)\).</p>
+    <p><strong>Binary search:</strong> \(T(n)=T(n/2)+\Theta(1)\). Here \(a=1,b=2\), \(n^{\log_2 1}=1\), \(f(n)=\Theta(1)\) &mdash; Case 2 gives \(\Theta(\log n)\).</p>
+  </div>
+</section>
+
+<section id="searching">
+  <h2><span class="num">Section 3</span>Searching</h2>
+  <p class="lead">Finding an element in a collection. One structural assumption &mdash; <em>sortedness</em> &mdash; collapses a linear scan into a logarithmic leap.</p>
+
+  <h3>Linear search &mdash; \(O(n)\), no assumptions</h3>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">linear_search</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def linear_search(a, target):
+    for i, x in enumerate(a):      # 0-based index, value
+        if x == target:
+            return i               # first match wins
+    return -1                      # sentinel: not found</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub linear_search {
+    my ($a, $target) = @_;         # array ref, value
+    for my $i (0 .. $#$a) {        # 0 .. last index
+        return $i if $a-&gt;[$i] == $target;
+    }
+    return -1;                     # not found
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function idx = linear_search(A, target)
+  idx = -1;                        % sentinel: not found
+  for i = 1:numel(A)               % Octave is 1-based
+    if A(i) == target
+      idx = i; return;             % first match wins
+    end
+  end
+end</code></pre></div></div>
+
+  <h3>Binary search &mdash; \(O(\log n)\) on sorted data</h3>
+  <p>Inspect the middle. If it is the target, done. If the target is smaller, it can only be in the left half; if larger, the right half. Each step discards half of what remains.</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">binary_search</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def binary_search(a, target):
+    lo, hi = 0, len(a) - 1
+    while lo &lt;= hi:
+        mid = (lo + hi) // 2       # integer midpoint
+        if a[mid] == target:
+            return mid
+        elif a[mid] &lt; target:
+            lo = mid + 1           # answer is to the right
+        else:
+            hi = mid - 1           # answer is to the left
+    return -1</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub binary_search {
+    my ($a, $target) = @_;
+    my ($lo, $hi) = (0, $#$a);
+    while ($lo &lt;= $hi) {
+        my $mid = int(($lo + $hi) / 2);
+        if    ($a-&gt;[$mid] == $target) { return $mid; }
+        elsif ($a-&gt;[$mid] &lt;  $target) { $lo = $mid + 1; }
+        else                          { $hi = $mid - 1; }
+    }
+    return -1;
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function idx = binary_search(A, target)
+  % PRECONDITION: A is sorted ascending.
+  lo = 1; hi = numel(A); idx = -1;
+  while lo &lt;= hi
+    mid = floor((lo + hi) / 2);
+    if A(mid) == target
+      idx = mid; return;
+    elseif A(mid) &lt; target
+      lo = mid + 1;                % answer is to the right
+    else
+      hi = mid - 1;                % answer is to the left
+    end
+  end
+end</code></pre></div></div>
+
+  <div class="box thm">
+    <span class="label">Theorem 3.1</span>
+    <p class="stmt">Binary search is correct and runs in \(O(\log n)\) time.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p><strong>Correctness (invariant).</strong> The invariant: <em>if</em> the target is in the array, it lies in the window <code>A[lo..hi]</code>. Initially the window is the whole array. Each step inspects the middle: if it is less than the target, sortedness puts the target (if present) strictly to the right &mdash; the new window; the symmetric case handles a greater middle. The loop exits by returning a hit, or with an empty window, when the invariant says the target is absent and the not-found sentinel is correct.</p>
+    <p><strong>Running time.</strong> The window size \(s=hi-lo+1\) at most halves each step, so after \(k\) steps it is \(\le n/2^k\). The loop stops once \(2^k>n\), i.e. after \(\le \lfloor\log_2 n\rfloor+1\) steps of \(O(1)\) work each: \(O(\log n)\). &#8718;</p>
+  </div>
+
+  <div class="widget" id="bslab">
+    <div class="whead"><span class="tagi">&#9654; Lab 2</span><h4>Binary Search Stepper</h4></div>
+    <p class="wdesc">Step through the algorithm on a sorted array. The shaded band is the live window <code>[lo..hi]</code>; <span style="color:var(--gold)">gold</span> is the current midpoint. Even a 16-element array is decided in about four probes.</p>
+    <div class="controls">
+      <div class="ctl"><label>target</label><input type="number" id="bs-target" value="42" style="width:90px"></div>
+      <button class="btn" id="bs-step">step &#9656;</button>
+      <button class="btn alt" id="bs-auto">&#9654; auto</button>
+      <button class="btn ghost" id="bs-new">&#10558; new array</button>
+    </div>
+    <div class="cells" id="bs-cells"></div>
+    <div class="mt-result" id="bs-log"></div>
+  </div>
+</section>
+
+<section id="sorting">
+  <h2><span class="num">Section 4</span>Sorting</h2>
+  <p class="lead">The most-studied problem in computing &mdash; and a showcase of the trade-off between simple-but-slow and clever-but-subtle.</p>
+
+  <h3>Insertion sort &mdash; \(O(n^2)\), lovely on nearly-sorted data</h3>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">insertion_sort</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def insertion_sort(a):
+    a = a[:]                       # work on a copy
+    for i in range(1, len(a)):
+        key, j = a[i], i - 1
+        while j &gt;= 0 and a[j] &gt; key:
+            a[j + 1] = a[j]        # shift larger elements right
+            j -= 1
+        a[j + 1] = key             # drop key into the gap
+    return a</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub insertion_sort {
+    my @a = @{ $_[0] };            # copy the array
+    for my $i (1 .. $#a) {
+        my $key = $a[$i];
+        my $j = $i - 1;
+        while ($j &gt;= 0 &amp;&amp; $a[$j] &gt; $key) {
+            $a[$j + 1] = $a[$j];   # shift right
+            $j--;
+        }
+        $a[$j + 1] = $key;
+    }
+    return \@a;
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function A = insertion_sort(A)
+  for i = 2:numel(A)
+    key = A(i); j = i - 1;
+    while j &gt;= 1 &amp;&amp; A(j) &gt; key
+      A(j + 1) = A(j);             % shift larger elements right
+      j = j - 1;
+    end
+    A(j + 1) = key;                % drop key into the gap
+  end
+end</code></pre></div></div>
+  <div class="box thm">
+    <span class="label">Theorem 4.1</span>
+    <p class="stmt">Insertion sort returns a sorted permutation of its input.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof &middot; loop invariant</span>
+    <p><strong>Invariant:</strong> at the start of the pass for index \(i\), the prefix before \(i\) holds its original elements in sorted order. <strong>Initialization:</strong> a one-element prefix is trivially sorted. <strong>Maintenance:</strong> the inner loop shifts every element greater than the key one slot right, then drops the key into the gap; the prefix is one longer and still sorted. <strong>Termination:</strong> when \(i\) passes the last index the whole array is sorted, and since only shifts and one insertion occurred it is a permutation of the input. &#8718;</p>
+  </div>
+
+  <h3>Merge sort &mdash; \(\Theta(n\log n)\), always</h3>
+  <p>Split in half, sort each half recursively, merge the two sorted halves in linear time.</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">merge_sort</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def merge_sort(a):
+    if len(a) &lt;= 1:
+        return a[:]
+    mid = len(a) // 2
+    L, R = merge_sort(a[:mid]), merge_sort(a[mid:])
+    out, i, j = [], 0, 0
+    while i &lt; len(L) and j &lt; len(R):
+        if L[i] &lt;= R[j]:           # &lt;= keeps the sort stable
+            out.append(L[i]); i += 1
+        else:
+            out.append(R[j]); j += 1
+    out.extend(L[i:]); out.extend(R[j:])
+    return out</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub merge_sort {
+    my @a = @{ $_[0] };
+    return [@a] if @a &lt;= 1;
+    my $mid = int(@a / 2);
+    my $L = merge_sort([ @a[0 .. $mid - 1] ]);
+    my $R = merge_sort([ @a[$mid .. $#a] ]);
+    my @out;
+    my ($i, $j) = (0, 0);
+    while ($i &lt; @$L &amp;&amp; $j &lt; @$R) {
+        if ($L-&gt;[$i] &lt;= $R-&gt;[$j]) { push @out, $L-&gt;[$i++]; }
+        else                      { push @out, $R-&gt;[$j++]; }
+    }
+    push @out, @{$L}[$i .. $#$L] if $i &lt;= $#$L;
+    push @out, @{$R}[$j .. $#$R] if $j &lt;= $#$R;
+    return \@out;
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function A = merge_sort(A)
+  if numel(A) &lt;= 1, return; end
+  mid = floor(numel(A) / 2);
+  L = merge_sort(A(1:mid));
+  R = merge_sort(A(mid+1:end));
+  A = merge(L, R);
+end
+
+function out = merge(L, R)
+  out = zeros(1, numel(L) + numel(R));
+  i = 1; j = 1; k = 1;
+  while i &lt;= numel(L) &amp;&amp; j &lt;= numel(R)
+    if L(i) &lt;= R(j)
+      out(k) = L(i); i = i + 1;
+    else
+      out(k) = R(j); j = j + 1;
+    end
+    k = k + 1;
+  end
+  while i &lt;= numel(L), out(k) = L(i); i = i + 1; k = k + 1; end
+  while j &lt;= numel(R), out(k) = R(j); j = j + 1; k = k + 1; end
+end</code></pre></div></div>
+  <div class="box note">
+    <span class="label">Why \(\Theta(n\log n)\)</span>
+    <p>The recurrence is \(T(n)=2T(n/2)+\Theta(n)\). By Case 2 of the Master Theorem (Section 2) this is \(\Theta(n\log n)\) &mdash; and unlike quicksort, the bound holds in the worst case too.</p>
+  </div>
+
+  <h3>Quick sort &mdash; \(\Theta(n\log n)\) average, \(\Theta(n^2)\) worst</h3>
+  <p>Pick a pivot, partition into smaller / equal / larger, recurse on the outer parts. Fast in practice; the worst case needs an adversarial input and a bad pivot rule.</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">quick_sort</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def quick_sort(a):
+    if len(a) &lt;= 1:
+        return a[:]
+    pivot = a[len(a) // 2]
+    less = [x for x in a if x &lt; pivot]
+    eq   = [x for x in a if x == pivot]
+    gre  = [x for x in a if x &gt; pivot]
+    return quick_sort(less) + eq + quick_sort(gre)</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub quick_sort {
+    my @a = @{ $_[0] };
+    return [@a] if @a &lt;= 1;
+    my $pivot = $a[int(@a / 2)];
+    my @less = grep { $_ &lt;  $pivot } @a;
+    my @eq   = grep { $_ == $pivot } @a;
+    my @gre  = grep { $_ &gt;  $pivot } @a;
+    return [ @{ quick_sort(\@less) }, @eq, @{ quick_sort(\@gre) } ];
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function A = quick_sort(A)
+  if numel(A) &lt;= 1, return; end
+  pivot = A(floor(numel(A) / 2));
+  less = A(A &lt;  pivot);            % logical indexing does the partition
+  eq   = A(A == pivot);
+  gre  = A(A &gt;  pivot);
+  A = [quick_sort(less), eq, quick_sort(gre)];
+end</code></pre></div></div>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Stable?</th></tr></thead>
+    <tbody>
+      <tr><td>Insertion</td><td>\(\Theta(n)\)</td><td>\(\Theta(n^2)\)</td><td>\(\Theta(n^2)\)</td><td>yes</td></tr>
+      <tr><td>Merge</td><td>\(\Theta(n\log n)\)</td><td>\(\Theta(n\log n)\)</td><td>\(\Theta(n\log n)\)</td><td>yes</td></tr>
+      <tr><td>Quick</td><td>\(\Theta(n\log n)\)</td><td>\(\Theta(n\log n)\)</td><td>\(\Theta(n^2)\)</td><td>no</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="widget" id="svlab">
+    <div class="whead"><span class="tagi">&#9654; Lab 3</span><h4>Sorting Visualizer</h4></div>
+    <p class="wdesc"><span style="color:var(--gold)">Gold</span> = comparison, <span style="color:var(--rust)">red</span> = swap/write, <span style="color:var(--teal)">teal</span> = finished. The counters expose the real difference: quadratic sorts rack up vastly more comparisons.</p>
+    <div class="controls">
+      <div class="ctl"><label>algorithm</label><select id="sv-algo"><option value="bubble">bubble</option><option value="insertion">insertion</option><option value="selection">selection</option><option value="merge">merge</option><option value="quick">quick</option></select></div>
+      <div class="ctl"><label>size</label><input type="range" id="sv-size" min="8" max="60" value="34"></div>
+      <div class="ctl"><label>speed</label><input type="range" id="sv-speed" min="1" max="100" value="70"></div>
+      <button class="btn" id="sv-run">&#9654; run</button>
+      <button class="btn ghost" id="sv-shuf">&#10558; shuffle</button>
+    </div>
+    <div class="bars" id="sv-bars"></div>
+    <div class="readout" id="sv-stat"></div>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 4.2 &middot; the speed limit</span>
+    <p class="stmt">Any comparison-based sort needs \(\Omega(n\log n)\) comparisons in the worst case.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof &middot; decision tree</span>
+    <p>A comparison sort is a binary decision tree: each internal node is one comparison, each leaf one of the \(n!\) orderings. Every permutation must be reachable, so the tree has \(\ge n!\) leaves. A binary tree of height \(h\) has \(\le 2^h\) leaves, so \(2^h\ge n!\), giving \(h\ge\log_2(n!)\). By Stirling, \(\log_2(n!)=\Theta(n\log n)\). The height is the worst-case comparison count, so it is \(\Omega(n\log n)\). &#8718;</p>
+  </div>
+</section>
+
+<section id="hashing">
+  <h2><span class="num">Section 5</span>Hashing &amp; Hash Tables</h2>
+  <p class="lead">Give up order entirely and lookups, inserts, and deletes all become \(O(1)\) &mdash; on average. This is the structure behind every dictionary and set in the three languages.</p>
+
+  <div class="box def">
+    <span class="label">Definition</span>
+    <p>A <strong>hash table</strong> stores key&ndash;value pairs in \(m\) buckets; a <strong>hash function</strong> \(h\) maps each key to a bucket. The <strong>load factor</strong> \(\alpha=n/m\) is the average keys per bucket. Two keys hitting one bucket is a <strong>collision</strong>, resolved by <em>chaining</em> (a list per bucket) or <em>open addressing</em> (probe onward).</p>
+  </div>
+
+  <p>All three languages give you a hash table as a first-class type &mdash; Python's <code>dict</code>, Perl's <code>%hash</code>, Octave's <code>containers.Map</code>. A word-frequency count shows the idiom in each:</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">word frequency</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">from collections import defaultdict
+
+words = [&quot;fig&quot;, &quot;ant&quot;, &quot;fig&quot;, &quot;cat&quot;, &quot;ant&quot;, &quot;fig&quot;]
+freq = defaultdict(int)
+for w in words:
+    freq[w] += 1                   # hash lookup + update, O(1) expected
+print(freq[&quot;fig&quot;])                 # -&gt; 3</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">my @words = qw(fig ant fig cat ant fig);
+my %freq;
+$freq{$_}++ for @words;            # autovivify + increment, O(1) expected
+print &quot;$freq{fig}\n&quot;;              # -&gt; 3</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">words = {&quot;fig&quot;, &quot;ant&quot;, &quot;fig&quot;, &quot;cat&quot;, &quot;ant&quot;, &quot;fig&quot;};
+freq = containers.Map(&quot;KeyType&quot;, &quot;char&quot;, &quot;ValueType&quot;, &quot;double&quot;);
+for i = 1:numel(words)
+  w = words{i};
+  if isKey(freq, w)
+    freq(w) = freq(w) + 1;
+  else
+    freq(w) = 1;
+  end
+end
+disp(freq(&quot;fig&quot;))                  % -&gt; 3</code></pre></div></div>
+
+  <div class="box thm">
+    <span class="label">Theorem 5.1</span>
+    <p class="stmt">Under simple uniform hashing, a search in a chaining table takes expected time \(\Theta(1+\alpha)\). With \(m=\Theta(n)\), every operation is \(\Theta(1)\) expected.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p>Simple uniform hashing means each key is equally likely to land in any of the \(m\) buckets, independently. For an unsuccessful search of key \(k\), the work is the length of bucket \(h(k)\). Define \(X_i=1\) when stored key \(i\) hashes there; \(\mathbb{E}[X_i]=1/m\), so by linearity the expected chain length is \(\sum_{i=1}^{n}1/m = n/m = \alpha\). Adding the \(O(1)\) to compute \(h(k)\) gives expected \(\Theta(1+\alpha)\). Choosing \(m=\Theta(n)\) makes \(\alpha=O(1)\). &#8718;</p>
+  </div>
+  <div class="box note">
+    <span class="label">The fine print</span>
+    <p>That \(O(1)\) is an expectation. The worst case is \(O(n)\) &mdash; an adversary who knows \(h\) can force every key into one bucket. Real implementations defend with randomized or universal hashing so no fixed input is reliably bad.</p>
+  </div>
+
+  <div class="widget" id="hashlab">
+    <div class="whead"><span class="tagi">&#9654; Lab 4</span><h4>Hash Table Explorer</h4></div>
+    <p class="wdesc">Insert integer keys and watch them scatter across \(m\) buckets via \(h(k)=k \bmod m\). Collisions stack into chains (newest flashes <span style="color:var(--rust)">red</span>). Slide \(m\) to rehash the same keys and watch the chains flatten.</p>
+    <div class="controls">
+      <div class="ctl"><label>buckets m = <span id="ht-m-val">11</span></label><input type="range" id="ht-m" min="5" max="17" value="11"></div>
+      <div class="ctl"><label>key (integer)</label><input type="number" id="ht-key" placeholder="e.g. 42" style="width:110px"></div>
+      <button class="btn" id="ht-insert">insert &#9656;</button>
+      <button class="btn alt" id="ht-rand">+ random</button>
+      <button class="btn ghost" id="ht-reset">&#10558; reset</button>
+    </div>
+    <div id="ht-buckets"></div>
+    <div class="readout" id="ht-stats"></div>
+  </div>
+</section>
+
+<section id="dp">
+  <h2><span class="num">Section 6</span>Dynamic Programming</h2>
+  <p class="lead">When a problem has <em>optimal substructure</em> (its best solution is built from best sub-solutions) and <em>overlapping subproblems</em> (the same sub-solutions recur), solve each subproblem once and remember the answer.</p>
+
+  <h3>Fibonacci &mdash; memoization vs tabulation</h3>
+  <p>Naive recursion recomputes the same values exponentially often. Caching them collapses the cost to \(\Theta(n)\). Python and Perl cache top-down (<em>memoization</em>); the Octave version fills a table bottom-up (<em>tabulation</em>) &mdash; two faces of one idea.</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">fib(n)</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def fib(n, memo=None):           # top-down memoization
+    if memo is None:
+        memo = {}
+    if n &lt; 2:
+        return n
+    if n in memo:
+        return memo[n]
+    memo[n] = fib(n - 1, memo) + fib(n - 2, memo)
+    return memo[n]</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">{
+    my %memo;                       # closure: a private cache
+    sub fib {
+        my $n = shift;
+        return $n if $n &lt; 2;
+        return $memo{$n} if exists $memo{$n};
+        $memo{$n} = fib($n - 1) + fib($n - 2);
+        return $memo{$n};
+    }
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function f = fib(n)             % bottom-up tabulation
+  if n &lt; 2, f = n; return; end
+  t = zeros(1, n + 1);             % t(k) holds fib(k-1)
+  t(2) = 1;
+  for k = 3:n+1
+    t(k) = t(k-1) + t(k-2);
+  end
+  f = t(n + 1);
+end</code></pre></div></div>
+
+  <h3>0/1 Knapsack</h3>
+  <p>Given items with weights and values and a capacity \(W\), choose a subset of maximum value that fits. Each cell asks: better to skip item \(i\), or take it and free up its weight?</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">knapsack</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def knapsack(weights, values, W):
+    n = len(weights)
+    dp = [[0] * (W + 1) for _ in range(n + 1)]
+    for i in range(1, n + 1):
+        for w in range(W + 1):
+            dp[i][w] = dp[i - 1][w]              # skip item i
+            if weights[i - 1] &lt;= w:              # or take it
+                take = dp[i - 1][w - weights[i - 1]] + values[i - 1]
+                dp[i][w] = max(dp[i][w], take)
+    return dp[n][W]</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub knapsack {
+    my ($w, $v, $W) = @_;
+    my $n = scalar @$w;
+    my @dp;
+    for my $i (0 .. $n) { $dp[$i][$_] = 0 for 0 .. $W; }
+    for my $i (1 .. $n) {
+        for my $cap (0 .. $W) {
+            $dp[$i][$cap] = $dp[$i - 1][$cap];   # skip item i
+            if ($w-&gt;[$i - 1] &lt;= $cap) {          # or take it
+                my $take = $dp[$i - 1][$cap - $w-&gt;[$i - 1]] + $v-&gt;[$i - 1];
+                $dp[$i][$cap] = $take if $take &gt; $dp[$i][$cap];
+            }
+        }
+    }
+    return $dp[$n][$W];
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function best = knapsack(weights, values, W)
+  n = numel(weights);
+  dp = zeros(n + 1, W + 1);        % dp(i+1,c+1): best value, first i items, cap c
+  for i = 1:n
+    for c = 0:W
+      dp(i+1, c+1) = dp(i, c+1);                 % skip item i
+      if weights(i) &lt;= c                         % or take it
+        take = dp(i, c - weights(i) + 1) + values(i);
+        if take &gt; dp(i+1, c+1)
+          dp(i+1, c+1) = take;
+        end
+      end
+    end
+  end
+  best = dp(n + 1, W + 1);
+end</code></pre></div></div>
+  <div class="box note">
+    <span class="label">Reading the recurrence</span>
+    <p>\(dp[i][w]=\max\bigl(dp[i-1][w],\ dp[i-1][w-w_i]+v_i\bigr)\). The table is \((n+1)\times(W+1)\) and each cell is \(O(1)\), so the algorithm runs in \(\Theta(nW)\) time &mdash; efficient when \(W\) is modest, though it is <em>pseudo-polynomial</em> in the value of \(W\).</p>
+  </div>
+</section>
+
+<section id="greedy">
+  <h2><span class="num">Section 7</span>Greedy Algorithms</h2>
+  <p class="lead">Make the locally optimal choice at each step and never reconsider. Simple and fast &mdash; but correct only when the problem has the <em>greedy-choice property</em>, which must be proven.</p>
+
+  <h3>Activity selection</h3>
+  <p>Given activities with start and finish times, pick the largest set that do not overlap. The greedy rule: always take the next activity that finishes earliest.</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">activity_select</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">def activity_select(acts):     # acts: list of (start, finish)
+    acts = sorted(acts, key=lambda p: p[1])   # sort by finish time
+    chosen, last_finish = [], float(&quot;-inf&quot;)
+    for s, f in acts:
+        if s &gt;= last_finish:       # compatible with the last pick
+            chosen.append((s, f))
+            last_finish = f
+    return chosen</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub activity_select {
+    my $acts = shift;             # arrayref of [start, finish]
+    my @sorted = sort { $a-&gt;[1] &lt;=&gt; $b-&gt;[1] } @$acts;   # by finish time
+    my @chosen;
+    my $last = -1e15;
+    for my $p (@sorted) {
+        my ($s, $f) = @$p;
+        if ($s &gt;= $last) {        # compatible with the last pick
+            push @chosen, $p;
+            $last = $f;
+        }
+    }
+    return \@chosen;
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function chosen = activity_select(acts)   % acts: rows of [start, finish]
+  [~, idx] = sort(acts(:, 2));    % sort by finish time
+  acts = acts(idx, :);
+  chosen = []; last = -inf;
+  for i = 1:rows(acts)
+    if acts(i, 1) &gt;= last          % compatible with the last pick
+      chosen(end+1, :) = acts(i, :);
+      last = acts(i, 2);
+    end
+  end
+end</code></pre></div></div>
+
+  <div class="box thm">
+    <span class="label">Theorem 7.1</span>
+    <p class="stmt">Choosing the compatible activity with the earliest finish time yields a maximum-size set.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof &middot; exchange argument</span>
+    <p>Let \(g\) finish earliest. Take any optimal solution \(O\) and let \(o\) be its earliest-finishing activity. Since \(g\) finishes no later than \(o\), swapping \(o\) for \(g\) keeps every activity compatible and the count unchanged, so some optimal solution contains \(g\). Removing \(g\) and the activities it overlaps leaves a smaller subproblem; by induction the greedy choice extends to a global optimum. &#8718;</p>
+  </div>
+  <div class="box note">
+    <span class="label">When greedy fails</span>
+    <p>For 0/1 knapsack, taking the best value-per-weight item first can be strictly suboptimal &mdash; that needs the DP of Section 6. For coins \(\{1,3,4\}\) making 6, greedy takes \(4+1+1\) (three coins) while the optimum is \(3+3\) (two). Never trust a greedy algorithm without an exchange-argument proof.</p>
+  </div>
+</section>
+
+<section id="graphs">
+  <h2><span class="num">Section 8</span>Graph Algorithms</h2>
+  <p class="lead">Graphs model networks &mdash; roads, links, dependencies. We store them as <em>adjacency lists</em>: Python a dict of lists, Perl a hash of arrayrefs, Octave a cell array of neighbor vectors.</p>
+
+  <h3>Breadth-first search &mdash; shortest paths in unweighted graphs</h3>
+  <p>Explore in rings of increasing distance with a FIFO queue. BFS visits every vertex and edge once: \(O(V+E)\).</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">bfs</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">from collections import deque
+
+def bfs(adj, s):                   # adj: dict node -&gt; list of neighbors
+    seen, order, q = {s}, [], deque([s])
+    while q:
+        u = q.popleft()            # FIFO queue
+        order.append(u)
+        for v in adj[u]:
+            if v not in seen:
+                seen.add(v)
+                q.append(v)
+    return order</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub bfs {
+    my ($adj, $s) = @_;            # adj: hashref node -&gt; arrayref of neighbors
+    my %seen = ($s =&gt; 1);
+    my @order;
+    my @q = ($s);
+    while (@q) {
+        my $u = shift @q;          # FIFO queue
+        push @order, $u;
+        for my $v (@{ $adj-&gt;{$u} }) {
+            unless ($seen{$v}) {
+                $seen{$v} = 1;
+                push @q, $v;
+            }
+        }
+    }
+    return \@order;
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function order = bfs(adj, s)    % adj: cell array, adj{u} = neighbor vector
+  n = numel(adj);
+  seen = false(1, n); seen(s) = true;
+  queue = [s]; order = [];
+  while ~isempty(queue)
+    u = queue(1); queue(1) = [];   % dequeue front (FIFO)
+    order(end+1) = u;
+    for v = adj{u}
+      if ~seen(v)
+        seen(v) = true;
+        queue(end+1) = v;          % enqueue
+      end
+    end
+  end
+end</code></pre></div></div>
+
+  <h3>Dijkstra &mdash; shortest paths with non-negative weights</h3>
+  <p>Repeatedly finalize the closest unvisited vertex and relax its edges. (Python uses a binary heap; the Perl and Octave versions scan for the minimum &mdash; clearer, and fine for modest graphs.)</p>
+  <div class="codeblock"><div class="codebar"><button class="ltab active" data-lang="py">Python</button><button class="ltab" data-lang="pl">Perl</button><button class="ltab" data-lang="oct">Octave</button><span class="fname">dijkstra</span><button class="copy">copy</button></div><div class="pane active" data-lang="py"><pre><code class="language-python">import heapq
+
+def dijkstra(adj, s):              # adj: dict u -&gt; list of (v, weight)
+    dist = {u: float(&quot;inf&quot;) for u in adj}
+    dist[s] = 0
+    pq = [(0, s)]                  # min-heap of (distance, node)
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d &gt; dist[u]:
+            continue               # stale entry
+        for v, w in adj[u]:
+            if d + w &lt; dist[v]:    # relax the edge
+                dist[v] = d + w
+                heapq.heappush(pq, (dist[v], v))
+    return dist</code></pre></div><div class="pane" data-lang="pl"><pre><code class="language-perl">sub dijkstra {
+    my ($adj, $s) = @_;           # adj: hashref u -&gt; arrayref of [v, w]
+    my %dist = map { $_ =&gt; 1e15 } keys %$adj;
+    $dist{$s} = 0;
+    my %done;
+    while (1) {
+        my ($u, $best) = (undef, 1e15);
+        for my $node (keys %$adj) {           # pick closest unfinished node
+            next if $done{$node};
+            ($u, $best) = ($node, $dist{$node}) if $dist{$node} &lt; $best;
+        }
+        last unless defined $u;
+        $done{$u} = 1;
+        for my $e (@{ $adj-&gt;{$u} }) {
+            my ($v, $w) = @$e;
+            $dist{$v} = $dist{$u} + $w if $dist{$u} + $w &lt; $dist{$v};   # relax
+        }
+    }
+    return \%dist;
+}</code></pre></div><div class="pane" data-lang="oct"><pre><code class="language-matlab">function dist = dijkstra(adj, s)   % adj{u} = rows of [neighbor, weight]
+  n = numel(adj);
+  dist = inf(1, n); dist(s) = 0;
+  done = false(1, n);
+  for it = 1:n
+    u = -1; best = inf;
+    for k = 1:n                          % pick closest unfinished node
+      if ~done(k) &amp;&amp; dist(k) &lt; best
+        best = dist(k); u = k;
+      end
+    end
+    if u == -1, break; end
+    done(u) = true;
+    E = adj{u};
+    for r = 1:rows(E)
+      v = E(r, 1); w = E(r, 2);
+      if dist(u) + w &lt; dist(v)           % relax the edge
+        dist(v) = dist(u) + w;
+      end
+    end
+  end
+end</code></pre></div></div>
+
+  <div class="box thm">
+    <span class="label">Theorem 8.1</span>
+    <p class="stmt">On a graph with non-negative edge weights, Dijkstra computes correct shortest-path distances.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof &middot; greedy invariant</span>
+    <p>Claim: when a vertex \(u\) is finalized, \(\operatorname{dist}(u)\) is its true shortest distance. Suppose not, and let \(u\) be the first vertex finalized with a too-large value. Its true shortest path leaves the finalized set at an edge \((x,y)\) with \(x\) finalized (correctly, as \(u\) is the first error) and \(y\) not. When \(x\) was finalized its edges were relaxed, so \(\operatorname{dist}(y)\le\operatorname{dist}(x)+w(x,y)\), the true distance to \(y\), which by non-negativity is \(\le\) the true distance to \(u \le \operatorname{dist}(u)\). Then \(y\) would have been finalized before \(u\) &mdash; contradiction. &#8718;</p>
+  </div>
+  <div class="box note">
+    <span class="label">The non-negativity caveat</span>
+    <p>A single negative edge breaks the argument: finalizing greedily can lock in a value a later cheaper path would lower. With negative weights use <strong>Bellman&ndash;Ford</strong> (\(O(VE)\)), which also detects negative cycles.</p>
+  </div>
+</section>
+
+<section id="idioms">
+  <h2><span class="num">Section 9</span>Three Dialects &mdash; Idiom Cheat Sheet</h2>
+  <p class="lead">The same intent, said three ways. Keep this beside you while translating an algorithm from one language to another.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Task</th><th class="th-py">Python</th><th class="th-pl">Perl</th><th class="th-oct">Octave</th></tr></thead>
+    <tbody><tr><td>Length of a list</td><td><code>len(a)</code></td><td><code>scalar @a</code></td><td><code>numel(a)</code></td></tr><tr><td>First element</td><td><code>a[0]</code></td><td><code>$a[0]</code></td><td><code>a(1)   % 1-based!</code></td></tr><tr><td>Last element</td><td><code>a[-1]</code></td><td><code>$a[-1]</code></td><td><code>a(end)</code></td></tr><tr><td>Slice first k</td><td><code>a[:k]</code></td><td><code>@a[0..$k-1]</code></td><td><code>a(1:k)</code></td></tr><tr><td>Append x</td><td><code>a.append(x)</code></td><td><code>push @a, $x</code></td><td><code>a(end+1) = x</code></td></tr><tr><td>Map f over a</td><td><code>[f(x) for x in a]</code></td><td><code>map { f($_) } @a</code></td><td><code>arrayfun(@f, a)</code></td></tr><tr><td>Keep where p(x)</td><td><code>[x for x in a if p(x)]</code></td><td><code>grep { p($_) } @a</code></td><td><code>a(p(a))   % logical index</code></td></tr><tr><td>Empty dict / hash</td><td><code>d = {}</code></td><td><code>my %h;</code></td><td><code>containers.Map()</code></td></tr><tr><td>Set / get by key</td><td><code>d[k] = v; d[k]</code></td><td><code>$h{$k} = $v; $h{$k}</code></td><td><code>m(k) = v; m(k)</code></td></tr><tr><td>Sort ascending</td><td><code>sorted(a)</code></td><td><code>sort { $a &lt;=&gt; $b } @a</code></td><td><code>sort(a)</code></td></tr><tr><td>Sort by key f</td><td><code>sorted(a, key=f)</code></td><td><code>sort { f($a) &lt;=&gt; f($b) } @a</code></td><td><code>[~,i]=sort(f(a)); a(i)</code></td></tr><tr><td>Join with commas</td><td><code>&#x27;,&#x27;.join(xs)</code></td><td><code>join(&#x27;,&#x27;, @xs)</code></td><td><code>strjoin(xs, &#x27;,&#x27;)</code></td></tr><tr><td>Integer range 1..n</td><td><code>range(1, n+1)</code></td><td><code>(1 .. $n)</code></td><td><code>1:n</code></td></tr><tr><td>Read a line</td><td><code>input()</code></td><td><code>$line = &lt;STDIN&gt;;</code></td><td><code>line = fgetl(stdin);</code></td></tr></tbody>
+  </table></div>
+  <div class="box note">
+    <span class="label">The one gotcha that bites everyone</span>
+    <p>Python and Perl arrays are <strong>0-based</strong>; Octave is <strong>1-based</strong>. Every loop bound, slice, and midpoint shifts by one when you port between them &mdash; the single most common source of off-by-one bugs across these three languages.</p>
+  </div>
+</section>
+
+<section id="reference">
+  <h2><span class="num">Section 10</span>Complexity Reference</h2>
+  <p class="lead">A pocket card for the road.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Operation</th><th>Time</th></tr></thead>
+    <tbody>
+      <tr><td>Array index / hash lookup (expected)</td><td>O(1)</td></tr>
+      <tr><td>Binary search (sorted)</td><td>O(log n)</td></tr>
+      <tr><td>Linear scan</td><td>O(n)</td></tr>
+      <tr><td>Merge sort / heap sort</td><td>O(n log n)</td></tr>
+      <tr><td>Quick sort (average / worst)</td><td>O(n log n) / O(n&sup2;)</td></tr>
+      <tr><td>Insertion sort (worst)</td><td>O(n&sup2;)</td></tr>
+      <tr><td>BFS / DFS</td><td>O(V + E)</td></tr>
+      <tr><td>Dijkstra (binary heap)</td><td>O((V + E) log V)</td></tr>
+      <tr><td>0/1 Knapsack (DP)</td><td>O(n&middot;W)</td></tr>
+      <tr><td>Comparison-sort lower bound</td><td>&Omega;(n log n)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="box key">
+    <span class="label">Five habits that travel across every language</span>
+    <p>1 &middot; State the input size your bound is in terms of. &nbsp; 2 &middot; Prove correctness with an invariant before optimizing. &nbsp; 3 &middot; Write the recurrence, then reach for the Master Theorem. &nbsp; 4 &middot; Mind the 0-based / 1-based boundary when porting. &nbsp; 5 &middot; The best optimization is almost always a better asymptotic class, not a faster constant.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="big">Now go run all three.</div>
+  <p>Every Python and Perl snippet here was executed and checked; the Octave was hand-verified for 1-based indexing. Save a function (say <code>merge_sort.py</code>, <code>merge_sort.pl</code>, or <code>merge_sort.m</code>), call it, and watch the same idea take three shapes. The proofs tell you <em>why</em>; the interpreter tells you <em>that</em>.</p>
+  <p class="muted">Three Dialects &middot; algorithms in Python, Perl &amp; Octave &middot; labs and math typeset best with an internet connection (fonts, MathJax, syntax highlighting)</p>
+</footer>
+
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/perl.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/matlab.min.js"></script>
+<script>
+/* ===== language switching (synchronized across the whole guide) ===== */
+function setLang(lang){
+  document.querySelectorAll('.ltab,.langswitch button').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+  });
+  document.querySelectorAll('.pane').forEach(p => {
+    p.classList.toggle('active', p.getAttribute('data-lang') === lang);
+  });
+}
+document.querySelectorAll('.ltab,.langswitch button').forEach(b => {
+  b.addEventListener('click', () => setLang(b.getAttribute('data-lang')));
+});
+
+/* ===== reading progress + active TOC ===== */
+const prog = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const max = h.scrollHeight - h.clientHeight;
+  prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+}, {passive:true});
+
+const navLinks = [...document.querySelectorAll('#navlist a')];
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      const id = e.target.id;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+    }
+  });
+}, {rootMargin:'-18% 0px -72% 0px'});
+document.querySelectorAll('section[id]').forEach(s => io.observe(s));
+
+/* ===== copy buttons (copies the visible pane) ===== */
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const block = btn.closest('.codeblock');
+    const pane = block.querySelector('.pane.active code') || block.querySelector('code');
+    navigator.clipboard.writeText(pane.textContent).then(() => {
+      const t = btn.textContent; btn.textContent = 'copied';
+      setTimeout(() => btn.textContent = t, 1200);
+    });
+  });
+});
+
+/* ===== highlight.js ===== */
+function runHighlight(){
+  if(window.hljs){
+    document.querySelectorAll('pre code').forEach(el => { try { hljs.highlightElement(el); } catch(e){} });
+  }
+}
+
+/* ================= LAB 1 — Growth explorer ================= */
+(function(){
+  const cv = document.getElementById('gcanvas'); if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const nSlider = document.getElementById('gn'), nVal = document.getElementById('gn-val');
+  const scaleSel = document.getElementById('gscale'), tog = document.getElementById('gtoggles');
+  const ro = document.getElementById('greadout');
+  const css = getComputedStyle(document.documentElement);
+  const col = v => css.getPropertyValue(v).trim() || '#888';
+  const GF = [
+    {name:'O(1)',       color:'#8a8678', fn:n=>1,              on:true},
+    {name:'O(log n)',   color:col('--teal'), fn:n=>Math.log2(n),  on:true},
+    {name:'O(n)',       color:col('--py'),   fn:n=>n,            on:true},
+    {name:'O(n log n)', color:col('--gold'), fn:n=>n*Math.log2(n),on:true},
+    {name:'O(n^2)',     color:col('--rust'), fn:n=>n*n,          on:true},
+    {name:'O(2^n)',     color:col('--pl'),   fn:n=>Math.min(Math.pow(2,n),1e18), on:false},
+  ];
+  GF.forEach(f => {
+    const lab = document.createElement('label'); lab.className = 'chk';
+    lab.innerHTML = `<input type="checkbox" ${f.on?'checked':''}><i style="background:${f.color}"></i>${f.name}`;
+    lab.querySelector('input').addEventListener('change', e => { f.on = e.target.checked; draw(); });
+    tog.appendChild(lab);
+  });
+  function draw(){
+    const W = cv.width, H = cv.height, pad = 34, N = +nSlider.value;
+    nVal.textContent = N;
+    const logScale = scaleSel.value === 'log';
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle = col('--line2'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad,8); ctx.lineTo(pad,H-pad); ctx.lineTo(W-6,H-pad); ctx.stroke();
+    let maxV = 0;
+    GF.forEach(f => { if(f.on) for(let n=1;n<=N;n++) maxV = Math.max(maxV, f.fn(n)); });
+    if(maxV<=0) maxV = 1;
+    const px = n => pad + (n-1)/(Math.max(1,N-1))*(W-pad-8);
+    const py = v => {
+      if(logScale){ const lv=Math.log10(v+1), lm=Math.log10(maxV+1); return (H-pad) - (lv/lm)*(H-pad-8); }
+      return (H-pad) - (v/maxV)*(H-pad-8);
+    };
+    GF.forEach(f => {
+      if(!f.on) return;
+      ctx.strokeStyle = f.color; ctx.lineWidth = 2; ctx.beginPath();
+      for(let n=1;n<=N;n++){ const x=px(n), y=py(f.fn(n)); n===1?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+      ctx.stroke();
+    });
+    ctx.fillStyle = col('--soft'); ctx.font = '10px "JetBrains Mono",monospace';
+    ctx.fillText((logScale?'log ':'')+'n = '+N, W-90, H-pad+18);
+    const parts = GF.filter(f=>f.on).map(f=>`${f.name}: ${Math.round(f.fn(N)).toLocaleString()}`);
+    ro.innerHTML = parts.map(p=>`<span>${p}</span>`).join('');
+  }
+  nSlider.addEventListener('input', draw);
+  scaleSel.addEventListener('change', draw);
+  draw();
+})();
+
+/* ================= LAB 2 — Sorting visualizer ================= */
+(function(){
+  const host = document.getElementById('sv-bars'); if(!host) return;
+  const algoSel = document.getElementById('sv-algo'), sizeS = document.getElementById('sv-size');
+  const speedS = document.getElementById('sv-speed'), stat = document.getElementById('sv-stat');
+  const runBtn = document.getElementById('sv-run'), shufBtn = document.getElementById('sv-shuf');
+  let arr = [], bars = [], frames = [], fi = 0, timer = null, cmp = 0, swp = 0;
+  function shuffle(){
+    const n = +sizeS.value; arr = [];
+    for(let i=0;i<n;i++) arr.push(Math.floor(Math.random()*95)+5);
+    render(); frames = []; fi = 0; cmp = 0; swp = 0; update();
+  }
+  function render(){
+    host.innerHTML = ''; bars = [];
+    arr.forEach(v => { const b=document.createElement('div'); b.className='bar'; b.style.height=v+'%'; host.appendChild(b); bars.push(b); });
+  }
+  function rec(a, i, j, type){ frames.push({a:a.slice(), i, j, type}); }
+  const algos = {
+    bubble(a){ for(let i=0;i<a.length;i++) for(let j=0;j<a.length-1-i;j++){ rec(a,j,j+1,'cmp'); if(a[j]>a[j+1]){ [a[j],a[j+1]]=[a[j+1],a[j]]; rec(a,j,j+1,'swp'); } } },
+    insertion(a){ for(let i=1;i<a.length;i++){ let key=a[i], j=i-1; while(j>=0){ rec(a,j,i,'cmp'); if(a[j]>key){ a[j+1]=a[j]; rec(a,j+1,j,'swp'); j--; } else break; } a[j+1]=key; rec(a,j+1,j+1,'swp'); } },
+    selection(a){ for(let i=0;i<a.length;i++){ let m=i; for(let j=i+1;j<a.length;j++){ rec(a,m,j,'cmp'); if(a[j]<a[m]) m=j; } if(m!==i){ [a[i],a[m]]=[a[m],a[i]]; rec(a,i,m,'swp'); } } },
+    quick(a){ const qs=(lo,hi)=>{ if(lo>=hi) return; const p=a[hi]; let i=lo; for(let j=lo;j<hi;j++){ rec(a,j,hi,'cmp'); if(a[j]<p){ [a[i],a[j]]=[a[j],a[i]]; rec(a,i,j,'swp'); i++; } } [a[i],a[hi]]=[a[hi],a[i]]; rec(a,i,hi,'swp'); qs(lo,i-1); qs(i+1,hi); }; qs(0,a.length-1); },
+    merge(a){ const tmp=a.slice(); const ms=(lo,hi)=>{ if(hi-lo<=1) return; const mid=(lo+hi)>>1; ms(lo,mid); ms(mid,hi); let i=lo,j=mid,k=lo; while(i<mid&&j<hi){ rec(a,i,j,'cmp'); tmp[k++]=(a[i]<=a[j])?a[i++]:a[j++]; } while(i<mid) tmp[k++]=a[i++]; while(j<hi) tmp[k++]=a[j++]; for(let x=lo;x<hi;x++){ a[x]=tmp[x]; rec(a,x,x,'swp'); } }; ms(0,a.length); },
+  };
+  function build(){ frames=[]; fi=0; cmp=0; swp=0; const work=arr.slice(); algos[algoSel.value](work); }
+  function paint(f){
+    bars.forEach((b,idx)=>{ b.className='bar'; b.style.height=f.a[idx]+'%'; });
+    if(f.type==='cmp'){ if(bars[f.i])bars[f.i].classList.add('cmp'); if(bars[f.j])bars[f.j].classList.add('cmp'); }
+    else { if(bars[f.i])bars[f.i].classList.add('swp'); if(bars[f.j])bars[f.j].classList.add('swp'); }
+  }
+  function step(){
+    if(fi>=frames.length){ stop(); bars.forEach(b=>{b.className='bar done';}); return; }
+    const f=frames[fi++]; if(f.type==='cmp')cmp++; else swp++; paint(f); update();
+  }
+  function update(){ stat.innerHTML = `<span><b>${algoSel.value}</b></span><span><b>compares</b> ${cmp}</span><span><b>swaps/writes</b> ${swp}</span><span><b>frames</b> ${fi}/${frames.length}</span>`; }
+  function play(){ stop(); build(); const delay = 105 - +speedS.value; timer=setInterval(step, Math.max(4,delay)); runBtn.textContent='■ stop'; }
+  function stop(){ if(timer){ clearInterval(timer); timer=null; } runBtn.textContent='▶ run'; }
+  runBtn.addEventListener('click', ()=>{ timer?stop():play(); });
+  shufBtn.addEventListener('click', ()=>{ stop(); shuffle(); });
+  algoSel.addEventListener('change', ()=>{ stop(); render(); frames=[];fi=0;cmp=0;swp=0;update(); });
+  sizeS.addEventListener('input', ()=>{ stop(); shuffle(); });
+  shuffle();
+})();
+
+/* ================= LAB 3 — Binary search stepper ================= */
+(function(){
+  const host = document.getElementById('bs-cells'); if(!host) return;
+  const targetIn = document.getElementById('bs-target'), logEl = document.getElementById('bs-log');
+  const stepBtn = document.getElementById('bs-step'), autoBtn = document.getElementById('bs-auto'), newBtn = document.getElementById('bs-new');
+  let arr=[], lo=0, hi=0, mid=-1, found=-1, done=false, probes=0, autoT=null;
+  function newArray(){
+    const n=16; const s=new Set();
+    while(s.size<n) s.add(Math.floor(Math.random()*90)+5);
+    arr=[...s].sort((a,b)=>a-b); reset();
+  }
+  function reset(){ lo=0; hi=arr.length-1; mid=-1; found=-1; done=false; probes=0;
+    logEl.textContent='Press “step” to begin — lo and hi bracket the search window.'; render(); }
+  function render(){
+    host.innerHTML='';
+    arr.forEach((v,idx)=>{
+      const c=document.createElement('div'); c.className='cell';
+      if(!done && idx>=lo && idx<=hi) c.classList.add('range');
+      if(!done && idx<lo || !done && idx>hi) c.classList.add('out');
+      if(idx===lo && !done) c.classList.add('lo');
+      if(idx===hi && !done) c.classList.add('hi');
+      if(idx===mid && !done) c.classList.add('mid');
+      if(found===idx) c.classList.add('found');
+      c.innerHTML=`<span class="ix">${idx}</span>${v}`;
+      host.appendChild(c);
+    });
+  }
+  function step(){
+    if(done) return;
+    const target=parseInt(targetIn.value,10);
+    if(lo>hi){ done=true; logEl.innerHTML=`Window empty (lo &gt; hi) after ${probes} probes — <span class="hl">${target} is not present</span>.`; mid=-1; render(); return; }
+    mid=Math.floor((lo+hi)/2); probes++;
+    if(arr[mid]===target){ found=mid; done=true; logEl.innerHTML=`Probe ${probes}: A[${mid}] = ${arr[mid]} = target — <span class="hl">found at index ${mid}</span>.`; }
+    else if(arr[mid]<target){ logEl.innerHTML=`Probe ${probes}: A[${mid}] = ${arr[mid]} &lt; ${target} → discard left half, lo = ${mid+1}.`; lo=mid+1; }
+    else { logEl.innerHTML=`Probe ${probes}: A[${mid}] = ${arr[mid]} &gt; ${target} → discard right half, hi = ${mid-1}.`; hi=mid-1; }
+    render();
+  }
+  function auto(){
+    if(autoT){ clearInterval(autoT); autoT=null; autoBtn.textContent='▶ auto'; return; }
+    autoBtn.textContent='■ pause';
+    autoT=setInterval(()=>{ step(); if(done){ clearInterval(autoT); autoT=null; autoBtn.textContent='▶ auto'; } }, 750);
+  }
+  stepBtn.addEventListener('click', step);
+  autoBtn.addEventListener('click', auto);
+  newBtn.addEventListener('click', newArray);
+  targetIn.addEventListener('change', reset);
+  newArray();
+})();
+
+/* ================= LAB 4 — Hash table explorer ================= */
+(function(){
+  const wrap = document.getElementById('ht-buckets'); if(!wrap) return;
+  const mSlider=document.getElementById('ht-m'), mVal=document.getElementById('ht-m-val');
+  const keyIn=document.getElementById('ht-key'), stats=document.getElementById('ht-stats');
+  let keys=[], lastKey=null;
+  function rebuild(){
+    const m=+mSlider.value; mVal.textContent=m;
+    const buckets=Array.from({length:m},()=>[]);
+    keys.forEach(k=>{ const h=((k%m)+m)%m; if(!buckets[h].includes(k)) buckets[h].push(k); });
+    let n=0,maxc=0; wrap.innerHTML='';
+    buckets.forEach((ch,i)=>{
+      n+=ch.length; maxc=Math.max(maxc,ch.length);
+      const row=document.createElement('div'); row.className='htrow';
+      const idx=document.createElement('div'); idx.className='htidx'; idx.textContent='h='+i;
+      const chain=document.createElement('div'); chain.className='htchain';
+      ch.forEach(k=>{ const c=document.createElement('span'); c.className='htchip'+(k===lastKey&&ch.length>1?' coll':''); c.textContent=k; chain.appendChild(c); });
+      row.appendChild(idx); row.appendChild(chain); wrap.appendChild(row);
+    });
+    const a=n/m;
+    stats.innerHTML=`<span><b>n</b> = ${n}</span><span><b>m</b> = ${m}</span><span><b>α = n/m</b> = ${a.toFixed(2)}</span><span><b>longest chain</b> = ${maxc}</span><span><b>1+α</b> ≈ ${(1+a).toFixed(2)}</span>`;
+  }
+  function insert(k){ if(!Number.isFinite(k)) return; if(!keys.includes(k)) keys.push(k); lastKey=k; rebuild(); }
+  document.getElementById('ht-insert').addEventListener('click', ()=>{ insert(parseInt(keyIn.value,10)); keyIn.value=''; keyIn.focus(); });
+  document.getElementById('ht-rand').addEventListener('click', ()=>insert(Math.floor(Math.random()*90)+1));
+  document.getElementById('ht-reset').addEventListener('click', ()=>{ keys=[]; lastKey=null; rebuild(); });
+  mSlider.addEventListener('input', rebuild);
+  keyIn.addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('ht-insert').click(); });
+  keys=[22,1,13,11,24,33]; lastKey=33; rebuild();
+})();
+
+/* init language + highlight after load */
+setLang('py');
+if(document.readyState !== 'loading') runHighlight();
+else document.addEventListener('DOMContentLoaded', runHighlight);
+window.addEventListener('load', runHighlight);
+
+</script>
+</body>
+</html>

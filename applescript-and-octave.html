@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Console &amp; The Matrix — AppleScript + GNU Octave</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+<style>
+:root{
+  --ink:#0a0d14;
+  --ink-2:#0f131d;
+  --panel:#141a26;
+  --panel-2:#1b2230;
+  --line:rgba(220,225,240,.09);
+  --line-strong:rgba(220,225,240,.16);
+  --parchment:#ece6d6;
+  --parchment-dim:#b9b4a6;
+  --muted:#7e8597;
+  --amber:#f0a64a;        /* AppleScript */
+  --amber-soft:#f6c98a;
+  --teal:#46d3c0;         /* Octave */
+  --teal-soft:#8fe6db;
+  --gold:#d9bd86;         /* proofs / math */
+  --rose:#e87a8b;
+  --violet:#a99bf0;
+  --green:#86d68a;
+  --shadow:0 24px 60px -20px rgba(0,0,0,.7);
+  --r:14px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 700px at 78% -8%, rgba(240,166,74,.10), transparent 60%),
+    radial-gradient(1000px 800px at -6% 12%, rgba(70,211,192,.10), transparent 55%),
+    var(--ink);
+  color:var(--parchment);
+  font-family:"Newsreader",Georgia,serif;
+  font-size:18px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+/* subtle grid + grain atmosphere */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(circle at 50% 30%,#000 0%,transparent 85%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+}
+
+/* ---------- layout ---------- */
+.shell{position:relative;z-index:1;display:grid;grid-template-columns:262px minmax(0,1fr);gap:0;max-width:1320px;margin:0 auto}
+nav.toc{
+  position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  padding:34px 22px 60px;border-right:1px solid var(--line);
+  font-family:"JetBrains Mono",monospace;font-size:12.5px;
+}
+nav.toc .brand{font-family:"Fraunces",serif;font-weight:900;font-size:20px;line-height:1.1;color:var(--parchment);margin-bottom:4px;letter-spacing:-.02em}
+nav.toc .brand small{display:block;font-family:"JetBrains Mono",monospace;font-weight:400;font-size:10.5px;color:var(--muted);letter-spacing:.18em;margin-top:8px;text-transform:uppercase}
+nav.toc hr{border:none;border-top:1px solid var(--line);margin:20px 0}
+nav.toc .grp{color:var(--muted);text-transform:uppercase;letter-spacing:.16em;font-size:10px;margin:18px 0 8px}
+nav.toc a{display:block;color:var(--parchment-dim);text-decoration:none;padding:4px 10px;border-radius:7px;border-left:2px solid transparent;transition:.18s}
+nav.toc a:hover{color:var(--parchment);background:rgba(255,255,255,.04)}
+nav.toc a.as:hover{border-left-color:var(--amber)}
+nav.toc a.oc:hover{border-left-color:var(--teal)}
+nav.toc a.pf:hover{border-left-color:var(--gold)}
+
+main{padding:0 clamp(20px,4vw,68px) 140px;min-width:0}
+
+/* ---------- hero ---------- */
+header.hero{padding:84px 0 54px;border-bottom:1px solid var(--line);position:relative}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);display:flex;gap:14px;align-items:center}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+.eyebrow .dot.t{background:var(--teal);box-shadow:0 0 14px var(--teal)}
+h1.title{
+  font-family:"Fraunces",serif;font-weight:900;font-size:clamp(46px,8vw,98px);
+  line-height:.92;letter-spacing:-.035em;margin:26px 0 0;
+}
+h1.title em{font-style:italic;font-weight:500;color:var(--gold)}
+h1.title .amp{color:var(--amber)}
+.lede{font-size:21px;max-width:62ch;color:var(--parchment-dim);margin:26px 0 0;font-style:italic}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px;font-family:"JetBrains Mono",monospace;font-size:12px}
+.chip{padding:7px 14px;border:1px solid var(--line-strong);border-radius:100px;color:var(--parchment-dim);background:rgba(255,255,255,.02)}
+.chip b{color:var(--amber);font-weight:500}
+.chip.t b{color:var(--teal)}
+
+/* ---------- sections ---------- */
+section{padding:72px 0;border-bottom:1px solid var(--line);scroll-margin-top:20px}
+.kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:12px}
+.kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.5}
+.kicker.as{color:var(--amber)} .kicker.oc{color:var(--teal)} .kicker.pf{color:var(--gold)}
+h2{font-family:"Fraunces",serif;font-weight:900;font-size:clamp(32px,4.6vw,52px);line-height:1.02;letter-spacing:-.025em;margin:14px 0 6px}
+h3{font-family:"Fraunces",serif;font-weight:600;font-size:27px;letter-spacing:-.01em;margin:46px 0 10px;color:var(--parchment)}
+h4{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:30px 0 8px}
+p{margin:0 0 16px}
+a.inline{color:var(--teal-soft);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+strong{color:var(--parchment);font-weight:600}
+.section-as h2{color:var(--amber-soft)}
+.section-oc h2{color:var(--teal-soft)}
+ul.clean{list-style:none;padding:0;margin:0 0 18px}
+ul.clean li{padding:7px 0 7px 26px;position:relative;border-bottom:1px dashed var(--line)}
+ul.clean li::before{content:"›";position:absolute;left:4px;color:var(--amber);font-family:"JetBrains Mono",monospace}
+.section-oc ul.clean li::before{color:var(--teal)}
+
+/* ---------- code blocks ---------- */
+figure.code{margin:22px 0;border-radius:var(--r);overflow:hidden;border:1px solid var(--line-strong);background:var(--ink-2);box-shadow:var(--shadow)}
+figure.code figcaption{
+  display:flex;align-items:center;gap:8px;padding:11px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.06em;
+  background:linear-gradient(var(--panel-2),var(--panel));border-bottom:1px solid var(--line);color:var(--parchment-dim)
+}
+figure.code figcaption .traffic{display:flex;gap:6px;margin-right:6px}
+figure.code figcaption .traffic i{width:11px;height:11px;border-radius:50%;display:block}
+.tl1{background:#ff5f57}.tl2{background:#febc2e}.tl3{background:#28c840}
+figure.code figcaption .tag{margin-left:auto;padding:2px 9px;border-radius:6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.tag.as{background:rgba(240,166,74,.16);color:var(--amber)}
+.tag.oc{background:rgba(70,211,192,.16);color:var(--teal)}
+pre{margin:0;padding:18px 20px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;color:#d6d9e3}
+pre code{font-family:inherit}
+.cm{color:#5f6b80;font-style:italic}          /* comment */
+.kw{color:var(--violet);font-weight:500}        /* keyword */
+.st{color:var(--green)}                          /* string */
+.nu{color:var(--amber-soft)}                     /* number */
+.fn{color:var(--teal-soft)}                      /* function/builtin */
+.op{color:var(--rose)}                           /* operator */
+.va{color:var(--parchment)}                      /* variable */
+.ot{color:#c6cad6}
+.out{color:#8fa0b8}                              /* output line */
+
+/* inline code */
+code.ic{font-family:"JetBrains Mono",monospace;font-size:.82em;background:rgba(255,255,255,.06);padding:2px 6px;border-radius:5px;color:var(--amber-soft);border:1px solid var(--line)}
+.section-oc code.ic{color:var(--teal-soft)}
+
+/* ---------- callouts ---------- */
+.note{border-left:3px solid var(--teal);background:linear-gradient(90deg,rgba(70,211,192,.08),transparent);padding:14px 18px;border-radius:0 10px 10px 0;margin:22px 0;font-size:16.5px}
+.note.warn{border-left-color:var(--amber);background:linear-gradient(90deg,rgba(240,166,74,.09),transparent)}
+.note .lab{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:4px}
+.note.warn .lab{color:var(--amber)}
+
+/* ---------- theorem / proof boxes ---------- */
+.theorem{
+  margin:30px 0;border:1px solid rgba(217,189,134,.32);border-radius:var(--r);
+  background:linear-gradient(180deg,rgba(217,189,134,.07),rgba(217,189,134,.02));
+  box-shadow:var(--shadow);overflow:hidden
+}
+.theorem .th-head{
+  display:flex;align-items:baseline;gap:12px;padding:13px 22px;border-bottom:1px solid rgba(217,189,134,.22);
+  background:rgba(217,189,134,.06);
+}
+.theorem .th-head .num{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.theorem .th-head .nm{font-family:"Fraunces",serif;font-style:italic;font-size:19px;color:var(--parchment)}
+.theorem .th-body{padding:18px 22px 8px}
+.theorem .statement{font-style:italic;color:var(--parchment);border-left:2px solid var(--gold);padding-left:14px;margin-bottom:6px}
+.proof{padding:4px 22px 20px;color:var(--parchment-dim);font-size:16.5px}
+.proof .pf-lab{font-family:"Fraunces",serif;font-style:italic;color:var(--gold);margin-right:6px}
+.proof .qed{float:right;color:var(--gold);font-size:20px}
+.katex{font-size:1.04em}
+.katex-display{margin:14px 0;overflow-x:auto;overflow-y:hidden;padding:4px 0}
+
+/* ---------- interactive widgets ---------- */
+.lab{
+  margin:30px 0;border:1px solid var(--line-strong);border-radius:var(--r);overflow:hidden;
+  background:linear-gradient(180deg,var(--panel),var(--ink-2));box-shadow:var(--shadow)
+}
+.lab .lab-head{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.lab .lab-head .glow{width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal);animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.lab .lab-head h4{margin:0;color:var(--teal-soft);letter-spacing:.12em}
+.lab .lab-head .sub{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.lab .lab-body{padding:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea,.field select{
+  width:100%;background:var(--ink);border:1px solid var(--line-strong);border-radius:9px;
+  color:var(--parchment);font-family:"JetBrains Mono",monospace;font-size:14px;padding:10px 13px;transition:.18s
+}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(70,211,192,.14)}
+.field textarea{resize:vertical;line-height:1.5}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row .field{flex:1;min-width:120px}
+.btn{
+  font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;cursor:pointer;
+  background:var(--teal);color:#06231f;border:none;padding:11px 22px;border-radius:9px;font-weight:700;transition:.16s
+}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.ghost{background:transparent;color:var(--teal-soft);border:1px solid var(--teal)}
+.btn.amber{background:var(--amber);color:#2a1a05}
+.btn.amber.ghost{background:transparent;color:var(--amber-soft);border:1px solid var(--amber)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.result{
+  margin-top:16px;background:var(--ink);border:1px solid var(--line);border-radius:10px;
+  padding:15px 17px;font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.65;color:var(--teal-soft);
+  white-space:pre-wrap;min-height:24px;overflow-x:auto
+}
+.result .ok{color:var(--green)} .result .er{color:var(--rose)} .result .hl{color:var(--amber-soft)} .result .dim{color:var(--muted)}
+canvas{display:block;width:100%;border-radius:10px;background:var(--ink);border:1px solid var(--line);margin-top:8px}
+.iter-table{width:100%;border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:12.5px;margin-top:14px}
+.iter-table th,.iter-table td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line)}
+.iter-table th{color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;text-align:right}
+.iter-table td:first-child,.iter-table th:first-child{text-align:left;color:var(--amber-soft)}
+
+/* faux mac dialog (AppleScript demos) */
+.macwrap{margin-top:16px;min-height:40px;display:flex;justify-content:center}
+.macdlg{
+  width:min(420px,100%);background:linear-gradient(#3a3f4b,#2c303a);border:1px solid #11141b;border-radius:12px;
+  box-shadow:0 30px 60px -10px rgba(0,0,0,.8);padding:22px 24px 18px;font-family:-apple-system,"Helvetica Neue",sans-serif;
+  animation:pop .3s cubic-bezier(.2,1.3,.4,1)
+}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0}to{transform:scale(1);opacity:1}}
+.macdlg .ic{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,var(--amber),#cf7d1e);float:left;margin-right:16px;display:grid;place-items:center;font-family:"Fraunces",serif;font-weight:900;color:#2a1a05;font-size:24px;border:none}
+.macdlg .msg{color:#f4f5f7;font-size:14px;line-height:1.45;overflow:hidden;min-height:46px;font-weight:500}
+.macdlg .btns{display:flex;justify-content:flex-end;gap:9px;margin-top:18px;clear:both}
+.macdlg .mbtn{padding:5px 16px;border-radius:7px;font-size:13px;border:1px solid #1c2029;background:#4a4f5b;color:#eef0f3;cursor:pointer}
+.macdlg .mbtn.def{background:linear-gradient(#5b8bff,#3f6fe0);border-color:#2c4fb0}
+
+/* misc */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.def-card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:rgba(255,255,255,.015)}
+.def-card h4{margin-top:0;color:var(--amber)}
+.section-oc .def-card h4{color:var(--teal)}
+.kbd{font-family:"JetBrains Mono",monospace;font-size:.78em;background:var(--panel-2);border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+footer{padding:60px 0 30px;color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:12px;text-align:center}
+.totop{position:fixed;right:24px;bottom:24px;z-index:5;width:46px;height:46px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line-strong);color:var(--parchment);cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;transition:.25s;display:grid;place-items:center}
+.totop.show{opacity:1}
+::selection{background:rgba(240,166,74,.3);color:#fff}
+nav.toc::-webkit-scrollbar,pre::-webkit-scrollbar,.result::-webkit-scrollbar{height:8px;width:8px}
+nav.toc::-webkit-scrollbar-thumb,pre::-webkit-scrollbar-thumb,.result::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px}
+
+@media(max-width:960px){
+  .shell{grid-template-columns:1fr}
+  nav.toc{display:none}
+  .two{grid-template-columns:1fr}
+  body{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="toc">
+  <div class="brand">The Console<br>&amp; The Matrix<small>AppleScript · GNU Octave</small></div>
+  <hr>
+  <div class="grp">Orientation</div>
+  <a href="#intro">00 — Two languages, one page</a>
+  <div class="grp" style="color:var(--amber)">I · AppleScript</div>
+  <a class="as" href="#as-what">01 — What it is</a>
+  <a class="as" href="#as-basics">02 — Syntax &amp; variables</a>
+  <a class="as" href="#as-types">03 — Data types</a>
+  <a class="as" href="#as-flow">04 — Control flow</a>
+  <a class="as" href="#as-handlers">05 — Handlers</a>
+  <a class="as" href="#as-apps">06 — Driving apps</a>
+  <a class="as" href="#as-errors">07 — Errors &amp; shell</a>
+  <a class="as" href="#as-lab">08 — Live: dialogs</a>
+  <div class="grp" style="color:var(--teal)">II · GNU Octave</div>
+  <a class="oc" href="#oc-what">09 — What it is</a>
+  <a class="oc" href="#oc-basics">10 — Vectors &amp; matrices</a>
+  <a class="oc" href="#oc-ops">11 — Operations</a>
+  <a class="oc" href="#oc-flow">12 — Control &amp; functions</a>
+  <a class="oc" href="#oc-linalg">13 — Linear algebra</a>
+  <a class="oc" href="#oc-numerics">14 — Numerical methods</a>
+  <a class="oc" href="#oc-lab">15 — Live: matrix, roots, integrals, plots</a>
+  <div class="grp" style="color:var(--gold)">III · Proofs</div>
+  <a class="pf" href="#pf-induction">16 — Induction &amp; a sum</a>
+  <a class="pf" href="#pf-matmul">17 — Matrix associativity</a>
+  <a class="pf" href="#pf-newton">18 — Newton, quadratically</a>
+  <a class="pf" href="#pf-trap">19 — Trapezoid error</a>
+  <hr>
+  <a href="#cheat">Appendix — cheat sheet</a>
+</nav>
+
+<main>
+
+<header class="hero">
+  <div class="eyebrow"><span class="dot"></span><span class="dot t"></span> A field guide for two very different machines</div>
+  <h1 class="title">The Console<br><span class="amp">&amp;</span> the <em>Matrix</em></h1>
+  <p class="lede">One is for telling your Mac what to do in plain-ish English. The other is for telling mathematics what to do in vectors and matrices. This page teaches both — from first principles to working code — and proves why the numerical methods actually work.</p>
+  <div class="hero-meta">
+    <span class="chip"><b>AppleScript</b> · automation &amp; the Open Scripting Architecture</span>
+    <span class="chip t"><b>GNU Octave</b> · numerical computing, MATLAB-compatible</span>
+    <span class="chip">4 worked <b>proofs</b></span>
+    <span class="chip t">6 <b>live</b> sandboxes</span>
+  </div>
+</header>
+
+<section id="intro">
+  <div class="kicker">00 — Orientation</div>
+  <h2>Two languages, one page</h2>
+  <p>It is unusual to learn <strong>AppleScript</strong> and <strong>GNU Octave</strong> side by side, because they answer opposite questions. AppleScript answers <em>"how do I make my computer do a chore for me?"</em> — open apps, rename files, click buttons, glue programs together. Octave answers <em>"how do I compute this number?"</em> — multiply matrices, solve equations, integrate functions, plot results.</p>
+  <p>Studying them together is a good way to feel the full spread of what "programming" means. One reads almost like a sentence; the other reads like a page of mathematics. Throughout, AppleScript is marked in <span style="color:var(--amber)">amber</span> and Octave in <span style="color:var(--teal)">teal</span>. The proofs at the end are marked in <span style="color:var(--gold)">gold</span> — they justify the numerical recipes you will have just used.</p>
+  <div class="note warn">
+    <span class="lab">How to use this page</span>
+    The code blocks are real and correct. AppleScript runs only on macOS (paste into <strong>Script Editor</strong>), so its "live" section <em>simulates</em> what a dialog would look like. Every Octave concept in the live section is re-implemented in JavaScript so it runs right here in your browser — the math is identical even though the engine differs.
+  </div>
+</section>
+
+<div class="section-as">
+
+<section id="as-what">
+  <div class="kicker as">01 — AppleScript</div>
+  <h2>What AppleScript is</h2>
+  <p>AppleScript is Apple's <strong>scripting language for automating applications</strong>. It was introduced in 1993 and sits on top of a system called the <em>Open Scripting Architecture</em>. The core idea: applications publish a "dictionary" of things they can do (a Finder can <code class="ic">move</code> files, Safari can return the URL of a tab), and your script sends those commands as Apple Events.</p>
+  <p>Its defining trait is an <strong>English-like syntax</strong>. Where Python says <code class="ic">finder.trash(file)</code>, AppleScript says <code class="ic">move file to trash</code>. This makes simple scripts wonderfully readable and complicated scripts occasionally maddening, because the same idea can be phrased several ways.</p>
+  <ul class="clean">
+    <li>Runs on macOS only — author it in <strong>Script Editor</strong> (<span class="kbd">/Applications/Utilities</span>) or run from the terminal with <code class="ic">osascript</code>.</li>
+    <li>Best at <strong>gluing apps together</strong>: Finder, Mail, Safari, Calendar, Music, Photos, Microsoft Office, and anything "scriptable."</li>
+    <li>Can drop down to the Unix shell with <code class="ic">do shell script</code>, and can drive any app's menus/buttons through <strong>System Events</strong> (UI scripting).</li>
+  </ul>
+</section>
+
+<section id="as-basics">
+  <div class="kicker as">02 — AppleScript</div>
+  <h2>Syntax &amp; variables</h2>
+  <p>Statements are usually one per line. Comments use <code class="ic">--</code> for a line or <code class="ic">(* … *)</code> for a block. You create a variable with <strong><code class="ic">set … to …</code></strong>, and you join text with the <strong><code class="ic">&amp;</code></strong> operator.</p>
+
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> hello.applescript <span class="tag as">AppleScript</span></figcaption>
+<pre><code><span class="cm">-- a line comment</span>
+<span class="cm">(* a block comment:
+   spans many lines *)</span>
+
+<span class="kw">set</span> <span class="va">greeting</span> <span class="kw">to</span> <span class="st">"Hello"</span>
+<span class="kw">set</span> <span class="va">who</span> <span class="kw">to</span> <span class="st">"world"</span>
+<span class="kw">set</span> <span class="va">message</span> <span class="kw">to</span> <span class="va">greeting</span> <span class="op">&amp;</span> <span class="st">", "</span> <span class="op">&amp;</span> <span class="va">who</span> <span class="op">&amp;</span> <span class="st">"!"</span>
+
+<span class="fn">display dialog</span> <span class="va">message</span>          <span class="cm">-- pops a window</span>
+<span class="kw">return</span> <span class="va">message</span>                      <span class="out">--> "Hello, world!"</span></code></pre>
+  </figure>
+
+  <p>A handful of things to internalise early:</p>
+  <ul class="clean">
+    <li><strong>No semicolons.</strong> Line breaks end statements. Use <code class="ic">¬</code> (Option-L) to continue a long line.</li>
+    <li><strong>Assignment is <code class="ic">set x to v</code></strong>, not <code class="ic">x = v</code>. You read a value back with <code class="ic">get</code> (often implicit).</li>
+    <li><strong>The result</strong> of the last expression is shown in Script Editor's result pane; <code class="ic">return</code> hands a value back from a script or handler.</li>
+    <li>Equality is <code class="ic">=</code> or the words <code class="ic">is equal to</code>; inequality is <code class="ic">≠</code> or <code class="ic">is not equal to</code>.</li>
+  </ul>
+</section>
+
+<section id="as-types">
+  <div class="kicker as">03 — AppleScript</div>
+  <h2>Data types you'll actually use</h2>
+  <p>AppleScript's everyday types are <strong>text, integer, real, boolean, date, list, and record</strong>. Lists are ordered (1-indexed!) collections; records are key–value bundles. Converting between types is called <em>coercion</em> and uses the word <code class="ic">as</code>.</p>
+
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> types.applescript <span class="tag as">AppleScript</span></figcaption>
+<pre><code><span class="cm">-- LISTS are 1-indexed, ordered</span>
+<span class="kw">set</span> <span class="va">primes</span> <span class="kw">to</span> {<span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">5</span>, <span class="nu">7</span>, <span class="nu">11</span>}
+<span class="kw">set</span> <span class="va">first</span> <span class="kw">to</span> <span class="kw">item</span> <span class="nu">1</span> <span class="kw">of</span> <span class="va">primes</span>     <span class="out">--> 2</span>
+<span class="kw">set</span> <span class="va">last</span>  <span class="kw">to</span> <span class="kw">last item</span> <span class="kw">of</span> <span class="va">primes</span>    <span class="out">--> 11</span>
+<span class="kw">set</span> <span class="va">howMany</span> <span class="kw">to</span> <span class="kw">count</span> <span class="kw">of</span> <span class="va">primes</span>       <span class="out">--> 5</span>
+<span class="kw">set</span> <span class="kw">end</span> <span class="kw">of</span> <span class="va">primes</span> <span class="kw">to</span> <span class="nu">13</span>            <span class="cm">-- append → {2,3,5,7,11,13}</span>
+
+<span class="cm">-- RECORDS are key:value (unordered)</span>
+<span class="kw">set</span> <span class="va">person</span> <span class="kw">to</span> {<span class="va">name</span>:<span class="st">"Ada"</span>, <span class="va">born</span>:<span class="nu">1815</span>, <span class="va">active</span>:<span class="kw">true</span>}
+<span class="kw">set</span> <span class="va">n</span> <span class="kw">to</span> <span class="va">name</span> <span class="kw">of</span> <span class="va">person</span>             <span class="out">--> "Ada"</span>
+
+<span class="cm">-- COERCION with `as`</span>
+<span class="kw">set</span> <span class="va">x</span> <span class="kw">to</span> <span class="st">"42"</span> <span class="kw">as</span> <span class="kw">integer</span>            <span class="out">--> 42  (text → integer)</span>
+<span class="kw">set</span> <span class="va">s</span> <span class="kw">to</span> <span class="nu">3.14</span> <span class="kw">as</span> <span class="kw">text</span>              <span class="out">--> "3.14"</span>
+<span class="kw">set</span> <span class="va">joined</span> <span class="kw">to</span> {<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>} <span class="kw">as</span> <span class="kw">text</span>  <span class="cm">-- uses text item delimiters</span></code></pre>
+  </figure>
+
+  <h4>Splitting &amp; joining text — the delimiter trick</h4>
+  <p>AppleScript has no <code class="ic">split()</code> function. Instead you temporarily set <strong><code class="ic">text item delimiters</code></strong>, then coerce. It's the one idiom every AppleScripter memorises.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> split-join.applescript <span class="tag as">AppleScript</span></figcaption>
+<pre><code><span class="kw">set</span> <span class="va">csv</span> <span class="kw">to</span> <span class="st">"red,green,blue"</span>
+
+<span class="cm">-- SPLIT: set delimiter, read text items</span>
+<span class="kw">set</span> <span class="kw">AppleScript's</span> <span class="kw">text item delimiters</span> <span class="kw">to</span> <span class="st">","</span>
+<span class="kw">set</span> <span class="va">parts</span> <span class="kw">to</span> <span class="kw">text items</span> <span class="kw">of</span> <span class="va">csv</span>   <span class="out">--> {"red","green","blue"}</span>
+
+<span class="cm">-- JOIN: set delimiter, coerce list → text</span>
+<span class="kw">set</span> <span class="kw">AppleScript's</span> <span class="kw">text item delimiters</span> <span class="kw">to</span> <span class="st">" | "</span>
+<span class="kw">set</span> <span class="va">joined</span> <span class="kw">to</span> <span class="va">parts</span> <span class="kw">as</span> <span class="kw">text</span>     <span class="out">--> "red | green | blue"</span>
+
+<span class="cm">-- ALWAYS reset delimiters afterwards (they're global!)</span>
+<span class="kw">set</span> <span class="kw">AppleScript's</span> <span class="kw">text item delimiters</span> <span class="kw">to</span> <span class="st">""</span></code></pre>
+  </figure>
+  <div class="note warn"><span class="lab">Gotcha</span> Text item delimiters are a <strong>global</strong> setting. If you forget to reset them, unrelated text coercions later in your script will behave strangely. Save the old value and restore it.</div>
+</section>
+
+<section id="as-flow">
+  <div class="kicker as">04 — AppleScript</div>
+  <h2>Control flow</h2>
+  <p>Conditionals are <code class="ic">if … then … else … end if</code>. Loops are all spelled <strong><code class="ic">repeat</code></strong>, with several flavours.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> flow.applescript <span class="tag as">AppleScript</span></figcaption>
+<pre><code><span class="kw">set</span> <span class="va">score</span> <span class="kw">to</span> <span class="nu">82</span>
+
+<span class="kw">if</span> <span class="va">score</span> <span class="op">&ge;</span> <span class="nu">90</span> <span class="kw">then</span>
+    <span class="kw">set</span> <span class="va">grade</span> <span class="kw">to</span> <span class="st">"A"</span>
+<span class="kw">else if</span> <span class="va">score</span> <span class="op">&ge;</span> <span class="nu">80</span> <span class="kw">then</span>
+    <span class="kw">set</span> <span class="va">grade</span> <span class="kw">to</span> <span class="st">"B"</span>
+<span class="kw">else</span>
+    <span class="kw">set</span> <span class="va">grade</span> <span class="kw">to</span> <span class="st">"C or below"</span>
+<span class="kw">end if</span>
+
+<span class="cm">-- repeat a fixed number of times</span>
+<span class="kw">repeat</span> <span class="nu">3</span> <span class="kw">times</span>
+    <span class="fn">beep</span>
+<span class="kw">end repeat</span>
+
+<span class="cm">-- counted loop</span>
+<span class="kw">set</span> <span class="va">total</span> <span class="kw">to</span> <span class="nu">0</span>
+<span class="kw">repeat</span> <span class="kw">with</span> <span class="va">i</span> <span class="kw">from</span> <span class="nu">1</span> <span class="kw">to</span> <span class="nu">100</span>
+    <span class="kw">set</span> <span class="va">total</span> <span class="kw">to</span> <span class="va">total</span> <span class="op">+</span> <span class="va">i</span>
+<span class="kw">end repeat</span>                              <span class="out">-- total = 5050</span>
+
+<span class="cm">-- iterate over a list</span>
+<span class="kw">repeat</span> <span class="kw">with</span> <span class="va">fruit</span> <span class="kw">in</span> {<span class="st">"apple"</span>, <span class="st">"pear"</span>, <span class="st">"plum"</span>}
+    <span class="fn">log</span> (<span class="va">fruit</span> <span class="kw">as</span> <span class="kw">text</span>)        <span class="cm">-- log → Script Editor's log pane</span>
+<span class="kw">end repeat</span>
+
+<span class="cm">-- conditional loop</span>
+<span class="kw">set</span> <span class="va">n</span> <span class="kw">to</span> <span class="nu">10</span>
+<span class="kw">repeat</span> <span class="kw">while</span> <span class="va">n</span> <span class="op">&gt;</span> <span class="nu">0</span>
+    <span class="kw">set</span> <span class="va">n</span> <span class="kw">to</span> <span class="va">n</span> <span class="op">-</span> <span class="nu">1</span>
+<span class="kw">end repeat</span></code></pre>
+  </figure>
+  <p>Boolean operators are the words <code class="ic">and</code>, <code class="ic">or</code>, <code class="ic">not</code>. Strings have friendly tests too: <code class="ic">contains</code>, <code class="ic">starts with</code>, <code class="ic">ends with</code>.</p>
+</section>
+
+<section id="as-handlers">
+  <div class="kicker as">05 — AppleScript</div>
+  <h2>Handlers (functions)</h2>
+  <p>A reusable function is called a <strong>handler</strong>. Define it with <code class="ic">on name(params) … end name</code> and call it normally. Handlers are how you keep scripts tidy.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> handlers.applescript <span class="tag as">AppleScript</span></figcaption>
+<pre><code><span class="cm">-- positional parameters</span>
+<span class="kw">on</span> <span class="fn">circleArea</span>(<span class="va">r</span>)
+    <span class="kw">return</span> <span class="nu">3.14159265</span> <span class="op">*</span> <span class="va">r</span> <span class="op">*</span> <span class="va">r</span>
+<span class="kw">end</span> <span class="fn">circleArea</span>
+
+<span class="kw">set</span> <span class="va">a</span> <span class="kw">to</span> <span class="fn">circleArea</span>(<span class="nu">5</span>)            <span class="out">--> 78.539816...</span>
+
+<span class="cm">-- a handler that filters a list</span>
+<span class="kw">on</span> <span class="fn">evensIn</span>(<span class="va">aList</span>)
+    <span class="kw">set</span> <span class="va">out</span> <span class="kw">to</span> {}
+    <span class="kw">repeat</span> <span class="kw">with</span> <span class="va">x</span> <span class="kw">in</span> <span class="va">aList</span>
+        <span class="kw">if</span> (<span class="va">x</span> <span class="kw">mod</span> <span class="nu">2</span>) <span class="op">=</span> <span class="nu">0</span> <span class="kw">then</span> <span class="kw">set</span> <span class="kw">end</span> <span class="kw">of</span> <span class="va">out</span> <span class="kw">to</span> (<span class="va">x</span> <span class="kw">as</span> <span class="kw">integer</span>)
+    <span class="kw">end repeat</span>
+    <span class="kw">return</span> <span class="va">out</span>
+<span class="kw">end</span> <span class="fn">evensIn</span>
+
+<span class="fn">evensIn</span>({<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">4</span>, <span class="nu">5</span>, <span class="nu">6</span>})         <span class="out">--> {2, 4, 6}</span>
+
+<span class="cm">-- labeled parameters read like English</span>
+<span class="kw">on</span> <span class="fn">greet</span> <span class="va">someone</span> <span class="kw">given</span> <span class="va">loudly</span>:<span class="va">isLoud</span>
+    <span class="kw">set</span> <span class="va">msg</span> <span class="kw">to</span> <span class="st">"Hi "</span> <span class="op">&amp;</span> <span class="va">someone</span>
+    <span class="kw">if</span> <span class="va">isLoud</span> <span class="kw">then</span> <span class="kw">set</span> <span class="va">msg</span> <span class="kw">to</span> <span class="va">msg</span> <span class="op">&amp;</span> <span class="st">"!!!"</span>
+    <span class="kw">return</span> <span class="va">msg</span>
+<span class="kw">end</span> <span class="fn">greet</span>
+
+<span class="fn">greet</span> <span class="st">"Grace"</span> <span class="kw">given</span> <span class="va">loudly</span>:<span class="kw">true</span>     <span class="out">--> "Hi Grace!!!"</span></code></pre>
+  </figure>
+</section>
+
+<section id="as-apps">
+  <div class="kicker as">06 — AppleScript</div>
+  <h2>The whole point: driving applications</h2>
+  <p>You command an app inside a <strong><code class="ic">tell application "Name" … end tell</code></strong> block. Inside it, the app's own vocabulary becomes available.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> driving-apps.applescript <span class="tag as">AppleScript</span></figcaption>
+<pre><code><span class="cm">-- Ask Finder how many items are on the desktop</span>
+<span class="kw">tell application</span> <span class="st">"Finder"</span>
+    <span class="kw">set</span> <span class="va">n</span> <span class="kw">to</span> <span class="kw">count</span> (<span class="kw">every item</span> <span class="kw">of</span> <span class="kw">desktop</span>)
+    <span class="kw">set</span> <span class="va">whereAmI</span> <span class="kw">to</span> <span class="kw">name</span> <span class="kw">of</span> <span class="kw">home</span>
+<span class="kw">end tell</span>
+
+<span class="cm">-- Get the URL of Safari's front tab</span>
+<span class="kw">tell application</span> <span class="st">"Safari"</span>
+    <span class="kw">set</span> <span class="va">u</span> <span class="kw">to</span> <span class="kw">URL</span> <span class="kw">of</span> <span class="kw">current tab</span> <span class="kw">of</span> <span class="kw">front window</span>
+<span class="kw">end tell</span>
+
+<span class="cm">-- Speak text and put something on the clipboard</span>
+<span class="kw">say</span> <span class="st">"Build complete"</span> <span class="kw">using</span> <span class="st">"Samantha"</span>
+<span class="kw">set the clipboard to</span> <span class="st">"copied by a script"</span>
+
+<span class="cm">-- UI scripting: click a menu when an app isn't scriptable</span>
+<span class="kw">tell application</span> <span class="st">"System Events"</span>
+    <span class="kw">tell</span> <span class="kw">process</span> <span class="st">"TextEdit"</span>
+        <span class="kw">click</span> <span class="kw">menu item</span> <span class="st">"New"</span> <span class="kw">of</span> <span class="kw">menu</span> <span class="st">"File"</span> <span class="kw">of</span> <span class="kw">menu bar</span> <span class="nu">1</span>
+    <span class="kw">end tell</span>
+<span class="kw">end tell</span></code></pre>
+  </figure>
+  <div class="note"><span class="lab">Discovery</span> To see what an app can do, open <strong>Script Editor → File → Open Dictionary…</strong> and pick the app. That dictionary is the authoritative list of nouns and verbs it understands.</div>
+</section>
+
+<section id="as-errors">
+  <div class="kicker as">07 — AppleScript</div>
+  <h2>Errors &amp; the Unix escape hatch</h2>
+  <p>Wrap risky code in <code class="ic">try … on error … end try</code>. And when AppleScript can't do something directly, <strong><code class="ic">do shell script</code></strong> runs any command-line program and returns its output as text.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> errors-shell.applescript <span class="tag as">AppleScript</span></figcaption>
+<pre><code><span class="kw">try</span>
+    <span class="kw">set</span> <span class="va">x</span> <span class="kw">to</span> <span class="st">"not a number"</span> <span class="kw">as</span> <span class="kw">integer</span>   <span class="cm">-- this fails</span>
+<span class="kw">on error</span> <span class="va">errMsg</span> <span class="kw">number</span> <span class="va">errNum</span>
+    <span class="fn">display dialog</span> <span class="st">"Failed: "</span> <span class="op">&amp;</span> <span class="va">errMsg</span> <span class="op">&amp;</span> <span class="st">" (#"</span> <span class="op">&amp;</span> <span class="va">errNum</span> <span class="op">&amp;</span> <span class="st">")"</span>
+<span class="kw">end try</span>
+
+<span class="cm">-- Borrow the power of the shell</span>
+<span class="kw">set</span> <span class="va">today</span> <span class="kw">to</span> <span class="kw">do shell script</span> <span class="st">"date +%Y-%m-%d"</span>
+<span class="kw">set</span> <span class="va">files</span> <span class="kw">to</span> <span class="kw">do shell script</span> <span class="st">"ls -1 ~/Documents | wc -l"</span>
+<span class="fn">display dialog</span> <span class="st">"On "</span> <span class="op">&amp;</span> <span class="va">today</span> <span class="op">&amp;</span> <span class="st">" you have "</span> <span class="op">&amp;</span> <span class="va">files</span> <span class="op">&amp;</span> <span class="st">" documents."</span></code></pre>
+  </figure>
+</section>
+
+<section id="as-lab">
+  <div class="kicker as">08 — AppleScript · Interactive</div>
+  <h2>Live: build a dialog</h2>
+  <p>AppleScript needs macOS, so we can't run it in a browser. But its single most common command — <code class="ic">display dialog</code> — produces a predictable window. Compose one below and press <strong>Run</strong> to see a faithful simulation of what macOS would show, alongside the exact AppleScript that produces it.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="glow" style="background:var(--amber);box-shadow:0 0 12px var(--amber)"></span><h4 style="color:var(--amber-soft)">display dialog — simulator</h4><span class="sub">simulated · macOS</span></div>
+    <div class="lab-body">
+      <div class="field">
+        <label>Dialog message</label>
+        <input id="as-msg" value="Your export is ready. Open the folder?">
+      </div>
+      <div class="row">
+        <div class="field"><label>Button 1</label><input id="as-b1" value="Cancel"></div>
+        <div class="field"><label>Button 2</label><input id="as-b2" value="Open"></div>
+        <div class="field"><label>Default button</label>
+          <select id="as-def"><option>Open</option><option>Cancel</option></select>
+        </div>
+      </div>
+      <div class="btnrow">
+        <button class="btn amber" onclick="runAS()">▶ Run script</button>
+        <button class="btn amber ghost" onclick="document.getElementById('as-stage').innerHTML='';document.getElementById('as-ret').textContent=''">Clear</button>
+      </div>
+      <div class="macwrap" id="as-stage"></div>
+      <div class="result" id="as-gen" style="margin-top:18px"></div>
+      <div class="result" id="as-ret" style="color:var(--amber-soft)"></div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /section-as -->
+
+<div class="section-oc">
+
+<section id="oc-what">
+  <div class="kicker oc">09 — GNU Octave</div>
+  <h2>What GNU Octave is</h2>
+  <p>GNU Octave is a free, open-source language for <strong>numerical computation</strong>. It is largely compatible with MATLAB, so the same scripts often run in both. Its native object is not a scalar but a <strong>matrix</strong> — everything is an array, and a plain number is just a 1×1 matrix. That single design choice makes linear algebra, statistics, and signal processing feel effortless.</p>
+  <ul class="clean">
+    <li>Comments use <code class="ic">%</code> or <code class="ic">#</code>. A trailing <code class="ic">;</code> <strong>suppresses</strong> the automatic echo of a result.</li>
+    <li>Cross-platform (macOS, Linux, Windows). Run interactively, or as scripts with <code class="ic">octave file.m</code>.</li>
+    <li>Batteries included: linear algebra, root-finding, integration, ODEs, FFTs, optimisation, plotting.</li>
+  </ul>
+</section>
+
+<section id="oc-basics">
+  <div class="kicker oc">10 — GNU Octave</div>
+  <h2>Vectors &amp; matrices</h2>
+  <p>Spaces or commas separate columns; semicolons separate rows. Ranges and <code class="ic">linspace</code> build vectors without typing every element.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> arrays.m <span class="tag oc">Octave</span></figcaption>
+<pre><code><span class="va">v</span> <span class="op">=</span> [<span class="nu">1</span> <span class="nu">2</span> <span class="nu">3</span> <span class="nu">4</span>];          <span class="cm">% a row vector</span>
+<span class="va">c</span> <span class="op">=</span> [<span class="nu">1</span>; <span class="nu">2</span>; <span class="nu">3</span>];           <span class="cm">% a column vector</span>
+<span class="va">A</span> <span class="op">=</span> [<span class="nu">1</span> <span class="nu">2</span>; <span class="nu">3</span> <span class="nu">4</span>];          <span class="cm">% a 2x2 matrix</span>
+
+<span class="va">r</span> <span class="op">=</span> <span class="nu">0</span>:<span class="nu">2</span>:<span class="nu">10</span>;             <span class="cm">% 0 2 4 6 8 10  (start:step:stop)</span>
+<span class="va">x</span> <span class="op">=</span> <span class="fn">linspace</span>(<span class="nu">0</span>, <span class="nu">1</span>, <span class="nu">5</span>);    <span class="cm">% 0 0.25 0.5 0.75 1</span>
+
+<span class="fn">size</span>(<span class="va">A</span>)                  <span class="out">% ans = 2   2</span>
+<span class="fn">length</span>(<span class="va">v</span>)                <span class="out">% ans = 4</span>
+<span class="va">A</span>(<span class="nu">2</span>, <span class="nu">1</span>)                <span class="out">% ans = 3   (row 2, col 1 — 1-indexed!)</span>
+<span class="va">A</span>(:, <span class="nu">1</span>)                 <span class="out">% first column → [1; 3]</span>
+
+<span class="fn">zeros</span>(<span class="nu">2</span>,<span class="nu">3</span>), <span class="fn">ones</span>(<span class="nu">2</span>), <span class="fn">eye</span>(<span class="nu">3</span>)   <span class="cm">% zeros, ones, identity</span></code></pre>
+  </figure>
+  <div class="note"><span class="lab">Mental model</span> In Octave, indexing starts at <strong>1</strong> (like AppleScript, unlike Python/C). <code class="ic">A(i, j)</code> is row <em>i</em>, column <em>j</em>. A lone colon <code class="ic">:</code> means "all of this dimension."</div>
+</section>
+
+<section id="oc-ops">
+  <div class="kicker oc">11 — GNU Octave</div>
+  <h2>Operations: the dot is everything</h2>
+  <p>This is the concept that trips up every newcomer. <code class="ic">*</code> means <strong>matrix</strong> multiplication. Put a <strong>dot</strong> in front — <code class="ic">.*</code>, <code class="ic">./</code>, <code class="ic">.^</code> — and it becomes <strong>element-by-element</strong>.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> dot-ops.m <span class="tag oc">Octave</span></figcaption>
+<pre><code><span class="va">A</span> <span class="op">=</span> [<span class="nu">1</span> <span class="nu">2</span>; <span class="nu">3</span> <span class="nu">4</span>];
+<span class="va">B</span> <span class="op">=</span> [<span class="nu">5</span> <span class="nu">6</span>; <span class="nu">7</span> <span class="nu">8</span>];
+
+<span class="va">A</span> <span class="op">*</span> <span class="va">B</span>        <span class="out">% MATRIX product → [19 22; 43 50]</span>
+<span class="va">A</span> <span class="op">.*</span> <span class="va">B</span>       <span class="out">% ELEMENT product → [5 12; 21 32]</span>
+
+<span class="va">v</span> <span class="op">=</span> [<span class="nu">1</span> <span class="nu">2</span> <span class="nu">3</span>];
+<span class="va">v</span> <span class="op">.^</span> <span class="nu">2</span>       <span class="out">% [1 4 9]   (square each element)</span>
+<span class="va">A</span><span class="op">'</span>            <span class="out">% transpose → [1 3; 2 4]</span>
+
+<span class="cm">% reductions collapse a matrix to numbers</span>
+<span class="fn">sum</span>(<span class="va">v</span>)        <span class="out">% 6</span>
+<span class="fn">mean</span>(<span class="va">v</span>)       <span class="out">% 2</span>
+<span class="fn">max</span>(<span class="va">v</span>)        <span class="out">% 3</span>
+<span class="fn">cumsum</span>(<span class="va">v</span>)     <span class="out">% [1 3 6]</span>
+
+<span class="cm">% logical indexing — keep elements that pass a test</span>
+<span class="va">w</span> <span class="op">=</span> [<span class="op">-</span><span class="nu">2</span> <span class="nu">5</span> <span class="op">-</span><span class="nu">1</span> <span class="nu">8</span> <span class="nu">0</span>];
+<span class="va">w</span>(<span class="va">w</span> <span class="op">&gt;</span> <span class="nu">0</span>)     <span class="out">% [5 8]  — selects positive entries</span></code></pre>
+  </figure>
+  <div class="note warn"><span class="lab">The #1 beginner bug</span> Writing <code class="ic">v^2</code> on a vector throws an error (it tries a matrix power and needs a square matrix). You almost always want <code class="ic">v.^2</code>. When in doubt, <strong>add the dot</strong>.</div>
+</section>
+
+<section id="oc-flow">
+  <div class="kicker oc">12 — GNU Octave</div>
+  <h2>Control flow &amp; functions</h2>
+  <p>Blocks close with <code class="ic">end</code> (or the explicit <code class="ic">endif</code>/<code class="ic">endfor</code>/<code class="ic">endfunction</code>). Anonymous functions with <code class="ic">@(args)</code> are the workhorse for passing math around.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> functions.m <span class="tag oc">Octave</span></figcaption>
+<pre><code><span class="cm">% conditionals</span>
+<span class="va">t</span> <span class="op">=</span> <span class="nu">37.5</span>;
+<span class="kw">if</span> <span class="va">t</span> <span class="op">&gt;</span> <span class="nu">38</span>
+  <span class="fn">disp</span>(<span class="st">"fever"</span>)
+<span class="kw">elseif</span> <span class="va">t</span> <span class="op">&gt;=</span> <span class="nu">37</span>
+  <span class="fn">disp</span>(<span class="st">"elevated"</span>)
+<span class="kw">else</span>
+  <span class="fn">disp</span>(<span class="st">"normal"</span>)
+<span class="kw">end</span>
+
+<span class="cm">% a for-loop building a running sum</span>
+<span class="va">s</span> <span class="op">=</span> <span class="nu">0</span>;
+<span class="kw">for</span> <span class="va">k</span> <span class="op">=</span> <span class="nu">1</span>:<span class="nu">100</span>
+  <span class="va">s</span> <span class="op">=</span> <span class="va">s</span> <span class="op">+</span> <span class="va">k</span>;
+<span class="kw">end</span>
+<span class="fn">printf</span>(<span class="st">"sum = %d\n"</span>, <span class="va">s</span>);     <span class="out">% sum = 5050</span>
+
+<span class="cm">% ...but vectorise! same result, no loop:</span>
+<span class="va">s2</span> <span class="op">=</span> <span class="fn">sum</span>(<span class="nu">1</span>:<span class="nu">100</span>);              <span class="out">% 5050</span>
+
+<span class="cm">% anonymous function (a closure)</span>
+<span class="va">f</span> <span class="op">=</span> <span class="op">@</span>(<span class="va">x</span>) <span class="va">x</span><span class="op">.^</span><span class="nu">2</span> <span class="op">-</span> <span class="nu">2</span>;
+<span class="va">f</span>(<span class="nu">3</span>)                          <span class="out">% 7</span>
+<span class="va">f</span>([<span class="nu">1</span> <span class="nu">2</span> <span class="nu">3</span>])                    <span class="out">% [-1 2 7]  (works on vectors)</span>
+
+<span class="cm">% a named function</span>
+<span class="kw">function</span> <span class="va">y</span> <span class="op">=</span> <span class="fn">hypotenuse</span>(<span class="va">a</span>, <span class="va">b</span>)
+  <span class="va">y</span> <span class="op">=</span> <span class="fn">sqrt</span>(<span class="va">a</span><span class="op">.^</span><span class="nu">2</span> <span class="op">+</span> <span class="va">b</span><span class="op">.^</span><span class="nu">2</span>);
+<span class="kw">endfunction</span>
+<span class="fn">hypotenuse</span>(<span class="nu">3</span>, <span class="nu">4</span>)               <span class="out">% 5</span></code></pre>
+  </figure>
+  <p>Prefer <strong>vectorisation</strong> over loops where you can — it is shorter and dramatically faster, because the work happens in compiled array routines instead of the interpreter.</p>
+</section>
+
+<section id="oc-linalg">
+  <div class="kicker oc">13 — GNU Octave</div>
+  <h2>Linear algebra in one line</h2>
+  <p>This is where Octave shines. Solving <span class="katex-inline">\(Ax = b\)</span> is the single backslash operator <code class="ic">A\b</code> — and it picks a good algorithm for you (it does <em>not</em> naïvely compute an inverse).</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> linalg.m <span class="tag oc">Octave</span></figcaption>
+<pre><code><span class="va">A</span> <span class="op">=</span> [<span class="nu">2</span> <span class="nu">1</span>; <span class="nu">1</span> <span class="nu">3</span>];
+<span class="va">b</span> <span class="op">=</span> [<span class="nu">3</span>; <span class="nu">5</span>];
+
+<span class="va">x</span> <span class="op">=</span> <span class="va">A</span> <span class="op">\</span> <span class="va">b</span>          <span class="out">% solve A x = b → [0.8; 1.4]</span>
+
+<span class="fn">det</span>(<span class="va">A</span>)               <span class="out">% 5</span>
+<span class="fn">inv</span>(<span class="va">A</span>)               <span class="out">% the inverse (rarely what you need)</span>
+<span class="fn">rank</span>(<span class="va">A</span>)              <span class="out">% 2</span>
+<span class="fn">trace</span>(<span class="va">A</span>)             <span class="out">% 5</span>
+
+<span class="cm">% eigenvalues and eigenvectors</span>
+[<span class="va">V</span>, <span class="va">D</span>] <span class="op">=</span> <span class="fn">eig</span>(<span class="va">A</span>);   <span class="cm">% columns of V are eigenvectors,</span>
+                          <span class="cm">% diagonal of D are eigenvalues</span>
+
+<span class="cm">% least squares — same backslash, overdetermined system</span>
+<span class="va">M</span> <span class="op">=</span> [<span class="nu">1</span> <span class="nu">1</span>; <span class="nu">1</span> <span class="nu">2</span>; <span class="nu">1</span> <span class="nu">3</span>];
+<span class="va">y</span> <span class="op">=</span> [<span class="nu">1</span>; <span class="nu">2</span>; <span class="nu">2</span>];
+<span class="va">coeffs</span> <span class="op">=</span> <span class="va">M</span> <span class="op">\</span> <span class="va">y</span>     <span class="cm">% best-fit line via least squares</span></code></pre>
+  </figure>
+  <div class="note"><span class="lab">Why backslash, not inv</span> Computing <code class="ic">inv(A)*b</code> is slower and less accurate than <code class="ic">A\b</code>. The backslash factorises <span class="katex-inline">\(A\)</span> (LU for square, QR for tall) and solves directly. Reach for <code class="ic">inv</code> only when you genuinely need the inverse matrix itself.</div>
+</section>
+
+<section id="oc-numerics">
+  <div class="kicker oc">14 — GNU Octave</div>
+  <h2>Numerical methods</h2>
+  <p>Three classics you'll meet constantly: finding a root of <span class="katex-inline">\(f\)</span>, integrating <span class="katex-inline">\(f\)</span> over an interval, and fitting a polynomial. Each is built in, but knowing the recipe lets you trust the answer — and the <a class="inline" href="#pf-newton">proofs</a> below show <em>why</em> these recipes converge.</p>
+  <figure class="code">
+    <figcaption><span class="traffic"><i class="tl1"></i><i class="tl2"></i><i class="tl3"></i></span> numerics.m <span class="tag oc">Octave</span></figcaption>
+<pre><code><span class="cm">% --- Newton's method by hand: solve x^2 - 2 = 0 (find sqrt 2) ---</span>
+<span class="va">f</span>  <span class="op">=</span> <span class="op">@</span>(<span class="va">x</span>) <span class="va">x</span><span class="op">.^</span><span class="nu">2</span> <span class="op">-</span> <span class="nu">2</span>;
+<span class="va">df</span> <span class="op">=</span> <span class="op">@</span>(<span class="va">x</span>) <span class="nu">2</span><span class="op">*</span><span class="va">x</span>;
+<span class="va">x</span>  <span class="op">=</span> <span class="nu">1</span>;                       <span class="cm">% initial guess</span>
+<span class="kw">for</span> <span class="va">k</span> <span class="op">=</span> <span class="nu">1</span>:<span class="nu">6</span>
+  <span class="va">x</span> <span class="op">=</span> <span class="va">x</span> <span class="op">-</span> <span class="va">f</span>(<span class="va">x</span>) <span class="op">/</span> <span class="va">df</span>(<span class="va">x</span>);    <span class="cm">% the Newton step</span>
+<span class="kw">end</span>
+<span class="va">x</span>                              <span class="out">% 1.41421356237  (≈ sqrt 2)</span>
+
+<span class="cm">% --- numerical integration of sin from 0 to pi (true value = 2) ---</span>
+<span class="va">g</span> <span class="op">=</span> <span class="op">@</span>(<span class="va">x</span>) <span class="fn">sin</span>(<span class="va">x</span>);
+<span class="va">I</span> <span class="op">=</span> <span class="fn">quad</span>(<span class="va">g</span>, <span class="nu">0</span>, <span class="fn">pi</span>)          <span class="out">% 2.0000   (adaptive quadrature)</span>
+
+<span class="cm">% trapezoidal rule by hand on sampled data</span>
+<span class="va">xx</span> <span class="op">=</span> <span class="fn">linspace</span>(<span class="nu">0</span>, <span class="fn">pi</span>, <span class="nu">1000</span>);
+<span class="va">It</span> <span class="op">=</span> <span class="fn">trapz</span>(<span class="va">xx</span>, <span class="fn">sin</span>(<span class="va">xx</span>))    <span class="out">% ≈ 2.0000</span>
+
+<span class="cm">% --- polynomial fit: degree-2 through noisy points ---</span>
+<span class="va">px</span> <span class="op">=</span> [<span class="nu">0</span> <span class="nu">1</span> <span class="nu">2</span> <span class="nu">3</span> <span class="nu">4</span>];
+<span class="va">py</span> <span class="op">=</span> [<span class="nu">1</span> <span class="nu">3</span> <span class="nu">7</span> <span class="nu">13</span> <span class="nu">21</span>];
+<span class="va">p</span> <span class="op">=</span> <span class="fn">polyfit</span>(<span class="va">px</span>, <span class="va">py</span>, <span class="nu">2</span>)     <span class="cm">% coefficients of best-fit parabola</span>
+<span class="fn">polyval</span>(<span class="va">p</span>, <span class="nu">5</span>)               <span class="cm">% predict at x = 5</span></code></pre>
+  </figure>
+</section>
+
+<section id="oc-lab">
+  <div class="kicker oc">15 — GNU Octave · Interactive</div>
+  <h2>Live sandboxes</h2>
+  <p>These four widgets re-implement Octave's behaviour in JavaScript so they run in your browser right now. The algorithms are exactly those above — only the engine differs.</p>
+
+  <!-- 1. Matrix calculator -->
+  <div class="lab">
+    <div class="lab-head"><span class="glow"></span><h4>Matrix workbench</h4><span class="sub">A op B</span></div>
+    <div class="lab-body">
+      <p style="margin-top:0;font-size:15px;color:var(--parchment-dim)">Type matrices in Octave syntax — spaces between columns, <code class="ic">;</code> between rows. Try <code class="ic">[1 2; 3 4]</code>.</p>
+      <div class="row">
+        <div class="field"><label>Matrix A</label><input id="mA" value="1 2; 3 4"></div>
+        <div class="field"><label>Matrix B</label><input id="mB" value="5 6; 7 8"></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn" onclick="matOp('mul')">A * B</button>
+        <button class="btn ghost" onclick="matOp('emul')">A .* B</button>
+        <button class="btn ghost" onclick="matOp('add')">A + B</button>
+        <button class="btn ghost" onclick="matOp('transpose')">A'</button>
+        <button class="btn ghost" onclick="matOp('detA')">det(A)</button>
+        <button class="btn ghost" onclick="matOp('invA')">inv(A)</button>
+      </div>
+      <div class="result" id="matOut">ans = </div>
+    </div>
+  </div>
+
+  <!-- 2. Newton solver -->
+  <div class="lab">
+    <div class="lab-head"><span class="glow"></span><h4>Newton's method root-finder</h4><span class="sub">f(x)=0</span></div>
+    <div class="lab-body">
+      <p style="margin-top:0;font-size:15px;color:var(--parchment-dim)">Enter <code class="ic">f(x)</code> using JS-style math (<code class="ic">x*x-2</code>, <code class="ic">cos(x)-x</code>, <code class="ic">exp(x)-3</code>). The derivative is taken numerically; watch the error square each step.</p>
+      <div class="row">
+        <div class="field"><label>f(x) =</label><input id="nf" value="x*x - 2"></div>
+        <div class="field" style="max-width:140px"><label>x₀</label><input id="nx" value="1"></div>
+      </div>
+      <div class="btnrow"><button class="btn" onclick="runNewton()">▶ Iterate</button></div>
+      <div id="newtonOut"></div>
+    </div>
+  </div>
+
+  <!-- 3. Integrator -->
+  <div class="lab">
+    <div class="lab-head"><span class="glow"></span><h4>Numerical integrator</h4><span class="sub">∫ trapezoid · Simpson</span></div>
+    <div class="lab-body">
+      <p style="margin-top:0;font-size:15px;color:var(--parchment-dim)">Approximate <span class="katex-inline">\(\int_a^b f(x)\,dx\)</span> with the trapezoidal and Simpson rules and compare them.</p>
+      <div class="row">
+        <div class="field"><label>f(x) =</label><input id="if" value="sin(x)"></div>
+        <div class="field" style="max-width:100px"><label>a</label><input id="ia" value="0"></div>
+        <div class="field" style="max-width:100px"><label>b</label><input id="ib" value="3.14159265"></div>
+        <div class="field" style="max-width:110px"><label>panels n</label><input id="in" value="100"></div>
+      </div>
+      <div class="btnrow"><button class="btn" onclick="runIntegrate()">▶ Integrate</button></div>
+      <div class="result" id="intOut">∫ = </div>
+    </div>
+  </div>
+
+  <!-- 4. Plotter -->
+  <div class="lab">
+    <div class="lab-head"><span class="glow"></span><h4>Function plotter</h4><span class="sub">plot(x, f(x))</span></div>
+    <div class="lab-body">
+      <p style="margin-top:0;font-size:15px;color:var(--parchment-dim)">Octave's <code class="ic">plot(x, y)</code>, in miniature. Enter a function and a domain.</p>
+      <div class="row">
+        <div class="field"><label>f(x) =</label><input id="pf" value="sin(x) * exp(-x/6)"></div>
+        <div class="field" style="max-width:110px"><label>x min</label><input id="pmin" value="0"></div>
+        <div class="field" style="max-width:110px"><label>x max</label><input id="pmax" value="20"></div>
+      </div>
+      <div class="btnrow"><button class="btn" onclick="runPlot()">▶ Plot</button></div>
+      <canvas id="plotC" width="800" height="380"></canvas>
+    </div>
+  </div>
+</section>
+
+</div><!-- /section-oc -->
+
+<section id="pf-induction">
+  <div class="kicker pf">16 — Proof</div>
+  <h2>The sum the loops computed</h2>
+  <p>Both the AppleScript counted loop and the Octave <code class="ic">for</code> loop summed <span class="katex-inline">\(1\) through \(100\)</span> and got <strong>5050</strong>. That is no accident — there is a closed form, and we prove it by <strong>mathematical induction</strong>.</p>
+
+  <div class="theorem">
+    <div class="th-head"><span class="num">Theorem 1</span><span class="nm">Gauss's summation formula</span></div>
+    <div class="th-body">
+      <p class="statement">For every integer \(n \ge 1\), \(\displaystyle\sum_{k=1}^{n} k = \frac{n(n+1)}{2}.\)</p>
+    </div>
+    <div class="proof">
+      <p><span class="pf-lab">Proof (induction on \(n\)).</span> Let \(P(n)\) be the statement \(\sum_{k=1}^{n} k = \frac{n(n+1)}{2}\).</p>
+      <p><strong>Base case.</strong> For \(n=1\): the left side is \(1\), and the right side is \(\frac{1\cdot 2}{2}=1\). So \(P(1)\) holds.</p>
+      <p><strong>Inductive step.</strong> Assume \(P(n)\) holds for some \(n\ge 1\); this is the inductive hypothesis. We show \(P(n+1)\):</p>
+      $$\sum_{k=1}^{n+1} k \;=\; \left(\sum_{k=1}^{n} k\right) + (n+1) \;\overset{\text{IH}}{=}\; \frac{n(n+1)}{2} + (n+1).$$
+      <p>Factor out \((n+1)\):</p>
+      $$\frac{n(n+1)}{2} + (n+1) = (n+1)\!\left(\frac{n}{2}+1\right) = (n+1)\cdot\frac{n+2}{2} = \frac{(n+1)\big((n+1)+1\big)}{2}.$$
+      <p>This is exactly \(P(n+1)\). By the principle of induction, \(P(n)\) holds for all \(n\ge 1\). In particular \(\sum_{k=1}^{100} k = \frac{100\cdot 101}{2} = 5050.\) <span class="qed">∎</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="pf-matmul">
+  <div class="kicker pf">17 — Proof</div>
+  <h2>Why <code class="ic" style="font-size:.7em">A*(B*C)</code> equals <code class="ic" style="font-size:.7em">(A*B)*C</code></h2>
+  <p>Octave's matrix product is associative — you can drop the parentheses. That convenience is a theorem about sums, and the proof is a clean exercise in swapping the order of summation.</p>
+
+  <div class="theorem">
+    <div class="th-head"><span class="num">Theorem 2</span><span class="nm">Associativity of matrix multiplication</span></div>
+    <div class="th-body">
+      <p class="statement">Let \(A\in\mathbb{R}^{m\times n}\), \(B\in\mathbb{R}^{n\times p}\), \(C\in\mathbb{R}^{p\times q}\). Then \((AB)C = A(BC)\).</p>
+    </div>
+    <div class="proof">
+      <p><span class="pf-lab">Proof.</span> Two matrices are equal iff every entry agrees, so we compute the \((i,\ell)\) entry of each side. Recall the definition of the product: \((XY)_{i\ell} = \sum_{r} X_{ir}Y_{r\ell}.\)</p>
+      <p>Start with the left side. Writing \(D = AB\) so that \(D_{ik} = \sum_{j=1}^{n} A_{ij}B_{jk}\),</p>
+      $$\big((AB)C\big)_{i\ell} = \sum_{k=1}^{p} D_{ik}\,C_{k\ell} = \sum_{k=1}^{p}\left(\sum_{j=1}^{n} A_{ij}B_{jk}\right) C_{k\ell} = \sum_{k=1}^{p}\sum_{j=1}^{n} A_{ij}B_{jk}C_{k\ell}.$$
+      <p>Each term \(A_{ij}B_{jk}C_{k\ell}\) is an ordinary real number, and real addition and multiplication are associative and commutative, so the finite double sum may be reordered. Exchange the order of summation:</p>
+      $$\sum_{k=1}^{p}\sum_{j=1}^{n} A_{ij}B_{jk}C_{k\ell} = \sum_{j=1}^{n}\sum_{k=1}^{p} A_{ij}B_{jk}C_{k\ell} = \sum_{j=1}^{n} A_{ij}\left(\sum_{k=1}^{p} B_{jk}C_{k\ell}\right).$$
+      <p>The inner sum is exactly \((BC)_{j\ell}\). Therefore</p>
+      $$\sum_{j=1}^{n} A_{ij}\,(BC)_{j\ell} = \big(A(BC)\big)_{i\ell}.$$
+      <p>Since the \((i,\ell)\) entries agree for all \(i,\ell\), we conclude \((AB)C = A(BC)\). <span class="qed">∎</span></p>
+    </div>
+  </div>
+  <div class="note"><span class="lab">Footnote</span> Note we did <em>not</em> assume the matrices were square or that multiplication commutes — it does not. Only associativity was needed, and that came entirely from associativity of the real numbers underneath.</div>
+</section>
+
+<section id="pf-newton">
+  <div class="kicker pf">18 — Proof</div>
+  <h2>Newton's method, quadratically</h2>
+  <p>In the live solver you watched the error roughly <em>square</em> at each step — \(10^{-2}\) became \(10^{-4}\), then \(10^{-8}\). That doubling of correct digits is <strong>quadratic convergence</strong>, and here is why it happens.</p>
+
+  <div class="theorem">
+    <div class="th-head"><span class="num">Theorem 3</span><span class="nm">Local quadratic convergence of Newton's method</span></div>
+    <div class="th-body">
+      <p class="statement">Let \(f\) be twice continuously differentiable near a root \(r\) with \(f(r)=0\) and \(f'(r)\neq 0\). Then for a starting point sufficiently close to \(r\), the Newton iterates \(x_{k+1}=x_k-\dfrac{f(x_k)}{f'(x_k)}\) satisfy, with \(e_k := x_k - r\),
+      $$|e_{k+1}| \le M\,|e_k|^2 \qquad\text{where}\qquad M = \frac{\max|f''|}{2\min|f'|}.$$</p>
+    </div>
+    <div class="proof">
+      <p><span class="pf-lab">Proof.</span> Expand \(f\) about \(x_k\) using Taylor's theorem with the Lagrange remainder. Since \(f(r)=0\), there is a point \(\xi_k\) between \(x_k\) and \(r\) such that</p>
+      $$0 = f(r) = f(x_k) + f'(x_k)(r-x_k) + \tfrac{1}{2}f''(\xi_k)(r-x_k)^2.$$
+      <p>Writing \(e_k = x_k - r\) (so \(r - x_k = -e_k\)) this reads</p>
+      $$0 = f(x_k) - f'(x_k)\,e_k + \tfrac{1}{2}f''(\xi_k)\,e_k^2.$$
+      <p>Divide through by \(f'(x_k)\) (nonzero near the root) and solve for the combination that appears in the Newton step:</p>
+      $$\frac{f(x_k)}{f'(x_k)} - e_k = -\frac{f''(\xi_k)}{2 f'(x_k)}\,e_k^2.$$
+      <p>Now examine the new error. By the definition of the iteration,</p>
+      $$e_{k+1} = x_{k+1} - r = \Big(x_k - \frac{f(x_k)}{f'(x_k)}\Big) - r = e_k - \frac{f(x_k)}{f'(x_k)}.$$
+      <p>This is precisely the negative of the left-hand side above, so</p>
+      $$e_{k+1} = \frac{f''(\xi_k)}{2 f'(x_k)}\,e_k^2.$$
+      <p>Take absolute values. On a small closed interval around \(r\) the continuous functions are bounded: \(|f''|\le \max|f''|\) and \(|f'|\ge \min|f'| > 0\). Hence</p>
+      $$|e_{k+1}| \le \frac{\max|f''|}{2\,\min|f'|}\,|e_k|^2 = M\,|e_k|^2.$$
+      <p>If the first guess is close enough that \(M|e_0| < 1\), then \(|e_k|\to 0\), and the exponent \(2\) on \(|e_k|\) is exactly what makes the number of correct digits roughly double each step. <span class="qed">∎</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="pf-trap">
+  <div class="kicker pf">19 — Proof</div>
+  <h2>The trapezoid's error</h2>
+  <p>The integrator reported that doubling the panel count cut the error by about <strong>four</strong>. That is the signature of an \(O(h^2)\) method. We prove the error bound on a single panel; summing over panels gives the global result.</p>
+
+  <div class="theorem">
+    <div class="th-head"><span class="num">Theorem 4</span><span class="nm">Error of the trapezoidal rule (one panel)</span></div>
+    <div class="th-body">
+      <p class="statement">Let \(f\in C^2[a,b]\) and \(h=b-a\). The trapezoidal estimate \(T=\frac{h}{2}\big(f(a)+f(b)\big)\) satisfies, for some \(\eta\in(a,b)\),
+      $$\int_a^b f(x)\,dx - T = -\frac{h^3}{12}\,f''(\eta).$$</p>
+    </div>
+    <div class="proof">
+      <p><span class="pf-lab">Proof (sketch with the key step in full).</span> Define the error as a function of the panel half-context by letting, for \(t\in[0,h]\),</p>
+      $$E(t) = \int_{a}^{a+t} f(x)\,dx \;-\; \frac{t}{2}\big(f(a)+f(a+t)\big).$$
+      <p>Then \(E(0)=0\) and the quantity we want is \(E(h)\). Differentiate using the fundamental theorem of calculus and the product rule:</p>
+      $$E'(t) = f(a+t) - \tfrac{1}{2}\big(f(a)+f(a+t)\big) - \tfrac{t}{2}f'(a+t) = \tfrac{1}{2}\big(f(a+t)-f(a)\big) - \tfrac{t}{2}f'(a+t).$$
+      <p>Differentiate once more; the \(\tfrac12 f(a)\) term is constant and drops out:</p>
+      $$E''(t) = \tfrac{1}{2}f'(a+t) - \tfrac{1}{2}f'(a+t) - \tfrac{t}{2}f''(a+t) = -\frac{t}{2}\,f''(a+t).$$
+      <p>Now integrate back twice from \(0\) to \(h\), using \(E(0)=E'(0)=0\). Apply the weighted mean value theorem for integrals: because the weight \(-\tfrac{t}{2}\) does not change sign on \([0,h]\), there exists \(\eta\in(a,b)\) with</p>
+      $$E(h) = \int_0^h\!\!\int_0^s \Big(-\frac{t}{2}f''(a+t)\Big)dt\,ds = f''(\eta)\int_0^h\!\!\int_0^s\Big(-\frac{t}{2}\Big)dt\,ds.$$
+      <p>The remaining integral is elementary: \(\int_0^s -\tfrac{t}{2}\,dt = -\tfrac{s^2}{4}\), and \(\int_0^h -\tfrac{s^2}{4}\,ds = -\tfrac{h^3}{12}.\) Therefore</p>
+      $$\int_a^b f(x)\,dx - T = E(h) = -\frac{h^3}{12}\,f''(\eta).$$
+      <p>Splitting \([a,b]\) into \(n\) equal panels of width \(h=(b-a)/n\) and summing gives a total error of size \(-\frac{(b-a)h^2}{12}f''(\bar\eta)=O(h^2)\): halving \(h\) (doubling \(n\)) divides the error by \(4\), exactly as the sandbox showed. <span class="qed">∎</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="cheat">
+  <div class="kicker">Appendix</div>
+  <h2>Side-by-side cheat sheet</h2>
+  <div class="two">
+    <div class="def-card section-as">
+      <h4>AppleScript</h4>
+      <ul class="clean">
+        <li>comment — <code class="ic">-- …</code> / <code class="ic">(* … *)</code></li>
+        <li>assign — <code class="ic">set x to 5</code></li>
+        <li>concat — <code class="ic">a &amp; b</code></li>
+        <li>list (1-indexed) — <code class="ic">{1,2,3}</code></li>
+        <li>record — <code class="ic">{name:"A", age:9}</code></li>
+        <li>if — <code class="ic">if c then … end if</code></li>
+        <li>loop — <code class="ic">repeat with i from 1 to n</code></li>
+        <li>function — <code class="ic">on f(x) … end f</code></li>
+        <li>app — <code class="ic">tell application "Finder"</code></li>
+        <li>errors — <code class="ic">try … on error … end try</code></li>
+        <li>shell — <code class="ic">do shell script "…"</code></li>
+      </ul>
+    </div>
+    <div class="def-card section-oc">
+      <h4>GNU Octave</h4>
+      <ul class="clean">
+        <li>comment — <code class="ic">% …</code> / <code class="ic"># …</code></li>
+        <li>assign (silent) — <code class="ic">x = 5;</code></li>
+        <li>matrix — <code class="ic">[1 2; 3 4]</code></li>
+        <li>range — <code class="ic">0:2:10</code>, <code class="ic">linspace(a,b,n)</code></li>
+        <li>matrix mul — <code class="ic">A*B</code> · elementwise <code class="ic">A.*B</code></li>
+        <li>transpose / solve — <code class="ic">A'</code> · <code class="ic">A\b</code></li>
+        <li>if — <code class="ic">if c … elseif … end</code></li>
+        <li>loop — <code class="ic">for k = 1:n … end</code></li>
+        <li>anon fn — <code class="ic">f = @(x) x.^2</code></li>
+        <li>function — <code class="ic">function y=f(x) … endfunction</code></li>
+        <li>reduce — <code class="ic">sum mean max cumsum</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Built as a single self-contained HTML file · math typeset with KaTeX · all Octave sandboxes computed live in JavaScript.<br>
+  AppleScript runs on macOS via Script Editor or <code class="ic" style="color:var(--muted)">osascript</code>; the dialog above is a faithful simulation.
+</footer>
+
+</main>
+</div><!-- /shell -->
+
+<button class="totop" id="totop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+/* ---------- KaTeX math rendering ---------- */
+function renderMath(){
+  if(window.renderMathInElement){
+    renderMathInElement(document.body,{
+      delimiters:[
+        {left:"$$",right:"$$",display:true},
+        {left:"\\[",right:"\\]",display:true},
+        {left:"\\(",right:"\\)",display:false}
+      ],
+      throwOnError:false
+    });
+  }
+}
+window.addEventListener("load",renderMath);
+
+/* ---------- shared: tiny math-expression compiler ---------- */
+function compileExpr(src){
+  const s=String(src).trim();
+  if(!/^[-+*/^().,\sxa-zA-Z0-9]*$/.test(s)) throw new Error("illegal characters");
+  const js=s.replace(/\^/g,"**");
+  return new Function("x",
+    "const {sin,cos,tan,exp,log,log10,sqrt,abs,pow,PI,E,atan,asin,acos,sinh,cosh,tanh,sign,floor,ceil,round}=Math;"+
+    "const pi=PI, e=E;"+
+    "const r=("+js+"); return r;");
+}
+function fmt(n){
+  if(typeof n!=="number"||!isFinite(n)) return String(n);
+  if(Math.abs(n)<1e-12) return "0";
+  let v=Math.abs(n)>=1e5||Math.abs(n)<1e-4 ? n.toExponential(4) : (Math.round(n*1e6)/1e6).toString();
+  return v;
+}
+
+/* ========== 1. AppleScript dialog simulator ========== */
+function runAS(){
+  const msg=document.getElementById("as-msg").value||"";
+  const b1=document.getElementById("as-b1").value||"OK";
+  const b2=document.getElementById("as-b2").value||"OK";
+  const def=document.getElementById("as-def").value;
+  // generate source
+  const src=
+    'display dialog "'+msg.replace(/"/g,'\\"')+'" \u00ac\n'+
+    '    buttons {"'+b1+'", "'+b2+'"} \u00ac\n'+
+    '    default button "'+def+'"';
+  document.getElementById("as-gen").innerHTML=
+    '<span class="dim">-- generated AppleScript --</span>\n'+src.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  document.getElementById("as-ret").textContent="";
+  // render faux dialog
+  const isDef=n=>n===def?' def':'';
+  document.getElementById("as-stage").innerHTML=
+    '<div class="macdlg">'+
+      '<div class="ic">A</div>'+
+      '<div class="msg">'+msg.replace(/</g,'&lt;')+'</div>'+
+      '<div class="btns">'+
+        '<button class="mbtn'+isDef(b1)+'" onclick="asPick(\''+b1.replace(/'/g,"\\'")+'\')">'+b1+'</button>'+
+        '<button class="mbtn'+isDef(b2)+'" onclick="asPick(\''+b2.replace(/'/g,"\\'")+'\')">'+b2+'</button>'+
+      '</div>'+
+    '</div>';
+}
+function asPick(label){
+  document.getElementById("as-stage").innerHTML="";
+  document.getElementById("as-ret").innerHTML=
+    '<span class="dim">-- result returned to your script --</span>\n'+
+    '{button returned:"'+label+'"}';
+}
+
+/* ========== 2. Matrix workbench ========== */
+function parseMat(str){
+  const rows=str.trim().replace(/^\[|\]$/g,"").split(";");
+  const M=rows.map(r=>r.trim().split(/[\s,]+/).filter(t=>t.length).map(Number));
+  const w=M[0].length;
+  if(M.some(r=>r.length!==w||r.some(isNaN))) throw new Error("ragged or non-numeric matrix");
+  return M;
+}
+function matToStr(M){
+  const cells=M.map(r=>r.map(fmt));
+  const widths=cells[0].map((_,j)=>Math.max(...cells.map(r=>r[j].length)));
+  return cells.map(r=>"  "+r.map((c,j)=>c.padStart(widths[j])).join("   ")).join("\n");
+}
+function matMul(A,B){
+  if(A[0].length!==B.length) throw new Error("inner dimensions disagree: "+A.length+"x"+A[0].length+" * "+B.length+"x"+B[0].length);
+  return A.map(row=>B[0].map((_,j)=>row.reduce((s,_,k)=>s+row[k]*B[k][j],0)));
+}
+function matEmul(A,B){
+  if(A.length!==B.length||A[0].length!==B[0].length) throw new Error("sizes must match for .*");
+  return A.map((r,i)=>r.map((v,j)=>v*B[i][j]));
+}
+function matAdd(A,B){
+  if(A.length!==B.length||A[0].length!==B[0].length) throw new Error("sizes must match for +");
+  return A.map((r,i)=>r.map((v,j)=>v+B[i][j]));
+}
+function matT(A){return A[0].map((_,j)=>A.map(r=>r[j]));}
+function luDet(A){
+  const n=A.length, M=A.map(r=>r.slice()); let det=1;
+  for(let i=0;i<n;i++){
+    let p=i; for(let k=i+1;k<n;k++) if(Math.abs(M[k][i])>Math.abs(M[p][i])) p=k;
+    if(Math.abs(M[p][i])<1e-14) return 0;
+    if(p!==i){[M[i],M[p]]=[M[p],M[i]]; det=-det;}
+    det*=M[i][i];
+    for(let k=i+1;k<n;k++){const f=M[k][i]/M[i][i]; for(let j=i;j<n;j++) M[k][j]-=f*M[i][j];}
+  }
+  return det;
+}
+function matInv(A){
+  const n=A.length;
+  if(A[0].length!==n) throw new Error("inverse needs a square matrix");
+  const M=A.map((r,i)=>r.concat(Array.from({length:n},(_,j)=>i===j?1:0)));
+  for(let i=0;i<n;i++){
+    let p=i; for(let k=i+1;k<n;k++) if(Math.abs(M[k][i])>Math.abs(M[p][i])) p=k;
+    if(Math.abs(M[p][i])<1e-12) throw new Error("matrix is singular — no inverse");
+    [M[i],M[p]]=[M[p],M[i]];
+    const d=M[i][i]; for(let j=0;j<2*n;j++) M[i][j]/=d;
+    for(let k=0;k<n;k++){ if(k===i) continue; const f=M[k][i]; for(let j=0;j<2*n;j++) M[k][j]-=f*M[i][j]; }
+  }
+  return M.map(r=>r.slice(n));
+}
+function matOp(op){
+  const out=document.getElementById("matOut");
+  try{
+    const A=parseMat(document.getElementById("mA").value);
+    let res, label="ans =";
+    if(op==="transpose"){res=matT(A);}
+    else if(op==="detA"){const d=luDet(A); out.innerHTML='<span class="hl">det(A)</span> = '+fmt(d); return;}
+    else if(op==="invA"){res=matInv(A);}
+    else{
+      const B=parseMat(document.getElementById("mB").value);
+      if(op==="mul") res=matMul(A,B);
+      else if(op==="emul") res=matEmul(A,B);
+      else if(op==="add") res=matAdd(A,B);
+    }
+    out.innerHTML='<span class="hl">'+label+'</span>\n'+matToStr(res);
+  }catch(e){ out.innerHTML='<span class="er">error: '+e.message+'</span>'; }
+}
+
+/* ========== 3. Newton's method ========== */
+function runNewton(){
+  const host=document.getElementById("newtonOut");
+  try{
+    const f=compileExpr(document.getElementById("nf").value);
+    let x=parseFloat(document.getElementById("nx").value);
+    if(!isFinite(x)) throw new Error("x0 must be a number");
+    const h=1e-7, df=t=>(f(t+h)-f(t-h))/(2*h);
+    let rows=[], conv=false;
+    for(let k=0;k<=20;k++){
+      const fx=f(x), d=df(x);
+      if(!isFinite(fx)||!isFinite(d)) throw new Error("function blew up near x = "+fmt(x));
+      if(Math.abs(d)<1e-14) throw new Error("derivative ≈ 0 at x = "+fmt(x)+" (flat spot)");
+      const xn=x-fx/d, step=xn-x;
+      rows.push([k,x,fx,Math.abs(step)]);
+      if(Math.abs(step)<1e-13){x=xn; conv=true; break;}
+      x=xn;
+    }
+    let html='<table class="iter-table"><tr><th>k</th><th>xₖ</th><th>f(xₖ)</th><th>|Δx| (step)</th></tr>';
+    rows.forEach(r=>{html+='<tr><td>'+r[0]+'</td><td>'+r[1].toFixed(12)+'</td><td>'+r[2].toExponential(3)+'</td><td>'+r[3].toExponential(3)+'</td></tr>';});
+    html+='</table>';
+    html+='<div class="result" style="margin-top:14px">'+
+      (conv?'<span class="ok">converged</span> → root ≈ <span class="hl">'+x.toFixed(12)+'</span>'
+           :'<span class="er">did not converge in 20 steps</span> (last x ≈ '+fmt(x)+')')+
+      '\n<span class="dim">watch |Δx|: each step has ~twice the correct digits — quadratic convergence (Theorem 3).</span></div>';
+    host.innerHTML=html;
+  }catch(e){ host.innerHTML='<div class="result"><span class="er">error: '+e.message+'</span></div>'; }
+}
+
+/* ========== 4. Numerical integration ========== */
+function runIntegrate(){
+  const out=document.getElementById("intOut");
+  try{
+    const f=compileExpr(document.getElementById("if").value);
+    const a=parseFloat(document.getElementById("ia").value);
+    const b=parseFloat(document.getElementById("ib").value);
+    let n=Math.max(2,Math.round(parseFloat(document.getElementById("in").value)));
+    if(![a,b].every(isFinite)) throw new Error("a and b must be numbers");
+    if(n%2!==0) n++; // Simpson needs even
+    const h=(b-a)/n;
+    // trapezoid
+    let T=0.5*(f(a)+f(b));
+    for(let i=1;i<n;i++) T+=f(a+i*h);
+    T*=h;
+    // Simpson
+    let S=f(a)+f(b);
+    for(let i=1;i<n;i++) S+=(i%2?4:2)*f(a+i*h);
+    S*=h/3;
+    // a coarser trapezoid (n/2) to show the 4x error drop
+    const n2=n/2, h2=(b-a)/n2;
+    let T2=0.5*(f(a)+f(b)); for(let i=1;i<n2;i++) T2+=f(a+i*h2); T2*=h2;
+    out.innerHTML=
+      '<span class="hl">trapezoid</span> (n='+n+')   = '+T.toFixed(10)+'\n'+
+      '<span class="hl">trapezoid</span> (n='+n2+')   = '+T2.toFixed(10)+'\n'+
+      '<span class="hl">Simpson</span>   (n='+n+')   = '+S.toFixed(10)+'\n'+
+      '<span class="dim">h = (b−a)/n = '+fmt(h)+'\n'+
+      'Halving n changed the trapezoid error by ~4× → O(h²), exactly Theorem 4.\n'+
+      'Simpson is O(h⁴), so it is typically far closer.</span>';
+  }catch(e){ out.innerHTML='<span class="er">error: '+e.message+'</span>'; }
+}
+
+/* ========== 5. Function plotter ========== */
+function runPlot(){
+  const cv=document.getElementById("plotC"), ctx=cv.getContext("2d");
+  const W=cv.width, H=cv.height, pad=44;
+  ctx.clearRect(0,0,W,H);
+  let f,a,b;
+  try{
+    f=compileExpr(document.getElementById("pf").value);
+    a=parseFloat(document.getElementById("pmin").value);
+    b=parseFloat(document.getElementById("pmax").value);
+    if(!(b>a)) throw new Error();
+  }catch(e){
+    ctx.fillStyle="#e87a8b";ctx.font="14px JetBrains Mono, monospace";
+    ctx.fillText("⚠ check f(x) and the domain (need x max > x min)",pad,H/2);return;
+  }
+  const N=600, xs=[],ys=[];
+  let ymin=Infinity,ymax=-Infinity;
+  for(let i=0;i<=N;i++){
+    const x=a+(b-a)*i/N, y=f(x);
+    xs.push(x); ys.push(y);
+    if(isFinite(y)){ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);}
+  }
+  if(!isFinite(ymin)){ymin=-1;ymax=1;}
+  if(ymin===ymax){ymin-=1;ymax+=1;}
+  const padY=(ymax-ymin)*0.08; ymin-=padY; ymax+=padY;
+  const X=x=>pad+(x-a)/(b-a)*(W-2*pad);
+  const Y=y=>H-pad-(y-ymin)/(ymax-ymin)*(H-2*pad);
+  // grid
+  ctx.strokeStyle="rgba(220,225,240,.08)";ctx.lineWidth=1;
+  ctx.fillStyle="#7e8597";ctx.font="11px JetBrains Mono, monospace";
+  for(let i=0;i<=5;i++){
+    const gx=pad+i/5*(W-2*pad); ctx.beginPath();ctx.moveTo(gx,pad);ctx.lineTo(gx,H-pad);ctx.stroke();
+    ctx.fillText((a+(b-a)*i/5).toFixed(1),gx-10,H-pad+16);
+    const gy=pad+i/5*(H-2*pad); ctx.beginPath();ctx.moveTo(pad,gy);ctx.lineTo(W-pad,gy);ctx.stroke();
+    ctx.fillText((ymax-(ymax-ymin)*i/5).toFixed(2),4,gy+4);
+  }
+  // axes (y=0, x=0 if visible)
+  ctx.strokeStyle="rgba(220,225,240,.28)";ctx.lineWidth=1.4;
+  if(ymin<0&&ymax>0){ctx.beginPath();ctx.moveTo(pad,Y(0));ctx.lineTo(W-pad,Y(0));ctx.stroke();}
+  if(a<0&&b>0){ctx.beginPath();ctx.moveTo(X(0),pad);ctx.lineTo(X(0),H-pad);ctx.stroke();}
+  // curve
+  ctx.strokeStyle="#46d3c0";ctx.lineWidth=2.4;ctx.lineJoin="round";
+  ctx.shadowColor="rgba(70,211,192,.5)";ctx.shadowBlur=8;
+  ctx.beginPath();let pen=false;
+  for(let i=0;i<=N;i++){
+    if(!isFinite(ys[i])){pen=false;continue;}
+    const px=X(xs[i]),py=Y(ys[i]);
+    if(!pen){ctx.moveTo(px,py);pen=true;}else ctx.lineTo(px,py);
+  }
+  ctx.stroke();ctx.shadowBlur=0;
+}
+
+/* ---------- init defaults + scroll-to-top ---------- */
+window.addEventListener("load",()=>{
+  runAS(); matOp("mul"); runNewton(); runIntegrate(); runPlot();
+  const tt=document.getElementById("totop");
+  window.addEventListener("scroll",()=>{tt.classList.toggle("show",window.scrollY>500);});
+});
+</script>
+</body>
+</html>

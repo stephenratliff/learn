@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events, Canvas &amp; Paint App — perl_gui_03_events_canvas.pl</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root{--bg:#09090f;--bg-card:#0f0f1c;--bg-code:#0c0c18;--border:#1e1e30;--amber:#f0a030;--amber-dim:#b87820;--amber-glow:#f0a03018;--text:#e2d9c8;--text-dim:#9b9380;--text-muted:#5a5448;--accent:#4db8ff;--green:#6fcf97;--red:#eb5757;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:1.75;}
+.topnav{background:#06060d;border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topnav-brand{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--amber);}
+.topnav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);text-decoration:none;transition:all .15s;}
+.nav-link:hover{color:var(--amber);border-color:var(--amber-dim);}
+.nav-link.current{color:var(--amber);border-color:var(--amber);background:var(--amber-glow);}
+.wrapper{max-width:1040px;margin:0 auto;padding:48px 32px 100px;display:grid;grid-template-columns:1fr 260px;gap:48px;align-items:start;}
+@media(max-width:820px){.wrapper{grid-template-columns:1fr;}.toc-panel{display:none;}}
+.toc-panel{position:sticky;top:72px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:20px;}
+.toc-panel h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;}
+.toc-list{list-style:none;}
+.toc-list a{font-size:12px;color:var(--text-dim);text-decoration:none;font-family:'JetBrains Mono',monospace;display:block;padding:4px 6px;border-radius:2px;border-left:2px solid transparent;transition:all .12s;}
+.toc-list a:hover,.toc-list a.active{color:var(--amber);border-left-color:var(--amber);background:var(--amber-glow);}
+.page-hero{margin-bottom:36px;padding-bottom:26px;border-bottom:1px solid var(--border);}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.page-hero h1{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,42px);font-weight:900;line-height:1.15;color:var(--text);margin-bottom:8px;}
+.page-hero h1 em{font-style:italic;color:var(--amber);}
+.page-hero .sub{font-style:italic;color:var(--text-dim);font-size:15.5px;font-weight:300;margin-bottom:14px;}
+.file-badge{display:inline-flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);padding:7px 14px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);}
+.file-badge span{color:var(--amber);}
+.teaches-box{background:var(--bg-card);border:1px solid var(--border);border-top:3px solid var(--amber);padding:18px 22px;margin:20px 0;border-radius:0 0 4px 4px;}
+.teaches-box h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.teaches-box ul{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.teaches-box li{font-size:12.5px;color:var(--text-dim);padding:3px 0;font-family:'JetBrains Mono',monospace;}
+.teaches-box li::before{content:"→ ";color:var(--amber-dim);}
+@media(max-width:700px){.teaches-box ul{grid-template-columns:1fr;}}
+.src-header{margin:28px 0 12px;display:flex;align-items:center;justify-content:space-between;}
+.src-header h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);}
+.code-block{position:relative;margin:0;border-radius:5px;overflow:hidden;border:1px solid var(--border);background:var(--bg-code);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#0a0a14;border-bottom:1px solid var(--border);}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase;}
+.code-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);}
+.copy-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .15s;}
+.copy-btn:hover{color:var(--amber);border-color:var(--amber-dim);}
+.copy-btn.copied{color:var(--green);border-color:var(--green);}
+.code-block pre[class*="language-"]{margin:0;padding:20px 22px;background:transparent !important;font-size:12.5px;line-height:1.65;overflow-x:auto;max-height:none;}
+.code-block code[class*="language-"]{font-family:'JetBrains Mono',monospace !important;}
+.token.comment,.token.prolog{color:#6a7a5a !important;font-style:italic;}
+.token.keyword{color:#f0a030 !important;font-weight:500;}
+.token.string,.token.char{color:#a8d8a0 !important;}
+.token.number{color:#a8c4e0 !important;}
+.token.operator{color:#d4c090 !important;}
+.token.function{color:#8fbce0 !important;}
+.token.variable{color:#e0b87a !important;}
+.token.regex{color:#d4a0c8 !important;}
+.token.punctuation{color:#6a7080 !important;}
+code:not([class]){font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--bg-card);color:var(--amber);padding:2px 6px;border-radius:3px;border:1px solid var(--border);}
+.callout{padding:13px 17px;border-radius:3px;border-left:3px solid;margin:20px 0;font-size:14.5px;}
+.callout.tip{background:#081510;border-color:var(--green);color:#90c890;}
+.callout strong{color:inherit;}
+a{color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber-dim);}
+a:hover{border-color:var(--amber);}
+.nav-bottom{display:flex;gap:12px;margin-top:40px;}
+.nav-bottom a{background:var(--bg-card);border:1px solid var(--border) !important;color:var(--text-dim) !important;padding:10px 18px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;transition:all .15s;}
+.nav-bottom a:hover{border-color:var(--amber-dim) !important;color:var(--amber) !important;}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <span class="topnav-brand">The Perl Guide</span>
+  <div class="topnav-links">
+    <a class="nav-link" href="perl_guide.html">↑ Guide</a>
+    <a class="nav-link" href="perl_tutorial.html">01 · Core</a>
+    <a class="nav-link" href="perl_gui_01_basics.html">02 · Basics</a>
+    <a class="nav-link" href="perl_gui_02_widgets.html">03 · Widgets</a>
+    <a class="nav-link" href="perl_gui_03_events_canvas.html">04 · Events</a>
+    <a class="nav-link" href="perl_gui_04_app.html">05 · App</a>
+  </div>
+</nav>
+<div class="wrapper">
+<main>
+<header class="page-hero">
+  <div class="eyebrow">Tutorial 04 — Events &amp; Canvas</div>
+  <h1>Events, Canvas &amp; <em>Paint</em></h1>
+  <p class="sub">A fully-working paint application teaching mouse and keyboard event binding, after() timers, menus with radio/checkbutton items, file and color dialogs, and all Canvas drawing primitives.</p>
+  <div class="file-badge">▶ <span>perl perl_gui_03_events_canvas.pl</span></div>
+</header>
+<div class="teaches-box">
+  <h4>What This Tutorial Covers</h4>
+  <ul>
+    <li>bind() — attach callbacks to mouse and keyboard events</li>
+    <li>XEvent — read x/y coordinates from event objects</li>
+    <li>Button-1 Button-3 Motion KeyPress event names</li>
+    <li>Meta (⌘ Command) key bindings for macOS</li>
+    <li>after() repeating timer — animated live clock</li>
+    <li>Full menubar with cascade, command, separator</li>
+    <li>Radiobutton and Checkbutton items inside a menu</li>
+    <li>Context (right-click popup) menu</li>
+    <li>File open dialog with filetypes filter</li>
+    <li>chooseColor — color picker dialog</li>
+    <li>Canvas createLine createRectangle createOval createText</li>
+    <li>Canvas item tags for bulk operations</li>
+    <li>Undo stack — delete canvas items by ID</li>
+    <li>WM_DELETE_WINDOW — intercept the close button</li>
+  </ul>
+</div>
+<div class="src-header">
+  <h2>Full Source: perl_gui_03_events_canvas.pl</h2>
+</div>
+<div class="code-block">
+  <div class="code-header">
+    <span class="code-lang">perl</span>
+    <span class="code-meta">perl_gui_03_events_canvas.pl</span>
+    <button class="copy-btn" onclick="copyCode(this)">copy all</button>
+  </div>
+<pre><code class="language-perl">#!/usr/bin/env perl
+# =============================================================================
+#  perl_gui_03_events_canvas.pl  —  GUI Tutorial Part 3: Events &amp; Canvas
+#  Companion to: perl_mac_guide.md  Sections 25–27
+#
+#  Run with:  perl perl_gui_03_events_canvas.pl
+#  Requires:  Perl/Tk  (cpanm Tk)
+#
+#  This file teaches:
+#    • bind() — keyboard and mouse events
+#    • Modifier keys (Ctrl, Shift, Meta/Cmd on macOS)
+#    • after() timers — animated clock
+#    • Menu bar and context (right-click) menus
+#    • File open/save/color dialogs
+#    • Canvas widget — drawing shapes, text, and images
+#    • A mini paint application combining all of the above
+# =============================================================================
+use strict;
+use warnings;
+use Tk;
+use Tk::Canvas;
+use Tk::Menu;
+
+# =============================================================================
+# Application State
+# =============================================================================
+my $current_tool    = "pencil";   # pencil | line | rect | oval | text
+my $current_color   = "#007aff";
+my $current_width   = 3;
+my $status_text     = "Ready — Select a tool and draw on the canvas";
+my $clock_text      = "";
+my @undo_stack      = ();          # Stores canvas item IDs for undo
+
+# Drawing state
+my ($start_x, $start_y) = (0, 0);
+my $current_item    = undef;
+my @pencil_points   = ();
+
+# =============================================================================
+# Main Window
+# =============================================================================
+my $mw = MainWindow-&gt;new;
+$mw-&gt;title("Perl/Tk Paint — Events &amp; Canvas Tutorial");
+$mw-&gt;geometry("800x650+60+30");
+$mw-&gt;configure(-background =&gt; "#1c1c1e");
+$mw-&gt;protocol("WM_DELETE_WINDOW", sub {
+    my $ans = $mw-&gt;messageBox(
+        -title   =&gt; "Quit?",
+        -message =&gt; "Exit the paint application?",
+        -type    =&gt; "YesNo",
+        -icon    =&gt; "question",
+    );
+    exit if $ans eq "Yes";
+});
+
+# =============================================================================
+# Menu Bar  (Section 26)
+# =============================================================================
+my $menubar = $mw-&gt;Menu;
+$mw-&gt;configure(-menu =&gt; $menubar);
+
+# File menu
+my $file_menu = $menubar-&gt;cascade(-label =&gt; "File", -underline =&gt; 0, -tearoff =&gt; 0);
+$file_menu-&gt;command(-label =&gt; "New Canvas",   -accelerator =&gt; "Cmd+N", -command =&gt; \&amp;new_canvas);
+$file_menu-&gt;command(-label =&gt; "Open Image…",  -accelerator =&gt; "Cmd+O", -command =&gt; \&amp;open_image);
+$file_menu-&gt;separator;
+$file_menu-&gt;command(-label =&gt; "Quit",         -accelerator =&gt; "Cmd+Q", -command =&gt; sub { exit });
+
+# Edit menu
+my $edit_menu = $menubar-&gt;cascade(-label =&gt; "Edit", -underline =&gt; 0, -tearoff =&gt; 0);
+$edit_menu-&gt;command(-label =&gt; "Undo",    -accelerator =&gt; "Cmd+Z", -command =&gt; \&amp;undo_last);
+$edit_menu-&gt;command(-label =&gt; "Clear All",-command =&gt; \&amp;clear_canvas);
+
+# Tools menu
+my $tools_menu = $menubar-&gt;cascade(-label =&gt; "Tools", -underline =&gt; 0, -tearoff =&gt; 0);
+$tools_menu-&gt;radiobutton(-label =&gt; "Pencil",    -value =&gt; "pencil",    -variable =&gt; \$current_tool);
+$tools_menu-&gt;radiobutton(-label =&gt; "Line",      -value =&gt; "line",      -variable =&gt; \$current_tool);
+$tools_menu-&gt;radiobutton(-label =&gt; "Rectangle", -value =&gt; "rect",      -variable =&gt; \$current_tool);
+$tools_menu-&gt;radiobutton(-label =&gt; "Oval",      -value =&gt; "oval",      -variable =&gt; \$current_tool);
+$tools_menu-&gt;radiobutton(-label =&gt; "Text",      -value =&gt; "text",      -variable =&gt; \$current_tool);
+
+# Colors menu
+my $colors_menu = $menubar-&gt;cascade(-label =&gt; "Colors", -tearoff =&gt; 0);
+for my $pair (
+    ["Blue",   "#007aff"], ["Red",    "#ff3b30"], ["Green",  "#34c759"],
+    ["Purple", "#5856d6"], ["Orange", "#ff9500"], ["Black",  "#000000"],
+    ["White",  "#ffffff"], ["Pick…",  "picker"  ],
+) {
+    my ($label, $val) = @$pair;
+    if ($val eq "picker") {
+        $colors_menu-&gt;command(-label =&gt; $label, -command =&gt; \&amp;pick_color);
+    } else {
+        $colors_menu-&gt;command(-label =&gt; $label, -command =&gt; sub { $current_color = $val; update_status() });
+    }
+}
+
+# =============================================================================
+# Toolbar
+# =============================================================================
+my $toolbar = $mw-&gt;Frame(
+    -background  =&gt; "#2c2c2e",
+    -relief      =&gt; "flat",
+    -borderwidth =&gt; 0,
+)-&gt;pack(-fill =&gt; "x");
+
+# Tool buttons
+my @tools = (
+    ["✏",  "pencil",  "Pencil (freehand)"],
+    ["╱",  "line",    "Line"],
+    ["▭",  "rect",    "Rectangle"],
+    ["○",  "oval",    "Oval"],
+    ["T",  "text",    "Text"],
+);
+
+for my $t (@tools) {
+    my ($icon, $tool, $tip) = @$t;
+    $toolbar-&gt;Button(
+        -text             =&gt; $icon,
+        -font             =&gt; "Helvetica 14",
+        -background       =&gt; "#2c2c2e",
+        -foreground       =&gt; "white",
+        -activebackground =&gt; "#007aff",
+        -activeforeground =&gt; "white",
+        -relief           =&gt; "flat",
+        -padx             =&gt; 12, -pady =&gt; 6,
+        -command          =&gt; sub { $current_tool = $tool; update_status() },
+    )-&gt;pack(-side =&gt; "left");
+}
+
+$toolbar-&gt;Label(-text =&gt; "|", -foreground =&gt; "#555", -background =&gt; "#2c2c2e"
+               )-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+# Color swatches in toolbar
+for my $color ("#007aff", "#ff3b30", "#34c759", "#5856d6", "#ff9500", "#ffffff", "#000000") {
+    $toolbar-&gt;Button(
+        -background       =&gt; $color,
+        -activebackground =&gt; $color,
+        -width            =&gt; 2,
+        -relief           =&gt; "flat",
+        -padx             =&gt; 4, -pady =&gt; 6,
+        -command          =&gt; sub { $current_color = $color; update_status() },
+    )-&gt;pack(-side =&gt; "left", -padx =&gt; 1);
+}
+
+$toolbar-&gt;Button(
+    -text             =&gt; "⊕ Color",
+    -font             =&gt; "Helvetica 10",
+    -background       =&gt; "#2c2c2e",
+    -foreground       =&gt; "#aaaaaa",
+    -activebackground =&gt; "#3a3a3c",
+    -relief           =&gt; "flat",
+    -padx             =&gt; 6, -pady =&gt; 6,
+    -command          =&gt; \&amp;pick_color,
+)-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+$toolbar-&gt;Label(-text =&gt; "|", -foreground =&gt; "#555", -background =&gt; "#2c2c2e"
+               )-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+# Brush size
+$toolbar-&gt;Label(-text =&gt; "Size:", -font =&gt; "Helvetica 10",
+                -foreground =&gt; "#aaaaaa", -background =&gt; "#2c2c2e"
+               )-&gt;pack(-side =&gt; "left");
+$toolbar-&gt;Scale(
+    -from       =&gt; 1,
+    -to         =&gt; 20,
+    -orient     =&gt; "horizontal",
+    -variable   =&gt; \$current_width,
+    -length     =&gt; 80,
+    -showvalue  =&gt; 0,
+    -background =&gt; "#2c2c2e",
+    -foreground =&gt; "white",
+    -troughcolor=&gt; "#555",
+)-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+
+# Undo and Clear
+$toolbar-&gt;Label(-text =&gt; "|", -foreground =&gt; "#555", -background =&gt; "#2c2c2e"
+               )-&gt;pack(-side =&gt; "left", -padx =&gt; 4);
+$toolbar-&gt;Button(-text =&gt; "↩ Undo", -font =&gt; "Helvetica 10",
+                 -background =&gt; "#2c2c2e", -foreground =&gt; "#aaaaaa",
+                 -activebackground =&gt; "#3a3a3c", -relief =&gt; "flat",
+                 -padx =&gt; 6, -pady =&gt; 6,
+                 -command =&gt; \&amp;undo_last)-&gt;pack(-side =&gt; "left", -padx =&gt; 2);
+$toolbar-&gt;Button(-text =&gt; "✕ Clear", -font =&gt; "Helvetica 10",
+                 -background =&gt; "#2c2c2e", -foreground =&gt; "#ff453a",
+                 -activebackground =&gt; "#3a3a3c", -relief =&gt; "flat",
+                 -padx =&gt; 6, -pady =&gt; 6,
+                 -command =&gt; \&amp;clear_canvas)-&gt;pack(-side =&gt; "left", -padx =&gt; 2);
+
+# Clock label (right side of toolbar)
+$toolbar-&gt;Label(
+    -textvariable     =&gt; \$clock_text,
+    -font             =&gt; "Courier 11",
+    -foreground       =&gt; "#aaaaaa",
+    -background       =&gt; "#2c2c2e",
+)-&gt;pack(-side =&gt; "right", -padx =&gt; 10);
+
+# =============================================================================
+# Canvas (Section 27)
+# =============================================================================
+my $canvas = $mw-&gt;Canvas(
+    -background =&gt; "white",
+    -cursor     =&gt; "crosshair",
+)-&gt;pack(-fill =&gt; "both", -expand =&gt; 1);
+
+# =============================================================================
+# Status Bar
+# =============================================================================
+my $status_bar = $mw-&gt;Frame(-background =&gt; "#2c2c2e", -height =&gt; 24)-&gt;pack(
+    -fill =&gt; "x", -side =&gt; "bottom"
+);
+$status_bar-&gt;Label(
+    -textvariable =&gt; \$status_text,
+    -font         =&gt; "Helvetica 10",
+    -foreground   =&gt; "#aaaaaa",
+    -background   =&gt; "#2c2c2e",
+    -anchor       =&gt; "w",
+)-&gt;pack(-side =&gt; "left", -padx =&gt; 10);
+
+my $coord_text = "";
+$status_bar-&gt;Label(
+    -textvariable =&gt; \$coord_text,
+    -font         =&gt; "Courier 10",
+    -foreground   =&gt; "#555555",
+    -background   =&gt; "#2c2c2e",
+)-&gt;pack(-side =&gt; "right", -padx =&gt; 10);
+
+# =============================================================================
+# Canvas Event Bindings  (Section 25)
+# =============================================================================
+
+# Mouse press — start drawing
+$canvas-&gt;bind("&lt;Button-1&gt;", \&amp;on_mouse_press);
+
+# Mouse drag — continue drawing
+$canvas-&gt;bind("&lt;B1-Motion&gt;", \&amp;on_mouse_drag);
+
+# Mouse release — finish shape
+$canvas-&gt;bind("&lt;ButtonRelease-1&gt;", \&amp;on_mouse_release);
+
+# Track mouse position for status bar
+$canvas-&gt;bind("&lt;Motion&gt;", sub {
+    my $e = $canvas-&gt;XEvent;
+    $coord_text = sprintf("x: %4d  y: %4d", $e-&gt;x, $e-&gt;y);
+});
+
+# Right-click context menu
+my $ctx_menu = $mw-&gt;Menu(-tearoff =&gt; 0);
+$ctx_menu-&gt;command(-label =&gt; "Undo Last",  -command =&gt; \&amp;undo_last);
+$ctx_menu-&gt;command(-label =&gt; "Clear All",  -command =&gt; \&amp;clear_canvas);
+$ctx_menu-&gt;separator;
+$ctx_menu-&gt;command(-label =&gt; "Pick Color…", -command =&gt; \&amp;pick_color);
+
+$canvas-&gt;bind("&lt;Button-3&gt;", sub {
+    my $e = $canvas-&gt;XEvent;
+    $ctx_menu-&gt;popup($e-&gt;X, $e-&gt;Y);
+});
+
+# =============================================================================
+# Keyboard Shortcuts  (Section 25)
+# =============================================================================
+# macOS Command key = Meta in Perl/Tk
+$mw-&gt;bind("&lt;Meta-z&gt;",  \&amp;undo_last);
+$mw-&gt;bind("&lt;Meta-n&gt;",  \&amp;new_canvas);
+$mw-&gt;bind("&lt;Meta-q&gt;",  sub { exit });
+$mw-&gt;bind("&lt;Escape&gt;",  sub { $current_tool = "pencil"; update_status() });
+
+# Tool hotkeys
+$mw-&gt;bind("&lt;p&gt;", sub { $current_tool = "pencil"; update_status() });
+$mw-&gt;bind("&lt;l&gt;", sub { $current_tool = "line";   update_status() });
+$mw-&gt;bind("&lt;r&gt;", sub { $current_tool = "rect";   update_status() });
+$mw-&gt;bind("&lt;o&gt;", sub { $current_tool = "oval";   update_status() });
+$mw-&gt;bind("&lt;t&gt;", sub { $current_tool = "text";   update_status() });
+
+# =============================================================================
+# after() Timer — Animated Clock  (Section 25)
+# =============================================================================
+# after() schedules a callback. By rescheduling itself inside the callback,
+# we create a repeating timer without blocking the event loop.
+sub tick_clock {
+    $clock_text = scalar localtime();
+    $mw-&gt;after(1000, \&amp;tick_clock);   # Re-schedule after 1 second
+}
+tick_clock();   # Start the clock
+
+# =============================================================================
+# Draw a welcome message on the canvas
+# =============================================================================
+$mw-&gt;after(100, sub {
+    my $w = $canvas-&gt;width;
+    my $h = $canvas-&gt;height;
+    $canvas-&gt;createText($w/2, $h/2 - 30,
+        -text   =&gt; "Perl/Tk Canvas",
+        -font   =&gt; "Helvetica 28 bold",
+        -fill   =&gt; "#e0e0e0",
+        -anchor =&gt; "center",
+    );
+    $canvas-&gt;createText($w/2, $h/2 + 10,
+        -text   =&gt; "Select a tool from the toolbar and start drawing!",
+        -font   =&gt; "Helvetica 12",
+        -fill   =&gt; "#cccccc",
+        -anchor =&gt; "center",
+    );
+    $canvas-&gt;createText($w/2, $h/2 + 35,
+        -text   =&gt; "Hotkeys: p=pencil  l=line  r=rect  o=oval  t=text  Cmd+Z=undo",
+        -font   =&gt; "Helvetica 10",
+        -fill   =&gt; "#aaaaaa",
+        -anchor =&gt; "center",
+    );
+});
+
+# =============================================================================
+# Drawing Callbacks
+# =============================================================================
+sub on_mouse_press {
+    my $e = $canvas-&gt;XEvent;
+    ($start_x, $start_y) = ($e-&gt;x, $e-&gt;y);
+    @pencil_points = ($start_x, $start_y);
+    $current_item  = undef;
+
+    if ($current_tool eq "text") {
+        # For text tool, ask for input
+        my $txt = "";
+        my $dlg = $mw-&gt;Toplevel;
+        $dlg-&gt;title("Add Text");
+        $dlg-&gt;geometry("280x110");
+        $dlg-&gt;transient($mw);
+        $dlg-&gt;grab;
+        $dlg-&gt;Label(-text =&gt; "Enter text to place at ($start_x, $start_y):"
+                   )-&gt;pack(-padx =&gt; 10, -pady =&gt; 8);
+        $dlg-&gt;Entry(-textvariable =&gt; \$txt, -width =&gt; 30, -font =&gt; "Helvetica 11"
+                   )-&gt;pack(-padx =&gt; 10);
+        $dlg-&gt;Frame-&gt;pack(-pady =&gt; 3);
+        $dlg-&gt;Button(
+            -text    =&gt; "Place",
+            -command =&gt; sub {
+                if ($txt) {
+                    my $id = $canvas-&gt;createText($start_x, $start_y,
+                        -text   =&gt; $txt,
+                        -font   =&gt; "Helvetica " . ($current_width * 3 + 8) . " bold",
+                        -fill   =&gt; $current_color,
+                        -anchor =&gt; "nw",
+                    );
+                    push @undo_stack, $id;
+                }
+                $dlg-&gt;destroy;
+            },
+        )-&gt;pack;
+        $dlg-&gt;waitWindow;
+    }
+}
+
+sub on_mouse_drag {
+    my $e  = $canvas-&gt;XEvent;
+    my ($x, $y) = ($e-&gt;x, $e-&gt;y);
+
+    if ($current_tool eq "pencil") {
+        # Freehand: add point to the polyline
+        push @pencil_points, ($x, $y);
+        if ($current_item) { $canvas-&gt;delete($current_item) }
+        $current_item = $canvas-&gt;createLine(
+            @pencil_points,
+            -fill    =&gt; $current_color,
+            -width   =&gt; $current_width,
+            -capstyle =&gt; "round",
+            -joinstyle =&gt; "round",
+            -smooth  =&gt; 1,
+        );
+    } elsif ($current_tool eq "line") {
+        if ($current_item) { $canvas-&gt;delete($current_item) }
+        $current_item = $canvas-&gt;createLine(
+            $start_x, $start_y, $x, $y,
+            -fill  =&gt; $current_color,
+            -width =&gt; $current_width,
+            -arrow =&gt; "none",
+        );
+    } elsif ($current_tool eq "rect") {
+        if ($current_item) { $canvas-&gt;delete($current_item) }
+        $current_item = $canvas-&gt;createRectangle(
+            $start_x, $start_y, $x, $y,
+            -outline =&gt; $current_color,
+            -width   =&gt; $current_width,
+            -fill    =&gt; "",
+        );
+    } elsif ($current_tool eq "oval") {
+        if ($current_item) { $canvas-&gt;delete($current_item) }
+        $current_item = $canvas-&gt;createOval(
+            $start_x, $start_y, $x, $y,
+            -outline =&gt; $current_color,
+            -width   =&gt; $current_width,
+            -fill    =&gt; "",
+        );
+    }
+}
+
+sub on_mouse_release {
+    push @undo_stack, $current_item if $current_item;
+    $current_item  = undef;
+    @pencil_points = ();
+}
+
+# =============================================================================
+# Canvas Operations
+# =============================================================================
+sub undo_last {
+    if (@undo_stack) {
+        my $id = pop @undo_stack;
+        $canvas-&gt;delete($id);
+        update_status("Undo: removed item $id");
+    } else {
+        update_status("Nothing to undo.");
+    }
+}
+
+sub clear_canvas {
+    my $ans = $mw-&gt;messageBox(
+        -title   =&gt; "Clear Canvas",
+        -message =&gt; "Clear all drawings?",
+        -type    =&gt; "YesNo",
+        -icon    =&gt; "question",
+    );
+    if ($ans eq "Yes") {
+        $canvas-&gt;delete("all");
+        @undo_stack = ();
+        update_status("Canvas cleared.");
+    }
+}
+
+sub new_canvas {
+    clear_canvas();
+}
+
+sub open_image {
+    # File open dialog (Section 26)
+    my $file = $mw-&gt;getOpenFile(
+        -title      =&gt; "Open Image",
+        -initialdir =&gt; $ENV{HOME} // ".",
+        -filetypes  =&gt; [
+            ["PNG Images", ".png"],
+            ["GIF Images", ".gif"],
+            ["All Files",  "*"],
+        ],
+    );
+    return unless $file;
+
+    eval {
+        my $photo = $mw-&gt;Photo(-file =&gt; $file);
+        my $id    = $canvas-&gt;createImage(20, 20, -image =&gt; $photo, -anchor =&gt; "nw");
+        push @undo_stack, $id;
+        update_status("Opened: $file");
+    };
+    if ($@) {
+        $mw-&gt;messageBox(
+            -title   =&gt; "Error",
+            -message =&gt; "Could not load image:\n$@",
+            -type    =&gt; "OK",
+            -icon    =&gt; "error",
+        );
+    }
+}
+
+sub pick_color {
+    # Color chooser dialog (Section 26)
+    my $chosen = $mw-&gt;chooseColor(
+        -title        =&gt; "Pick Drawing Color",
+        -initialcolor =&gt; $current_color,
+    );
+    if ($chosen) {
+        $current_color = $chosen;
+        update_status("Color set to $current_color");
+    }
+}
+
+sub update_status {
+    my ($msg) = @_;
+    my $tool_names = { pencil =&gt; "Pencil ✏", line =&gt; "Line ╱", rect =&gt; "Rect ▭",
+                       oval =&gt; "Oval ○", text =&gt; "Text T" };
+    my $tname = $tool_names-&gt;{$current_tool} // $current_tool;
+    $status_text = ($msg // "") . "   Tool: $tname   Color: $current_color   Width: $current_width";
+}
+
+update_status();
+
+# =============================================================================
+# Main Loop
+# =============================================================================
+MainLoop;
+</code></pre>
+</div>
+<div class="callout tip">
+  <strong>Run it:</strong> Save the <code>.pl</code> file and run <code>perl perl_gui_03_events_canvas.pl</code> on your Mac. A window will appear — experiment with it as you read the source above.
+</div>
+<nav class="nav-bottom">
+  <a href="perl_gui_02_widgets.html">← 03 · Widgets</a>
+  <a href="perl_gui_04_app.html">05 · App →</a>
+</nav>
+</main>
+<aside class="toc-panel">
+  <h4>In This File</h4>
+  <ul class="toc-list">
+    <li><a href="#state">App State</a></li>
+    <li><a href="#menubar">Menu Bar</a></li>
+    <li><a href="#toolbar">Toolbar</a></li>
+    <li><a href="#canvas">Canvas Widget</a></li>
+    <li><a href="#events">Event Bindings</a></li>
+    <li><a href="#keyboard">Keyboard Shortcuts</a></li>
+    <li><a href="#timer">after() Timer</a></li>
+    <li><a href="#drawing">Drawing Callbacks</a></li>
+  </ul>
+  <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:8px;letter-spacing:.1em;">PREV / NEXT</div>
+    <a href="perl_gui_02_widgets.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);text-decoration:none;padding:4px 0;border-bottom:none;">← 03 · Widgets</a>
+    <a href="perl_gui_04_app.html" style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);text-decoration:none;padding:4px 0;border-bottom:none;">05 · App →</a>
+  </div>
+</aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-perl.min.js"></script>
+<script>
+function copyCode(btn){const pre=btn.closest('.code-block').querySelector('pre');navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='copy all';btn.classList.remove('copied');},1800);});}
+</script>
+</body>
+</html>

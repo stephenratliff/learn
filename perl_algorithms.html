@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Perl Algorithm Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<style>
+:root{
+  --bg:#15110c; --bg2:#1d1611; --bg3:#100c08; --panel:#231b13;
+  --ink:#ece3d2; --soft:#b1a48d; --faint:#776b58; --line:#2e2519; --line2:#3a2f20;
+  --amber:#e3a64e; --amber-hi:#f6c170; --amber-dim:#9c7635;
+  --sage:#7fb7a2; --rose:#dc8262; --violet:#b196d8;
+  --c-kw:#e3a64e; --c-str:#a9c585; --c-num:#dc8262; --c-com:#766a57;
+  --c-var:#7fb7a2; --c-fn:#edcf94; --c-pun:#b1a48d; --c-builtin:#b196d8;
+  --shadow:0 18px 44px -22px rgba(0,0,0,.85);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,serif; font-size:19px; line-height:1.72;
+  -webkit-font-smoothing:antialiased; font-weight:380;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(900px 600px at 12% -8%, rgba(227,166,78,.16), transparent 60%),
+    radial-gradient(800px 700px at 100% 0%, rgba(127,183,162,.07), transparent 55%);
+}
+body::after{
+  content:""; position:fixed; inset:0; z-index:-2; pointer-events:none; opacity:.5;
+  background-image:radial-gradient(rgba(227,166,78,.05) 1px, transparent 1px);
+  background-size:26px 26px;
+}
+::selection{background:rgba(227,166,78,.28); color:#fff}
+
+/* progress */
+#progress{position:fixed; top:0; left:0; height:3px; width:0;
+  background:linear-gradient(90deg,var(--amber-dim),var(--amber-hi)); z-index:100;
+  box-shadow:0 0 12px rgba(227,166,78,.6)}
+
+/* layout */
+.wrap{display:flex; max-width:1280px; margin:0 auto; gap:0; align-items:flex-start}
+.toc{position:sticky; top:0; align-self:flex-start; flex:0 0 252px; height:100vh;
+  padding:30px 22px 40px; border-right:1px solid var(--line); overflow-y:auto}
+.brand{font-family:"Gloock",serif; font-size:23px; line-height:1.05; color:var(--ink)}
+.brand .sig{color:var(--amber)}
+.brand small{display:block; font-family:"IBM Plex Mono",monospace; font-weight:500;
+  font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--rose); margin-top:10px}
+.toc nav{margin-top:24px; font-size:14px; font-family:"IBM Plex Mono",monospace}
+.toc nav a{display:block; color:var(--soft); text-decoration:none; padding:5px 10px 5px 14px;
+  border-left:2px solid transparent; border-radius:0 6px 6px 0; transition:.16s; line-height:1.4}
+.toc nav a:hover{color:var(--amber); background:rgba(227,166,78,.06)}
+.toc nav a.active{color:var(--amber-hi); border-left-color:var(--amber); background:rgba(227,166,78,.1)}
+.toc nav a.sub{padding-left:26px; font-size:12.5px; color:var(--faint)}
+.toc nav a.sub::before{content:"$ "; color:var(--amber-dim)}
+.toc nav .grp{font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--faint); margin:18px 0 6px 12px}
+.toc-toggle{display:none}
+
+.content{flex:1 1 auto; min-width:0; padding:0 60px 120px; max-width:880px}
+
+/* hero */
+.hero{padding:90px 0 40px; border-bottom:1px solid var(--line); margin-bottom:14px}
+.hero .kicker{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--amber); margin-bottom:22px}
+.hero h1{font-family:"Gloock",serif; font-weight:400; font-size:clamp(42px,7vw,76px);
+  line-height:1.0; letter-spacing:-.01em; margin:0 0 8px; color:var(--ink)}
+.hero h1 .sig{color:var(--amber); font-style:normal}
+.hero .tag{font-size:21px; color:var(--soft); max-width:60ch; margin-top:22px; font-style:italic}
+.hero .sigils{margin-top:34px; font-family:"IBM Plex Mono",monospace; font-size:14px;
+  color:var(--faint); display:flex; gap:18px; flex-wrap:wrap}
+.hero .sigils b{color:var(--sage); font-weight:400}
+.reveal{opacity:0; transform:translateY(16px); transition:opacity .7s ease, transform .7s ease}
+.reveal.in{opacity:1; transform:none}
+
+/* sections + headings */
+section{padding:54px 0 8px; scroll-margin-top:10px}
+h2{font-family:"Gloock",serif; font-weight:400; font-size:34px; line-height:1.1;
+  margin:0 0 18px; letter-spacing:-.005em; display:flex; align-items:baseline; gap:14px}
+h2 .num{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600; letter-spacing:.12em;
+  color:var(--bg); background:var(--amber); padding:5px 10px; border-radius:6px; transform:translateY(-5px)}
+h3{font-family:"Source Serif 4",serif; font-weight:600; font-size:22px; color:var(--amber-hi);
+  margin:34px 0 8px; letter-spacing:.005em}
+h3 .s{color:var(--amber); font-family:"IBM Plex Mono",monospace; font-size:16px}
+p{margin:13px 0}
+.lead{font-size:21px; color:var(--soft); font-style:italic; line-height:1.66}
+em{color:var(--ink)}
+strong{color:var(--amber-hi); font-weight:600}
+a{color:var(--sage)}
+
+/* inline code */
+code:not(pre code){font-family:"IBM Plex Mono",monospace; font-size:.8em; background:var(--bg3);
+  border:1px solid var(--line2); border-radius:5px; padding:1px 6px; color:var(--amber)}
+
+/* code blocks */
+.codeblock{margin:24px 0; border-radius:11px; overflow:hidden; border:1px solid var(--line2);
+  box-shadow:var(--shadow); background:var(--bg3)}
+.codebar{display:flex; align-items:center; gap:12px; padding:9px 14px; background:var(--panel);
+  border-bottom:1px solid var(--line2)}
+.codebar .dots{display:flex; gap:6px}
+.codebar .dots i{width:11px; height:11px; border-radius:50%; display:block}
+.codebar .dots i:nth-child(1){background:#d77f5f}
+.codebar .dots i:nth-child(2){background:#e3a64e}
+.codebar .dots i:nth-child(3){background:#7fb7a2}
+.codebar .fname{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--soft);
+  letter-spacing:.04em; flex:1}
+.codebar .fname b{color:var(--amber); font-weight:600}
+.copy{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--soft); background:transparent;
+  border:1px solid var(--line2); border-radius:6px; padding:3px 11px; cursor:pointer; transition:.15s}
+.copy:hover{color:var(--amber); border-color:var(--amber-dim)}
+pre{margin:0; padding:18px 20px; overflow-x:auto; background:var(--bg3)}
+pre code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.65; white-space:pre; color:var(--ink)}
+
+/* highlight.js -- warm palette */
+.hljs-keyword,.hljs-built_in.hljs-keyword{color:var(--c-kw); font-weight:600}
+.hljs-built_in{color:var(--c-builtin)}
+.hljs-string,.hljs-regexp{color:var(--c-str)}
+.hljs-number{color:var(--c-num)}
+.hljs-comment{color:var(--c-com); font-style:italic}
+.hljs-variable,.hljs-variable.language_{color:var(--c-var)}
+.hljs-title,.hljs-title.function_,.hljs-subst{color:var(--c-fn)}
+.hljs-meta{color:var(--violet)}
+.hljs-punctuation,.hljs-operator{color:var(--c-pun)}
+.hljs-name{color:var(--sage)}
+
+/* boxes */
+.box{margin:24px 0; padding:18px 22px; border-radius:10px; background:var(--bg2);
+  border:1px solid var(--line2); position:relative}
+.box .label{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.14em; text-transform:uppercase; margin-bottom:8px; font-weight:600}
+.box p:first-of-type{margin-top:0} .box p:last-child{margin-bottom:0}
+.def{border-left:4px solid var(--sage)} .def .label{color:var(--sage)}
+.thm{border-left:4px solid var(--amber); background:#211a10} .thm .label{color:var(--amber)}
+.thm .stmt{font-style:italic; color:var(--ink)}
+.proof{border:1px dashed var(--line2); background:transparent; font-size:17.5px}
+.proof .label{color:var(--rose)}
+.proof::after{content:"\220E"; position:absolute; right:18px; bottom:14px; color:var(--faint); font-size:18px}
+.note{border-left:4px solid var(--rose)} .note .label{color:var(--rose)}
+.key{background:linear-gradient(180deg,#241a0f,#1d1610); border:1px solid var(--amber-dim)}
+.key .label{color:var(--amber-hi)}
+
+/* tables */
+.tbl{margin:24px 0; overflow-x:auto; border-radius:10px; border:1px solid var(--line2); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; background:var(--bg2); font-size:15px}
+th,td{padding:10px 15px; text-align:left; border-bottom:1px solid var(--line)}
+th{background:var(--panel); color:var(--amber); font-family:"IBM Plex Mono",monospace; font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; font-weight:600}
+td{color:var(--soft)} td code{background:var(--bg3)}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(227,166,78,.04)}
+
+/* labs / widgets */
+.lab{margin:32px 0; padding:24px; border-radius:13px; background:var(--bg2);
+  border:1px solid var(--line2); border-top:3px solid var(--amber); box-shadow:var(--shadow)}
+.labhead{display:flex; align-items:center; gap:11px; margin-bottom:5px}
+.labhead .tag{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--bg); background:var(--amber); padding:4px 9px; border-radius:5px}
+.labhead h4{margin:0; font-family:"Source Serif 4",serif; font-weight:600; font-size:20px; color:var(--ink)}
+.labdesc{color:var(--soft); font-size:15.5px; margin:8px 0 18px; font-style:italic}
+.controls{display:flex; flex-wrap:wrap; gap:13px 16px; align-items:center; margin-bottom:18px}
+.ctl{display:flex; flex-direction:column; gap:5px}
+.ctl label{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--faint)}
+input[type=text],input[type=number]{font-family:"IBM Plex Mono",monospace; font-size:14px; padding:7px 10px;
+  border:1px solid var(--line2); border-radius:7px; background:var(--bg3); color:var(--ink); width:150px}
+input[type=text]:focus,input[type=number]:focus{outline:none; border-color:var(--amber-dim)}
+input[type=range]{accent-color:var(--amber); width:150px}
+.btn{font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.03em; padding:8px 15px;
+  border:0; border-radius:7px; background:var(--amber); color:#1c1206; cursor:pointer; transition:.15s; font-weight:600}
+.btn:hover{background:var(--amber-hi)}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+.btn.alt{background:var(--sage); color:#10201b}
+.btn.alt:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent; color:var(--soft); border:1px solid var(--line2)}
+.btn.ghost:hover{color:var(--amber); border-color:var(--amber-dim)}
+.readout{font-family:"IBM Plex Mono",monospace; font-size:13px; display:flex; flex-wrap:wrap; gap:10px 20px;
+  margin-top:15px; color:var(--soft)}
+.readout b{color:var(--amber-hi); font-weight:600}
+canvas{max-width:100%; display:block}
+
+/* sieve grid */
+.sgrid{display:grid; gap:5px; grid-template-columns:repeat(auto-fill,minmax(40px,1fr))}
+.scell{aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:6px;
+  font-family:"IBM Plex Mono",monospace; font-size:13px; background:var(--bg3); color:var(--soft);
+  border:1px solid var(--line); transition:.18s}
+.scell.prime{background:var(--amber); color:#1c1206; border-color:var(--amber-hi); font-weight:600}
+.scell.comp{background:transparent; color:var(--faint); text-decoration:line-through; opacity:.5}
+.scell.active{outline:2px solid var(--sage); outline-offset:1px; transform:scale(1.08)}
+.scell.one{opacity:.3}
+
+/* heap + uf svg */
+.svgwrap{width:100%; overflow-x:auto; background:var(--bg3); border-radius:9px; border:1px solid var(--line); padding:8px}
+.harr{display:flex; flex-wrap:wrap; gap:5px; margin-top:14px}
+.hcell{min-width:42px; height:42px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border-radius:7px; font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--bg3);
+  border:1px solid var(--line2); color:var(--ink); position:relative}
+.hcell .ix{font-size:8px; color:var(--faint); position:absolute; top:1px}
+.hcell.flash{background:var(--amber); color:#1c1206}
+.node-c{fill:var(--bg2); stroke:var(--amber-dim); stroke-width:1.5}
+.node-c.flash{fill:var(--amber)}
+.node-t{fill:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:13px; text-anchor:middle}
+.node-t.flash{fill:#1c1206}
+.edge{stroke:var(--line2); stroke-width:1.5}
+.edge.comp{stroke:var(--sage); stroke-dasharray:4 3}
+
+/* edit-distance table */
+.dpt{border-collapse:collapse; font-family:"IBM Plex Mono",monospace; font-size:13px; margin-top:8px}
+.dpt td,.dpt th{border:1px solid var(--line2); width:34px; height:34px; text-align:center; padding:0; color:var(--soft)}
+.dpt th{background:var(--panel); color:var(--amber); font-weight:600}
+.dpt td.path{background:var(--amber); color:#1c1206; font-weight:600}
+.dpt td.head{background:var(--bg3); color:var(--sage)}
+
+/* kmp */
+.kstr{display:flex; flex-wrap:wrap; gap:3px; font-family:"IBM Plex Mono",monospace; margin:8px 0}
+.kcell{min-width:28px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:5px;
+  background:var(--bg3); border:1px solid var(--line2); color:var(--ink); font-size:14px; position:relative}
+.kcell.win{border-color:var(--amber-dim)}
+.kcell.match{background:var(--sage); color:#10201b}
+.kcell.mis{background:var(--rose); color:#1c1206}
+.kcell.cur{outline:2px solid var(--amber); outline-offset:1px}
+.klabel{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint); margin-top:10px}
+
+/* exercises */
+.exq .qhead{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:6px}
+.exq .qnum{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--amber); font-weight:600}
+.exq .topic{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--faint); white-space:nowrap}
+.ex-toggle{margin-top:10px}
+.exsol{display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line2)}
+.exsol.open{display:block}
+.exsol p:first-child{margin-top:0}
+
+footer{border-top:1px solid var(--line); margin-top:70px; padding-top:30px; color:var(--soft); font-size:15px}
+footer .big{font-family:"Gloock",serif; font-size:25px; color:var(--amber-hi); margin-bottom:8px}
+footer code{font-size:.8em}
+
+@media(max-width:980px){
+  .wrap{flex-direction:column}
+  .toc{position:static; height:auto; width:100%; flex-basis:auto; border-right:0; border-bottom:1px solid var(--line)}
+  .toc nav{display:none} .toc nav.open{display:block}
+  .toc-toggle{display:inline-block; margin-top:14px}
+  .content{padding:0 24px 90px; max-width:none}
+  .hero{padding:54px 0 30px}
+  body{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1; transform:none; transition:none}
+  html{scroll-behavior:auto}
+}
+
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="wrap">
+<aside class="toc">
+  <div class="brand">The Perl<br>Algorithm <span class="sig">Field Guide</span><small>// there's more than one way</small></div>
+  <button class="btn ghost toc-toggle" id="toc-toggle" style="margin-top:14px">&#9776; contents</button>
+  <nav id="navlist">
+    <div class="grp">Begin</div>
+    <a href="#foundations">1 &middot; Perl for Algorithms</a>
+    <div class="grp">Order</div>
+    <a href="#searchsort">2 &middot; Searching &amp; Sorting</a>
+    <a href="#searchsort" class="sub">heap lab</a>
+    <div class="grp">Text</div>
+    <a href="#strings">3 &middot; Strings</a>
+    <a href="#strings" class="sub">kmp matcher</a>
+    <a href="#strings" class="sub">edit-distance table</a>
+    <div class="grp">Choices</div>
+    <a href="#dp">4 &middot; Dynamic Programming</a>
+    <div class="grp">Networks</div>
+    <a href="#graphs">5 &middot; Graphs &amp; Sets</a>
+    <a href="#graphs" class="sub">union-find forest</a>
+    <div class="grp">Numbers</div>
+    <a href="#numbertheory">6 &middot; Number Theory</a>
+    <a href="#numbertheory" class="sub">prime sieve</a>
+    <div class="grp">Practice</div>
+    <a href="#exercises">7 &middot; Exercises</a>
+    <a href="#reference">8 &middot; Reference Card</a>
+  </nav>
+</aside>
+<main class="content">
+
+<header class="hero">
+  <div class="kicker">Algorithms &middot; in Perl &middot; on the computer</div>
+  <h1>The Perl<br>Algorithm <span class="sig">Field Guide</span></h1>
+  <p class="tag">Twenty-two algorithms in idiomatic Perl &mdash; every line run on a real interpreter &mdash; with the proofs that say why they work and labs that let you watch them run.</p>
+  <div class="sigils">
+    <span><b>$</b> scalar</span><span><b>@</b> array</span><span><b>%</b> hash</span><span><b>\</b> reference</span><span><b>-&gt;</b> deref</span><span><b>//=</b> cache</span>
+  </div>
+</header>
+
+<section id="foundations">
+  <h2><span class="num">SEC 1</span>Perl for Algorithms</h2>
+  <p class="lead reveal">Perl earned its reputation on text, but the same machinery &mdash; references, hashes, and slices &mdash; makes it a quietly excellent language for data structures. Three idioms carry most of the weight in everything that follows.</p>
+
+  <h3 class="reveal"><span class="s">\</span> References build every structure</h3>
+  <p class="reveal">Perl's arrays and hashes flatten when nested, so a structure of structures is really a structure of <em>references</em>. A reference is a scalar that points at an array or hash; <code>@{ ... }</code> and <code>%{ ... }</code> turn it back into the real thing, and the arrow <code>-&gt;</code> dereferences one level at a time. This is the bedrock for graphs, trees, and DP tables.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>references.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># References are how Perl builds nested structures.
+my @matrix = ([1, 2, 3], [4, 5, 6]);   # array of array-refs
+my $cell   = $matrix[1][2];             # -&gt; 6   (autoderef of the ref)
+my %graph  = (a =&gt; [&#x27;b&#x27;, &#x27;c&#x27;], b =&gt; [&#x27;c&#x27;]);   # hash of array-refs
+push @{ $graph{a} }, &#x27;d&#x27;;               # @{ ... } dereferences to a real array
+my @nbrs   = @{ $graph{a} };            # -&gt; (&#x27;b&#x27;, &#x27;c&#x27;, &#x27;d&#x27;)</code></pre></div>
+
+  <h3 class="reveal"><span class="s">%</span> A hash is a set, a multiset, and a counter</h3>
+  <p class="reveal">Because hash lookup and insertion are expected \(O(1)\), a hash is the right tool whenever you need membership, de-duplication, or frequency counts. The post-increment idiom <code>!$seen{$_}++</code> is the canonical order-preserving unique filter: the test reads the old value (false, the first time) and the <code>++</code> sets it so every later copy is suppressed.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>hash_as_set.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># A hash is Perl&#x27;s universal set, multiset, and frequency table.
+sub uniq {                              # order-preserving de-duplication
+    my %seen;
+    return grep { !$seen{$_}++ } @_;    # the post-increment makes the test fire once
+}
+sub freq {                              # element -&gt; count
+    my %count;
+    $count{$_}++ for @_;                # autovivification starts every key at 0
+    return \%count;
+}</code></pre></div>
+
+  <h3 class="reveal"><span class="s">@</span> Sort once with the Schwartzian transform</h3>
+  <p class="reveal">A comparator runs \(O(n\log n)\) times, so any expensive sort key should be computed <em>before</em> sorting, not inside the comparator. The Schwartzian transform &mdash; read bottom-to-top as <em>decorate, sort, undecorate</em> &mdash; pairs each element with its key once, sorts on the key, then strips it away.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>schwartzian.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># The Schwartzian transform: decorate, sort, undecorate -- compute the
+# expensive sort key exactly once per element instead of on every compare.
+sub by_length {
+    my @words = @_;
+    return map  { $_-&gt;[0] }                              # 3. undecorate
+           sort { $a-&gt;[1] &lt;=&gt; $b-&gt;[1]                    # 2. sort by length,
+                  or $a-&gt;[0] cmp $b-&gt;[0] }               #    ties broken alphabetically
+           map  { [$_, length $_] } @words;              # 1. decorate with the key
+}</code></pre></div>
+
+  <div class="box note reveal">
+    <span class="label">the one gotcha</span>
+    <p>Perl arrays are <strong>0-based</strong>; <code>$#a</code> is the last index and <code>scalar @a</code> is the length. The most common bug porting from a 1-based language (Octave, say) is an off-by-one in a loop bound or a midpoint &mdash; check the endpoints first.</p>
+  </div>
+</section>
+
+<section id="searchsort">
+  <h2><span class="num">SEC 2</span>Searching &amp; Sorting</h2>
+  <p class="lead reveal">The classics, with their proofs. We start with the logarithmic search that sortedness buys us, then selection without full sorting, a linear-time sort that uses no comparisons at all, and the heap that underlies both heapsort and the priority queue.</p>
+
+  <h3 class="reveal">Binary search &mdash; <span class="s">O(log n)</span></h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>binary_search.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl">sub binary_search {
+    my ($a, $target) = @_;                 # $a must be sorted ascending
+    my ($lo, $hi) = (0, $#$a);             # $#$a is the last index of the array-ref
+    while ($lo &lt;= $hi) {
+        my $mid = $lo + int(($hi - $lo) / 2);
+        if    ($a-&gt;[$mid] == $target) { return $mid; }
+        elsif ($a-&gt;[$mid] &lt;  $target) { $lo = $mid + 1; }   # discard left half
+        else                          { $hi = $mid - 1; }   # discard right half
+    }
+    return -1;
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 2.1</span><p class="stmt">On a sorted array of \(n\) elements, binary search returns a correct index (or \(-1\)) in \(O(\log n)\) time.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p><strong>Correctness.</strong> The invariant is: if <code>target</code> is present, its index lies in <code>[lo, hi]</code>. It holds initially over the whole array. Each step inspects <code>a[mid]</code>; if it is smaller than the target then by sortedness every index \(\le\) mid is too, so the answer (if any) lies in <code>[mid+1, hi]</code> &mdash; the new window &mdash; and symmetrically on the other side. When <code>lo &gt; hi</code> the window is empty and the invariant says the target is absent, so \(-1\) is correct.</p>
+    <p><strong>Time.</strong> The window width \(hi-lo+1\) at least halves each iteration: from \(n\) it reaches \(0\) after at most \(\lfloor\log_2 n\rfloor + 1\) steps, each doing \(O(1)\) work. Writing the midpoint as <code>lo + int((hi-lo)/2)</code> rather than <code>(lo+hi)/2</code> also sidesteps integer overflow in languages where that matters. \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Quickselect &mdash; the k-th smallest in expected <span class="s">O(n)</span></h3>
+  <p class="reveal">To find one order statistic you need not sort everything. Quickselect partitions around a random pivot and recurses into only the side that contains the answer.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>quickselect.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Quickselect: find the k-th smallest (0-based) in expected O(n) time,
+# without sorting the whole array.
+sub quickselect {
+    my ($aref, $k) = @_;
+    my @a = @$aref;
+    while (1) {
+        return $a[0] if @a == 1;
+        my $pivot = $a[ int rand @a ];          # random pivot avoids worst case
+        my @lt = grep { $_ &lt;  $pivot } @a;
+        my @eq = grep { $_ == $pivot } @a;
+        my @gt = grep { $_ &gt;  $pivot } @a;
+        if    ($k &lt;  @lt)       { @a = @lt; }              # answer is among the smaller
+        elsif ($k &lt;  @lt + @eq) { return $pivot; }         # landed inside the pivots
+        else  { $k -= @lt + @eq; @a = @gt; }               # recurse on the larger
+    }
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 2.2</span><p class="stmt">With a uniformly random pivot, quickselect runs in \(O(n)\) expected time.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p>A pivot is <em>good</em> if it falls in the middle half of the values, so that each side has at most \(\tfrac34\) of the elements; a uniform pivot is good with probability \(\tfrac12\). Let \(T(n)\) bound the expected work on \(n\) elements. The partition costs \(cn\). In expectation we try \(2\) pivots before a good one, and a good pivot leaves at most \(\tfrac34 n\) elements to recurse on, so
+    \[ T(n) \le cn + T\!\left(\tfrac34 n\right). \]
+    Unrolling gives \(T(n) \le cn\bigl(1 + \tfrac34 + (\tfrac34)^2 + \cdots\bigr) = cn \cdot \dfrac{1}{1-\frac34} = 4cn = O(n).\) (Sorting first would cost \(O(n\log n)\); this is strictly less work for a single statistic.) \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Counting sort &mdash; no comparisons, <span class="s">O(n + k)</span></h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>counting_sort.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Counting sort: no comparisons at all -- O(n + k) for keys in 0..k.
+# This version is STABLE: equal keys keep their original relative order.
+sub counting_sort {
+    my ($a, $maxv) = @_;                       # $a: arrayref of ints in 0..$maxv
+    my @count = (0) x ($maxv + 1);
+    $count[$_]++ for @$a;                       # 1. tally each key
+    $count[$_] += $count[$_ - 1] for 1 .. $maxv;# 2. prefix sums = end positions
+    my @out = (0) x scalar @$a;
+    for my $x (reverse @$a) {                   # 3. place from the back to stay stable
+        $out[ --$count[$x] ] = $x;
+    }
+    return \@out;
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 2.3</span><p class="stmt">Counting sort orders \(n\) integer keys drawn from \(\{0,\dots,k\}\) in \(O(n+k)\) time, and it is <em>stable</em>.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p><strong>Time.</strong> The histogram pass is \(O(n)\), the prefix-sum pass is \(O(k)\), and the placement pass is \(O(n)\): total \(O(n+k)\). When \(k=O(n)\) this is linear &mdash; beating the \(\Omega(n\log n)\) comparison-sort barrier precisely because it never compares two keys.</p>
+    <p><strong>Stability.</strong> After the prefix sums, <code>count[x]</code> equals the number of keys \(\le x\), i.e. one past the last slot any key of value \(x\) may occupy. Scanning the input <em>right to left</em> and writing each key at <code>--count[x]</code> places later-occurring equal keys into later slots, so equal keys retain their original order. Stability is what lets counting sort serve as the inner pass of radix sort. \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">The binary heap &mdash; heapsort and the priority queue</h3>
+  <p class="reveal">A binary heap is a complete tree flattened into an array: the children of index \(i\) are \(2i{+}1\) and \(2i{+}2\). A <em>max</em>-heap drives in-place heapsort; a <em>min</em>-heap is the priority queue behind Dijkstra and Huffman coding.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>heapsort.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Heapsort: build a max-heap in place, then repeatedly pull the max to the back.
+sub heapsort {
+    my @a = @{ $_[0] };
+    my $n = scalar @a;
+    for (my $i = int($n / 2) - 1; $i &gt;= 0; $i--) {   # heapify the whole array
+        sift_down(\@a, $i, $n);
+    }
+    for (my $end = $n - 1; $end &gt; 0; $end--) {
+        @a[0, $end] = @a[$end, 0];                   # max moves to its final seat
+        sift_down(\@a, 0, $end);                     # restore the heap on what remains
+    }
+    return \@a;
+}
+
+sub sift_down {
+    my ($a, $i, $n) = @_;
+    while (1) {
+        my ($l, $r, $big) = (2 * $i + 1, 2 * $i + 2, $i);
+        $big = $l if $l &lt; $n &amp;&amp; $a-&gt;[$l] &gt; $a-&gt;[$big];
+        $big = $r if $r &lt; $n &amp;&amp; $a-&gt;[$r] &gt; $a-&gt;[$big];
+        last if $big == $i;                          # parent already dominates children
+        @{$a}[$i, $big] = @{$a}[$big, $i];
+        $i = $big;
+    }
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 2.4</span><p class="stmt">Building a heap by sifting down from the middle takes \(O(n)\), and heapsort runs in \(O(n\log n)\).</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p><strong>Build-heap is linear.</strong> A node at height \(h\) costs \(O(h)\) to sift down, and a heap of \(n\) nodes has at most \(\lceil n/2^{\,h+1}\rceil\) nodes at height \(h\). Summing,
+    \[ \sum_{h=0}^{\lfloor\log n\rfloor} \frac{n}{2^{\,h+1}}\,O(h) \;=\; O\!\left(n\sum_{h\ge 0}\frac{h}{2^{h}}\right) \;=\; O(2n) \;=\; O(n), \]
+    using \(\sum_{h\ge0} h/2^h = 2\). The naive bound of \(n\) sift-downs at \(O(\log n)\) each would say \(O(n\log n)\); the sharper sum shows most nodes are shallow.</p>
+    <p><strong>Heapsort.</strong> After the \(O(n)\) build, each of the \(n-1\) extractions swaps the root to the tail and sifts down in \(O(\log n)\): total \(O(n\log n)\), in place, with no recursion. \(\;\blacksquare\)</p>
+  </div>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>min_heap.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># A binary min-heap stored in a flat array-ref. Parent of i is (i-1)&gt;&gt;1;
+# children are 2i+1 and 2i+2. Both operations are O(log n).
+sub heap_push {
+    my ($h, $x) = @_;
+    push @$h, $x;
+    my $i = $#$h;
+    while ($i &gt; 0) {                                  # bubble up while smaller than parent
+        my $parent = ($i - 1) &gt;&gt; 1;
+        last if $h-&gt;[$parent] &lt;= $h-&gt;[$i];
+        @{$h}[$i, $parent] = @{$h}[$parent, $i];
+        $i = $parent;
+    }
+}
+
+sub heap_pop {
+    my ($h) = @_;
+    return undef unless @$h;
+    my $min  = $h-&gt;[0];
+    my $last = pop @$h;
+    if (@$h) {
+        $h-&gt;[0] = $last;                              # move last element to the root
+        my $n = scalar @$h;
+        my $i = 0;
+        while (1) {                                   # sink down to the smaller child
+            my ($l, $r, $small) = (2 * $i + 1, 2 * $i + 2, $i);
+            $small = $l if $l &lt; $n &amp;&amp; $h-&gt;[$l] &lt; $h-&gt;[$small];
+            $small = $r if $r &lt; $n &amp;&amp; $h-&gt;[$r] &lt; $h-&gt;[$small];
+            last if $small == $i;
+            @{$h}[$i, $small] = @{$h}[$small, $i];
+            $i = $small;
+        }
+    }
+    return $min;
+}</code></pre></div>
+  <p class="reveal">The same array, read as a min-heap, gives a priority queue with \(O(\log n)\) <code>push</code> and <code>pop</code>. The lab below animates both motions.</p>
+
+  <div class="lab reveal">
+    <div class="labhead"><span class="tag">&#9654; LAB 1</span><h4>Binary Min-Heap</h4></div>
+    <p class="labdesc">Push values and watch each sift up until its parent is smaller; pop to remove the minimum and watch the last leaf sink back into place. The tree and the flat array are two views of one structure.</p>
+    <div class="controls">
+      <div class="ctl"><label>value</label><input type="number" id="hp-val" placeholder="e.g. 17" style="width:96px"></div>
+      <button class="btn" id="hp-push">push &#9656;</button>
+      <button class="btn alt" id="hp-rand">+ random</button>
+      <button class="btn" id="hp-pop">pop min &#9662;</button>
+      <button class="btn ghost" id="hp-reset">&#10542; reset</button>
+    </div>
+    <div class="svgwrap"><svg id="hp-svg" width="100%" height="300"></svg></div>
+    <div class="harr" id="hp-arr"></div>
+    <div class="readout" id="hp-out"></div>
+  </div>
+</section>
+
+<section id="strings">
+  <h2><span class="num">SEC 3</span>Strings</h2>
+  <p class="lead reveal">Text is Perl's native habitat. Here are the matchers and edit-distance routines that show why &mdash; <code>substr</code>, <code>split //</code>, and hashes do most of the work.</p>
+
+  <h3 class="reveal">Knuth&ndash;Morris&ndash;Pratt &mdash; matching in <span class="s">O(n + m)</span></h3>
+  <p class="reveal">Naive matching re-examines text characters after every mismatch. KMP precomputes a <em>prefix table</em> &mdash; how much of the pattern is also a suffix of what just matched &mdash; so the text pointer never moves backward.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>kmp.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Knuth-Morris-Pratt: precompute how far to fall back on a mismatch, so the
+# text pointer never moves backward. Total work is O(n + m).
+sub kmp_table {
+    my ($pat) = @_;
+    my @t = (0) x length $pat;                 # t[i] = length of longest proper prefix
+    my $k = 0;                                 #        of pat[0..i] that is also a suffix
+    for my $i (1 .. length($pat) - 1) {
+        $k = $t[$k - 1] while $k &gt; 0 &amp;&amp; substr($pat, $i, 1) ne substr($pat, $k, 1);
+        $k++ if substr($pat, $i, 1) eq substr($pat, $k, 1);
+        $t[$i] = $k;
+    }
+    return \@t;
+}
+
+sub kmp_search {
+    my ($text, $pat) = @_;
+    return 0 if $pat eq &#x27;&#x27;;
+    my $t = kmp_table($pat);
+    my $k = 0;
+    for my $i (0 .. length($text) - 1) {
+        $k = $t-&gt;[$k - 1] while $k &gt; 0 &amp;&amp; substr($text, $i, 1) ne substr($pat, $k, 1);
+        $k++ if substr($text, $i, 1) eq substr($pat, $k, 1);
+        return $i - length($pat) + 1 if $k == length $pat;   # full match ends at i
+    }
+    return -1;
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 3.1</span><p class="stmt">KMP finds a pattern of length \(m\) in a text of length \(n\) in \(O(n+m)\) time.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p>Use the matched length \(k\) as a potential. In the search loop, each successful character comparison increases \(k\) by exactly \(1\), and the text pointer \(i\) advances; across the whole text \(k\) can therefore increase at most \(n\) times. Every fallback step <code>k = t[k-1]</code> strictly decreases \(k\), and since \(k\ge 0\) the total number of decreases cannot exceed the total number of increases. Hence the search does \(O(n)\) work; building the table is the same argument on the pattern, \(O(m)\). The total is \(O(n+m)\) &mdash; and the text pointer is never rewound. \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Rabin&ndash;Karp &mdash; a rolling hash</h3>
+  <p class="reveal">Treat each window as a base-256 number modulo a large prime. Sliding the window forward updates the hash in \(O(1)\) by removing the leading character and appending the trailing one. A hash match is then verified with a real <code>eq</code> to rule out the rare collision.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>rabin_karp.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Rabin-Karp: slide a rolling hash over the text so each window costs O(1)
+# to re-hash. A hash hit is verified with eq to rule out collisions.
+sub rabin_karp {
+    my ($text, $pat) = @_;
+    my ($n, $m) = (length $text, length $pat);
+    return 0  if $m == 0;
+    return -1 if $m &gt; $n;
+    my ($base, $mod) = (256, 1_000_000_007);
+    my ($hp, $ht, $pow) = (0, 0, 1);
+    for my $i (0 .. $m - 1) {                       # hash the pattern and first window
+        $hp  = ($hp * $base + ord substr($pat,  $i, 1)) % $mod;
+        $ht  = ($ht * $base + ord substr($text, $i, 1)) % $mod;
+        $pow = ($pow * $base) % $mod if $i &lt; $m - 1;# $base^(m-1), for removing the front char
+    }
+    for my $i (0 .. $n - $m) {
+        return $i if $hp == $ht &amp;&amp; substr($text, $i, $m) eq $pat;
+        if ($i &lt; $n - $m) {                         # roll: drop text[i], add text[i+m]
+            $ht = (($ht - ord(substr($text, $i, 1)) * $pow) * $base
+                   + ord substr($text, $i + $m, 1)) % $mod;
+            $ht += $mod if $ht &lt; 0;
+        }
+    }
+    return -1;
+}</code></pre></div>
+  <div class="box note reveal"><span class="label">why it is fast</span><p>With a good modulus the chance any particular window collides with the pattern's hash is about \(1/\text{mod}\), so the expected number of full verifications is tiny and the search runs in expected \(O(n+m)\). The worst case is \(O(nm)\) (everything collides), which is why the explicit <code>eq</code> check &mdash; not the hash &mdash; is what guarantees correctness.</p></div>
+
+  <h3 class="reveal">Edit distance &mdash; the Levenshtein DP</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>levenshtein.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Edit distance: fewest single-character insertions, deletions, or
+# substitutions to turn $s into $t. Two rolling rows keep it O(m) space.
+sub levenshtein {
+    my ($s, $t) = @_;
+    my @s = split //, $s;
+    my @t = split //, $t;
+    my ($n, $m) = (scalar @s, scalar @t);
+    my @prev = (0 .. $m);                         # editing &quot;&quot; into t[0..j] costs j
+    for my $i (1 .. $n) {
+        my @cur = ($i);                           # editing s[0..i] into &quot;&quot; costs i
+        for my $j (1 .. $m) {
+            my $cost = ($s[$i - 1] eq $t[$j - 1]) ? 0 : 1;
+            my $del = $prev[$j]     + 1;
+            my $ins = $cur[$j - 1]  + 1;
+            my $sub = $prev[$j - 1] + $cost;
+            $cur[$j] = $del &lt; $ins ? $del : $ins;
+            $cur[$j] = $sub if $sub &lt; $cur[$j];
+        }
+        @prev = @cur;
+    }
+    return $prev[$m];
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 3.2</span><p class="stmt">The recurrence below computes the minimum number of single-character insertions, deletions, and substitutions turning \(s\) into \(t\), in \(O(mn)\) time.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p>Let \(D(i,j)\) be the edit distance between the prefixes \(s[1..i]\) and \(t[1..j]\). Consider the last column of an optimal alignment. It is either a deletion of \(s_i\) (cost \(1 + D(i{-}1,j)\)), an insertion of \(t_j\) (cost \(1 + D(i,j{-}1)\)), or a match/substitution of \(s_i\) with \(t_j\) (cost \([s_i\neq t_j] + D(i{-}1,j{-}1)\)). These three cases exhaust the possibilities, so
+    \[ D(i,j)=\min\bigl(1{+}D(i{-}1,j),\;1{+}D(i,j{-}1),\;[s_i\neq t_j]{+}D(i{-}1,j{-}1)\bigr), \]
+    with \(D(i,0)=i\) and \(D(0,j)=j\). Each of the \(mn\) cells is \(O(1)\); the code keeps only two rows, so the space is \(O(m)\). \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Longest common subsequence</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>lcs.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Longest common subsequence: fill a table, then walk it backward to
+# reconstruct one optimal subsequence. Runs in O(n*m).
+sub lcs {
+    my ($a, $b) = @_;
+    my @a = split //, $a;
+    my @b = split //, $b;
+    my ($n, $m) = (scalar @a, scalar @b);
+    my @dp;
+    $dp[$_] = [(0) x ($m + 1)] for 0 .. $n;
+    for my $i (1 .. $n) {
+        for my $j (1 .. $m) {
+            $dp[$i][$j] = $a[$i - 1] eq $b[$j - 1]
+                ? $dp[$i - 1][$j - 1] + 1                       # extend the match
+                : ($dp[$i - 1][$j] &gt; $dp[$i][$j - 1]            # or take the better side
+                   ? $dp[$i - 1][$j] : $dp[$i][$j - 1]);
+        }
+    }
+    my ($i, $j, $out) = ($n, $m, &#x27;&#x27;);
+    while ($i &gt; 0 &amp;&amp; $j &gt; 0) {                                  # backtrace one solution
+        if ($a[$i - 1] eq $b[$j - 1]) { $out = $a[$i - 1] . $out; $i--; $j--; }
+        elsif ($dp[$i - 1][$j] &gt;= $dp[$i][$j - 1]) { $i--; }
+        else { $j--; }
+    }
+    return $out;
+}</code></pre></div>
+  <div class="box note reveal"><span class="label">optimal substructure</span><p>If the last characters match, an LCS must use them, leaving an LCS of the two shorter prefixes; if not, one of the two characters is unused, so the answer is the better of dropping either. That is exactly the recurrence filled in the table, after which the backtrace walks from the corner choosing the move that produced each cell &mdash; reconstructing one optimal subsequence in \(O(n+m)\).</p></div>
+
+  <h3 class="reveal">Anagram grouping &mdash; the signature trick</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>anagrams.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Group words that are anagrams of one another. The signature -- the word&#x27;s
+# letters in sorted order -- is identical for every member of a group.
+sub anagrams {
+    my %groups;
+    for my $w (@_) {
+        my $sig = join &#x27;&#x27;, sort split //, $w;   # canonical key for this word
+        push @{ $groups{$sig} }, $w;
+    }
+    return [ map { $groups{$_} } sort keys %groups ];
+}</code></pre></div>
+  <div class="box note reveal"><span class="label">the idea in one line</span><p>Two words are anagrams iff their multisets of letters are equal, and sorting the letters yields a canonical representative of that multiset. Using that sorted string as a hash key collapses each anagram class to one bucket in \(O(L\log L)\) per word of length \(L\).</p></div>
+
+  <div class="lab reveal">
+    <div class="labhead"><span class="tag">&#9654; LAB 2</span><h4>KMP String Matcher</h4></div>
+    <p class="labdesc">Type a text and a pattern, then step the matcher. Green cells are matched; the amber outline is the character under comparison. On a mismatch, watch the pattern slide by the prefix table while the text pointer holds still.</p>
+    <div class="controls">
+      <div class="ctl"><label>text</label><input type="text" id="km-text" value="abracadabra abracad" style="width:260px"></div>
+      <div class="ctl"><label>pattern</label><input type="text" id="km-pat" value="abracad" style="width:150px"></div>
+      <button class="btn" id="km-step">step &#9656;</button>
+      <button class="btn alt" id="km-auto">&#9654; auto</button>
+      <button class="btn ghost" id="km-reset">&#10542; reset</button>
+    </div>
+    <div id="km-table"></div>
+    <div id="km-text-row"></div>
+    <div id="km-pat-row"></div>
+    <div class="readout" id="km-out"></div>
+  </div>
+
+  <div class="lab reveal">
+    <div class="labhead"><span class="tag">&#9654; LAB 3</span><h4>Edit-Distance Table</h4></div>
+    <p class="labdesc">Edit either word and the dynamic-programming table refills live. The amber path traced from the bottom-right corner back to the origin is one optimal sequence of edits; the corner cell is the distance.</p>
+    <div class="controls">
+      <div class="ctl"><label>string s</label><input type="text" id="ed-s" value="kitten" style="width:160px"></div>
+      <div class="ctl"><label>string t</label><input type="text" id="ed-t" value="sitting" style="width:160px"></div>
+    </div>
+    <div style="overflow-x:auto"><div id="ed-table"></div></div>
+    <div class="readout" id="ed-out"></div>
+  </div>
+</section>
+
+<section id="dp">
+  <h2><span class="num">SEC 4</span>Dynamic Programming</h2>
+  <p class="lead reveal">When a problem's optimum is built from optima of overlapping subproblems, fill a table once and reuse it. Two more examples beyond edit distance and LCS.</p>
+
+  <h3 class="reveal">Longest increasing subsequence &mdash; <span class="s">O(n log n)</span></h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>lis.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Longest increasing subsequence in O(n log n): @tails[k] holds the smallest
+# possible tail of any increasing subsequence of length k+1.
+sub lis_length {
+    my ($a) = @_;
+    my @tails;
+    for my $x (@$a) {
+        my ($lo, $hi) = (0, scalar @tails);     # binary search for first tail &gt;= x
+        while ($lo &lt; $hi) {
+            my $mid = ($lo + $hi) &gt;&gt; 1;
+            if ($tails[$mid] &lt; $x) { $lo = $mid + 1; } else { $hi = $mid; }
+        }
+        $tails[$lo] = $x;                        # extend, or improve an existing length
+    }
+    return scalar @tails;
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 4.1</span><p class="stmt">Maintaining the array <code>tails</code>, where <code>tails[k]</code> is the smallest possible tail of an increasing subsequence of length \(k{+}1\), computes the LIS length in \(O(n\log n)\).</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p><code>tails</code> is always strictly increasing, because a length-\((k{+}1)\) subsequence contains a length-\(k\) one with a smaller tail. For each incoming \(x\) we binary-search the first entry \(\ge x\) and overwrite it: if \(x\) is larger than every tail it extends the longest run, otherwise it lowers the best tail for that length without changing any length already achievable. The invariant &mdash; <code>tails[k]</code> is achievable and minimal &mdash; is preserved, so the final length of <code>tails</code> is the LIS length. Each step is one \(O(\log n)\) search over \(n\) items: \(O(n\log n)\). (Note <code>tails</code> itself is not necessarily a real subsequence; its <em>length</em> is the answer.) \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Coin change &mdash; fewest coins</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>coin_change.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Minimum coins to make $amount from unlimited coins of given denominations.
+# dp[a] = fewest coins summing to a; returns -1 if a is unreachable.
+sub coin_change {
+    my ($coins, $amount) = @_;
+    my $INF = 1e9;
+    my @dp = (0, ($INF) x $amount);             # dp[0] = 0; the rest start unreachable
+    for my $a (1 .. $amount) {
+        for my $c (@$coins) {
+            $dp[$a] = $dp[$a - $c] + 1
+                if $c &lt;= $a &amp;&amp; $dp[$a - $c] + 1 &lt; $dp[$a];
+        }
+    }
+    return $dp[$amount] &gt;= $INF ? -1 : $dp[$amount];
+}</code></pre></div>
+  <div class="box note reveal"><span class="label">the recurrence</span><p>Let \(dp[a]\) be the fewest coins summing to \(a\). Any optimal solution uses some last coin \(c\le a\), leaving an optimal solution for \(a-c\); minimising over the available denominations gives \(dp[a]=1+\min_{c\le a} dp[a-c]\), with \(dp[0]=0\) and unreachable amounts left at infinity. Filling \(a\) from \(1\) to the target is \(O(\text{amount}\times \#\text{coins})\). Greedy would be wrong for denominations like \(\{1,3,4\}\) making \(6\) &mdash; the DP is what guarantees optimality.</p></div>
+</section>
+
+<section id="graphs">
+  <h2><span class="num">SEC 5</span>Graphs &amp; Sets</h2>
+  <p class="lead reveal">A graph is a hash of array-refs: each key a vertex, each value its neighbour list. From that one shape come traversal, ordering, and connectivity.</p>
+
+  <h3 class="reveal">Depth-first search</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>dfs.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Iterative depth-first search over a hash-of-arrays graph. Reversing the
+# neighbours before pushing makes the visit order match the adjacency order.
+sub dfs {
+    my ($adj, $start) = @_;
+    my (%seen, @order, @stack);
+    push @stack, $start;
+    while (@stack) {
+        my $u = pop @stack;
+        next if $seen{$u}++;
+        push @order, $u;
+        push @stack, reverse @{ $adj-&gt;{$u} // [] };
+    }
+    return \@order;
+}</code></pre></div>
+  <div class="box note reveal"><span class="label">why reverse the neighbours</span><p>An explicit stack pops in last-in-first-out order, which would visit neighbours back-to-front. Pushing them reversed makes the iterative traversal match the order a recursive DFS would take &mdash; a small but useful fidelity. Each vertex and edge is touched once, so DFS is \(O(V+E)\).</p></div>
+
+  <h3 class="reveal">Topological sort &mdash; Kahn's algorithm</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>topo_sort.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Kahn&#x27;s algorithm: repeatedly emit a vertex with no remaining prerequisites.
+# Returns undef when a cycle makes a full ordering impossible.
+sub topo_sort {
+    my ($adj) = @_;
+    my %indeg;
+    for my $u (keys %$adj) {
+        $indeg{$u} //= 0;
+        $indeg{$_}++ for @{ $adj-&gt;{$u} };
+    }
+    my @ready = sort grep { $indeg{$_} == 0 } keys %indeg;
+    my @order;
+    while (@ready) {
+        my $u = shift @ready;
+        push @order, $u;
+        for my $v (@{ $adj-&gt;{$u} // [] }) {
+            push @ready, $v if --$indeg{$v} == 0;
+        }
+        @ready = sort @ready;                    # keep output deterministic
+    }
+    return scalar(@order) == scalar(keys %indeg) ? \@order : undef;
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 5.1</span><p class="stmt">Kahn's algorithm outputs a valid topological order iff the graph is acyclic, in \(O(V+E)\).</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p>A vertex is emitted only once its in-degree reaches \(0\) &mdash; that is, after all of its predecessors have already been emitted &mdash; so every edge points from an earlier output to a later one: the order is valid. For termination, each vertex enters the queue exactly once and each edge decrements one in-degree exactly once, giving \(O(V+E)\). Finally, if a cycle exists, none of its vertices ever reaches in-degree \(0\), so fewer than \(V\) vertices are emitted and the routine reports failure; if the graph is acyclic, a source always exists among the remaining vertices, so all \(V\) are emitted. \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Union&ndash;Find &mdash; near-constant set merging</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>union_find.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Disjoint-set forest with path compression and union by rank.
+# A sequence of m operations on n elements costs O(m * alpha(n)) -- effectively linear.
+sub uf_new {
+    my ($n) = @_;
+    return { parent =&gt; [0 .. $n - 1], rank =&gt; [(0) x $n] };
+}
+
+sub uf_find {
+    my ($uf, $x) = @_;
+    my $p = $uf-&gt;{parent};
+    $p-&gt;[$x] = uf_find($uf, $p-&gt;[$x]) if $p-&gt;[$x] != $x;   # compress on the way up
+    return $p-&gt;[$x];
+}
+
+sub uf_union {
+    my ($uf, $a, $b) = @_;
+    my ($ra, $rb) = (uf_find($uf, $a), uf_find($uf, $b));
+    return 0 if $ra == $rb;                                # already in one set
+    my $rank = $uf-&gt;{rank};
+    if    ($rank-&gt;[$ra] &lt; $rank-&gt;[$rb]) { $uf-&gt;{parent}[$ra] = $rb; }
+    elsif ($rank-&gt;[$ra] &gt; $rank-&gt;[$rb]) { $uf-&gt;{parent}[$rb] = $ra; }
+    else  { $uf-&gt;{parent}[$rb] = $ra; $rank-&gt;[$ra]++; }     # equal ranks: pick one, bump it
+    return 1;
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 5.2</span><p class="stmt">With union by rank, every tree of rank \(r\) contains at least \(2^{r}\) nodes; hence all trees have height \(O(\log n)\) and each operation is \(O(\log n)\). Path compression improves the amortized cost to \(O(\alpha(n))\), effectively constant.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p>By induction on operations. A fresh singleton has rank \(0\) and \(2^0=1\) node. A root's rank rises only when two equal-rank trees merge: two trees of rank \(r\), each with \(\ge 2^{r}\) nodes by hypothesis, combine into one of rank \(r{+}1\) with \(\ge 2^{r}+2^{r}=2^{r+1}\) nodes. So a rank-\(r\) root governs \(\ge 2^{r}\) nodes, forcing \(r\le\log_2 n\); since height never exceeds rank, <code>find</code> climbs \(O(\log n)\) links. Path compression flattens those links on the way up, and a classic (intricate) accounting then drops the amortized bound to the inverse-Ackermann \(\alpha(n)\le 4\) for any conceivable \(n\). \(\;\blacksquare\)</p>
+  </div>
+  <p class="reveal">Connectivity falls straight out of union-find: merge along every edge, then count distinct roots.</p>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>components.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Count connected components of an undirected graph using the union-find above.
+sub components {
+    my ($n, $edges) = @_;                        # nodes 0..n-1; edges: arrayref of [u,v]
+    my $uf = uf_new($n);
+    uf_union($uf, $_-&gt;[0], $_-&gt;[1]) for @$edges;
+    my %roots;
+    $roots{ uf_find($uf, $_) } = 1 for 0 .. $n - 1;
+    return scalar keys %roots;
+}</code></pre></div>
+
+  <div class="lab reveal">
+    <div class="labhead"><span class="tag">&#9654; LAB 4</span><h4>Union&ndash;Find Forest</h4></div>
+    <p class="labdesc">Ten elements, each its own set. <code>union</code> hangs the shorter tree under the taller; <code>find</code> path-compresses, re-parenting every node it passes straight to the root (those edges flash green). Roots are amber; the component count updates live.</p>
+    <div class="controls">
+      <div class="ctl"><label>a (0&ndash;9)</label><input type="number" id="uf-a" value="3" min="0" max="9" style="width:80px"></div>
+      <div class="ctl"><label>b (0&ndash;9)</label><input type="number" id="uf-b" value="7" min="0" max="9" style="width:80px"></div>
+      <button class="btn" id="uf-union">union &#9656;</button>
+      <button class="btn alt" id="uf-find">find a</button>
+      <button class="btn" id="uf-rand">random union</button>
+      <button class="btn ghost" id="uf-reset">&#10542; reset</button>
+    </div>
+    <div class="svgwrap"><svg id="uf-svg" width="100%" height="176"></svg></div>
+    <div class="readout" id="uf-out"></div>
+  </div>
+</section>
+
+<section id="numbertheory">
+  <h2><span class="num">SEC 6</span>Number Theory</h2>
+  <p class="lead reveal">Three small routines that appear everywhere from cryptography to hashing &mdash; each with a clean logarithmic or near-linear bound.</p>
+
+  <h3 class="reveal">Euclid's algorithm &mdash; and Bézout's coefficients</h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>gcd.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Euclid&#x27;s algorithm, plus the extended version that also returns the
+# Bezout coefficients x, y with a*x + b*y = gcd(a, b).
+sub gcd {
+    my ($a, $b) = @_;
+    ($a, $b) = ($b, $a % $b) while $b;
+    return abs $a;
+}
+
+sub gcd_ext {
+    my ($a, $b) = @_;
+    return ($a, 1, 0) if $b == 0;
+    my ($g, $x1, $y1) = gcd_ext($b, $a % $b);
+    return ($g, $y1, $x1 - int($a / $b) * $y1);
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 6.1</span><p class="stmt">Euclid's algorithm computes \(\gcd(a,b)\), and it terminates.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p><strong>Correctness.</strong> Any common divisor of \(a\) and \(b\) divides \(a - qb = a \bmod b\), and conversely any common divisor of \(b\) and \(a\bmod b\) divides \(a\); so the pair \((a,b)\) and the pair \((b, a\bmod b)\) have exactly the same set of common divisors, and in particular the same greatest one. When \(b\) becomes \(0\), \(\gcd(a,0)=a\) is returned.</p>
+    <p><strong>Termination.</strong> The second argument is a strictly decreasing sequence of non-negative integers (\(a\bmod b &lt; b\)), which cannot decrease forever. The extended version threads back the coefficients \(x,y\) with \(ax+by=\gcd(a,b)\) by substituting each step's identity into the next. \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Modular exponentiation &mdash; <span class="s">O(log e)</span></h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>modpow.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Modular exponentiation by squaring: base^exp mod m in O(log exp) multiplies.
+sub modpow {
+    my ($base, $exp, $mod) = @_;
+    my $result = 1 % $mod;
+    $base %= $mod;
+    while ($exp &gt; 0) {
+        $result = ($result * $base) % $mod if $exp &amp; 1;   # fold in this bit
+        $base   = ($base * $base) % $mod;                 # square the base
+        $exp  &gt;&gt;= 1;
+    }
+    return $result;
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 6.2</span><p class="stmt">Exponentiation by squaring computes \(b^{e}\bmod m\) using \(O(\log e)\) modular multiplications.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p>Write \(e\) in binary, \(e=\sum_i \varepsilon_i 2^{i}\). Then \(b^{e}=\prod_i b^{\varepsilon_i 2^{i}}\). The loop keeps <code>base</code> equal to \(b^{2^{i}}\bmod m\) by squaring it each iteration, and multiplies it into the result exactly when bit \(\varepsilon_i=1\). The number of iterations is the number of bits of \(e\), namely \(\lfloor\log_2 e\rfloor + 1\), each doing \(O(1)\) modular multiplications. Reducing mod \(m\) after every product keeps the operands small. \(\;\blacksquare\)</p>
+  </div>
+
+  <h3 class="reveal">Sieve of Eratosthenes &mdash; <span class="s">O(n log log n)</span></h3>
+  <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>sieve.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl"># Sieve of Eratosthenes: every composite is crossed out by its primes.
+# Starting each scan at p*p and stopping at sqrt(n) gives O(n log log n).
+sub sieve {
+    my ($n) = @_;
+    return [] if $n &lt; 2;
+    my @is_prime = (1) x ($n + 1);
+    $is_prime[0] = $is_prime[1] = 0;
+    for (my $p = 2; $p * $p &lt;= $n; $p++) {
+        next unless $is_prime[$p];
+        for (my $m = $p * $p; $m &lt;= $n; $m += $p) {
+            $is_prime[$m] = 0;
+        }
+    }
+    return [ grep { $is_prime[$_] } 2 .. $n ];
+}</code></pre></div>
+  <div class="box thm reveal"><span class="label">Theorem 6.3</span><p class="stmt">The sieve lists every prime up to \(n\) in \(O(n\log\log n)\) time.</p></div>
+  <div class="box proof reveal"><span class="label">proof</span>
+    <p>For each prime \(p\le\sqrt n\) the inner loop crosses out \(n/p\) multiples. The total work is therefore proportional to
+    \[ \sum_{p\le n,\ p\ \text{prime}} \frac{n}{p} \;=\; n\sum_{p\le n}\frac1p \;=\; n\,\bigl(\ln\ln n + O(1)\bigr), \]
+    by Mertens' theorem on the sum of reciprocals of primes &mdash; hence \(O(n\log\log n)\). Two details earn the bound: starting each scan at \(p^2\) (smaller multiples already carry a smaller prime factor) and stopping the outer loop at \(\sqrt n\) (any composite \(\le n\) has a factor that small). \(\;\blacksquare\)</p>
+  </div>
+
+  <div class="lab reveal">
+    <div class="labhead"><span class="tag">&#9654; LAB 5</span><h4>Sieve of Eratosthenes</h4></div>
+    <p class="labdesc">Each step takes the next surviving number &mdash; a prime, shown amber &mdash; and strikes through its multiples from \(p^2\) upward. Slide \(n\) to resize the field; the surviving cells are exactly the primes.</p>
+    <div class="controls">
+      <div class="ctl"><label>limit n = <span id="sv-n-val">60</span></label><input type="range" id="sv-n" min="20" max="120" value="60"></div>
+      <button class="btn" id="sv-step">step &#9656;</button>
+      <button class="btn alt" id="sv-auto">&#9654; auto</button>
+      <button class="btn ghost" id="sv-reset">&#10542; reset</button>
+    </div>
+    <div class="sgrid" id="sv-grid"></div>
+    <div class="readout" id="sv-out"></div>
+  </div>
+</section>
+
+<section id="exercises">
+  <h2><span class="num">SEC 7</span>Exercises</h2>
+  <p class="lead reveal">Work each with pencil and the Perl interpreter; the solution is one click away.</p>
+
+  <div class="box note exq reveal">
+    <div class="qhead"><span class="qnum">Exercise 1</span><span class="topic">hashes</span></div>
+    <p>Using the post-increment idiom, write a one-line <code>grep</code> that returns the elements appearing <em>more than once</em> in a list (each duplicate reported once).</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>Count first, then keep the keys whose count exceeds one:</p>
+      <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>dups.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl">sub dups {
+    my %seen;
+    return grep { $seen{$_}++ == 1 } @_;   # true only on the 2nd sighting
+}
+# dups(qw(a b a c c c b)) == (&#x27;a&#x27;, &#x27;c&#x27;, &#x27;b&#x27;)</code></pre></div>
+      <p>The trick mirrors <code>uniq</code>: <code>$seen{$_}++ == 1</code> is true exactly on the <em>second</em> sighting, so each duplicate is emitted once, in first-duplicate order.</p>
+    </div>
+  </div>
+
+  <div class="box note exq reveal">
+    <div class="qhead"><span class="qnum">Exercise 2</span><span class="topic">searching</span></div>
+    <p>Binary search returns <em>an</em> index of the target. Modify it to return the <em>leftmost</em> index of a target that may repeat (or \(-1\)).</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>Don't stop on the first hit; record it and keep searching left:</p>
+      <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>leftmost.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl">sub lower_bound {
+    my ($a, $target) = @_;
+    my ($lo, $hi, $ans) = (0, $#$a, -1);
+    while ($lo &lt;= $hi) {
+        my $mid = $lo + (($hi - $lo) &gt;&gt; 1);
+        if    ($a-&gt;[$mid] == $target) { $ans = $mid; $hi = $mid - 1; }  # keep going left
+        elsif ($a-&gt;[$mid] &lt;  $target) { $lo = $mid + 1; }
+        else                          { $hi = $mid - 1; }
+    }
+    return $ans;
+}</code></pre></div>
+      <p>The window still halves each step, so it stays \(O(\log n)\); the only change is that an equal element pushes <code>hi</code> left instead of returning, driving the search to the first occurrence.</p>
+    </div>
+  </div>
+
+  <div class="box note exq reveal">
+    <div class="qhead"><span class="qnum">Exercise 3</span><span class="topic">recurrences</span></div>
+    <p>Quickselect's expected time is \(O(n)\). What is its <em>worst-case</em> time, and which pivot sequence triggers it?</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>\(O(n^2)\). If every pivot is the current minimum or maximum (e.g. an already-sorted array with a fixed last-element pivot), each partition shrinks the problem by only one element, giving \(n+(n-1)+\cdots+1=\Theta(n^2)\). The random pivot in the code makes that sequence astronomically unlikely, which is exactly why randomisation buys the \(O(n)\) <em>expected</em> bound. The deterministic median-of-medians pivot achieves \(O(n)\) worst-case at a larger constant.</p>
+    </div>
+  </div>
+
+  <div class="box note exq reveal">
+    <div class="qhead"><span class="qnum">Exercise 4</span><span class="topic">strings</span></div>
+    <p>Compute the KMP prefix table for the pattern <code>ababaca</code> by hand, then check it against <code>kmp_table</code>.</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>Index the pattern \(0\ldots6\). The longest proper prefix that is also a suffix of each prefix:</p>
+      <p><code>a&rarr;0&nbsp; ab&rarr;0&nbsp; aba&rarr;1&nbsp; abab&rarr;2&nbsp; ababa&rarr;3&nbsp; ababac&rarr;0&nbsp; ababaca&rarr;1</code></p>
+      <p>So <code>t = [0,0,1,2,3,0,1]</code>. The jump from \(3\) back to \(0\) at the <code>c</code> is the table earning its keep: on a later mismatch there, KMP knows to restart rather than crawl back through the text.</p>
+    </div>
+  </div>
+
+  <div class="box note exq reveal">
+    <div class="qhead"><span class="qnum">Exercise 5</span><span class="topic">graphs</span></div>
+    <p>Given <code>uf_new</code>, <code>uf_union</code>, and <code>uf_find</code>, decide whether an undirected graph contains a cycle in one pass over its edges.</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p>An edge closes a cycle exactly when its endpoints are already in the same set:</p>
+      <div class="codeblock"><div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span class="fname"><b>cycle.pl</b></span><button class="copy">copy</button></div><pre><code class="language-perl">sub has_cycle {
+    my ($n, $edges) = @_;
+    my $uf = uf_new($n);
+    for my $e (@$edges) {
+        return 1 unless uf_union($uf, $e-&gt;[0], $e-&gt;[1]);  # ends already joined =&gt; cycle
+    }
+    return 0;
+}</code></pre></div>
+      <p>Each edge whose ends are already connected completes a cycle; otherwise the union merges two trees. Over \(m\) edges this is \(O(m\,\alpha(n))\) &mdash; essentially linear &mdash; and is the cycle test at the heart of Kruskal's minimum-spanning-tree algorithm.</p>
+    </div>
+  </div>
+
+  <div class="box note exq reveal">
+    <div class="qhead"><span class="qnum">Exercise 6</span><span class="topic">number theory</span></div>
+    <p>Use <code>modpow</code> to test whether \(2^{340}\equiv 1 \pmod{341}\). What does the answer say about \(341\)?</p>
+    <button class="btn ghost ex-toggle">show solution</button>
+    <div class="exsol">
+      <p><code>modpow(2, 340, 341)</code> returns \(1\), so \(341\) passes the Fermat base-2 test &mdash; yet \(341 = 11\times 31\) is composite. It is the smallest base-2 <em>pseudoprime</em>: a composite that fools the Fermat test. The lesson is that \(a^{n-1}\equiv 1\) is necessary but not sufficient for primality, which is why real tests (Miller&ndash;Rabin) check more structure and several bases.</p>
+    </div>
+  </div>
+</section>
+
+<section id="reference">
+  <h2><span class="num">SEC 8</span>Reference Card</h2>
+  <p class="lead reveal">A pocket card: complexities on one side, Perl idioms on the other.</p>
+
+  <h3 class="reveal">Complexity at a glance</h3>
+  <div class="tbl reveal"><table>
+    <thead><tr><th>Algorithm</th><th>Time</th><th>Space</th></tr></thead>
+    <tbody>
+      <tr><td>Binary search</td><td>O(log n)</td><td>O(1)</td></tr>
+      <tr><td>Quickselect (expected / worst)</td><td>O(n) / O(n&sup2;)</td><td>O(n)</td></tr>
+      <tr><td>Counting sort</td><td>O(n + k)</td><td>O(n + k)</td></tr>
+      <tr><td>Heapsort &middot; heap push/pop</td><td>O(n log n) &middot; O(log n)</td><td>O(1) &middot; O(n)</td></tr>
+      <tr><td>KMP &middot; Rabin&ndash;Karp (exp.)</td><td>O(n + m)</td><td>O(m)</td></tr>
+      <tr><td>Edit distance &middot; LCS</td><td>O(n&middot;m)</td><td>O(min(n,m))</td></tr>
+      <tr><td>Longest increasing subseq.</td><td>O(n log n)</td><td>O(n)</td></tr>
+      <tr><td>Coin change</td><td>O(amount &middot; coins)</td><td>O(amount)</td></tr>
+      <tr><td>DFS &middot; topological sort</td><td>O(V + E)</td><td>O(V)</td></tr>
+      <tr><td>Union&ndash;Find (amortized)</td><td>O(&alpha;(n)) &asymp; O(1)</td><td>O(n)</td></tr>
+      <tr><td>Euclid &middot; modpow</td><td>O(log n)</td><td>O(1)</td></tr>
+      <tr><td>Sieve of Eratosthenes</td><td>O(n log log n)</td><td>O(n)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="reveal">Perl idioms for algorithm work</h3>
+  <div class="tbl reveal"><table>
+    <thead><tr><th>Task</th><th>Idiom</th></tr></thead>
+    <tbody>
+      <tr><td>Length / last index</td><td><code>scalar @a</code> / <code>$#a</code></td></tr>
+      <tr><td>Swap two elements</td><td><code>@a[$i,$j] = @a[$j,$i]</code></td></tr>
+      <tr><td>Slice</td><td><code>@a[$lo .. $hi]</code></td></tr>
+      <tr><td>Array / hash ref</td><td><code>[ ... ]</code> / <code>{ ... }</code></td></tr>
+      <tr><td>Dereference</td><td><code>@{$ref}</code>, <code>$ref-&gt;[$i]</code>, <code>$ref-&gt;{$k}</code></td></tr>
+      <tr><td>Frequency count</td><td><code>$count{$_}++ for @list</code></td></tr>
+      <tr><td>Order-preserving unique</td><td><code>grep { !$seen{$_}++ } @list</code></td></tr>
+      <tr><td>Numeric sort</td><td><code>sort { $a &lt;=&gt; $b } @a</code></td></tr>
+      <tr><td>Min of a few values</td><td><code>(sort { $a &lt;=&gt; $b } @v)[0]</code></td></tr>
+      <tr><td>Split / join a string</td><td><code>split //, $s</code> / <code>join '', @ch</code></td></tr>
+      <tr><td>Integer halving</td><td><code>$mid = ($lo + $hi) &gt;&gt; 1</code></td></tr>
+      <tr><td>Persistent cache</td><td><code>state %memo; ... //= ...</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="box key reveal"><span class="label">five habits</span>
+    <p>1 &middot; State the input size your bound is in. &nbsp; 2 &middot; Prove correctness with an invariant before optimising. &nbsp; 3 &middot; Reach for a hash before a nested loop. &nbsp; 4 &middot; Verify a hash match with <code>eq</code>; never trust the hash alone. &nbsp; 5 &middot; A better asymptotic class beats a faster constant almost every time.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="big">Now run it yourself.</div>
+  <p>Every routine here was executed under <code>use strict; use warnings;</code> and checked against assertions before it reached this page. Save one to a file &mdash; <code>perl -e 'print join ",", @{ sieve(50) }'</code> &mdash; and watch the proof become output. The theory tells you <em>why</em>; the interpreter tells you <em>that</em>.</p>
+  <p class="muted">A field guide to algorithms in Perl &middot; proofs typeset with MathJax &middot; syntax by highlight.js &middot; best viewed with a connection for fonts &amp; math</p>
+</footer>
+
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/perl.min.js"></script>
+<script>
+/* ===== syntax highlighting ===== */
+function runHighlight(){
+  if(window.hljs){ document.querySelectorAll('pre code').forEach(b => { try{ hljs.highlightElement(b); }catch(e){} }); }
+}
+
+/* ===== copy buttons ===== */
+function wireCopy(){
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.closest('.codeblock').querySelector('code');
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        const t = btn.textContent; btn.textContent = 'copied \u2713';
+        setTimeout(() => btn.textContent = t, 1200);
+      });
+    });
+  });
+}
+
+/* ===== progress bar + active TOC + reveal ===== */
+function wireChrome(){
+  const prog = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement, max = h.scrollHeight - h.clientHeight;
+    prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  }, {passive:true});
+
+  const navLinks = [...document.querySelectorAll('#navlist a')];
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        const id = e.target.id;
+        navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+      }
+    });
+  }, {rootMargin:'-15% 0px -75% 0px'});
+  document.querySelectorAll('section[id]').forEach(s => io.observe(s));
+
+  const ro = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); ro.unobserve(e.target); } });
+  }, {rootMargin:'0px 0px -10% 0px'});
+  document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+}
+
+/* ================= LAB 1 — Sieve of Eratosthenes ================= */
+function labSieve(){
+  const grid = document.getElementById('sv-grid'); if(!grid) return;
+  const nS = document.getElementById('sv-n'), nV = document.getElementById('sv-n-val'), out = document.getElementById('sv-out');
+  let n, state, p, timer = null;
+  function build(){
+    n = +nS.value; nV.textContent = n;
+    state = new Array(n + 1).fill('unknown'); state[0] = state[1] = 'one';
+    p = 2; render(); info('Ready \u2014 press step to sieve with the next prime.');
+  }
+  function render(active){
+    grid.innerHTML = '';
+    for(let i = 2; i <= n; i++){
+      const c = document.createElement('div'); let cls = 'scell';
+      if(state[i] === 'prime') cls += ' prime'; else if(state[i] === 'comp') cls += ' comp';
+      if(active && active.has(i)) cls += ' active';
+      c.className = cls; c.textContent = i; grid.appendChild(c);
+    }
+  }
+  function info(msg){
+    let cnt = 0; for(let i = 2; i <= n; i++) if(state[i] === 'prime') cnt++;
+    out.innerHTML = `<span><b>next p</b> = ${p * p <= n ? p : '\u2014 done'}</span><span><b>primes</b> = ${cnt}</span><span>${msg}</span>`;
+  }
+  function stopAuto(){ if(timer){ clearInterval(timer); timer = null; document.getElementById('sv-auto').textContent = '\u25B6 auto'; } }
+  function step(){
+    while(p <= n && state[p] === 'comp') p++;
+    if(p * p > n){
+      for(let i = 2; i <= n; i++) if(state[i] === 'unknown') state[i] = 'prime';
+      render(); info('Complete \u2014 every survivor is prime.'); stopAuto(); return false;
+    }
+    state[p] = 'prime';
+    const mult = new Set();
+    for(let m = p * p; m <= n; m += p){ state[m] = 'comp'; mult.add(m); }
+    render(mult); info(`Crossed out multiples of ${p}, starting at ${p}\u00B2 = ${p*p}.`); p++; return true;
+  }
+  document.getElementById('sv-step').addEventListener('click', () => { stopAuto(); step(); });
+  document.getElementById('sv-auto').addEventListener('click', () => {
+    if(timer){ stopAuto(); return; }
+    document.getElementById('sv-auto').textContent = '\u25A0 pause';
+    timer = setInterval(() => { if(!step()) stopAuto(); }, 600);
+  });
+  document.getElementById('sv-reset').addEventListener('click', () => { stopAuto(); build(); });
+  nS.addEventListener('input', () => { stopAuto(); build(); });
+  build();
+}
+
+/* ================= LAB 2 — Binary min-heap ================= */
+function labHeap(){
+  const svg = document.getElementById('hp-svg'); if(!svg) return;
+  const arrEl = document.getElementById('hp-arr'), val = document.getElementById('hp-val'), out = document.getElementById('hp-out');
+  let h = [], flash = -1;
+  function pos(i, W){ const d = Math.floor(Math.log2(i + 1)), cnt = 2 ** d, p = i - (cnt - 1); return {x:(p + 0.5) / cnt * W, y:36 + d * 64}; }
+  function render(){
+    arrEl.innerHTML = '';
+    h.forEach((v, i) => { const c = document.createElement('div'); c.className = 'hcell' + (i === flash ? ' flash' : ''); c.innerHTML = `<span class="ix">${i}</span>${v}`; arrEl.appendChild(c); });
+    const W = Math.max(320, svg.clientWidth || 620), levels = h.length ? Math.floor(Math.log2(h.length)) + 1 : 1, H = h.length ? 30 + levels * 64 : 60;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.style.height = H + 'px';
+    let s = '';
+    h.forEach((v, i) => { if(i > 0){ const a = pos(i, W), b = pos((i - 1) >> 1, W); s += `<line class="edge" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`; } });
+    h.forEach((v, i) => { const a = pos(i, W), fl = i === flash ? ' flash' : ''; s += `<circle class="node-c${fl}" cx="${a.x}" cy="${a.y}" r="16"/><text class="node-t${fl}" x="${a.x}" y="${a.y + 4.5}">${v}</text>`; });
+    svg.innerHTML = s;
+    out.innerHTML = `<span><b>size</b> = ${h.length}</span><span><b>min (root)</b> = ${h.length ? h[0] : '\u2014'}</span>`;
+  }
+  function siftUp(){ let i = h.length - 1; while(i > 0){ const p = (i - 1) >> 1; if(h[p] <= h[i]) break; [h[i], h[p]] = [h[p], h[i]]; i = p; } return i; }
+  function push(x){ h.push(x); flash = siftUp(); render(); setTimeout(() => { flash = -1; render(); }, 420); }
+  function pop(){ if(!h.length) return; const last = h.pop(); if(h.length){ h[0] = last; let i = 0, n = h.length; while(true){ let l = 2*i+1, r = 2*i+2, sm = i; if(l < n && h[l] < h[sm]) sm = l; if(r < n && h[r] < h[sm]) sm = r; if(sm === i) break; [h[i], h[sm]] = [h[sm], h[i]]; i = sm; } } render(); }
+  document.getElementById('hp-push').addEventListener('click', () => { const v = parseInt(val.value, 10); if(Number.isFinite(v)){ push(v); val.value = ''; } });
+  document.getElementById('hp-rand').addEventListener('click', () => push(Math.floor(Math.random() * 98) + 1));
+  document.getElementById('hp-pop').addEventListener('click', pop);
+  document.getElementById('hp-reset').addEventListener('click', () => { h = []; flash = -1; render(); });
+  val.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('hp-push').click(); });
+  [5,3,8,1,9,2,7].forEach(x => { h.push(x); let i = h.length - 1; while(i > 0){ const p = (i - 1) >> 1; if(h[p] <= h[i]) break; [h[i], h[p]] = [h[p], h[i]]; i = p; } });
+  render();
+}
+
+/* ================= LAB 3 — Union-Find forest ================= */
+function labUF(){
+  const svg = document.getElementById('uf-svg'); if(!svg) return;
+  const A = document.getElementById('uf-a'), B = document.getElementById('uf-b'), out = document.getElementById('uf-out');
+  const N = 10; let parent, rank_, comp = new Set();
+  function reset(){ parent = [...Array(N).keys()]; rank_ = new Array(N).fill(0); comp = new Set(); render('Every element is its own set.'); }
+  function find(x){ const path = []; while(parent[x] !== x){ path.push(x); x = parent[x]; } for(const y of path){ if(parent[y] !== x){ parent[y] = x; comp.add(y); } } return x; }
+  function findNC(x){ while(parent[x] !== x) x = parent[x]; return x; }
+  function union(a, b){ const ra = find(a), rb = find(b); if(ra === rb) return false; if(rank_[ra] < rank_[rb]) parent[ra] = rb; else if(rank_[ra] > rank_[rb]) parent[rb] = ra; else { parent[rb] = ra; rank_[ra]++; } return true; }
+  function count(){ const r = new Set(); for(let i = 0; i < N; i++) r.add(findNC(i)); return r.size; }
+  function render(msg){
+    const W = Math.max(420, svg.clientWidth || 620), H = 176, y = H - 32, pad = 32;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.style.height = H + 'px';
+    const X = i => pad + i * (W - 2 * pad) / (N - 1);
+    let s = '';
+    for(let i = 0; i < N; i++){ const p = parent[i]; if(p !== i){ const x1 = X(i), x2 = X(p), mx = (x1 + x2) / 2, bulge = Math.min(76, 22 + Math.abs(p - i) * 9); s += `<path class="edge${comp.has(i) ? ' comp' : ''}" d="M ${x1} ${y-16} Q ${mx} ${y-16-bulge} ${x2} ${y-16}" fill="none"/>`; } }
+    for(let i = 0; i < N; i++){ const root = parent[i] === i, fl = root ? ' flash' : ''; s += `<circle class="node-c${fl}" cx="${X(i)}" cy="${y}" r="15"/><text class="node-t${fl}" x="${X(i)}" y="${y + 4.5}">${i}</text>`; }
+    svg.innerHTML = s;
+    out.innerHTML = `<span><b>components</b> = ${count()}</span><span><b>roots</b> highlighted amber</span><span>${msg || ''}</span>`;
+  }
+  document.getElementById('uf-union').addEventListener('click', () => { comp = new Set(); const a = +A.value, b = +B.value; if(a >= 0 && a < N && b >= 0 && b < N){ const d = union(a, b); render(d ? `union(${a}, ${b})` : `${a} and ${b} are already connected`); } });
+  document.getElementById('uf-find').addEventListener('click', () => { comp = new Set(); const a = +A.value; if(a >= 0 && a < N){ const r = find(a); render(`find(${a}) = ${r} \u2014 green edges were path-compressed`); } });
+  document.getElementById('uf-rand').addEventListener('click', () => { comp = new Set(); const a = Math.floor(Math.random() * N), b = Math.floor(Math.random() * N); const d = union(a, b); render(d ? `union(${a}, ${b})` : `${a} & ${b} already joined`); });
+  document.getElementById('uf-reset').addEventListener('click', reset);
+  reset();
+}
+
+/* ================= LAB 4 — Edit-distance DP table ================= */
+function labEdit(){
+  const sIn = document.getElementById('ed-s'), tIn = document.getElementById('ed-t'), tbl = document.getElementById('ed-table'), out = document.getElementById('ed-out');
+  if(!tbl) return;
+  const esc = c => c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '&' ? '&amp;' : c;
+  function compute(){
+    const s = sIn.value, t = tIn.value, n = s.length, m = t.length;
+    if(n > 14 || m > 14){ tbl.innerHTML = '<p style="color:var(--rose);font-style:italic;margin:0">Keep each string to 14 characters or fewer for the visual table.</p>'; out.innerHTML = ''; return; }
+    const dp = Array.from({length:n + 1}, () => new Array(m + 1).fill(0));
+    for(let i = 0; i <= n; i++) dp[i][0] = i;
+    for(let j = 0; j <= m; j++) dp[0][j] = j;
+    for(let i = 1; i <= n; i++) for(let j = 1; j <= m; j++){ const c = s[i-1] === t[j-1] ? 0 : 1; dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + c); }
+    const path = new Set(); let i = n, j = m; path.add(i + ',' + j);
+    while(i > 0 || j > 0){
+      if(i > 0 && j > 0){ const c = s[i-1] === t[j-1] ? 0 : 1; if(dp[i][j] === dp[i-1][j-1] + c){ i--; j--; path.add(i + ',' + j); continue; } }
+      if(i > 0 && dp[i][j] === dp[i-1][j] + 1){ i--; path.add(i + ',' + j); continue; }
+      j--; path.add(i + ',' + j);
+    }
+    let h = '<table class="dpt"><tr><th></th><th class="head">\u03b5</th>';
+    for(let j = 0; j < m; j++) h += `<th class="head">${esc(t[j])}</th>`; h += '</tr>';
+    for(let i = 0; i <= n; i++){ h += '<tr>' + (i === 0 ? '<th class="head">\u03b5</th>' : `<th class="head">${esc(s[i-1])}</th>`);
+      for(let j = 0; j <= m; j++){ h += `<td${path.has(i + ',' + j) ? ' class="path"' : ''}>${dp[i][j]}</td>`; } h += '</tr>'; }
+    h += '</table>'; tbl.innerHTML = h;
+    out.innerHTML = `<span><b>edit distance</b> = ${dp[n][m]}</span><span>amber cells trace one optimal edit script</span>`;
+  }
+  sIn.addEventListener('input', compute); tIn.addEventListener('input', compute); compute();
+}
+
+/* ================= LAB 5 — KMP string matcher ================= */
+function labKMP(){
+  const txt = document.getElementById('km-text'), pat = document.getElementById('km-pat');
+  const trow = document.getElementById('km-text-row'), prow = document.getElementById('km-pat-row'), tblEl = document.getElementById('km-table'), out = document.getElementById('km-out');
+  if(!trow) return;
+  let T, P, tbl, i, k, done, found, timer = null;
+  const esc = c => c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '&' ? '&amp;' : c === ' ' ? '\u2423' : c;
+  function buildTable(p){ const t = new Array(p.length).fill(0); let kk = 0; for(let ii = 1; ii < p.length; ii++){ while(kk > 0 && p[ii] !== p[kk]) kk = t[kk-1]; if(p[ii] === p[kk]) kk++; t[ii] = kk; } return t; }
+  function stopAuto(){ if(timer){ clearInterval(timer); timer = null; document.getElementById('km-auto').textContent = '\u25B6 auto'; } }
+  function reset(){ stopAuto(); T = txt.value; P = pat.value; tbl = buildTable(P); i = 0; k = 0; done = false; found = []; renderTable(); render('Ready.'); }
+  function renderTable(){ if(!P.length){ tblEl.innerHTML = ''; return; } let h = '<div class="klabel">prefix table t[] (fallback lengths):</div><div class="kstr">'; for(let x = 0; x < P.length; x++) h += `<div class="kcell">${esc(P[x])}<span style="position:absolute;bottom:-15px;font-size:9px;color:var(--faint)">${tbl[x]}</span></div>`; h += '</div>'; tblEl.innerHTML = h; }
+  function render(msg){
+    let th = ''; for(let x = 0; x < T.length; x++){ let cls = 'kcell'; if(x >= i - k && x < i) cls += ' match'; if(x === i && !done) cls += ' cur'; th += `<div class="${cls}">${esc(T[x])}</div>`; }
+    trow.innerHTML = '<div class="klabel">text:</div><div class="kstr">' + th + '</div>';
+    const off = i - k; let ph = ''; for(let x = 0; x < off; x++) ph += '<div class="kcell" style="visibility:hidden">.</div>';
+    for(let x = 0; x < P.length; x++){ let cls = 'kcell win'; if(x < k) cls += ' match'; if(x === k && !done) cls += ' cur'; ph += `<div class="${cls}">${esc(P[x])}</div>`; }
+    prow.innerHTML = `<div class="klabel">pattern (matched k = ${k}):</div><div class="kstr">` + ph + '</div>';
+    out.innerHTML = `<span><b>i</b> = ${i}, <b>k</b> = ${k}</span>` + (found.length ? `<span><b>matches @</b> ${found.join(', ')}</span>` : '') + `<span>${msg || ''}</span>`;
+  }
+  function step(){
+    if(done) return false;
+    if(!P.length){ done = true; render('Empty pattern.'); return false; }
+    if(i >= T.length){ done = true; render('Reached the end of the text.'); stopAuto(); return false; }
+    if(T[i] === P[k]){ i++; k++;
+      if(k === P.length){ found.push(i - k); render(`Full match ending at index ${i-1}; fall back via the prefix table.`); k = tbl[k-1]; return true; }
+      render(`text[${i-1}] = pattern[${k-1}] \u2713 \u2014 advance both pointers.`);
+    } else {
+      if(k > 0){ render(`mismatch \u2014 fall back k \u2190 t[${k-1}] = ${tbl[k-1]}; text pointer stays put.`); k = tbl[k-1]; }
+      else { render('mismatch at k = 0 \u2014 advance the text pointer only.'); i++; }
+    }
+    return true;
+  }
+  document.getElementById('km-step').addEventListener('click', () => { stopAuto(); step(); });
+  document.getElementById('km-auto').addEventListener('click', () => { if(timer){ stopAuto(); return; } document.getElementById('km-auto').textContent = '\u25A0 pause'; timer = setInterval(() => { if(!step()) stopAuto(); }, 680); });
+  document.getElementById('km-reset').addEventListener('click', reset);
+  txt.addEventListener('change', reset); pat.addEventListener('change', reset);
+  reset();
+}
+
+/* ===== exercise toggles ===== */
+function wireExercises(){
+  document.querySelectorAll('.ex-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sol = btn.parentElement.querySelector('.exsol');
+      const open = sol.classList.toggle('open');
+      btn.textContent = open ? 'hide solution' : 'show solution';
+      if(open && window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([sol]);
+    });
+  });
+}
+
+/* ===== mobile TOC ===== */
+function wireToc(){
+  const t = document.getElementById('toc-toggle');
+  if(t) t.addEventListener('click', () => document.getElementById('navlist').classList.toggle('open'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  runHighlight(); wireCopy(); wireChrome(); wireToc(); wireExercises();
+  labSieve(); labHeap(); labUF(); labEdit(); labKMP();
+});
+
+</script>
+</body>
+</html>

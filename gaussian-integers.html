@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaussian Integers — A Complete, Interactive Lesson</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+
+<style>
+:root{
+  --paper:#f4f2ea;
+  --paper-2:#fbfaf3;
+  --ink:#1b2421;
+  --ink-soft:#586059;
+  --ink-dim:#878d83;
+  --emerald:#0f7a5a;
+  --emerald-deep:#0a5b43;
+  --plum:#7a3f9d;
+  --plum-deep:#5d2e7a;
+  --amber:#c5841d;
+  --rule:#1b2421;
+  --line:#dadbce;
+  --dot:#cfd0c2;
+  --code:#11201a;
+  --code-fg:#e7eee9;
+  --shadow:0 16px 44px -26px rgba(27,36,33,.5);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:66px}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:'Source Serif 4',Georgia,serif;font-size:18.5px;line-height:1.72;-webkit-font-smoothing:antialiased}
+/* Gaussian-integer lattice of dots */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle, var(--dot) 1.4px, transparent 1.6px);
+  background-size:30px 30px;opacity:.7;
+  mask-image:radial-gradient(circle at 50% 22%, #000, transparent 80%);
+  -webkit-mask-image:radial-gradient(circle at 50% 22%, #000, transparent 80%)}
+.wrap{position:relative;z-index:1}
+
+nav.topbar{position:sticky;top:0;z-index:50;background:rgba(244,242,234,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav.topbar .inner{max-width:1080px;margin:0 auto;padding:.5rem 1.2rem;display:flex;gap:.25rem;align-items:center;flex-wrap:wrap}
+nav.topbar .brand{font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--emerald-deep);margin-right:auto}
+nav.topbar a{color:var(--ink-soft);text-decoration:none;font-size:.82rem;font-family:'DM Mono',monospace;padding:.22rem .5rem;border-radius:6px;transition:.13s}
+nav.topbar a:hover{background:var(--emerald);color:#fff}
+
+header.hero{max-width:1080px;margin:0 auto;padding:3.2rem 1.2rem 1rem}
+main{max-width:1080px;margin:0 auto;padding:0 1.2rem 5rem}
+section{padding:2.3rem 0;border-top:1px solid var(--line)}
+
+.eyebrow{font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:3px;text-transform:uppercase;color:var(--plum);margin-bottom:.7rem}
+h1{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(2.8rem,7vw,5rem);line-height:1.02;margin:.1rem 0 .4rem;letter-spacing:-.5px}
+h1 em{font-style:italic;color:var(--emerald-deep)}
+.lede{font-size:1.24rem;color:var(--ink-soft);max-width:62ch;font-style:italic}
+h2{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.08;margin:0 0 .25rem;color:var(--emerald-deep);letter-spacing:-.3px}
+h2 .num{font-family:'DM Mono',monospace;font-size:.85rem;color:#fff;background:var(--emerald);padding:.1em .5em;border-radius:5px;vertical-align:middle;margin-right:.6rem;letter-spacing:0}
+h3{font-family:'DM Serif Display',serif;font-weight:400;font-size:1.5rem;margin:1.7rem 0 .3rem;color:var(--ink)}
+p{max-width:70ch}
+strong{font-weight:600;color:var(--emerald-deep)}
+.subtle{color:var(--ink-soft);font-size:.95rem}
+
+.toc{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:1.1rem 1.4rem;margin-top:1.8rem;box-shadow:var(--shadow)}
+.toc h4{margin:.1rem 0 .6rem;font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--plum)}
+.toc ol{margin:0;padding-left:1.4rem;columns:2;column-gap:2.2rem}
+@media(max-width:640px){.toc ol{columns:1}}
+.toc li{margin:.18rem 0}
+.toc a{color:var(--ink);text-decoration:none}
+.toc a:hover{color:var(--emerald);text-decoration:underline}
+
+.plaque{border:1px solid #16322a;border-radius:16px;padding:1.5rem 1.4rem;margin:1.5rem 0;background:linear-gradient(155deg,#12241d,#16302a);color:#eaf2ee;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.plaque .label{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:#86c7ad;margin-bottom:.3rem}
+.plaque .math-big{font-size:1.3rem;color:#fff}
+
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:1.15rem 1.4rem;margin:1.3rem 0;box-shadow:var(--shadow)}
+.card.emerald{border-left:4px solid var(--emerald)}
+.card.plum{border-left:4px solid var(--plum)}
+.card.amber{border-left:4px solid var(--amber)}
+.card h3:first-child{margin-top:0}
+.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:1.5px;text-transform:uppercase;padding:.16rem .55rem;border-radius:5px;margin-bottom:.5rem;color:#fff}
+.tag.e{background:var(--emerald)} .tag.p{background:var(--plum)} .tag.a{background:var(--amber)}
+
+.proof{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;margin:1.3rem 0;overflow:hidden;box-shadow:var(--shadow)}
+.proof summary{cursor:pointer;list-style:none;padding:.95rem 1.3rem;font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--emerald-deep);display:flex;align-items:center;gap:.7rem;background:linear-gradient(90deg,rgba(15,122,90,.08),transparent)}
+.proof summary::-webkit-details-marker{display:none}
+.proof summary .chev{transition:transform .22s;color:var(--amber);font-size:.9rem}
+.proof[open] summary .chev{transform:rotate(90deg)}
+.proof .body{padding:.3rem 1.4rem 1.2rem}
+.step{margin:.5rem 0}
+.step b{font-family:'DM Mono',monospace;font-size:.78rem;background:rgba(197,132,29,.16);color:var(--amber);padding:.05em .4em;border-radius:4px;margin-right:.3em}
+.qed{text-align:right;color:var(--emerald);font-style:italic}
+
+.codewrap{position:relative;margin:1rem 0}
+.codewrap .cap{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:1px;color:var(--ink-dim);text-transform:uppercase;margin-bottom:.3rem}
+.codewrap .cap::before{content:"› "}
+pre{margin:0;background:var(--code);color:var(--code-fg);border-radius:12px;padding:1rem 1.1rem;overflow-x:auto;font-family:'DM Mono',monospace;font-size:.83rem;line-height:1.62;border:1px solid #0c1814;box-shadow:var(--shadow)}
+.copybtn{position:absolute;top:1.85rem;right:.55rem;background:rgba(255,255,255,.07);color:#d9e3dd;border:1px solid rgba(255,255,255,.14);border-radius:7px;font-family:'DM Mono',monospace;font-size:.68rem;padding:.26rem .55rem;cursor:pointer;transition:.13s}
+.copybtn:hover{background:var(--amber);color:#1b2421;border-color:var(--amber)}
+.out{background:#0c1813;color:#86d2ab;border:1px solid #0c1814;border-top:1px dashed rgba(134,210,171,.28);border-radius:0 0 12px 12px;margin-top:-6px;padding:.65rem 1.1rem .8rem;font-family:'DM Mono',monospace;font-size:.78rem;white-space:pre-wrap;overflow-x:auto}
+.out .lbl{color:#4f8a6a;display:block;font-size:.64rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.3rem}
+.k{color:#e0a23c}.b{color:#6fc6c0}.s{color:#a8d96a}.n{color:#cf9ad8}.c{color:#6f8278;font-style:italic}
+
+.lab{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:1.3rem;margin:1.3rem 0;box-shadow:var(--shadow)}
+.lab .labhead{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:.9rem;display:inline-block;padding:.2rem .6rem;border-radius:6px;color:#fff;background:var(--emerald)}
+.lab.plum .labhead{background:var(--plum)} .lab.amber .labhead{background:var(--amber);color:#1b2421}
+.lab-grid{display:grid;grid-template-columns:1fr 290px;gap:1.3rem;align-items:start}
+@media(max-width:720px){.lab-grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.7rem}
+.field label{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft)}
+.field.inline{flex-direction:row;align-items:center;gap:.5rem}
+.field input[type=number]{width:80px;font-family:'DM Mono',monospace;font-size:1rem;padding:.4rem .5rem;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.field input:focus{outline:none;border-color:var(--emerald);box-shadow:0 0 0 3px rgba(15,122,90,.15)}
+input[type=range]{width:100%;accent-color:var(--emerald)}
+.rngval{font-family:'DM Mono',monospace;color:var(--plum)}
+.btnrow{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.7rem}
+button.act{font-family:'DM Mono',monospace;font-size:.76rem;padding:.38rem .7rem;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink-soft);cursor:pointer;transition:.13s}
+button.act:hover{border-color:var(--emerald);color:var(--emerald-deep)}
+button.act.on{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+svg.fig,canvas.fig{display:block;width:100%;height:auto;background:#fcfbf5;border:1px solid var(--line);border-radius:12px;touch-action:none}
+.statgrid{display:grid;gap:.6rem}
+.stat{border:1px solid var(--line);border-radius:9px;padding:.55rem .8rem;background:#fff}
+.stat .t{font-family:'DM Mono',monospace;font-size:.64rem;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-dim)}
+.stat .v{font-family:'DM Mono',monospace;font-size:1.1rem;margin-top:.1rem;word-break:break-all;color:var(--emerald-deep)}
+.bigeq{font-family:'DM Mono',monospace;font-size:1rem;text-align:center;padding:.8rem;border:1px solid var(--line);border-radius:12px;margin-top:.9rem;background:#fff}
+.hint{font-size:.84rem;color:var(--ink-dim);font-style:italic;margin-top:.4rem}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:.74rem;margin-top:.5rem}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.legend i{width:11px;height:11px;border-radius:50%;display:inline-block}
+
+table.def{border-collapse:collapse;margin:1rem 0;width:100%;font-size:.93rem}
+table.def th,table.def td{border:1px solid var(--line);padding:.5rem .8rem;text-align:left;vertical-align:top}
+table.def th{background:rgba(15,122,90,.1);font-family:'DM Mono',monospace;font-size:.76rem;letter-spacing:.5px;text-transform:uppercase;color:var(--emerald-deep)}
+table.def code{font-family:'DM Mono',monospace;font-size:.85rem;background:rgba(122,63,157,.12);color:var(--plum-deep);padding:.05em .35em;border-radius:4px}
+
+footer{max-width:1080px;margin:0 auto;padding:2.3rem 1.2rem 4rem;border-top:1px solid var(--line);color:var(--ink-soft);font-size:.9rem}
+footer strong{color:var(--ink)}
+.divsym{text-align:center;font-family:'DM Serif Display';font-size:1.5rem;letter-spacing:.7rem;color:var(--line);margin:1rem 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="topbar"><div class="inner">
+  <span class="brand">ℤ[i]</span>
+  <a href="#what">integers</a><a href="#norm">norm</a><a href="#units">units</a><a href="#division">division</a><a href="#ufd">factorization</a><a href="#primes">primes</a><a href="#fermat">Fermat</a><a href="#octave">octave</a>
+</div></nav>
+
+<header class="hero">
+  <div class="eyebrow">Number theory in the complex plane</div>
+  <h1>Gaussian <em>Integers</em></h1>
+  <p class="lede">Whole numbers, extended into the complex plane. They form a lattice you can see, an arithmetic you can do, and — remarkably — a world with its own primes and its own unique factorization.</p>
+
+  <div class="plaque">
+    <div class="label">The ring of Gaussian integers</div>
+    <div class="math-big">\[ \mathbb{Z}[i]=\{\,a+bi \;:\; a,b\in\mathbb{Z}\,\},\qquad i^2=-1. \]</div>
+  </div>
+
+  <p class="subtle">Introduced by Carl Friedrich Gauss in 1832 while studying biquadratic reciprocity, \(\mathbb{Z}[i]\) turns hard questions about ordinary integers — like "which numbers are a sum of two squares?" — into easy questions about factorization. Below: the full theory with proofs, verified GNU&nbsp;Octave code, and four things to play with.</p>
+
+  <div class="toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#what">What the Gaussian integers are</a></li>
+      <li><a href="#norm">The norm — the master tool</a></li>
+      <li><a href="#units">Conjugates, units &amp; associates</a></li>
+      <li><a href="#division">Divisibility &amp; the division algorithm</a></li>
+      <li><a href="#ufd">Why factorization is unique</a></li>
+      <li><a href="#primes">Gaussian primes, classified</a></li>
+      <li><a href="#fermat">Fermat's two-square theorem</a></li>
+      <li><a href="#octave">GNU Octave — verified code</a></li>
+      <li><a href="#apps">Applications &amp; wonders</a></li>
+    </ol>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ 1 WHAT ============ -->
+<section id="what">
+  <h2><span class="num">01</span>What the Gaussian Integers Are</h2>
+  <p>A <strong>Gaussian integer</strong> is a complex number whose real and imaginary parts are both ordinary integers: \(a+bi\) with \(a,b\in\mathbb{Z}\). Plotted in the complex plane, they are exactly the corners of the unit grid — a perfect square <strong>lattice</strong>.</p>
+  <p>They are closed under addition, subtraction, and multiplication, so they form a <strong>commutative ring</strong> with identity \(1\), written \(\mathbb{Z}[i]\). Addition is componentwise; multiplication uses \(i^2=-1\):</p>
+  \[ (a+bi)+(c+di)=(a+c)+(b+d)i, \]
+  \[ (a+bi)(c+di)=(ac-bd)+(ad+bc)i. \]
+  <p>There are no zero divisors (a product is zero only if a factor is), so \(\mathbb{Z}[i]\) is an <strong>integral domain</strong>. Geometrically, multiplication is the complex-plane move you may know: lengths multiply and angles add. The widget below lets you feel that — drag the two points and switch between sum and product.</p>
+
+  <div class="lab">
+    <span class="labhead">Lattice arithmetic · drag z and w</span>
+    <div class="lab-grid">
+      <svg class="fig" id="arithSvg" viewBox="0 0 420 420" aria-label="Complex-plane arithmetic"></svg>
+      <div>
+        <div class="btnrow">
+          <button class="act on" id="modeSum">z + w</button>
+          <button class="act" id="modeMul">z × w</button>
+        </div>
+        <div class="statgrid">
+          <div class="stat" style="border-color:var(--emerald)"><div class="t">z</div><div class="v" id="aZ">—</div></div>
+          <div class="stat" style="border-color:var(--plum)"><div class="t">w</div><div class="v" id="aW">—</div></div>
+          <div class="stat" style="border-color:var(--amber)"><div class="t" id="aRtag">z + w</div><div class="v" id="aR">—</div></div>
+          <div class="stat"><div class="t">norm check</div><div class="v" id="aN">—</div></div>
+        </div>
+        <p class="hint">In product mode, notice the result's angle is the sum of the two angles and its norm is the product of the norms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2 NORM ============ -->
+<section id="norm">
+  <h2><span class="num">02</span>The Norm — the Master Tool</h2>
+  <p>Almost everything about \(\mathbb{Z}[i]\) is controlled by a single function, the <strong>norm</strong>, which sends a Gaussian integer to an ordinary non-negative integer:</p>
+  \[ N(a+bi)=a^2+b^2=|a+bi|^2=(a+bi)\overline{(a+bi)}. \]
+  <p>It is the squared distance from the origin. Its superpower is that it is <strong>multiplicative</strong> — it turns multiplication in \(\mathbb{Z}[i]\) into multiplication in \(\mathbb{Z}\), letting us drag hard problems down to familiar integer arithmetic.</p>
+
+  <details class="proof" open>
+    <summary><span class="chev">▶</span> Proof — the norm is multiplicative</summary>
+    <div class="body">
+      <p class="step"><b>Via conjugates</b> The conjugate satisfies \(\overline{zw}=\bar z\,\bar w\). So</p>
+      \[ N(zw)=zw\,\overline{zw}=z\bar z\cdot w\bar w=N(z)\,N(w). \]
+      <p class="step"><b>Spelled out</b> with \(z=a+bi,\ w=c+di\), this is the Brahmagupta–Fibonacci identity:</p>
+      \[ (a^2+b^2)(c^2+d^2)=(ac-bd)^2+(ad+bc)^2. \]
+      <p class="step">The right side is exactly \(N\big((ac-bd)+(ad+bc)i\big)=N(zw)\). </p>
+      <p class="qed">∎</p>
+    </div>
+  </details>
+
+  <div class="card emerald">
+    <span class="tag e">Why this matters</span>
+    <p style="margin:0">If \(z\) divides \(w\) in \(\mathbb{Z}[i]\), then \(N(z)\) divides \(N(w)\) in \(\mathbb{Z}\). A divisibility question about complex lattice points becomes a divisibility question about ordinary integers — which we know how to answer.</p>
+  </div>
+</section>
+
+<!-- ============ 3 UNITS ============ -->
+<section id="units">
+  <h2><span class="num">03</span>Conjugates, Units &amp; Associates</h2>
+  <p>The <strong>conjugate</strong> \(\overline{a+bi}=a-bi\) is the mirror image across the real axis, and \(z\bar z=N(z)\). A <strong>unit</strong> is a Gaussian integer with a multiplicative inverse inside \(\mathbb{Z}[i]\). In the ordinary integers the only units are \(\pm1\); here there are exactly four.</p>
+
+  <details class="proof" open>
+    <summary><span class="chev">▶</span> Proof — the units are exactly \(1,\,-1,\,i,\,-i\)</summary>
+    <div class="body">
+      <p class="step"><b>Necessity</b> If \(u\) is a unit, then \(uv=1\) for some \(v\). Taking norms, \(N(u)N(v)=N(1)=1\). Since norms are positive integers, \(N(u)=1\).</p>
+      <p class="step"><b>Solve</b> \(N(a+bi)=a^2+b^2=1\) over the integers. The only solutions are \((a,b)\in\{(\pm1,0),(0,\pm1)\}\), i.e. \(u\in\{1,-1,i,-i\}\).</p>
+      <p class="step"><b>Sufficiency</b> Each of these is invertible: \(1\cdot1=1,\ (-1)(-1)=1,\ i\cdot(-i)=1\). So all four are units, and there are no others.</p>
+      <p class="qed">∎</p>
+    </div>
+  </details>
+
+  <p>Two Gaussian integers are <strong>associates</strong> if they differ by a unit — i.e. \(z\) and \(uz\) for \(u\in\{1,-1,i,-i\}\). Multiplying by \(i\) is a \(90^\circ\) rotation, so every Gaussian integer has four associates arranged as a little pinwheel around the origin. Factorization is only ever unique "up to units and order," exactly as \(6=2\cdot3=(-2)(-3)\) in \(\mathbb{Z}\).</p>
+</section>
+
+<!-- ============ 4 DIVISION ============ -->
+<section id="division">
+  <h2><span class="num">04</span>Divisibility &amp; the Division Algorithm</h2>
+  <p>We say \(\beta\) <strong>divides</strong> \(\alpha\) if \(\alpha=\beta\gamma\) for some Gaussian integer \(\gamma\). The decisive fact — the engine behind unique factorization — is that \(\mathbb{Z}[i]\) supports division with a small remainder, just like \(\mathbb{Z}\). This makes it a <strong>Euclidean domain</strong>, with the norm as its size function.</p>
+
+  <details class="proof" open>
+    <summary><span class="chev">▶</span> Proof — the division algorithm in \(\mathbb{Z}[i]\)</summary>
+    <div class="body">
+      <p class="step"><b>Claim</b> For any \(\alpha,\beta\in\mathbb{Z}[i]\) with \(\beta\neq0\), there exist \(q,r\in\mathbb{Z}[i]\) with</p>
+      \[ \alpha=\beta q+r\qquad\text{and}\qquad N(r)<N(\beta). \]
+      <p class="step"><b>Take the exact quotient</b> in the field \(\mathbb{Q}(i)\): write \(\dfrac{\alpha}{\beta}=x+yi\) with \(x,y\in\mathbb{Q}\).</p>
+      <p class="step"><b>Round to the nearest lattice point.</b> Choose integers \(m,n\) closest to \(x,y\), so \(|x-m|\le\tfrac12\) and \(|y-n|\le\tfrac12\). Set \(q=m+ni\) and \(r=\alpha-\beta q\). Both lie in \(\mathbb{Z}[i]\).</p>
+      <p class="step"><b>Estimate the remainder.</b> Since \(\dfrac{r}{\beta}=\dfrac{\alpha}{\beta}-q=(x-m)+(y-n)i\),</p>
+      \[ N\!\left(\tfrac{r}{\beta}\right)=(x-m)^2+(y-n)^2\le\tfrac14+\tfrac14=\tfrac12. \]
+      <p class="step"><b>Multiply back</b> by the multiplicativity of the norm:</p>
+      \[ N(r)=N(\beta)\,N\!\left(\tfrac{r}{\beta}\right)\le\tfrac12\,N(\beta)<N(\beta). \]
+      <p class="step">So a valid \((q,r)\) always exists. (It need not be unique — a point can have two nearest lattice points — but existence is all the Euclidean algorithm needs.)</p>
+      <p class="qed">∎</p>
+    </div>
+  </details>
+
+  <p>The geometry is the whole proof: the multiples of \(\beta\) form a scaled, rotated copy of the lattice, and <em>every</em> point of the plane lies within distance \(|\beta|/\sqrt2\) of some multiple \(\beta q\) — within the circle drawn below. That bound is exactly \(N(r)\le N(\beta)/2\).</p>
+
+  <div class="lab plum">
+    <span class="labhead">Division geometry · why a small remainder always exists</span>
+    <div class="lab-grid">
+      <svg class="fig" id="divSvg" viewBox="0 0 460 420" aria-label="Division algorithm geometry"></svg>
+      <div>
+        <div class="field inline"><label>α =</label><input type="number" id="divAr" value="11"><label>+</label><input type="number" id="divAi" value="10"><label>i</label></div>
+        <div class="field inline"><label>β =</label><input type="number" id="divBr" value="3"><label>+</label><input type="number" id="divBi" value="1"><label>i</label></div>
+        <div class="statgrid">
+          <div class="stat"><div class="t">quotient q</div><div class="v" id="divQ">—</div></div>
+          <div class="stat"><div class="t">remainder r</div><div class="v" id="divR">—</div></div>
+          <div class="stat"><div class="t">N(r) ≤ N(β)/2 ?</div><div class="v" id="divChk">—</div></div>
+        </div>
+        <p class="hint">Purple dots are multiples βq′. The amber vector is the remainder r from the nearest multiple to α; it always fits inside the circle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 UFD ============ -->
+<section id="ufd">
+  <h2><span class="num">05</span>Why Factorization Is Unique</h2>
+  <p>The division algorithm sets off a chain of consequences, each a standard theorem of ring theory:</p>
+  \[ \textbf{Euclidean domain}\;\Longrightarrow\;\textbf{PID}\;\Longrightarrow\;\textbf{UFD}. \]
+  <p>That is: because we can divide with remainder, the <strong>Euclidean algorithm</strong> computes greatest common divisors; every ideal is generated by a single element (a <em>principal ideal domain</em>); and from there, every nonzero non-unit factors into primes <strong>uniquely</strong>, up to order and unit multiples (a <em>unique factorization domain</em>).</p>
+
+  <details class="proof">
+    <summary><span class="chev">▶</span> Sketch — Euclidean ⟹ principal ideal domain</summary>
+    <div class="body">
+      <p class="step">Let \(I\neq\{0\}\) be an ideal. Among its nonzero elements pick one, \(\beta\), of <strong>smallest norm</strong> (possible because norms are positive integers and every nonempty set of positive integers has a least element).</p>
+      <p class="step">Take any \(\alpha\in I\). Divide: \(\alpha=\beta q+r\) with \(N(r)<N(\beta)\). But \(r=\alpha-\beta q\in I\), and \(\beta\) had the smallest nonzero norm in \(I\), so \(r=0\).</p>
+      <p class="step">Hence \(\alpha=\beta q\): every element of \(I\) is a multiple of \(\beta\), i.e. \(I=(\beta)\). Every ideal is principal. Combined with the standard result that every PID is a UFD, \(\mathbb{Z}[i]\) has unique factorization.</p>
+      <p class="qed">∎</p>
+    </div>
+  </details>
+
+  <p>So we may speak of <strong>Gaussian primes</strong> — the irreducible building blocks — and know that every Gaussian integer is a product of them in essentially one way. The next section says exactly what those primes are.</p>
+</section>
+
+<!-- ============ 6 PRIMES ============ -->
+<section id="primes">
+  <h2><span class="num">06</span>Gaussian Primes, Classified</h2>
+  <p>A Gaussian integer \(\pi\) (not \(0\), not a unit) is a <strong>Gaussian prime</strong> if its only divisors are units and associates of itself. The complete list comes in three flavours, and the norm tells them apart.</p>
+
+  <table class="def">
+    <tr><th>Type</th><th>Who</th><th>Norm</th></tr>
+    <tr><td><strong>Ramified</strong></td><td><code>1+i</code> and its associates (the prime "above 2")</td><td><code>N = 2</code></td></tr>
+    <tr><td><strong>Split</strong></td><td><code>a+bi</code> with \(a^2+b^2=p\), for a rational prime \(p\equiv1\pmod4\)</td><td><code>N = p</code></td></tr>
+    <tr><td><strong>Inert</strong></td><td>rational primes <code>p</code> with \(p\equiv3\pmod4\) (still prime here)</td><td><code>N = p²</code></td></tr>
+  </table>
+
+  <details class="proof" open>
+    <summary><span class="chev">▶</span> Proof — the classification</summary>
+    <div class="body">
+      <p class="step"><b>Norm‑prime test</b> If \(N(\pi)\) is a rational prime \(p\), then \(\pi\) is a Gaussian prime: a factorization \(\pi=\alpha\beta\) gives \(p=N(\alpha)N(\beta)\), forcing one factor to have norm \(1\) — a unit. This covers \(1+i\ (N=2)\) and the split primes \(\ (N=p\equiv1)\).</p>
+      <p class="step"><b>Primes \(p\equiv3\pmod4\) stay prime.</b> If such a \(p\) factored as \(\alpha\beta\) with both non-units, then \(N(\alpha)=N(\beta)=p\), i.e. \(p=a^2+b^2\). But modulo \(4\) a sum of two squares is \(0,1,\) or \(2\) — never \(3\). Contradiction, so \(p\) is inert, with \(N(p)=p^2\).</p>
+      <p class="step"><b>Primes \(p\equiv1\pmod4\) split.</b> Here \(-1\) is a square mod \(p\) (the group \(\mathbb{Z}_p^\times\) is cyclic of order \(p-1\), divisible by \(4\), so it has an element of order \(4\) whose square is \(-1\)). Pick \(x\) with \(p\mid x^2+1=(x+i)(x-i)\). If \(p\) were a Gaussian prime it would divide one factor — impossible, since \(\tfrac{x}{p}\pm\tfrac1p i\notin\mathbb{Z}[i]\). So \(p\) is reducible: \(p=\pi\bar\pi\) with \(N(\pi)=p\).</p>
+      <p class="step"><b>Nothing else.</b> Any Gaussian prime \(\pi\) divides \(N(\pi)=\pi\bar\pi\in\mathbb{Z}\), hence divides some rational prime \(p\); analysing \(p\) by its class mod \(4\) lands \(\pi\) in one of the three families above.</p>
+      <p class="qed">∎</p>
+    </div>
+  </details>
+
+  <p>Plotted in the plane, the Gaussian primes form a famously beautiful pattern with full <strong>8-fold symmetry</strong> (reflections plus the \(90^\circ\) rotations from multiplying by \(i\)). Explore it — click any dot for its norm and type.</p>
+
+  <div class="lab amber">
+    <span class="labhead">The Gaussian prime constellation</span>
+    <div class="lab-grid">
+      <canvas class="fig" id="primeCanvas" width="440" height="440" aria-label="Gaussian primes map"></canvas>
+      <div>
+        <div class="field"><label>window: |a|,|b| ≤ <span class="rngval" id="pmR">18</span></label><input type="range" id="pmRange" min="6" max="45" value="18"></div>
+        <div class="legend">
+          <span><i style="background:#c5841d"></i>ramified (1+i)</span>
+          <span><i style="background:#0f7a5a"></i>split, N=p</span>
+          <span><i style="background:#7a3f9d"></i>inert, N=p²</span>
+        </div>
+        <div class="statgrid" style="margin-top:.7rem">
+          <div class="stat"><div class="t">clicked point</div><div class="v" id="pmInfo">click a dot →</div></div>
+          <div class="stat"><div class="t">primes shown</div><div class="v" id="pmCount">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 FERMAT ============ -->
+<section id="fermat">
+  <h2><span class="num">07</span>Fermat's Two-Square Theorem</h2>
+  <p>Here is the payoff — a 350-year-old gem about ordinary integers that falls out almost for free once you have Gaussian primes.</p>
+
+  <div class="plaque">
+    <div class="label">Fermat (1640), proved by Euler (1749)</div>
+    <div class="math-big">\[ \text{An odd prime }p\text{ is a sum of two squares}\iff p\equiv1\pmod4. \]</div>
+  </div>
+
+  <details class="proof" open>
+    <summary><span class="chev">▶</span> Proof via Gaussian integers</summary>
+    <div class="body">
+      <p class="step"><b>(⇐) If \(p\equiv1\pmod4\)</b>, the splitting argument above gives \(p=\pi\bar\pi\). Writing \(\pi=a+bi\), this reads \(p=N(\pi)=a^2+b^2\). Done — the factorization <em>is</em> the representation.</p>
+      <p class="step"><b>(⇒) If \(p=a^2+b^2\)</b>, look mod \(4\): squares are \(0\) or \(1\), so \(a^2+b^2\in\{0,1,2\}\bmod4\). An odd prime can't be \(0\) or \(2\) mod \(4\), so \(p\equiv1\). (And \(2=1^2+1^2\) is the lone even case.)</p>
+      <p class="step"><b>How to actually find \(a,b\):</b> solve \(x^2\equiv-1\pmod p\), then compute the Gaussian \(\gcd(p,\,x+i)\) with the Euclidean algorithm — its components are your \(a\) and \(b\). The widget and the Octave code both do exactly this.</p>
+      <p class="qed">∎</p>
+    </div>
+  </details>
+
+  <p>The full <strong>sum-of-two-squares theorem</strong> extends this to every positive integer: \(n\) is a sum of two squares <em>iff</em> every prime \(\equiv3\pmod4\) in its factorization appears to an <strong>even</strong> power. (Reason: such primes are inert, so they can only enter a Gaussian factorization in conjugate-free pairs.) Try numbers below and watch the rule decide.</p>
+
+  <div class="lab">
+    <span class="labhead">Sum of two squares · the rule in action</span>
+    <div class="field inline" style="margin-bottom:.8rem"><label>n =</label><input type="number" id="ssN" value="325" min="1" style="width:120px"></div>
+    <div class="bigeq" id="ssOut">—</div>
+    <p class="hint">Try 325, 50, 100, 21, 1000, 2025. A red prime ≡3 (mod 4) to an odd power blocks any representation.</p>
+  </div>
+</section>
+
+<!-- ============ 8 OCTAVE ============ -->
+<section id="octave">
+  <h2><span class="num">08</span>GNU Octave — Verified Code</h2>
+  <p>Octave handles complex numbers natively (use <code style="font-family:'DM Mono'">1i</code> for the imaginary unit so it can't be shadowed by a variable). Every snippet ran in GNU&nbsp;Octave&nbsp;8.4; the <span style="color:var(--emerald-deep);font-weight:600">output</span> is the real result.</p>
+
+  <h3>The norm, and its multiplicativity</h3>
+  <div class="codewrap">
+    <div class="cap">norm_demo.m</div>
+    <pre><code class="oct">N = @(z) round(real(z)).^2 + round(imag(z)).^2;   % Gaussian norm
+
+z = 3 + 2i;   w = 1 + 4i;
+printf("N(z)=%d  N(w)=%d  N(z)*N(w)=%d\n", N(z), N(w), N(z)*N(w));
+printf("z*w = %s   N(z*w) = %d\n", num2str(z*w), N(z*w));</code></pre>
+    <div class="out"><span class="lbl">output</span>N(z)=13  N(w)=17  N(z)*N(w)=221
+z*w = -5+14i   N(z*w) = 221</div>
+  </div>
+
+  <h3>Units are the four norm-1 elements</h3>
+  <div class="codewrap">
+    <div class="cap">units.m</div>
+    <pre><code class="oct">N = @(z) round(real(z)).^2 + round(imag(z)).^2;
+for u = [1, -1, 1i, -1i, 2, 1+1i]
+  printf("  %-5s  N=%d  unit? %d\n", num2str(u), N(u), N(u)==1);
+end</code></pre>
+    <div class="out"><span class="lbl">output</span>  1      N=1  unit? 1
+  -1     N=1  unit? 1
+  0+1i   N=1  unit? 1
+  -0-1i  N=1  unit? 1
+  2      N=4  unit? 0
+  1+1i   N=2  unit? 0</div>
+  </div>
+
+  <h3>Division algorithm &amp; Euclidean gcd</h3>
+  <div class="codewrap">
+    <div class="cap">gdiv.m &amp; ggcd.m</div>
+    <pre><code class="oct">function [q, r] = gdiv(a, b)
+  q = round(real(a/b)) + 1i*round(imag(a/b));   % nearest Gaussian integer
+  r = a - b*q;                                   % guaranteed N(r) < N(b)
+end
+
+function g = ggcd(a, b)
+  while round(real(b))^2 + round(imag(b))^2 ~= 0    % while b is nonzero
+    [~, r] = gdiv(a, b);
+    a = b;  b = r;
+  end
+  g = a;                                          % gcd, defined up to a unit
+end</code></pre>
+    <div class="out"><span class="lbl">Octave session</span>>> [q,r] = gdiv(11+10i, 3+1i)
+q = 4 + 2i
+r = 1
+>> ggcd(5, 2+1i)          % 5 = (2+i)(2-i), so they share 2+i
+ans = 2 + 1i
+>> ggcd(32+9i, 4+11i)     % coprime: gcd is a unit
+ans = 0 - 1i</div>
+  </div>
+
+  <h3>Classifying Gaussian primes</h3>
+  <div class="codewrap">
+    <div class="cap">gisprime.m</div>
+    <pre><code class="oct">function tf = gisprime(z)
+  a = abs(round(real(z)));  b = abs(round(imag(z)));
+  n = a^2 + b^2;
+  if n <= 1
+    tf = false;                       % 0 and the units are not primes
+  elseif a == 0 || b == 0
+    p = max(a, b);                    % a real/imaginary integer
+    tf = isprime(p) && mod(p,4) == 3; % inert primes p = 3 (mod 4)
+  else
+    tf = isprime(n);                  % norm is a rational prime
+  end
+end</code></pre>
+    <div class="out"><span class="lbl">tested on a range of values</span>  1+1i   N=2    prime? 1     (ramified)
+  2      N=4    prime? 0     (= -i(1+i)^2)
+  3      N=9    prime? 1     (inert)
+  5      N=25   prime? 0     (splits: 5=(2+i)(2-i))
+  2+1i   N=5    prime? 1     (split)
+  4+1i   N=17   prime? 1     (split)
+  2+2i   N=8    prime? 0     (= 2(1+i))</div>
+  </div>
+
+  <h3>An ASCII map of the prime constellation</h3>
+  <div class="codewrap">
+    <div class="cap">prime_map.m</div>
+    <pre><code class="oct">R = 8;                          % print '#' at every Gaussian prime
+for b = R:-1:-R
+  line = "";
+  for a = -R:R
+    if a==0 && b==0,            line = [line "+"];
+    elseif gisprime(a + b*1i),  line = [line "#"];
+    else                        line = [line "."];
+    end
+  end
+  printf("%s\n", line);
+end</code></pre>
+    <div class="out"><span class="lbl">output — note the 8-fold symmetry</span>.#.#.#.....#.#.#.
+#.....#.#.#.....#
+...#...#.#...#...
+#.#.#.#...#.#.#.#
+...#...#.#...#...
+#.....#.#.#.....#
+.#.#.#.#.#.#.#.#.
+..#.#.##.##.#.#..
+.#...#..+..#...#.
+..#.#.##.##.#.#..
+.#.#.#.#.#.#.#.#.
+#.....#.#.#.....#
+...#...#.#...#...
+#.#.#.#...#.#.#.#
+...#...#.#...#...
+#.....#.#.#.....#
+.#.#.#.....#.#.#.</div>
+  </div>
+
+  <h3>Fermat: write a prime as a sum of two squares</h3>
+  <div class="codewrap">
+    <div class="cap">twosq.m</div>
+    <pre><code class="oct">function [a, b] = twosq(p)
+  x = [];                              % find x with x^2 = -1 (mod p)
+  for t = 2:p-1
+    if mod(t*t + 1, p) == 0, x = t; break; end
+  end
+  g = ggcd(p, x + 1i);                 % gcd(p, x+i): a Gaussian prime of norm p
+  a = abs(round(real(g)));  b = abs(round(imag(g)));
+end
+
+for p = [5 13 17 29 97 101]
+  [a,b] = twosq(p);
+  printf("  %3d = %d^2 + %d^2\n", p, a, b);
+end</code></pre>
+    <div class="out"><span class="lbl">output</span>    5 = 2^2 + 1^2
+   13 = 3^2 + 2^2
+   17 = 4^2 + 1^2
+   29 = 5^2 + 2^2
+   97 = 9^2 + 4^2
+  101 = 10^2 + 1^2</div>
+  </div>
+
+  <h3>Bonus — Pythagorean triples from \((m+ni)^2\)</h3>
+  <div class="codewrap">
+    <div class="cap">triples.m</div>
+    <pre><code class="oct">% Squaring a Gaussian integer manufactures a Pythagorean triple,
+% because N((m+ni)^2) = (m^2+n^2)^2 is a perfect square.
+for mn = [2 1; 3 2; 4 1]'
+  m = mn(1);  n = mn(2);
+  z = (m + n*1i)^2;
+  A = abs(round(real(z)));  B = abs(round(imag(z)));  C = m^2 + n^2;
+  printf("  (%d+%di)^2 -> (%d, %d, %d)\n", m, n, A, B, C);
+end</code></pre>
+    <div class="out"><span class="lbl">output</span>  (2+1i)^2 -> (3, 4, 5)
+  (3+2i)^2 -> (5, 12, 13)
+  (4+1i)^2 -> (15, 8, 17)</div>
+  </div>
+</section>
+
+<!-- ============ 9 APPS ============ -->
+<section id="apps">
+  <h2><span class="num">09</span>Applications &amp; Wonders</h2>
+  <h3>Every primitive Pythagorean triple comes from one Gaussian integer</h3>
+  <p>If \(m>n>0\) are coprime of opposite parity, then \((m+ni)^2=(m^2-n^2)+2mn\,i\) has norm \((m^2+n^2)^2\), so \((m^2-n^2,\,2mn,\,m^2+n^2)\) is a Pythagorean triple — and every primitive triple arises this way exactly once. Pythagoras, hiding inside complex multiplication.</p>
+
+  <h3>The Gaussian moat problem</h3>
+  <p>Can you walk from the origin to infinity stepping only on Gaussian primes, with bounded step size? Unlike the rational primes (where arbitrarily long prime gaps are known), this is <strong>open</strong>: nobody knows whether the primes thin out enough to leave an uncrossable "moat." It is a rare elementary-sounding question still unsolved.</p>
+
+  <h3>Beyond \(i\): other rings of integers</h3>
+  <p>\(\mathbb{Z}[i]\) is the first of the <em>rings of integers</em> of number fields. Its cousin \(\mathbb{Z}[\omega]\) (Eisenstein integers, \(\omega=e^{2\pi i/3}\)) tiles the plane with triangles and governs sums of the form \(a^2+ab+b^2\). Not all such rings enjoy unique factorization — the failure of it in \(\mathbb{Z}[\sqrt{-5}]\) (where \(6=2\cdot3=(1+\sqrt{-5})(1-\sqrt{-5})\)) is what launched the modern theory of ideals.</p>
+
+  <p class="divsym">· i · −1 · −i · 1 ·</p>
+</section>
+
+</main>
+
+<footer>
+  <p><strong>Gaussian Integers — a complete, interactive lesson.</strong> All Octave output was produced by running the code in GNU&nbsp;Octave&nbsp;8.4. Mathematics typeset with MathJax.</p>
+  <p class="subtle">Further reading: C. F. Gauss, <em>Theoria residuorum biquadraticorum</em> (1832) · K. Ireland &amp; M. Rosen, <em>A Classical Introduction to Modern Number Theory</em> · G. H. Hardy &amp; E. M. Wright, <em>An Introduction to the Theory of Numbers</em> (ch. on \(\mathbb{Z}[i]\)).</p>
+</footer>
+
+</div>
+
+<script>
+/* ---------- Octave highlighter ---------- */
+(function(){
+  const KW=/\b(function|endfunction|end|if|elseif|else|endif|for|endfor|while|endwhile|return|switch|case|otherwise|do|until|break|continue)\b/g;
+  const BI=/\b(round|real|imag|abs|sqrt|isprime|mod|max|min|num2str|printf|fprintf|disp|sum|zeros|ones|linspace)\b/g;
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  document.querySelectorAll('code.oct').forEach(code=>{
+    const raw=code.textContent; code.dataset.raw=raw;
+    code.innerHTML=raw.split('\n').map(line=>{
+      let inStr=false,ch='',idx=-1;
+      for(let i=0;i<line.length;i++){const c=line[i];
+        if(inStr){if(c===ch)inStr=false;}
+        else if(c==='"'||c==="'"){inStr=true;ch=c;}
+        else if(c==='%'){idx=i;break;}}
+      let cp=line,cm=''; if(idx>=0){cp=line.slice(0,idx);cm=line.slice(idx);}
+      let o=esc(cp);
+      o=o.replace(/("[^"]*"|'[^']*')/g,'<span class="s">$1</span>');
+      o=o.replace(KW,'<span class="k">$1</span>');
+      o=o.replace(BI,'<span class="b">$1</span>');
+      o=o.replace(/\b(\d+\.?\d*([eE][-+]?\d+)?)\b/g,'<span class="n">$1</span>');
+      if(cm)o+='<span class="c">'+esc(cm)+'</span>';
+      return o;
+    }).join('\n');
+  });
+})();
+document.querySelectorAll('.codewrap').forEach(w=>{
+  const code=w.querySelector('code.oct'); if(!code)return;
+  const b=document.createElement('button'); b.className='copybtn'; b.textContent='copy';
+  b.onclick=()=>navigator.clipboard.writeText(code.dataset.raw||code.textContent).then(()=>{b.textContent='copied ✓';setTimeout(()=>b.textContent='copy',1300);});
+  w.appendChild(b);
+});
+
+/* ---------- shared helpers ---------- */
+const NS='http://www.w3.org/2000/svg';
+const gstr=(a,b)=>{a=Math.round(a);b=Math.round(b);
+  if(b===0)return `${a}`;
+  if(a===0)return (b===1?'i':b===-1?'−i':`${b}i`);
+  const bp=(b===1?'i':b===-1?'−i':`${Math.abs(b)}i`);
+  return `${a} ${b>0?'+':'−'} ${b===1||b===-1?'i':Math.abs(b)+'i'}`;};
+function isPrime(n){n=Math.abs(Math.round(n));if(n<2)return false;if(n<4)return true;if(n%2===0)return false;
+  for(let d=3;d*d<=n;d+=2)if(n%d===0)return false;return true;}
+function gIsPrime(a,b){a=Math.abs(Math.round(a));b=Math.abs(Math.round(b));const n=a*a+b*b;
+  if(n<=1)return false;
+  if(a===0||b===0){const p=Math.max(a,b);return isPrime(p)&&p%4===3;}
+  return isPrime(n);}
+
+/* ============ 1. lattice arithmetic ============ */
+(function(){
+  const svg=document.getElementById('arithSvg');
+  let z={a:2,b:1}, w={a:-1,b:2}, mode='sum', drag=null;
+  const W=420,H=420;
+  const sumBtn=document.getElementById('modeSum'),mulBtn=document.getElementById('modeMul');
+  const zEl=document.getElementById('aZ'),wEl=document.getElementById('aW'),rEl=document.getElementById('aR'),
+        rtag=document.getElementById('aRtag'),nEl=document.getElementById('aN');
+  function res(){return mode==='sum'?{a:z.a+w.a,b:z.b+w.b}:{a:z.a*w.a-z.b*w.b,b:z.a*w.b+z.b*w.a};}
+  function draw(){
+    const r=res();
+    const maxc=Math.max(4,Math.abs(z.a),Math.abs(z.b),Math.abs(w.a),Math.abs(w.b),Math.abs(r.a),Math.abs(r.b))+1;
+    const s=(W/2-18)/maxc, cx=W/2, cy=H/2;
+    const X=v=>cx+v*s, Y=v=>cy-v*s;
+    let g=`<rect x="0" y="0" width="${W}" height="${H}" fill="#fcfbf5"/>`;
+    // grid dots
+    for(let a=-maxc;a<=maxc;a++)for(let b=-maxc;b<=maxc;b++)
+      g+=`<circle cx="${X(a)}" cy="${Y(b)}" r="1.3" fill="#cfd0c2"/>`;
+    // axes
+    g+=`<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#b9bbab" stroke-width="1"/>`;
+    g+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#b9bbab" stroke-width="1"/>`;
+    if(mode==='sum'){ // parallelogram
+      g+=`<polygon points="${X(0)},${Y(0)} ${X(z.a)},${Y(z.b)} ${X(r.a)},${Y(r.b)} ${X(w.a)},${Y(w.b)}" fill="rgba(197,132,29,.10)" stroke="#c5841d" stroke-width="1" stroke-dasharray="4 3"/>`;
+    } else { // arc showing angle addition
+      const az=Math.atan2(z.b,z.a),aw=Math.atan2(w.b,w.a);
+      g+=`<path d="M ${X(0)} ${Y(0)} L ${X(r.a)} ${Y(r.b)}" stroke="#c5841d" stroke-width="1" stroke-dasharray="4 3"/>`;
+    }
+    const vec=(p,col)=>`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(p.a)}" y2="${Y(p.b)}" stroke="${col}" stroke-width="2.2"/>`;
+    g+=vec(z,'#0f7a5a')+vec(w,'#7a3f9d')+vec(r,'#c5841d');
+    const dot=(p,col,rr)=>`<circle cx="${X(p.a)}" cy="${Y(p.b)}" r="${rr}" fill="${col}"/>`;
+    g+=dot(r,'#c5841d',5)+dot(z,'#0f7a5a',6)+dot(w,'#7a3f9d',6);
+    svg.innerHTML=g;
+    zEl.textContent=gstr(z.a,z.b); wEl.textContent=gstr(w.a,w.b);
+    rEl.textContent=gstr(r.a,r.b); rtag.textContent=(mode==='sum'?'z + w':'z × w');
+    const Nz=z.a*z.a+z.b*z.b,Nw=w.a*w.a+w.b*w.b,Nr=r.a*r.a+r.b*r.b;
+    nEl.textContent = mode==='sum'
+      ? `N(z)=${Nz}, N(w)=${Nw}`
+      : `${Nz}×${Nw} = ${Nz*Nw} = N(z×w)`;
+  }
+  function pick(ev){
+    const rect=svg.getBoundingClientRect(), vb=svg.viewBox.baseVal;
+    const mx=(ev.clientX-rect.left)/rect.width*vb.width, my=(ev.clientY-rect.top)/rect.height*vb.height;
+    const maxc=Math.max(4,Math.abs(z.a),Math.abs(z.b),Math.abs(w.a),Math.abs(w.b))+1;
+    const s=(W/2-18)/maxc, a=Math.round((mx-W/2)/s), b=Math.round(-(my-H/2)/s);
+    return {a:Math.max(-maxc,Math.min(maxc,a)),b:Math.max(-maxc,Math.min(maxc,b))};
+  }
+  svg.addEventListener('pointerdown',ev=>{
+    const p=pick(ev);
+    const dz=(p.a-z.a)**2+(p.b-z.b)**2, dw=(p.a-w.a)**2+(p.b-w.b)**2;
+    drag=dz<=dw?'z':'w'; svg.setPointerCapture(ev.pointerId); move(ev);
+  });
+  function move(ev){ if(!drag)return; const p=pick(ev); if(drag==='z')z=p; else w=p; draw(); }
+  svg.addEventListener('pointermove',move);
+  svg.addEventListener('pointerup',()=>drag=null);
+  sumBtn.onclick=()=>{mode='sum';sumBtn.classList.add('on');mulBtn.classList.remove('on');draw();};
+  mulBtn.onclick=()=>{mode='mul';mulBtn.classList.add('on');sumBtn.classList.remove('on');draw();};
+  draw();
+})();
+
+/* ============ 2. division geometry ============ */
+(function(){
+  const svg=document.getElementById('divSvg');
+  const ar=document.getElementById('divAr'),ai=document.getElementById('divAi'),
+        br=document.getElementById('divBr'),bi=document.getElementById('divBi');
+  const qEl=document.getElementById('divQ'),rEl=document.getElementById('divR'),ckEl=document.getElementById('divChk');
+  const W=460,H=420;
+  function draw(){
+    const A={a:+ar.value,b:+ai.value}, B={a:+br.value,b:+bi.value};
+    const Nb=B.a*B.a+B.b*B.b;
+    if(Nb===0){svg.innerHTML='';qEl.textContent='β ≠ 0 required';return;}
+    // alpha/beta
+    const qa=(A.a*B.a+A.b*B.b)/Nb, qb=(A.b*B.a-A.a*B.b)/Nb;     // alpha * conj(beta)/Nb
+    const q={a:Math.round(qa),b:Math.round(qb)};
+    const bq={a:B.a*q.a-B.b*q.b, b:B.a*q.b+B.b*q.a};            // beta*q
+    const r={a:A.a-bq.a,b:A.b-bq.b};
+    const Nr=r.a*r.a+r.b*r.b;
+    qEl.textContent=gstr(q.a,q.b); rEl.textContent=gstr(r.a,r.b);
+    ckEl.textContent=`${Nr} ≤ ${(Nb/2)} ✓`;
+    // view scale
+    const pts=[A,bq,{a:0,b:0}];
+    const maxc=Math.max(3,...pts.map(p=>Math.max(Math.abs(p.a),Math.abs(p.b))))+Math.sqrt(Nb)+1;
+    const s=(Math.min(W,H)/2-18)/maxc, cx=W/2, cy=H/2;
+    const X=v=>cx+v*s, Y=v=>cy-v*s;
+    let g=`<rect x="0" y="0" width="${W}" height="${H}" fill="#fcfbf5"/>`;
+    // faint Z[i] dots
+    const span=Math.ceil(maxc);
+    for(let a=-span;a<=span;a++)for(let b=-span;b<=span;b++)
+      g+=`<circle cx="${X(a)}" cy="${Y(b)}" r="1" fill="#dfe0d4"/>`;
+    g+=`<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#c5c7b8" stroke-width="1"/>`;
+    g+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#c5c7b8" stroke-width="1"/>`;
+    // multiples of beta near q
+    for(let m=q.a-2;m<=q.a+2;m++)for(let n=q.b-2;n<=q.b+2;n++){
+      const px=B.a*m-B.b*n, py=B.a*n+B.b*m;
+      g+=`<circle cx="${X(px)}" cy="${Y(py)}" r="3" fill="#7a3f9d" opacity="0.55"/>`;
+    }
+    // covering circle radius |beta|/sqrt2 around bq
+    g+=`<circle cx="${X(bq.a)}" cy="${Y(bq.b)}" r="${Math.sqrt(Nb/2)*s}" fill="rgba(15,122,90,.08)" stroke="#0f7a5a" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+    // remainder vector
+    g+=`<line x1="${X(bq.a)}" y1="${Y(bq.b)}" x2="${X(A.a)}" y2="${Y(A.b)}" stroke="#c5841d" stroke-width="2.4"/>`;
+    g+=`<circle cx="${X(bq.a)}" cy="${Y(bq.b)}" r="5" fill="#7a3f9d"/>`;
+    g+=`<circle cx="${X(A.a)}" cy="${Y(A.b)}" r="5.5" fill="#0f7a5a"/>`;
+    g+=`<text x="${X(A.a)+8}" y="${Y(A.b)-6}" font-family="DM Mono" font-size="12" fill="#0a5b43">α</text>`;
+    g+=`<text x="${X(bq.a)+8}" y="${Y(bq.b)+14}" font-family="DM Mono" font-size="12" fill="#5d2e7a">βq</text>`;
+    svg.innerHTML=g;
+  }
+  [ar,ai,br,bi].forEach(el=>el.addEventListener('input',draw)); draw();
+})();
+
+/* ============ 3. prime constellation ============ */
+(function(){
+  const cv=document.getElementById('primeCanvas'),g=cv.getContext('2d');
+  const rng=document.getElementById('pmRange'),rEl=document.getElementById('pmR'),
+        info=document.getElementById('pmInfo'),cnt=document.getElementById('pmCount');
+  const W=cv.width,H=cv.height;
+  let R=18;
+  function colorFor(a,b){const n=a*a+b*b;
+    if(n===2)return '#c5841d';
+    if(a===0||b===0)return '#7a3f9d';
+    return '#0f7a5a';}
+  function draw(){
+    R=+rng.value; rEl.textContent=R;
+    g.fillStyle='#fcfbf5'; g.fillRect(0,0,W,H);
+    const s=W/(2*R+1), cx=W/2, cy=H/2, rad=Math.max(1.4,s*0.34);
+    // axes
+    g.strokeStyle='#dfe0d4'; g.lineWidth=1;
+    g.beginPath();g.moveTo(0,cy);g.lineTo(W,cy);g.moveTo(cx,0);g.lineTo(cx,H);g.stroke();
+    let count=0;
+    for(let a=-R;a<=R;a++)for(let b=-R;b<=R;b++){
+      if(gIsPrime(a,b)){count++;
+        g.fillStyle=colorFor(a,b);
+        g.beginPath();g.arc(cx+a*s,cy-b*s,rad,0,7);g.fill();}
+    }
+    cnt.textContent=count.toLocaleString();
+  }
+  cv.addEventListener('click',ev=>{
+    const rect=cv.getBoundingClientRect();
+    const s=W/(2*R+1), cx=W/2, cy=H/2;
+    const a=Math.round((ev.clientX-rect.left)/rect.width*W/s - cx/s);
+    const b=Math.round(-((ev.clientY-rect.top)/rect.height*H/s - cy/s));
+    const n=a*a+b*b;
+    if(gIsPrime(a,b)){
+      let type=n===2?'ramified':((a===0||b===0)?'inert (N=p²)':'split (N=p)');
+      info.textContent=`${gstr(a,b)} · N=${n} · ${type}`;
+    } else {
+      info.textContent=`${gstr(a,b)} · N=${n} · not prime`;
+    }
+  });
+  rng.addEventListener('input',draw); draw();
+})();
+
+/* ============ 4. sum of two squares ============ */
+(function(){
+  const inp=document.getElementById('ssN'),out=document.getElementById('ssOut');
+  function factor(n){const f={};let m=n;for(let d=2;d*d<=m;d++){while(m%d===0){f[d]=(f[d]||0)+1;m/=d;}}if(m>1)f[m]=(f[m]||0)+1;return f;}
+  function reps(n){const out=[];for(let a=0;a*a<=n;a++){const b2=n-a*a,b=Math.round(Math.sqrt(b2));if(b>=a&&b*b===b2)out.push([a,b]);}return out;}
+  function up(){
+    let n=Math.floor(+inp.value);
+    if(!(n>=1)){out.textContent='enter a positive integer';return;}
+    const f=factor(n);
+    // verdict: every prime ≡3 mod4 to even power
+    let ok=true,blocker=null;
+    for(const p in f){if((+p)%4===3 && f[p]%2===1){ok=false;blocker=p;}}
+    const facStr=Object.keys(f).map(p=>{
+      const bad=((+p)%4===3 && f[p]%2===1);
+      const col=bad?'#c0392b':( (+p)%4===3?'#7a3f9d':'#0f7a5a');
+      return `<span style="color:${col}">${p}${f[p]>1?'<sup>'+f[p]+'</sup>':''}</span>`;
+    }).join(' · ') || '1';
+    if(ok){
+      const rs=reps(n).filter(([a,b])=>!(a===0&&b===0));
+      const list=rs.length?rs.map(([a,b])=>`${a}²+${b}²`).join('  =  '):'0²+0²';
+      out.innerHTML=`<div>${n} = ${facStr}</div><div style="margin-top:.5rem;color:var(--emerald-deep)">✓ sum of two squares: <strong>${n} = ${list}</strong></div>`;
+    } else {
+      out.innerHTML=`<div>${n} = ${facStr}</div><div style="margin-top:.5rem;color:#c0392b">✗ not a sum of two squares — the prime ${blocker} ≡ 3 (mod 4) appears to an odd power</div>`;
+    }
+  }
+  inp.addEventListener('input',up); up();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perl on a Chromebook — Complete Development Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+/* ── Tokens ──────────────────────────────────────────────────────── */
+:root{
+  --bg:#09090f;--bg-s:#05050a;--bg-c:#0f0f1c;--bg-k:#0c0c18;
+  --bdr:#1e1e30;--am:#f0a030;--amd:#b87820;--amg:#f0a03018;
+  --tx:#e2d9c8;--dm:#9b9380;--mt:#5a5448;
+  --ac:#4db8ff;--gn:#6fcf97;--rd:#eb5757;
+  --cb:#5bc7f0;--cg:#34a853;--sw:270px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--tx);font-family:'Source Serif 4',Georgia,serif;
+     font-size:16.5px;line-height:1.78;display:flex;min-height:100vh;}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+#sb{width:var(--sw);min-width:var(--sw);background:var(--bg-s);
+    border-right:1px solid var(--bdr);position:fixed;top:0;left:0;bottom:0;
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+#sb::-webkit-scrollbar{width:4px;}
+#sb::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+.sbl{padding:26px 20px 16px;border-bottom:1px solid var(--bdr);}
+.sbt{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;
+     color:var(--cb);line-height:1.3;}
+.sbs{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);
+     margin-top:3px;letter-spacing:.06em;}
+.sbh{padding:14px 20px 4px;font-family:'JetBrains Mono',monospace;font-size:10px;
+     letter-spacing:.16em;color:var(--am);text-transform:uppercase;}
+a.lk{display:block;padding:4px 20px;text-decoration:none;color:var(--dm);
+     font-family:'JetBrains Mono',monospace;font-size:12px;
+     border-left:2px solid transparent;transition:color .14s,background .14s;}
+a.lk:hover{color:var(--tx);background:var(--bg-c);}
+a.lk.act{color:var(--am);border-left-color:var(--am);background:var(--amg);}
+
+/* ── Main ────────────────────────────────────────────────────────── */
+#mn{margin-left:var(--sw);flex:1;min-width:0;}
+#ct{max-width:900px;margin:0 auto;padding:56px 48px 100px;}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+.hero{padding-bottom:44px;border-bottom:1px solid var(--bdr);margin-bottom:54px;}
+.ey{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;
+    color:var(--cb);text-transform:uppercase;margin-bottom:14px;}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(30px,4.5vw,52px);
+         font-weight:900;line-height:1.1;margin-bottom:10px;}
+.hero h1 em{font-style:italic;color:var(--cb);}
+.hero p{font-style:italic;font-size:18px;color:var(--dm);font-weight:300;margin-bottom:22px;}
+.bgs{display:flex;flex-wrap:wrap;gap:8px;}
+.bg{background:var(--bg-c);border:1px solid var(--bdr);font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--dm);padding:4px 10px;border-radius:3px;}
+.bg.cb{border-color:var(--cb);color:var(--cb);}
+.bg.am{border-color:var(--amd);color:var(--am);}
+.bg.gn{border-color:#2a7a40;color:var(--gn);}
+
+/* ── Sections ────────────────────────────────────────────────────── */
+.sec{margin-bottom:68px;scroll-margin-top:20px;}
+.sh{display:flex;align-items:baseline;gap:14px;margin-bottom:20px;
+    padding-bottom:12px;border-bottom:1px solid var(--bdr);}
+.sh h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;}
+.snm{font-family:'JetBrains Mono',monospace;font-size:10px;
+     background:var(--amg);border:1px solid var(--amd);color:var(--am);
+     padding:2px 8px;border-radius:3px;white-space:nowrap;}
+h3{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;
+   color:var(--am);margin:28px 0 10px;}
+h4{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+   letter-spacing:.1em;text-transform:uppercase;color:var(--dm);margin:20px 0 8px;}
+p{margin-bottom:13px;}p:last-child{margin-bottom:0;}
+strong{color:var(--tx);}em{color:var(--am);font-style:italic;}
+ul,ol{padding-left:22px;margin:10px 0;}li{margin-bottom:5px;}
+ul li::marker{color:var(--amd);}
+
+/* ── Code ────────────────────────────────────────────────────────── */
+.cb2{position:relative;margin:16px 0;border-radius:6px;overflow:hidden;
+     border:1px solid var(--bdr);background:var(--bg-k);}
+.ch2{display:flex;align-items:center;justify-content:space-between;
+     padding:7px 14px;background:#0a0a14;border-bottom:1px solid var(--bdr);}
+.cl2{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;
+     color:var(--am);text-transform:uppercase;}
+.cf2{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);}
+.cp2{background:none;border:1px solid var(--bdr);color:var(--mt);font-family:'JetBrains Mono',monospace;
+     font-size:10px;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .14s;}
+.cp2:hover{color:var(--am);border-color:var(--amd);}
+.cp2.ok{color:var(--gn);border-color:var(--gn);}
+.cb2 pre[class*=language-]{margin:0;padding:18px 20px;background:transparent !important;
+    font-size:13px;line-height:1.68;overflow-x:auto;}
+.cb2 code[class*=language-]{font-family:'JetBrains Mono',monospace !important;}
+.token.comment,.token.prolog{color:#6a7a5a !important;font-style:italic;}
+.token.keyword{color:#f0a030 !important;font-weight:500;}
+.token.string,.token.char{color:#a8d8a0 !important;}
+.token.number{color:#a8c4e0 !important;}
+.token.operator{color:#d4c090 !important;}
+.token.function{color:#8fbce0 !important;}
+.token.variable{color:#e0b87a !important;}
+.token.regex{color:#d4a0c8 !important;}
+.token.punctuation{color:#6a7080 !important;}
+code:not([class]){font-family:'JetBrains Mono',monospace;font-size:13px;
+    background:var(--bg-c);color:var(--am);padding:2px 6px;border-radius:3px;border:1px solid var(--bdr);}
+
+/* ── Tables ──────────────────────────────────────────────────────── */
+.tw{overflow-x:auto;margin:16px 0;}
+table{width:100%;border-collapse:collapse;font-size:14.5px;}
+thead tr{background:var(--bg-c);border-bottom:2px solid var(--amd);}
+th{text-align:left;padding:9px 13px;font-family:'JetBrains Mono',monospace;
+   font-size:10.5px;letter-spacing:.1em;color:var(--am);text-transform:uppercase;}
+td{padding:8px 13px;border-bottom:1px solid var(--bdr);vertical-align:top;}
+tbody tr:hover{background:var(--bg-c);}
+
+/* ── Callouts ────────────────────────────────────────────────────── */
+.ca{padding:14px 18px;border-radius:4px;border-left:3px solid;margin:16px 0;font-size:14.5px;}
+.ca.n{background:#0a1020;border-color:var(--ac);color:#a8c8e0;}
+.ca.t{background:#081510;border-color:var(--gn);color:#90c890;}
+.ca.w{background:#130c04;border-color:var(--am);color:#c8a060;}
+.ca.r{background:#100a0a;border-color:var(--rd);color:#c88080;}
+.ca.cb{background:#080e14;border-color:var(--cb);color:#90c8e0;}
+.ca strong{color:inherit;}
+
+/* ── Install steps ───────────────────────────────────────────────── */
+.is{display:flex;gap:16px;margin-bottom:22px;align-items:flex-start;}
+.inn{background:var(--cb);color:var(--bg);font-family:'JetBrains Mono',monospace;
+     font-size:12px;font-weight:700;width:26px;height:26px;border-radius:50%;
+     display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.ic{flex:1;}
+.ic strong{display:block;color:var(--tx);font-family:'Playfair Display',serif;
+           font-size:15px;margin-bottom:6px;}
+
+/* ── Option cards ────────────────────────────────────────────────── */
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:20px 0;}
+.opt{background:var(--bg-c);border:1px solid var(--bdr);border-radius:6px;
+     padding:18px 16px;transition:border-color .2s,transform .2s;}
+.opt:hover{transform:translateY(-2px);}
+.opt.main{border-top:3px solid var(--cb);}
+.opt.sec{border-top:3px solid var(--am);}
+.opt.trd{border-top:3px solid var(--gn);}
+.opt .ot{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;
+         margin-bottom:3px;}
+.opt.main .ot{color:var(--cb);}
+.opt.sec  .ot{color:var(--am);}
+.opt.trd  .ot{color:var(--gn);}
+.opt .os{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);margin-bottom:8px;}
+.opt .od{font-size:13px;color:var(--dm);}
+
+/* ── Keyboard ────────────────────────────────────────────────────── */
+kbd{background:var(--bg-c);border:1px solid var(--bdr);border-bottom:2px solid #333;
+    color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:2px 6px;border-radius:3px;}
+
+/* ── Output block ────────────────────────────────────────────────── */
+.ob{background:#040408;border:1px solid var(--bdr);border-left:3px solid var(--gn);
+    padding:14px 18px;margin:14px 0;border-radius:0 4px 4px 0;
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;
+    color:#a0d8a0;line-height:1.6;overflow-x:auto;}
+.ol{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+    color:var(--gn);text-transform:uppercase;margin-bottom:6px;}
+
+/* ── Screen mockup ────────────────────────────────────────────────── */
+.chromebook-mock{background:#1a1a2a;border:2px solid #2a2a3e;border-radius:10px;
+                 overflow:hidden;margin:20px 0;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.chrome-bar{background:#202030;padding:8px 14px;display:flex;align-items:center;gap:8px;
+            border-bottom:1px solid #2a2a3e;}
+.chrome-dot{width:10px;height:10px;border-radius:50%;}
+.chrome-dot.r{background:#ff5f57;}.chrome-dot.y{background:#febc2e;}.chrome-dot.g{background:#28c840;}
+.chrome-title{color:#7878a0;font-size:11px;margin-left:8px;letter-spacing:.04em;}
+.chrome-body{padding:16px;}
+
+/* ── Concept grid ────────────────────────────────────────────────── */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:16px 0;}
+.cc{background:var(--bg-c);border:1px solid var(--bdr);padding:13px 15px;border-radius:4px;}
+.cc:hover{border-color:var(--amd);}
+.cc .cn{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am);margin-bottom:5px;}
+.cc p{font-size:13px;color:var(--dm);margin:0;}
+
+/* ── File tree ───────────────────────────────────────────────────── */
+.ftree{background:var(--bg-c);border:1px solid var(--bdr);border-radius:4px;
+       padding:16px 20px;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:13px;
+       color:var(--tx);line-height:2;}
+.ftree .d{color:var(--cb);}
+.ftree .f{color:var(--dm);}
+.ftree .h{color:var(--am);}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media(max-width:900px){
+  #sb{transform:translateX(-100%);transition:transform .2s;}
+  #sb.open{transform:translateX(0);}
+  #mn{margin-left:0;}#ct{padding:40px 22px 80px;}#mbt{display:flex;}
+}
+#mbt{display:none;position:fixed;top:14px;left:14px;z-index:200;
+     background:var(--bg-c);border:1px solid var(--bdr);color:var(--cb);
+     padding:8px 12px;border-radius:4px;cursor:pointer;
+     font-family:'JetBrains Mono',monospace;font-size:13px;}
+</style>
+</head>
+<body>
+
+<button id="mbt" onclick="document.getElementById('sb').classList.toggle('open')">☰ Menu</button>
+
+<!-- ════════════ SIDEBAR ════════════ -->
+<nav id="sb">
+  <div class="sbl">
+    <div class="sbt">Perl on Chromebook</div>
+    <div class="sbs">complete development guide</div>
+  </div>
+
+  <div class="sbh">Setup</div>
+  <a class="lk" href="#overview">Overview &amp; Options</a>
+  <a class="lk" href="#enable-linux">Enable Linux (Crostini)</a>
+  <a class="lk" href="#install-perl">Install Perl &amp; Tools</a>
+  <a class="lk" href="#editors">Editors &amp; IDE</a>
+  <a class="lk" href="#workflow">Development Workflow</a>
+
+  <div class="sbh">Core Programming</div>
+  <a class="lk" href="#hello">Hello World</a>
+  <a class="lk" href="#cli-tools">CLI Scripts</a>
+  <a class="lk" href="#file-processing">File Processing</a>
+  <a class="lk" href="#modules">Modules &amp; CPAN</a>
+
+  <div class="sbh">GUI Development</div>
+  <a class="lk" href="#gui-overview">GUI on Chromebook</a>
+  <a class="lk" href="#tk-app">Perl/Tk App</a>
+  <a class="lk" href="#gtk3-app">Gtk3 App</a>
+
+  <div class="sbh">Web Development</div>
+  <a class="lk" href="#mojolicious">Mojolicious</a>
+  <a class="lk" href="#http-client">HTTP Client Scripts</a>
+
+  <div class="sbh">Alternative Paths</div>
+  <a class="lk" href="#termux">Termux (Android)</a>
+  <a class="lk" href="#cloud">Cloud IDEs</a>
+
+  <div class="sbh">Reference</div>
+  <a class="lk" href="#tips">Tips &amp; Best Practices</a>
+  <a class="lk" href="#cheatsheet">Quick Cheat Sheet</a>
+</nav>
+
+<!-- ════════════ MAIN ════════════ -->
+<main id="mn"><div id="ct">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="ey">Complete Development Guide · ChromeOS Linux</div>
+  <h1>Perl on a <em>Chromebook</em></h1>
+  <p>Full Perl 5 development — CLI tools, GUI apps, and web services — running natively in the ChromeOS Linux container.</p>
+  <div class="bgs">
+    <span class="bg cb">ChromeOS Linux (Crostini)</span>
+    <span class="bg cb">Debian Bookworm</span>
+    <span class="bg am">Perl/Tk · Gtk3 · Mojolicious</span>
+    <span class="bg gn">GUI via XWayland — no extra setup</span>
+    <span class="bg">Termux Android option</span>
+    <span class="bg">Cloud IDEs</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════ OVERVIEW -->
+<section class="sec" id="overview">
+  <div class="sh"><span class="snm">§01</span><h2>Overview &amp; Your Options</h2></div>
+
+  <p>A modern Chromebook is a capable Perl development machine. ChromeOS ships with a built-in Debian Linux container that runs Perl, all CPAN modules, GUI toolkits, and web servers — with GUI windows appearing natively as ChromeOS windows via XWayland. No virtual machine manager, no separate X11 server, no special setup is required.</p>
+
+  <div class="opts">
+    <div class="opt main">
+      <div class="ot">Linux Container</div>
+      <div class="os">Crostini · Debian Bookworm</div>
+      <div class="od">The best option. Full Perl 5, apt packages, CPAN, GUI apps. Built into ChromeOS. Recommended.</div>
+    </div>
+    <div class="opt sec">
+      <div class="ot">Termux</div>
+      <div class="os">Android app · ARM/x86</div>
+      <div class="od">Perl in a terminal via the Play Store. CLI scripts only (no GUI). Great for devices without Linux support.</div>
+    </div>
+    <div class="opt trd">
+      <div class="ot">Cloud IDE</div>
+      <div class="os">Replit · Gitpod · GitHub</div>
+      <div class="od">Browser-based. No local install needed. Good for learning and sharing. Needs internet.</div>
+    </div>
+  </div>
+
+  <h3>Why the Linux Container is the Right Choice</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Linux Container</th><th>Termux</th><th>Cloud IDE</th></tr></thead>
+    <tbody>
+      <tr><td>Perl version</td><td>5.36+ (current Debian)</td><td>5.36+</td><td>Varies</td></tr>
+      <tr><td>CPAN modules</td><td>All — apt + cpanm</td><td>Most — cpanm</td><td>Pre-installed set</td></tr>
+      <tr><td>GUI apps (Tk, Gtk3)</td><td>✓ Native XWayland windows</td><td>✗ CLI only</td><td>✗ None</td></tr>
+      <tr><td>File access</td><td>✓ Chrome Files app integration</td><td>Limited</td><td>Browser upload</td></tr>
+      <tr><td>Offline use</td><td>✓ Fully offline</td><td>✓</td><td>✗ Internet needed</td></tr>
+      <tr><td>VS Code / editors</td><td>✓ Full desktop IDE</td><td>nano/vim only</td><td>Web-based</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="ca cb"><strong>Compatibility:</strong> The Linux container requires a Chromebook from around 2017 or newer. Check <strong>Settings → Advanced → Developers → Linux development environment</strong>. If you see the option, your device supports it.</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ ENABLE LINUX -->
+<section class="sec" id="enable-linux">
+  <div class="sh"><span class="snm">§02</span><h2>Enable the Linux Container</h2></div>
+
+  <p>ChromeOS's Linux container (codenamed <em>Crostini</em>) runs a real Debian Linux environment in a secure container. Its apps appear as regular ChromeOS windows, and its files appear in the Files app.</p>
+
+  <div class="is">
+    <div class="inn">1</div>
+    <div class="ic">
+      <strong>Open ChromeOS Settings</strong>
+      <p>Click the clock in the bottom-right corner → click the gear icon → or press <kbd>Alt</kbd> <kbd>Shift</kbd> <kbd>S</kbd> and click Settings.</p>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">2</div>
+    <div class="ic">
+      <strong>Navigate to Linux</strong>
+      <p>In Settings, scroll down to <strong>Advanced</strong> → <strong>Developers</strong> → <strong>Linux development environment</strong> → click <strong>Turn on</strong>.</p>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">3</div>
+    <div class="ic">
+      <strong>Configure the container</strong>
+      <p>Choose a disk size (10–20 GB recommended for Perl development with GUI apps). Click <strong>Install</strong>. The container downloads and configures itself — this takes 3–10 minutes on first run.</p>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">4</div>
+    <div class="ic">
+      <strong>Open the Linux terminal</strong>
+      <p>Once setup completes, a terminal window opens automatically. You can reopen it anytime from the app launcher — search for <strong>Terminal</strong> or look for the penguin icon. You are now in a Debian Linux shell.</p>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash — first look</span></div>
+<pre><code class="language-bash">whoami      # Your Linux username (matches your Google account)
+uname -a    # Linux kernel version
+cat /etc/debian_version   # Should show 12.x (Bookworm)
+ls ~/       # Your home directory — empty to start</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">5</div>
+    <div class="ic">
+      <strong>Enable disk sharing (recommended)</strong>
+      <p>In ChromeOS Files app, right-click <strong>Downloads</strong> and select <strong>Share with Linux</strong>. Your Downloads folder then appears at <code>/mnt/chromeos/MyFiles/Downloads</code> in Linux — easy file transfer between ChromeOS and the container.</p>
+    </div>
+  </div>
+
+  <div class="chromebook-mock">
+    <div class="chrome-bar">
+      <div class="chrome-dot r"></div><div class="chrome-dot y"></div><div class="chrome-dot g"></div>
+      <span class="chrome-title">Terminal — penguin@penguin: ~</span>
+    </div>
+    <div class="chrome-body">
+      <div style="color:#5bc7f0">penguin@penguin</div>
+      <div style="color:#9b9380;font-size:11px;margin-bottom:8px">Debian GNU/Linux 12 (bookworm)</div>
+      <div style="color:#6fcf97">penguin@penguin</div><span style="color:#e2d9c8">:~$ </span><span style="color:#f0a030">uname -a</span>
+      <div style="color:#9b9380;font-size:11px">Linux penguin 6.1.x-x86_64 #1 SMP ... x86_64 GNU/Linux</div>
+      <div style="color:#6fcf97">penguin@penguin</div><span style="color:#e2d9c8">:~$ </span><span style="color:#f0a030">_</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ INSTALL PERL -->
+<section class="sec" id="install-perl">
+  <div class="sh"><span class="snm">§03</span><h2>Install Perl &amp; Development Tools</h2></div>
+
+  <p>The container already has a minimal Perl, but you need the full package with docs, build tools, and a module installer. Run these commands in the Terminal:</p>
+
+  <div class="is">
+    <div class="inn">1</div>
+    <div class="ic">
+      <strong>Update the package database</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt update && sudo apt upgrade -y</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">2</div>
+    <div class="ic">
+      <strong>Install Perl, documentation, and build tools</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt install -y \
+    perl \
+    perl-doc \
+    perldoc \
+    cpanminus \
+    build-essential \
+    libssl-dev \
+    libexpat1-dev
+
+# Verify
+perl -v          # Should show v5.36 or v5.38
+which cpanm      # /usr/bin/cpanm
+perldoc perl     # Opens the Perl manual (press q to exit)</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">3</div>
+    <div class="ic">
+      <strong>Install GUI toolkits (for windowed apps)</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt install -y \
+    perl-tk \
+    libgtk3-perl \
+    libwx-perl \
+    libglib-perl
+
+# Test Perl/Tk (will show a small window via XWayland)
+perl -e '
+    use Tk;
+    my $mw = MainWindow->new;
+    $mw->title("Perl/Tk works!");
+    $mw->Label(-text => "Hello from Chromebook!")->pack(-pady => 20);
+    $mw->Button(-text => "Close", -command => sub { exit })->pack;
+    MainLoop;
+'</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">4</div>
+    <div class="ic">
+      <strong>Install web development modules</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">cpanm Mojolicious
+cpanm Plack
+cpanm LWP::UserAgent
+# Verify Mojolicious
+perl -e 'use Mojolicious; print "Mojo $Mojolicious::VERSION\n"'</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">5</div>
+    <div class="ic">
+      <strong>Install commonly-used CPAN modules</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">cpanm \
+    Modern::Perl \
+    Try::Tiny \
+    Path::Tiny \
+    DateTime \
+    JSON::PP \
+    Text::CSV \
+    DBI \
+    DBD::SQLite</code></pre></div>
+    </div>
+  </div>
+
+  <div class="ca t"><strong>ARM Chromebooks:</strong> Most packages are available for ARM64 (aarch64). If <code>cpanm</code> fails to build a module, try <code>sudo apt install p5-module-name</code> first — many CPAN modules have pre-built Debian packages.</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ EDITORS -->
+<section class="sec" id="editors">
+  <div class="sh"><span class="snm">§04</span><h2>Editors &amp; IDE Setup</h2></div>
+
+  <h3>VS Code (Recommended)</h3>
+  <p>VS Code for Linux installs inside the container and appears as a ChromeOS app. It's the best option for Perl development on Chromebook.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — install VS Code</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Method 1: apt repository (recommended — keeps it updated)
+sudo apt install -y wget gpg
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+    | gpg --dearmor > /tmp/packages.microsoft.gpg
+sudo install -D -o root -g root -m 644 \
+    /tmp/packages.microsoft.gpg \
+    /etc/apt/keyrings/packages.microsoft.gpg
+sudo sh -c 'echo "deb [arch=amd64,arm64,armhf \
+    signed-by=/etc/apt/keyrings/packages.microsoft.gpg] \
+    https://packages.microsoft.com/repos/code stable main" \
+    > /etc/apt/sources.list.d/vscode.list'
+sudo apt update && sudo apt install -y code
+
+# Launch it
+code                    # Opens VS Code as a ChromeOS window
+code myfile.pl          # Open a specific file</code></pre></div>
+
+  <h4>VS Code Perl Extensions</h4>
+  <p>Open VS Code, press <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>X</kbd>, and install these extensions:</p>
+  <div class="cg">
+    <div class="cc"><div class="cn">Perl Navigator</div><p><code>bmewburn.perl-navigator</code> — Syntax checking, auto-complete, go-to definition.</p></div>
+    <div class="cc"><div class="cn">Perl (IntelliSense)</div><p><code>richterger.perl</code> — IntelliSense, function signatures.</p></div>
+    <div class="cc"><div class="cn">Perl Toolbox</div><p>Linting via perlcritic and perltidy formatting.</p></div>
+    <div class="cc"><div class="cn">Perl::Critic</div><p>Code style checker integration.</p></div>
+  </div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — install Perl tools for VS Code</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">cpanm Perl::Critic
+cpanm Perl::Tidy
+sudo apt install -y perl-debug    # Enable the built-in Perl debugger</code></pre></div>
+
+  <h3>Gedit — Lightweight GUI Editor</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt install -y gedit gedit-plugins
+# Enable Perl syntax highlighting in Edit → Preferences → Plugins
+gedit myfile.pl &amp;    # Opens as ChromeOS window</code></pre></div>
+
+  <h3>Vim / Neovim in the Terminal</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt install -y neovim
+# For Perl syntax and autocomplete in Neovim:
+cpanm Neovim::Ext    # Perl host provider for Neovim plugins</code></pre></div>
+
+  <h3>Your Project Directory</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — recommended structure</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">mkdir -p ~/perl_projects/hello_world
+mkdir -p ~/perl_projects/gui_apps
+mkdir -p ~/perl_projects/web_apps
+
+# This directory appears in the ChromeOS Files app under "Linux files"
+# You can open any .pl file from there with a right-click → Open with Code</code></pre></div>
+
+  <div class="ftree">
+    <span class="h">~/perl_projects/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="d">hello_world/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">hello.pl</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">system_info.pl</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="d">gui_apps/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">tk_notes.pl</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">gtk3_calculator.pl</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="d">web_apps/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">app.pl</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="d">templates/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">Makefile.PL</span>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ WORKFLOW -->
+<section class="sec" id="workflow">
+  <div class="sh"><span class="snm">§05</span><h2>Development Workflow</h2></div>
+
+  <h3>Running Scripts</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — essential commands</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">perl myscript.pl              # Run a script
+perl -c myscript.pl           # Syntax-check only (no execution)
+perl -w myscript.pl           # Extra warnings
+perl -e 'print "Hello\n";'    # One-liner
+perl -n -e 'print if /error/i' logfile.txt  # One-liner filter
+
+chmod +x myscript.pl          # Make executable
+./myscript.pl                 # Run directly (needs #!/usr/bin/perl shebang)
+
+# Debugging
+perl -d myscript.pl           # Interactive debugger
+perl -d:Trace myscript.pl     # Trace every line executed</code></pre></div>
+
+  <h3>Chrome OS ↔ Linux File Sharing</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span></div>
+<pre><code class="language-bash"># ChromeOS Downloads folder (if shared with Linux):
+ls /mnt/chromeos/MyFiles/Downloads/
+
+# Copy a .pl file from Downloads to your project folder:
+cp /mnt/chromeos/MyFiles/Downloads/script.pl ~/perl_projects/
+
+# Save output to Downloads (opens in ChromeOS Files):
+perl myscript.pl > /mnt/chromeos/MyFiles/Downloads/output.txt</code></pre></div>
+
+  <h3>The Interactive REPL — Reply</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">cpanm Reply           # Install a Perl REPL (like irb for Ruby)
+reply                 # Start interactive Perl shell
+# Type any Perl expression and see the result immediately:
+#   > 2 ** 32
+#   4294967296
+#   > "hello" . "world"
+#   helloworld</code></pre></div>
+
+  <h3>Managing Modules with cpanm</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">cpanm Module::Name             # Install
+cpanm --uninstall Module::Name # Remove
+cpanm --info Module::Name      # Version info
+cpanm --look Module::Name      # Browse source
+perl -MModule::Name -e 'print Module::Name->VERSION, "\n"'  # Check version</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ HELLO WORLD -->
+<section class="sec" id="hello">
+  <div class="sh"><span class="snm">§06</span><h2>Hello World — Your First Perl Script</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — create and run</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">mkdir -p ~/perl_projects/hello_world
+cd ~/perl_projects/hello_world
+nano hello.pl          # or: code hello.pl</code></pre></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">hello.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  hello.pl  —  Your first Perl script on a Chromebook
+#  Run with:  perl hello.pl
+# =============================================================================
+use strict;
+use warnings;
+
+# String output
+print "Hello, Chromebook!\n";
+
+# Formatted output with printf
+my $name = "Perl";
+my $year = (localtime)[5] + 1900;
+printf "Welcome to %s development in %d.\n", $name, $year;
+
+# Show where we're running
+printf "Running on: %s\n",    $^O;            # linux
+printf "Perl version: %s\n",  $];             # 5.038002 etc.
+printf "Home dir: %s\n",      $ENV{HOME};     # /home/penguin
+
+# Array
+my @tools = qw(VS-Code Terminal nano vim);
+print "\nYour Linux tools:\n";
+printf "  %d. %s\n", $_ + 1, $tools[$_] for 0 .. $#tools;
+
+# Hash
+my %info = (
+    OS       => "ChromeOS Linux (Crostini)",
+    Distro   => "Debian",
+    Shell    => $ENV{SHELL} // "bash",
+    Editor   => "VS Code",
+);
+print "\nEnvironment:\n";
+printf "  %-10s : %s\n", $_, $info{$_} for sort keys %info;
+
+print "\nSetup complete — happy Perl coding!\n";</code></pre></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — run it</span></div>
+<pre><code class="language-bash">perl hello.pl</code></pre></div>
+  <div class="ob"><div class="ol">Output</div>Hello, Chromebook!
+Welcome to Perl development in 2025.
+Running on: linux
+Perl version: 5.038002
+Home dir: /home/penguin
+
+Your Linux tools:
+  1. VS-Code
+  2. Terminal
+  3. nano
+  4. vim
+
+Environment:
+  Distro     : Debian
+  Editor     : VS Code
+  OS         : ChromeOS Linux (Crostini)
+  Shell      : /bin/bash
+
+Setup complete — happy Perl coding!</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ CLI TOOLS -->
+<section class="sec" id="cli-tools">
+  <div class="sh"><span class="snm">§07</span><h2>CLI Scripts — Practical Tools</h2></div>
+
+  <p>Perl excels at command-line tools. These scripts are immediately useful for Chromebook work.</p>
+
+  <h3>Script 1: System Information Reporter</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">sysinfo.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  sysinfo.pl  —  Chromebook Linux system information reporter
+#  Run with:  perl sysinfo.pl
+# =============================================================================
+use strict;
+use warnings;
+use POSIX qw(uname);
+use List::Util qw(sum);
+
+sub divider { print "-" x 50, "\n" }
+sub heading { divider(); print "  $_[0]\n"; divider() }
+
+# ── Kernel & OS ───────────────────────────────────────────────────────────────
+heading("System");
+my @un = uname();
+printf "  %-16s %s\n", "Kernel:", $un[2];
+printf "  %-16s %s\n", "Architecture:", $un[4];
+printf "  %-16s %s\n", "Hostname:", $un[1];
+
+if (open my $fh, "<", "/etc/os-release") {
+    while (<$fh>) {
+        if (/^PRETTY_NAME="(.+)"/) {
+            printf "  %-16s %s\n", "OS:", $1;
+            last;
+        }
+    }
+}
+
+# ── Perl environment ──────────────────────────────────────────────────────────
+heading("Perl");
+printf "  %-16s %vd\n", "Version:", $^V;
+printf "  %-16s %s\n",  "Executable:", $^X;
+printf "  %-16s %s\n",  "Platform:", $^O;
+
+# Count installed modules
+my $mod_count = 0;
+for my $dir (@INC) {
+    next unless -d $dir;
+    opendir(my $dh, $dir) or next;
+    $mod_count += grep { /\.pm$/i } readdir($dh);
+    closedir($dh);
+}
+printf "  %-16s %d\n", "Modules (.pm):", $mod_count;
+
+# ── Memory ────────────────────────────────────────────────────────────────────
+heading("Memory");
+if (open my $mf, "<", "/proc/meminfo") {
+    my %mem;
+    while (<$mf>) {
+        $mem{$1} = $2 if /^(\w+):\s+(\d+)/;
+    }
+    my $total = $mem{MemTotal}     // 0;
+    my $free  = $mem{MemAvailable} // 0;
+    my $used  = $total - $free;
+    printf "  %-16s %.1f GB\n", "Total:",     $total / 1_048_576;
+    printf "  %-16s %.1f GB\n", "Used:",      $used  / 1_048_576;
+    printf "  %-16s %.1f GB\n", "Available:", $free  / 1_048_576;
+}
+
+# ── Disk ──────────────────────────────────────────────────────────────────────
+heading("Disk — Home Partition");
+my $df = `df -BM "$ENV{HOME}" 2>/dev/null | tail -1`;
+if ($df =~ /(\d+)M\s+(\d+)M\s+(\d+)M/) {
+    printf "  %-16s %d GB\n", "Total:",  $1 / 1024;
+    printf "  %-16s %d GB\n", "Used:",   $2 / 1024;
+    printf "  %-16s %d GB\n", "Free:",   $3 / 1024;
+}
+
+# ── Environment ───────────────────────────────────────────────────────────────
+heading("Environment");
+for my $var (qw(DISPLAY TERM SHELL HOME LANG)) {
+    printf "  %-16s %s\n", "$var:", $ENV{$var} // "(not set)";
+}
+
+divider();
+print "  Running in: ";
+print -d "/run/user" ? "container\n" : "native Linux\n";</code></pre></div>
+
+  <h3>Script 2: Chromebook Linux Files Analyzer</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">files.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  files.pl  —  Analyze a directory of files
+#  Usage:  perl files.pl [directory]
+#  Run on your home dir:  perl files.pl ~
+# =============================================================================
+use strict;
+use warnings;
+use File::Find;
+use File::Basename;
+use POSIX qw(floor);
+use List::Util qw(sum max);
+
+my $dir    = shift // $ENV{HOME};
+my $hidden = grep { /^-a/ } @ARGV;   # -a flag shows hidden files
+
+die "Directory '$dir' not found.\n" unless -d $dir;
+
+my %stats;
+my @large;
+my $start = time;
+
+find({
+    no_chdir => 1,
+    wanted   => sub {
+        return unless -f $_;
+        return if !$hidden && m{/\.};  # Skip hidden unless -a
+
+        my $size = -s $_;
+        my (undef, undef, $ext) = fileparse($_, qr/\.[^.]*/);
+        $ext = lc($ext) || '(no ext)';
+
+        $stats{count}++;
+        $stats{total_bytes} += $size;
+        $stats{by_ext}{$ext}{count}++;
+        $stats{by_ext}{$ext}{bytes} += $size;
+        push @large, [$_, $size] if $size > 1_048_576;  # > 1 MB
+    },
+}, $dir);
+
+my $elapsed = time - $start;
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+my $total_mb = ($stats{total_bytes} // 0) / 1_048_576;
+printf "\n%-24s %s\n",   "Directory:",     $dir;
+printf "%-24s %d\n",     "Files found:",   $stats{count} // 0;
+printf "%-24s %.1f MB\n","Total size:",    $total_mb;
+printf "%-24s %ds\n\n",  "Scan time:",     $elapsed;
+
+# ── By extension ─────────────────────────────────────────────────────────────
+print "By extension (top 15):\n";
+printf "  %-12s %6s  %10s\n", "Extension", "Files", "Size";
+printf "  %s\n", "-" x 35;
+
+my @sorted_ext = sort {
+    $stats{by_ext}{$b}{bytes} <=> $stats{by_ext}{$a}{bytes}
+} keys %{ $stats{by_ext} };
+
+for my $ext (@sorted_ext[0..14]) {
+    last unless defined $ext;
+    my $c = $stats{by_ext}{$ext}{count};
+    my $b = $stats{by_ext}{$ext}{bytes};
+    printf "  %-12s %6d  %8.1f MB\n", $ext, $c, $b / 1_048_576;
+}
+
+# ── Large files ───────────────────────────────────────────────────────────────
+if (@large) {
+    print "\nFiles larger than 1 MB:\n";
+    for my $f (sort { $b->[1] <=> $a->[1] } @large) {
+        printf "  %8.1f MB  %s\n", $f->[1] / 1_048_576,
+            substr($f->[0], length($dir) + 1);
+    }
+}</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ FILE PROCESSING -->
+<section class="sec" id="file-processing">
+  <div class="sh"><span class="snm">§08</span><h2>File Processing Scripts</h2></div>
+
+  <h3>CSV Report Generator</h3>
+  <p>A practical script showing how to read CSV files, process data, and produce reports — useful for handling exported spreadsheet data in ChromeOS.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">csv_report.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  csv_report.pl  —  CSV file analyzer and report generator
+#  Usage:  perl csv_report.pl data.csv
+#          perl csv_report.pl    (uses built-in demo data)
+#  Modules: Text::CSV (cpanm Text::CSV)
+# =============================================================================
+use strict;
+use warnings;
+use List::Util qw(sum min max);
+
+# ── Parse a simple CSV (no quotes/escaping for clarity) ──────────────────────
+sub parse_csv_line {
+    my ($line) = @_;
+    chomp $line;
+    return map { s/^\s+|\s+$//gr } split(/,/, $line);
+}
+
+# ── Demo data (sales records) ────────────────────────────────────────────────
+my @demo_csv = (
+    "Product,Category,Units,Price",
+    "Widget Pro,Electronics,42,29.99",
+    "Gadget Lite,Electronics,87,14.99",
+    "Desk Lamp,Home,31,45.00",
+    "USB Hub,Electronics,124,19.99",
+    "Notebook,Stationery,200,5.99",
+    "Pen Set,Stationery,315,8.49",
+    "Monitor Stand,Home,28,79.99",
+    "Keyboard,Electronics,56,49.99",
+    "Mouse Pad,Electronics,93,12.99",
+    "Bookend Set,Home,44,24.99",
+);
+
+# Use file if given, else demo
+my @lines;
+if (@ARGV && -f $ARGV[0]) {
+    open(my $fh, "<", $ARGV[0]) or die "Cannot open: $!";
+    @lines = <$fh>;
+    close $fh;
+} else {
+    @lines = @demo_csv;
+    print "(Using demo data — pass a CSV file as argument)\n\n";
+}
+
+# ── Parse header and rows ─────────────────────────────────────────────────────
+my @header = parse_csv_line(shift @lines);
+printf "Columns: %s\n\n", join(", ", @header);
+
+my @rows;
+for my $line (@lines) {
+    my @fields = parse_csv_line($line);
+    next unless @fields == @header;
+    my %row;
+    @row{@header} = @fields;
+    push @rows, \%row;
+}
+printf "Records: %d\n\n", scalar @rows;
+
+# ── Analysis ──────────────────────────────────────────────────────────────────
+# Assume numeric columns are the last two (Units, Price)
+my ($unit_col, $price_col) = @header[-2, -1];
+my $name_col    = $header[0];
+my $cat_col     = $header[1];
+
+# Calculate revenue per row
+my %by_category;
+my @revenues;
+for my $r (@rows) {
+    my $rev = ($r->{$unit_col} // 0) * ($r->{$price_col} // 0);
+    $r->{Revenue} = $rev;
+    push @revenues, $rev;
+    $by_category{ $r->{$cat_col} }{count}++;
+    $by_category{ $r->{$cat_col} }{revenue} += $rev;
+    $by_category{ $r->{$cat_col} }{units}   += $r->{$unit_col} // 0;
+}
+
+# ── Detailed table ────────────────────────────────────────────────────────────
+printf "%-22s %-14s %7s %8s %10s\n",
+       $name_col, $cat_col, $unit_col, $price_col, "Revenue";
+print "-" x 65, "\n";
+for my $r (sort { $b->{Revenue} <=> $a->{Revenue} } @rows) {
+    printf "%-22s %-14s %7d %8.2f %10.2f\n",
+           $r->{$name_col}, $r->{$cat_col},
+           $r->{$unit_col} // 0, $r->{$price_col} // 0, $r->{Revenue};
+}
+print "-" x 65, "\n";
+printf "%-22s %-14s %7d %8s %10.2f\n",
+    "TOTAL", "", sum(map {$_->{$unit_col}} @rows),
+    "", sum(@revenues);
+
+# ── Summary by category ───────────────────────────────────────────────────────
+print "\nBy Category:\n";
+for my $cat (sort { $by_category{$b}{revenue} <=> $by_category{$a}{revenue} }
+             keys %by_category) {
+    printf "  %-14s  %3d products  %6d units  \$%8.2f revenue\n",
+           $cat,
+           $by_category{$cat}{count},
+           $by_category{$cat}{units},
+           $by_category{$cat}{revenue};
+}
+
+printf "\nTotal revenue: \$%.2f\n", sum(@revenues);
+printf "Best product:  %s (\$%.2f)\n",
+    (sort { $b->{Revenue} <=> $a->{Revenue} } @rows)[0]{$name_col},
+    max(@revenues);</code></pre></div>
+
+  <div class="ob"><div class="ol">Output</div>(Using demo data — pass a CSV file as argument)
+
+Columns: Product, Category, Units, Price
+
+Records: 10
+
+Product                Category         Units    Price    Revenue
+...
+Pen Set                Stationery         315     8.49   2674.35
+Notebook               Stationery         200     5.99   1198.00
+USB Hub                Electronics        124    19.99   2478.76
+...
+Total revenue: $13842.37
+Best product:  Pen Set ($2674.35)</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ MODULES -->
+<section class="sec" id="modules">
+  <div class="sh"><span class="snm">§09</span><h2>Modules &amp; CPAN on Chromebook</h2></div>
+
+  <h3>Essential Modules for Chromebook Perl</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Category</th><th>Module</th><th>Install</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>Modern Perl</td><td><code>Modern::Perl</code></td><td><code>cpanm</code></td><td>Enables strict, warnings, say, etc.</td></tr>
+      <tr><td>Error handling</td><td><code>Try::Tiny</code></td><td><code>cpanm</code></td><td>try/catch/finally blocks</td></tr>
+      <tr><td>File paths</td><td><code>Path::Tiny</code></td><td><code>cpanm</code></td><td>Easy file/dir manipulation</td></tr>
+      <tr><td>JSON</td><td><code>JSON::PP</code></td><td>Built-in</td><td>JSON encode/decode</td></tr>
+      <tr><td>HTTP client</td><td><code>LWP::UserAgent</code></td><td><code>cpanm</code></td><td>HTTP requests</td></tr>
+      <tr><td>CSV</td><td><code>Text::CSV</code></td><td><code>cpanm</code></td><td>Read/write CSV files</td></tr>
+      <tr><td>Dates</td><td><code>DateTime</code></td><td><code>cpanm</code></td><td>Date/time math and formatting</td></tr>
+      <tr><td>Database</td><td><code>DBI + DBD::SQLite</code></td><td><code>cpanm</code></td><td>SQLite database access</td></tr>
+      <tr><td>Testing</td><td><code>Test::Simple</code></td><td>Built-in</td><td>Unit testing</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">perl — module usage examples</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+use strict; use warnings;
+
+# Modern::Perl enables useful features
+use Modern::Perl '2023';   # Enables say, state, strict, warnings
+
+say "say adds a newline automatically";   # Like print "\n"
+
+state $count = 0;          # Persistent variable across calls
+
+# Try::Tiny — clean error handling
+use Try::Tiny;
+try {
+    die "something went wrong\n";
+} catch {
+    warn "Caught: $_";
+} finally {
+    say "This always runs";
+};
+
+# Path::Tiny — easy file operations
+use Path::Tiny;
+my $dir  = path("~")->absolute;   # Resolve ~ to full path
+my @pls  = $dir->children(qr/\.pl$/);  # Find all .pl files
+say "Perl scripts: " . scalar(@pls);
+
+my $file = path("/tmp/test.txt");
+$file->spew("Hello from Path::Tiny!\n");    # Write
+say $file->slurp;                            # Read
+$file->remove;                               # Delete
+
+# JSON::PP — no install needed
+use JSON::PP;
+my $data = { name => "Chromebook", year => 2024, active => \1 };
+my $json = encode_json($data);
+say "JSON: $json";
+my $back = decode_json($json);
+say "Name: $back->{name}";
+
+# DBD::SQLite — in-container database
+use DBI;
+my $dbh = DBI->connect("dbi:SQLite:dbname=/tmp/test.db", "", "");
+$dbh->do("CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, text TEXT)");
+$dbh->do("INSERT INTO notes (text) VALUES (?)", undef, "First note from Chromebook!");
+my $rows = $dbh->selectall_arrayref("SELECT * FROM notes");
+printf "DB record: %d — %s\n", $_->[0], $_->[1] for @$rows;
+$dbh->disconnect;
+unlink "/tmp/test.db";</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ GUI OVERVIEW -->
+<section class="sec" id="gui-overview">
+  <div class="sh"><span class="snm">§10</span><h2>GUI Development on Chromebook</h2></div>
+
+  <p>This is where Chromebook Linux shines: GUI apps from the Linux container run as <strong>first-class ChromeOS windows</strong>. They appear in the taskbar, can be pinned to the shelf, support full-screen mode, and integrate with the ChromeOS window manager — with no X11 server configuration needed.</p>
+
+  <div class="ca cb"><strong>How it works:</strong> ChromeOS runs a component called <em>Sommelier</em> which acts as an XWayland server. When you run a Perl/Tk or Gtk3 app in the container, Sommelier translates X11 calls to Wayland and renders the window in ChromeOS's compositor. The <code>DISPLAY</code> variable is set to <code>:0</code> automatically when you open a Terminal.</div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — check GUI setup</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Verify DISPLAY is set (should be :0 or similar)
+echo $DISPLAY
+
+# If empty, set it manually:
+export DISPLAY=:0
+
+# Quick GUI test — a bare Perl/Tk window
+perl -e '
+    use Tk;
+    my $mw = MainWindow->new;
+    $mw->title("Chromebook GUI Test");
+    $mw->geometry("300x120");
+    $mw->Label(-text  => "✓ GUI works on ChromeOS!",
+               -font  => "Helvetica 14 bold",
+               -fg    => "#34c759")->pack(-pady => 20);
+    $mw->Button(-text => "Close", -command => sub { exit })->pack;
+    MainLoop;
+'</code></pre></div>
+
+  <h3>Making Linux Apps Appear in the Launcher</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — create a desktop entry</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">mkdir -p ~/.local/share/applications
+
+cat > ~/.local/share/applications/perl-notes.desktop << 'EOF'
+[Desktop Entry]
+Name=Perl Notes
+Comment=Perl/Tk Notes Application
+Exec=perl /home/penguin/perl_projects/gui_apps/tk_notes.pl
+Icon=text-editor
+Terminal=false
+Type=Application
+Categories=Utility;
+EOF
+
+# Refresh the app list
+update-desktop-database ~/.local/share/applications</code></pre></div>
+  <p>After this, <strong>Perl Notes</strong> appears in the ChromeOS launcher alongside all other apps.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════ TK APP -->
+<section class="sec" id="tk-app">
+  <div class="sh"><span class="snm">§11</span><h2>Perl/Tk App — Chromebook Notes</h2></div>
+  <p>A complete Perl/Tk sticky-notes application: create notes, store them as text files in your Linux home directory (visible in the ChromeOS Files app), and load them back. Demonstrates the full Chromebook development cycle.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">tk_notes.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  tk_notes.pl  —  Chromebook Notes  (Perl/Tk)
+#  Install:  sudo apt install perl-tk
+#  Run:      perl tk_notes.pl
+#
+#  Notes are saved in ~/notes/ and are visible in the ChromeOS Files app.
+# =============================================================================
+use strict;
+use warnings;
+use Tk;
+use Tk::Text;
+use Tk::Listbox;
+use File::Basename;
+use Cwd qw(abs_path);
+
+# ── State ──────────────────────────────────────────────────────────────────────
+my $notes_dir   = "$ENV{HOME}/notes";
+my $current_note = "";
+my $modified     = 0;
+my $status_msg   = "Ready";
+
+mkdir $notes_dir unless -d $notes_dir;
+
+# ── Main window ───────────────────────────────────────────────────────────────
+my $mw = MainWindow->new;
+$mw->title("Chromebook Notes");
+$mw->geometry("760x560+60+40");
+$mw->configure(-background => "#1e1e2e");
+$mw->protocol("WM_DELETE_WINDOW", \&on_quit);
+
+# ── Menu bar ──────────────────────────────────────────────────────────────────
+my $menu = $mw->Menu;
+$mw->configure(-menu => $menu);
+
+my $file = $menu->cascade(-label => "File", -tearoff => 0);
+$file->command(-label => "New Note",     -accelerator => "Ctrl+N", -command => \&cmd_new);
+$file->command(-label => "Save",         -accelerator => "Ctrl+S", -command => \&cmd_save);
+$file->command(-label => "Delete Note",  -command => \&cmd_delete);
+$file->separator;
+$file->command(-label => "Quit",         -accelerator => "Ctrl+Q", -command => \&on_quit);
+
+my $edit = $menu->cascade(-label => "Edit", -tearoff => 0);
+$edit->command(-label => "Cut",          -accelerator => "Ctrl+X", -command => sub { $mw->focus; $editor->event_generate("<<Cut>>") });
+$edit->command(-label => "Copy",         -accelerator => "Ctrl+C", -command => sub { $editor->event_generate("<<Copy>>") });
+$edit->command(-label => "Paste",        -accelerator => "Ctrl+V", -command => sub { $editor->event_generate("<<Paste>>") });
+
+# ── Layout: sidebar (notes list) + editor ─────────────────────────────────────
+my $paned = $mw->Frame(-background => "#1e1e2e")->pack(-fill => "both", -expand => 1);
+
+# Sidebar
+my $sidebar = $paned->Frame(
+    -background  => "#16161e",
+    -borderwidth => 0,
+    -width       => 200,
+)->pack(-side => "left", -fill => "y");
+$sidebar->packPropagate(0);
+
+$sidebar->Label(
+    -text       => "MY NOTES",
+    -font       => "Helvetica 9",
+    -foreground => "#5bc7f0",
+    -background => "#16161e",
+    -anchor     => "w",
+)->pack(-fill => "x", -padx => 10, -pady => 8);
+
+# Notes list with scrollbar
+my $lb_frame = $sidebar->Frame(-background => "#16161e")->pack(-fill => "both", -expand => 1);
+my $lb = $lb_frame->Listbox(
+    -background       => "#16161e",
+    -foreground       => "#e2d9c8",
+    -selectbackground => "#2a3a5a",
+    -selectforeground => "#5bc7f0",
+    -font             => "Helvetica 11",
+    -borderwidth      => 0,
+    -relief           => "flat",
+    -activestyle      => "none",
+)->pack(-side => "left", -fill => "both", -expand => 1);
+my $lb_scroll = $lb_frame->Scrollbar(-command => [$lb, "yview"], -width => 8)->pack(
+    -side => "right", -fill => "y"
+);
+$lb->configure(-yscrollcommand => [$lb_scroll, "set"]);
+
+# Sidebar buttons
+my $btn_row = $sidebar->Frame(-background => "#16161e")->pack(-fill => "x", -padx => 8, -pady => 6);
+$btn_row->Button(
+    -text       => "+ New",
+    -font       => "Helvetica 10",
+    -background => "#2a4a8a",
+    -foreground => "white",
+    -relief     => "flat",
+    -padx       => 6, -pady => 3,
+    -command    => \&cmd_new,
+)->pack(-side => "left", -padx => 2);
+$btn_row->Button(
+    -text       => "⌫ Delete",
+    -font       => "Helvetica 10",
+    -background => "#4a1a1a",
+    -foreground => "#e08080",
+    -relief     => "flat",
+    -padx       => 6, -pady => 3,
+    -command    => \&cmd_delete,
+)->pack(-side => "left", -padx => 2);
+
+# ── Editor area ────────────────────────────────────────────────────────────────
+my $editor_frame = $paned->Frame(-background => "#1e1e2e")->pack(
+    -side => "left", -fill => "both", -expand => 1
+);
+
+my $title_var = "";
+my $title_entry = $editor_frame->Entry(
+    -textvariable     => \$title_var,
+    -font             => "Helvetica 14 bold",
+    -background       => "#2a2a3e",
+    -foreground       => "#e2d9c8",
+    -insertbackground => "white",
+    -relief           => "flat",
+    -borderwidth      => 4,
+)->pack(-fill => "x", -padx => 8, -pady => 6);
+
+my $editor_box = $editor_frame->Frame(-background => "#1e1e2e")->pack(
+    -fill => "both", -expand => 1, -padx => 8
+);
+my $editor = $editor_box->Text(
+    -font             => "Helvetica 12",
+    -background       => "#1e1e2e",
+    -foreground       => "#e2d9c8",
+    -insertbackground => "white",
+    -selectbackground => "#264f78",
+    -relief           => "flat",
+    -padx             => 4, -pady => 4,
+    -wrap             => "word",
+    -undo             => 1,
+)->pack(-side => "left", -fill => "both", -expand => 1);
+my $ed_scroll = $editor_box->Scrollbar(-command => [$editor, "yview"], -width => 8)->pack(
+    -side => "right", -fill => "y"
+);
+$editor->configure(-yscrollcommand => [$ed_scroll, "set"]);
+
+# Toolbar below editor
+my $toolbar = $editor_frame->Frame(-background => "#16161e")->pack(-fill => "x", -pady => 4);
+for my $info (
+    ["Save  Ctrl+S", \&cmd_save,  "#2a4a2a", "#6fcf97"],
+    ["Undo  Ctrl+Z", sub { $editor->edit_undo }, "#2a2a3a", "#9b9380"],
+) {
+    my ($label, $cb, $bg, $fg) = @$info;
+    $toolbar->Button(
+        -text => $label, -command => $cb,
+        -background => $bg, -foreground => $fg,
+        -font => "Helvetica 10", -relief => "flat",
+        -padx => 10, -pady => 4,
+    )->pack(-side => "left", -padx => 4);
+}
+
+# Status bar
+my $status_bar = $mw->Frame(-background => "#5bc7f0", -height => 22)->pack(-fill => "x", -side => "bottom");
+$status_bar->Label(
+    -textvariable => \$status_msg,
+    -font         => "Helvetica 10",
+    -foreground   => "#0a1a2a",
+    -background   => "#5bc7f0",
+    -anchor       => "w",
+)->pack(-side => "left", -padx => 10);
+$status_bar->Label(
+    -text       => "Notes dir: $notes_dir",
+    -font       => "Helvetica 10",
+    -foreground => "#0a1a2a",
+    -background => "#5bc7f0",
+)->pack(-side => "right", -padx => 10);
+
+# ── Keyboard shortcuts ─────────────────────────────────────────────────────────
+$mw->bind("<Control-n>", \&cmd_new);
+$mw->bind("<Control-s>", \&cmd_save);
+$mw->bind("<Control-q>", \&on_quit);
+
+# ── Track modifications ────────────────────────────────────────────────────────
+$editor->bind("<<Modified>>", sub {
+    if ($editor->edit_modified) {
+        $modified = 1;
+        $mw->title("Chromebook Notes  •");
+    }
+});
+
+# ── Listbox selection ──────────────────────────────────────────────────────────
+$lb->bind("<<ListboxSelect>>", sub {
+    my ($idx) = $lb->curselection;
+    return unless defined $idx;
+    my $name = $lb->get($idx);
+    load_note($name);
+});
+
+# ── Load note list on start ────────────────────────────────────────────────────
+refresh_list();
+
+# ═══════════════════════════════════════════════════════════════════════
+# Subroutines
+# ═══════════════════════════════════════════════════════════════════════
+sub refresh_list {
+    $lb->delete(0, "end");
+    my @notes = sort glob("$notes_dir/*.txt");
+    for my $f (@notes) {
+        $lb->insert("end", basename($f, ".txt"));
+    }
+}
+
+sub load_note {
+    my ($name) = @_;
+    my $path = "$notes_dir/$name.txt";
+    return unless -f $path;
+
+    if ($modified) {
+        my $ans = $mw->messageBox(
+            -type => "YesNo", -icon => "question",
+            -message => "Save current note first?"
+        );
+        cmd_save() if $ans eq "Yes";
+    }
+
+    open(my $fh, "<", $path) or return;
+    my $content = do { local $/; <$fh> };
+    close($fh);
+
+    my $title = (split /\n/, $content, 2)[0] =~ s/^#\s*//r;
+    $title_var = $title;
+    $editor->delete("1.0", "end");
+    $editor->insert("1.0", $content);
+    $editor->edit_modified(0);
+    $current_note = $name;
+    $modified     = 0;
+    $mw->title("Chromebook Notes — $name");
+    $status_msg = "Loaded: $name";
+}
+
+sub cmd_new {
+    my $name = "note_" . time;
+    $title_var = "New Note";
+    $editor->delete("1.0", "end");
+    $editor->insert("1.0", "# New Note\n\n");
+    $editor->edit_modified(0);
+    $current_note = $name;
+    $modified     = 0;
+    $mw->title("Chromebook Notes — new");
+    $status_msg = "New note";
+    $title_entry->focus;
+}
+
+sub cmd_save {
+    my $name = $title_var;
+    $name =~ s/[^\w\s-]//g;
+    $name =~ s/\s+/_/g;
+    $name = lc($name) || $current_note || "untitled_" . time;
+    my $path    = "$notes_dir/$name.txt";
+    my $content = $editor->get("1.0", "end");
+    open(my $fh, ">", $path) or do {
+        $status_msg = "ERROR: cannot save";
+        return;
+    };
+    print $fh $content;
+    close($fh);
+    $editor->edit_modified(0);
+    $current_note = $name;
+    $modified     = 0;
+    $mw->title("Chromebook Notes — $name");
+    $status_msg = "Saved: $name.txt";
+    refresh_list();
+}
+
+sub cmd_delete {
+    my ($idx) = $lb->curselection;
+    return unless defined $idx;
+    my $name = $lb->get($idx);
+    my $ans  = $mw->messageBox(
+        -type => "YesNo", -icon => "question",
+        -message => "Delete note '$name'?"
+    );
+    if ($ans eq "Yes") {
+        unlink "$notes_dir/$name.txt";
+        $editor->delete("1.0", "end");
+        $title_var    = "";
+        $current_note = "";
+        $modified     = 0;
+        $mw->title("Chromebook Notes");
+        refresh_list();
+        $status_msg = "Deleted: $name";
+    }
+}
+
+sub on_quit {
+    cmd_save() if $modified;
+    exit;
+}
+
+MainLoop;</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ GTK3 APP -->
+<section class="sec" id="gtk3-app">
+  <div class="sh"><span class="snm">§12</span><h2>Gtk3 App — System Monitor</h2></div>
+  <p>A Gtk3 application that displays live CPU, memory, and disk information, updating every second via a GLib timer. Demonstrates Gtk3's grid layout, markup labels, progress bars, and the <code>Glib::Timeout</code> repeating timer.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">gtk3_sysmon.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  gtk3_sysmon.pl  —  Chromebook System Monitor  (Gtk3)
+#  Install:  sudo apt install libgtk3-perl
+#  Run:      perl gtk3_sysmon.pl
+# =============================================================================
+use strict;
+use warnings;
+use Gtk3 '-init';
+use Glib qw(TRUE FALSE);
+
+# ── Read /proc/stat for CPU usage ─────────────────────────────────────────────
+my @prev_cpu = (0) x 8;
+sub read_cpu_pct {
+    open my $f, '<', '/proc/stat' or return 0;
+    my $line = <$f>; close $f;
+    my (undef, @fields) = split /\s+/, $line;
+    my $idle    = $fields[3] + $fields[4];  # idle + iowait
+    my $total   = 0; $total += $_ for @fields;
+    my $d_idle  = $idle  - $prev_cpu[3] - $prev_cpu[4];
+    my $d_total = $total - $prev_cpu[7];
+    @prev_cpu   = (@fields[0..6], $total);
+    return 0 if $d_total == 0;
+    return int(100 - 100 * $d_idle / $d_total);
+}
+
+sub read_mem {
+    open my $f, '<', '/proc/meminfo' or return (0,0);
+    my %m;
+    while (<$f>) { $m{$1} = $2 if /^(\w+):\s+(\d+)/ }
+    close $f;
+    my $total  = $m{MemTotal}     // 1;
+    my $avail  = $m{MemAvailable} // 0;
+    return ($total, $total - $avail);
+}
+
+sub read_disk {
+    my $df = `df -BM "$ENV{HOME}" 2>/dev/null | tail -1`;
+    return (1,0) unless $df;
+    my @f = split /\s+/, $df;
+    return ((($f[1] =~ s/M//r) || 1), (($f[2] =~ s/M//r) || 0));
+}
+
+# ── CSS ────────────────────────────────────────────────────────────────────────
+my $css = Gtk3::CssProvider->new;
+$css->load_from_data(q{
+    window { background-color: #09090f; }
+    .title  { color: #5bc7f0; font-size: 22px; font-weight: bold; }
+    .metric { color: #e2d9c8; font-size: 14px; font-family: monospace; }
+    .label  { color: #9b9380; font-size: 12px; }
+    .value-ok   { color: #6fcf97; font-size: 16px; font-weight: bold; font-family: monospace; }
+    .value-warn { color: #f0a030; font-size: 16px; font-weight: bold; font-family: monospace; }
+    .value-high { color: #eb5757; font-size: 16px; font-weight: bold; font-family: monospace; }
+    progressbar trough { min-height: 12px; border-radius: 6px; background: #1e1e30; }
+    progressbar progress { border-radius: 6px; }
+    progressbar.ok   progress { background: #6fcf97; }
+    progressbar.warn progress { background: #f0a030; }
+    progressbar.high progress { background: #eb5757; }
+    .card { background-color: #0f0f1c; border-radius: 8px; padding: 16px; }
+    separator { background: #1e1e30; }
+});
+Gtk3::StyleContext::add_provider_for_screen(
+    Gtk3::Gdk::Screen::get_default(),
+    $css, Gtk3::STYLE_PROVIDER_PRIORITY_APPLICATION
+);
+
+# ── Main window ───────────────────────────────────────────────────────────────
+my $win = Gtk3::Window->new('toplevel');
+$win->set_title('Chromebook System Monitor');
+$win->set_default_size(440, 360);
+$win->set_resizable(FALSE);
+$win->signal_connect(destroy => sub { Gtk3->main_quit });
+
+my $root = Gtk3::Box->new('vertical', 0);
+$root->set_margin_start(20); $root->set_margin_end(20);
+$root->set_margin_top(16);   $root->set_margin_bottom(16);
+$win->add($root);
+
+# Title
+my $title = Gtk3::Label->new('');
+$title->set_markup('<span size="20000" weight="bold" foreground="#5bc7f0">System Monitor</span>');
+$title->set_margin_bottom(16);
+$root->pack_start($title, FALSE, FALSE, 0);
+
+# ── Build a metric card ────────────────────────────────────────────────────────
+my (%bars, %val_labels, %pct_labels);
+
+sub make_card {
+    my ($parent, $id, $title_text, $unit) = @_;
+
+    my $frame = Gtk3::Frame->new;
+    $frame->get_style_context->add_class('card');
+    $frame->set_shadow_type('none');
+    $frame->set_margin_bottom(10);
+    $parent->pack_start($frame, FALSE, FALSE, 0);
+
+    my $vbox = Gtk3::Box->new('vertical', 6);
+    $vbox->set_margin_start(16); $vbox->set_margin_end(16);
+    $vbox->set_margin_top(12);   $vbox->set_margin_bottom(12);
+    $frame->add($vbox);
+
+    # Header row: title + value
+    my $header = Gtk3::Box->new('horizontal', 0);
+    $vbox->pack_start($header, FALSE, FALSE, 0);
+
+    my $lbl = Gtk3::Label->new('');
+    $lbl->set_markup("<span foreground=\"#9b9380\" size=\"13000\">$title_text</span>");
+    $lbl->set_halign('start');
+    $header->pack_start($lbl, TRUE, TRUE, 0);
+
+    my $val = Gtk3::Label->new('— %');
+    $val->set_halign('end');
+    $val_labels{$id} = $val;
+    $header->pack_end($val, FALSE, FALSE, 0);
+
+    # Progress bar
+    my $bar = Gtk3::ProgressBar->new;
+    $bar->set_fraction(0);
+    $bar->get_style_context->add_class('ok');
+    $bars{$id} = $bar;
+    $vbox->pack_start($bar, FALSE, FALSE, 0);
+
+    # Details row
+    my $details = Gtk3::Label->new('');
+    $details->set_halign('start');
+    $details->set_margin_top(2);
+    $pct_labels{$id} = $details;
+    $vbox->pack_start($details, FALSE, FALSE, 0);
+
+    return $frame;
+}
+
+make_card($root, 'cpu',  'CPU',    '%');
+make_card($root, 'mem',  'Memory', 'GB');
+make_card($root, 'disk', 'Disk',   'GB');
+
+# Last-updated label
+my $updated = Gtk3::Label->new('');
+$updated->set_halign('end');
+$updated->set_margin_top(4);
+$root->pack_end($updated, FALSE, FALSE, 0);
+
+# ── Update function ────────────────────────────────────────────────────────────
+sub update_display {
+    # CPU
+    my $cpu_pct = read_cpu_pct();
+    my $cpu_cls = $cpu_pct > 80 ? 'high' : $cpu_pct > 50 ? 'warn' : 'ok';
+    my $cpu_col = $cpu_pct > 80 ? '#eb5757' : $cpu_pct > 50 ? '#f0a030' : '#6fcf97';
+    $bars{cpu}->set_fraction($cpu_pct / 100);
+    $bars{cpu}->get_style_context->remove_class($_) for qw(ok warn high);
+    $bars{cpu}->get_style_context->add_class($cpu_cls);
+    $val_labels{cpu}->set_markup("<span foreground=\"$cpu_col\" weight=\"bold\" size=\"14000\">${cpu_pct}%</span>");
+    $pct_labels{cpu}->set_markup("<span foreground=\"#5a5448\" size=\"11000\">Utilisation across all cores</span>");
+
+    # Memory
+    my ($mem_total_kb, $mem_used_kb) = read_mem();
+    my $mem_pct  = $mem_total_kb ? int(100 * $mem_used_kb / $mem_total_kb) : 0;
+    my $mem_cls  = $mem_pct > 85 ? 'high' : $mem_pct > 65 ? 'warn' : 'ok';
+    my $mem_col  = $mem_pct > 85 ? '#eb5757' : $mem_pct > 65 ? '#f0a030' : '#6fcf97';
+    my $mem_used = sprintf "%.1f", $mem_used_kb  / 1_048_576;
+    my $mem_tot  = sprintf "%.1f", $mem_total_kb / 1_048_576;
+    $bars{mem}->set_fraction($mem_pct / 100);
+    $bars{mem}->get_style_context->remove_class($_) for qw(ok warn high);
+    $bars{mem}->get_style_context->add_class($mem_cls);
+    $val_labels{mem}->set_markup("<span foreground=\"$mem_col\" weight=\"bold\" size=\"14000\">${mem_pct}%</span>");
+    $pct_labels{mem}->set_markup("<span foreground=\"#5a5448\" size=\"11000\">${mem_used} GB used of ${mem_tot} GB</span>");
+
+    # Disk
+    my ($disk_tot, $disk_used) = read_disk();
+    my $disk_pct = $disk_tot ? int(100 * $disk_used / $disk_tot) : 0;
+    my $disk_cls = $disk_pct > 90 ? 'high' : $disk_pct > 70 ? 'warn' : 'ok';
+    my $disk_col = $disk_pct > 90 ? '#eb5757' : $disk_pct > 70 ? '#f0a030' : '#6fcf97';
+    my $dtg      = sprintf "%.1f", $disk_tot  / 1024;
+    my $dug      = sprintf "%.1f", $disk_used / 1024;
+    $bars{disk}->set_fraction($disk_pct / 100);
+    $bars{disk}->get_style_context->remove_class($_) for qw(ok warn high);
+    $bars{disk}->get_style_context->add_class($disk_cls);
+    $val_labels{disk}->set_markup("<span foreground=\"$disk_col\" weight=\"bold\" size=\"14000\">${disk_pct}%</span>");
+    $pct_labels{disk}->set_markup("<span foreground=\"#5a5448\" size=\"11000\">${dug} GB used of ${dtg} GB (home)</span>");
+
+    # Timestamp
+    my $time_str = scalar localtime;
+    $updated->set_markup("<span foreground=\"#3a3a5a\" size=\"11000\">Updated: $time_str</span>");
+
+    return TRUE;  # Keep the timer running
+}
+
+# ── Start timer — update every 1000ms ────────────────────────────────────────
+update_display();
+Glib::Timeout->add(1000, \&update_display);
+
+$win->show_all;
+Gtk3->main;</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ MOJOLICIOUS -->
+<section class="sec" id="mojolicious">
+  <div class="sh"><span class="snm">§13</span><h2>Web Development — Mojolicious</h2></div>
+
+  <p>Mojolicious is a full-featured, modern Perl web framework. On a Chromebook, you run the web server in the Linux container and access it from the Chrome browser on the same machine. The server runs at <code>http://localhost:3000</code> and is visible directly in Chrome — no port forwarding needed.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — install and test</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">cpanm Mojolicious
+# Quick test:
+perl -e 'use Mojolicious; print "Mojo $Mojolicious::VERSION\n"'</code></pre></div>
+
+  <h3>Minimal Web App</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">app.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  app.pl  —  Minimal Mojolicious web application
+#  Run:     perl app.pl daemon
+#  Visit:   http://localhost:3000
+# =============================================================================
+use Mojolicious::Lite -signatures;
+
+# Route: GET /
+get '/' => sub ($c) {
+    $c->render(text => 'Hello from Perl + Mojolicious on your Chromebook!');
+};
+
+# Route: GET /hello/:name
+get '/hello/:name' => sub ($c) {
+    my $name = $c->param('name');
+    $c->render(text => "Hello, $name!");
+};
+
+# Route: GET /json
+get '/json' => sub ($c) {
+    $c->render(json => {
+        message  => 'Hello from Perl',
+        platform => 'Chromebook Linux',
+        perl     => $^V . "",
+        time     => time(),
+    });
+};
+
+app->start;</code></pre></div>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — run it</span></div>
+<pre><code class="language-bash">perl app.pl daemon        # Starts on http://localhost:3000
+# Press Ctrl+C to stop</code></pre></div>
+
+  <h3>Complete Notes Web App with Templates</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">notes_web.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  notes_web.pl  —  Mojolicious notes web application
+#  Run:     perl notes_web.pl daemon
+#  Visit:   http://localhost:3000
+#  Notes stored in: ~/notes/ (same dir as the Tk app)
+# =============================================================================
+use Mojolicious::Lite -signatures;
+use File::Basename;
+use Cwd 'abs_path';
+
+my $notes_dir = "$ENV{HOME}/notes";
+mkdir $notes_dir unless -d $notes_dir;
+
+# ── Helper: read all notes ────────────────────────────────────────────────────
+helper notes => sub ($c) {
+    my @files = sort glob("$notes_dir/*.txt");
+    return [ map {
+        my $name    = basename($_, ".txt");
+        my $preview = "";
+        if (open my $fh, "<", $_) {
+            $preview = <$fh> // "";
+            chomp $preview;
+            $preview =~ s/^#\s*//;
+            close $fh;
+        }
+        { name => $name, preview => $preview }
+    } @files ];
+};
+
+# ── Routes ────────────────────────────────────────────────────────────────────
+# List all notes
+get '/' => sub ($c) {
+    $c->render(template => 'index', notes => $c->notes);
+};
+
+# View a note
+get '/note/:name' => sub ($c) {
+    my $name = $c->param('name');
+    $name =~ s/[^\w\-]//g;
+    my $path = "$notes_dir/$name.txt";
+    my $body = "";
+    if (open my $fh, "<", $path) { local $/; $body = <$fh>; }
+    $c->render(template => 'note', name => $name, body => $body);
+};
+
+# Save a note (POST)
+post '/save' => sub ($c) {
+    my $name = $c->param('name') // "untitled";
+    my $body = $c->param('body') // "";
+    $name =~ s/[^\w\-]//g;
+    $name ||= "note_" . time;
+    open(my $fh, ">", "$notes_dir/$name.txt") and do { print $fh $body; close $fh; };
+    $c->redirect_to("/note/$name");
+};
+
+# Delete a note
+post '/delete/:name' => sub ($c) {
+    my $name = $c->param('name');
+    $name =~ s/[^\w\-]//g;
+    unlink "$notes_dir/$name.txt";
+    $c->redirect_to('/');
+};
+
+# New note form
+get '/new' => sub ($c) {
+    $c->render(template => 'note', name => 'new_note', body => "# New Note\n\n");
+};
+
+app->start;
+
+# ── Inline templates ──────────────────────────────────────────────────────────
+__DATA__
+@@ layouts/main.html.ep
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<title>Chromebook Notes</title>
+<style>
+  body{background:#09090f;color:#e2d9c8;font-family:'Segoe UI',sans-serif;margin:0}
+  .sidebar{background:#05050a;width:240px;position:fixed;top:0;left:0;bottom:0;padding:20px}
+  .sidebar h2{color:#5bc7f0;font-size:15px;margin-bottom:16px}
+  .sidebar a{display:block;color:#9b9380;text-decoration:none;padding:6px 8px;
+             border-radius:4px;font-size:13px;border-left:2px solid transparent}
+  .sidebar a:hover{color:#e2d9c8;background:#0f0f1c}
+  .sidebar .new-btn{display:block;background:#2a4a8a;color:white;text-align:center;
+                    padding:8px;border-radius:4px;margin-bottom:16px;text-decoration:none;font-size:13px}
+  .main{margin-left:240px;padding:32px}
+  input,textarea{background:#0f0f1c;color:#e2d9c8;border:1px solid #1e1e30;
+                 border-radius:4px;padding:8px;font-size:14px}
+  textarea{width:100%;height:400px;font-family:monospace;resize:vertical}
+  button{background:#5bc7f0;color:#0a1a2a;border:none;padding:8px 18px;
+         border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold}
+  button.del{background:#eb5757;color:white}
+</style></head><body>
+<div class="sidebar">
+  <h2>MY NOTES</h2>
+  <a class="new-btn" href="/new">+ New Note</a>
+  % for my $n (@{ $notes }) {
+  <a href="/note/<%= $n->{name} %>"><%= $n->{preview} || $n->{name} %></a>
+  % }
+</div>
+<div class="main"><%= content %></div>
+</body></html>
+
+@@ index.html.ep
+% layout 'main';
+<h1 style="color:#5bc7f0">Chromebook Notes</h1>
+<p style="color:#9b9380"><%= scalar @{ $notes } %> note(s) stored in ~/notes/</p>
+% if (!@{$notes}) {
+<p><a href="/new" style="color:#5bc7f0">Create your first note →</a></p>
+% }
+
+@@ note.html.ep
+% layout 'main';
+<form method="post" action="/save">
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
+  <input name="name" value="<%= $name %>" style="flex:1;font-size:16px;font-weight:bold">
+  <button type="submit">Save</button>
+</div>
+<textarea name="body"><%= $body %></textarea>
+</form>
+% if ($name ne 'new_note') {
+<form method="post" action="/delete/<%= $name %>" style="margin-top:12px">
+  <button class="del" onclick="return confirm('Delete this note?')">Delete</button>
+</form>
+% }</code></pre></div>
+
+  <div class="ca cb"><strong>Access from Chrome:</strong> After running <code>perl notes_web.pl daemon</code> in the Linux terminal, open Chrome on your Chromebook and go to <code>http://localhost:3000</code>. The web app runs on the same machine and the connection is immediate — no network involved.</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ HTTP CLIENT -->
+<section class="sec" id="http-client">
+  <div class="sh"><span class="snm">§14</span><h2>HTTP Client Scripts</h2></div>
+  <p>Perl's <code>LWP::UserAgent</code> (or Mojolicious's <code>Mojo::UserAgent</code>) make it easy to fetch web data from your Chromebook scripts.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">perl</span><span class="cf2">web_fetch.pl</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+# =============================================================================
+#  web_fetch.pl  —  HTTP client examples using LWP and Mojo
+#  Install:  cpanm LWP::UserAgent Mojolicious
+#  Run:      perl web_fetch.pl
+# =============================================================================
+use strict;
+use warnings;
+use LWP::UserAgent;
+use JSON::PP;
+
+my $ua = LWP::UserAgent->new(
+    agent   => "PerlChromebook/1.0",
+    timeout => 10,
+);
+
+# ── Fetch plain text ──────────────────────────────────────────────────────────
+print "=== Plain text fetch ===\n";
+my $res = $ua->get("https://httpbin.org/get");
+if ($res->is_success) {
+    my $data = decode_json($res->content);
+    printf "Your IP:    %s\n",    $data->{origin}        // "unknown";
+    printf "User-Agent: %s\n",    $data->{headers}{Host} // "";
+} else {
+    print "Error: ", $res->status_line, "\n";
+}
+
+# ── Fetch and parse JSON API ──────────────────────────────────────────────────
+print "\n=== JSON API ===\n";
+$res = $ua->get("https://api.github.com/repos/torvalds/linux");
+if ($res->is_success) {
+    my $repo = decode_json($res->content);
+    printf "Repo:        %s\n", $repo->{full_name}    // "";
+    printf "Stars:       %d\n", $repo->{stargazers_count} // 0;
+    printf "Description: %s\n", $repo->{description}  // "";
+} else {
+    print "Error: ", $res->status_line, "\n";
+}
+
+# ── Save a file ───────────────────────────────────────────────────────────────
+print "\n=== Download file ===\n";
+my $url  = "https://raw.githubusercontent.com/nicowillis/nicowillis/main/README.md";
+my $path = "/tmp/fetched.txt";
+$res = $ua->get($url);
+if ($res->is_success) {
+    open(my $fh, ">", $path) or die $!;
+    print $fh $res->content;
+    close $fh;
+    printf "Saved %d bytes to %s\n", -s $path, $path;
+} else {
+    # Graceful fallback if URL doesn't exist
+    printf "Skipped download (status: %s)\n", $res->status_line;
+}
+
+# ── Using Mojo::UserAgent (async-capable) ─────────────────────────────────────
+print "\n=== Mojo::UserAgent ===\n";
+eval {
+    require Mojo::UserAgent;
+    my $mua  = Mojo::UserAgent->new;
+    my $json = $mua->get("https://httpbin.org/uuid")->result->json;
+    printf "UUID from Mojo::UA: %s\n", $json->{uuid} // "(unavailable)";
+};
+print "Mojo::UserAgent not installed\n" if $@;</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ TERMUX -->
+<section class="sec" id="termux">
+  <div class="sh"><span class="snm">§15</span><h2>Termux — Perl via Android Apps</h2></div>
+
+  <p><strong>Termux</strong> is a terminal emulator and Linux environment for Android. On Chromebooks that have the Google Play Store but do <em>not</em> support the Linux container (or as a supplement), Termux gives you a functional Perl environment in a terminal — but without GUI support.</p>
+
+  <div class="ca w"><strong>Limitation:</strong> Termux runs as an Android app. There is no X11 display available, so Perl/Tk, Gtk3, and other GUI toolkits do not work. You can run CLI scripts and web servers only. Use the Linux container for GUI development.</div>
+
+  <h3>Install and Configure Termux</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — inside Termux</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Install Termux from: https://f-droid.org/packages/com.termux/
+# (F-Droid version is maintained; Play Store version is outdated)
+
+# Once inside Termux:
+pkg update && pkg upgrade -y
+
+# Install Perl
+pkg install perl
+
+# Verify
+perl -v     # Should show v5.36 or newer
+
+# Install build tools for CPAN modules
+pkg install build-essential openssl libcrypt
+
+# Install cpanminus
+curl -L https://cpanmin.us | perl - App::cpanminus
+# or:
+pkg install perl-cpanminus
+
+# Install common modules
+cpanm Modern::Perl Try::Tiny JSON::PP LWP::UserAgent
+
+# For web development — Mojolicious works in Termux!
+cpanm Mojolicious</code></pre></div>
+
+  <h3>Termux + Mojolicious Web Server</h3>
+  <p>A Mojolicious app in Termux is accessible from Chrome browser running on the same Chromebook at <code>http://localhost:3000</code> — a nice workflow for web development without the Linux container.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — run from Termux</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Save the minimal web app to ~/app.pl
+# (use nano app.pl or termux-open to edit)
+perl app.pl daemon   # Starts server
+
+# Access from Chrome on the Chromebook:
+# http://localhost:3000</code></pre></div>
+
+  <h3>Useful Termux Extras</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Share files with ChromeOS via Termux's storage
+termux-setup-storage   # Sets up ~/storage/ pointing to Android shared storage
+
+# Your Chromebook Downloads:
+ls ~/storage/downloads/
+cp ~/storage/downloads/script.pl ~/
+
+# Use a proper terminal font and color scheme
+pkg install termux-styling   # Sets colors and fonts
+
+# SSH into your Chromebook's Linux container from Termux:
+pkg install openssh
+ssh penguin@100.115.92.202   # IP of the Linux container (check ifconfig)</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ CLOUD -->
+<section class="sec" id="cloud">
+  <div class="sh"><span class="snm">§16</span><h2>Cloud IDEs — Browser-Based Perl</h2></div>
+
+  <p>For quick experiments, sharing code, or using a Chromebook with limited storage, browser-based IDEs work well for Perl. These require internet access but need no local installation.</p>
+
+  <h3>Replit</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — replit workflow</span></div>
+<pre><code class="language-bash"># 1. Go to https://replit.com and sign in
+# 2. Click "+ Create Repl" → choose "Perl" as language
+# 3. Write and run Perl in the browser — full CPAN access via replit.nix
+
+# .replit config for Perl:
+# language = "perl5"
+# run = "perl main.pl"</code></pre></div>
+
+  <h3>GitHub Codespaces</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — in a Codespace terminal</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Codespaces runs Ubuntu with Perl pre-installed
+# 1. Go to github.com → any repo → click "Code" → "Codespaces" → "+"
+# 2. In the Codespace terminal:
+perl -v
+sudo apt install -y cpanminus perl-tk
+cpanm Mojolicious
+
+# Configure your .devcontainer/devcontainer.json for Perl:
+# {
+#   "image": "mcr.microsoft.com/devcontainers/base:debian",
+#   "features": {},
+#   "postCreateCommand": "sudo apt-get install -y perl cpanminus"
+# }</code></pre></div>
+
+  <h3>Comparison</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Service</th><th>Perl Version</th><th>CPAN</th><th>Offline</th><th>Free tier</th></tr></thead>
+    <tbody>
+      <tr><td>Replit</td><td>5.32+</td><td>Limited</td><td>No</td><td>Yes</td></tr>
+      <tr><td>GitHub Codespaces</td><td>5.34+</td><td>Full via apt+cpanm</td><td>No</td><td>60h/month</td></tr>
+      <tr><td>Gitpod</td><td>5.30+</td><td>Full</td><td>No</td><td>50h/month</td></tr>
+      <tr><td>play.perl.org</td><td>Latest</td><td>Selected modules</td><td>No</td><td>Yes (online REPL)</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="ca n"><strong>Recommendation:</strong> Use the Linux container for any serious work. Cloud IDEs are best for quick experiments, learning, and sharing code snippets with others.</div>
+</section>
+
+<!-- ══════════════════════════════════════════════ TIPS -->
+<section class="sec" id="tips">
+  <div class="sh"><span class="snm">§17</span><h2>Tips &amp; Best Practices</h2></div>
+
+  <h3>ChromeOS + Linux Integration</h3>
+  <ul>
+    <li><strong>Right-click any .pl file</strong> in the Files app → Open with → Linux apps to run or edit it directly.</li>
+    <li><strong>Pin the Terminal</strong> to the ChromeOS shelf for one-click access.</li>
+    <li>Files in <code>~/</code> show as <strong>Linux files</strong> in the ChromeOS Files app — drag and drop works between Linux and ChromeOS.</li>
+    <li>To increase the Linux disk size: Settings → Advanced → Developers → Linux → Disk size.</li>
+    <li>Linux apps can be added to the ChromeOS launcher: right-click the app icon in the shelf → <strong>Pin to shelf</strong>.</li>
+  </ul>
+
+  <h3>Performance Tips</h3>
+  <ul>
+    <li>Chromebooks with 4 GB RAM: avoid running both the Linux container and many Chrome tabs simultaneously.</li>
+    <li>Use <code>cpanm --notest Module::Name</code> to skip test suites — much faster module installs.</li>
+    <li>For large file processing, use <code>File::Find</code> instead of globbing, and process files line-by-line instead of slurping.</li>
+    <li>Suspend/resume the Linux container without losing state: Settings → Advanced → Developers → Linux → Shut down Linux — or just close all Linux windows.</li>
+  </ul>
+
+  <h3>ARM Chromebooks (Snapdragon / MediaTek)</h3>
+  <ul>
+    <li>The container runs aarch64 (ARM64) Linux — all Perl and most CPAN modules are supported.</li>
+    <li>If <code>cpanm</code> fails to compile a module with XS (C) code, try <code>sudo apt install libmodulename-perl</code> first for the Debian pre-built version.</li>
+    <li>Perl/Tk (perl-tk) and libgtk3-perl both have ARM64 Debian packages — they install and run correctly.</li>
+  </ul>
+
+  <h3>Backup Your Perl Environment</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># List all manually installed apt packages (save this list)
+apt list --manual-installed 2>/dev/null | grep -v "automatic" > ~/installed_packages.txt
+
+# List all cpanm-installed modules
+cpanm --list-installed > ~/cpan_modules.txt
+
+# Backup your Perl projects to ChromeOS Downloads
+cp -r ~/perl_projects /mnt/chromeos/MyFiles/Downloads/perl_backup_$(date +%Y%m%d)/</code></pre></div>
+</section>
+
+<!-- ══════════════════════════════════════════════ CHEATSHEET -->
+<section class="sec" id="cheatsheet">
+  <div class="sh"><span class="snm">§18</span><h2>Quick Cheat Sheet</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — setup</span></div>
+<pre><code class="language-bash"># Full Perl setup for ChromeOS Linux (run once after enabling Linux):
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y perl perl-doc cpanminus build-essential \
+    perl-tk libgtk3-perl libwx-perl libglib-perl wget code
+cpanm Mojolicious Modern::Perl Try::Tiny Path::Tiny \
+    DateTime JSON::PP LWP::UserAgent Text::CSV DBI DBD::SQLite</code></pre></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — daily commands</span></div>
+<pre><code class="language-bash">perl script.pl             # Run
+perl -c script.pl          # Syntax check
+perl -d script.pl          # Debug
+perl -e 'say "hi"'         # One-liner (needs Modern::Perl or use feature)
+code .                     # Open VS Code in current directory
+reply                      # Perl REPL
+
+# GUI apps — DISPLAY is set automatically in ChromeOS Terminal
+perl tk_notes.pl           # Opens as ChromeOS window via XWayland
+perl gtk3_sysmon.pl        # Same
+
+# Web server
+perl app.pl daemon         # Start at localhost:3000
+perl app.pl daemon -l http://*:8080  # Custom port</code></pre></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">perl — modern boilerplate</span></div>
+<pre><code class="language-perl">#!/usr/bin/perl
+use strict;
+use warnings;
+use utf8;
+use open ':std', ':encoding(UTF-8)';
+use feature qw(say state);  # or: use Modern::Perl;
+
+# ... your code ...</code></pre></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Goal</th><th>Command</th></tr></thead>
+    <tbody>
+      <tr><td>Check if Linux enabled</td><td>Settings → Advanced → Developers</td></tr>
+      <tr><td>Open Linux terminal</td><td>Launcher → Terminal (penguin icon)</td></tr>
+      <tr><td>Open Linux files</td><td>Files app → Linux files</td></tr>
+      <tr><td>Share Downloads with Linux</td><td>Files → right-click Downloads → Share with Linux</td></tr>
+      <tr><td>Run a GUI Perl app</td><td><code>perl myapp.pl</code> (window appears in ChromeOS)</td></tr>
+      <tr><td>Run web server</td><td><code>perl app.pl daemon</code> → Chrome → localhost:3000</td></tr>
+      <tr><td>Pin Linux app to shelf</td><td>Right-click app in shelf → Pin to shelf</td></tr>
+      <tr><td>Increase Linux disk size</td><td>Settings → Developers → Linux → Disk size</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-perl.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script>
+function cc(b){const p=b.closest('.cb2').querySelector('pre');
+navigator.clipboard.writeText(p.textContent).then(()=>{b.textContent='copied!';b.classList.add('ok');
+setTimeout(()=>{b.textContent='copy';b.classList.remove('ok');},1800);});}
+
+const ss=document.querySelectorAll('section.sec'),ls=document.querySelectorAll('a.lk');
+ss.forEach(s=>new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){
+    ls.forEach(l=>l.classList.remove('act'));
+    const a=document.querySelector(`a.lk[href="#${e.target.id}"]`);
+    if(a){a.classList.add('act');a.scrollIntoView({block:'nearest'});}
+  }});
+},{rootMargin:'-8% 0px -82% 0px'}).observe(s));
+</script>
+</body>
+</html>

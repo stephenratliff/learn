@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perl Basics — Nuts & Bolts Explained</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:    #faf6ee;
+  --cream2:   #f4edd8;
+  --cream3:   #ece2c4;
+  --navy:     #1a2744;
+  --navy2:    #243360;
+  --navy3:    #2e4080;
+  --orange:   #e8611a;
+  --orange2:  #f07830;
+  --orange-lt:#fff0e6;
+  --orange-md:#ffd4b0;
+  --teal:     #0e7c6e;
+  --teal-lt:  #e0f5f2;
+  --red:      #c0323a;
+  --red-lt:   #fde8e9;
+  --gold:     #c89010;
+  --gold-lt:  #fef8e0;
+  --ink:      #1a1a2e;
+  --ink2:     #3a3a5a;
+  --ink3:     #7a7a9a;
+  --rule:     #d8d0bc;
+  /* code */
+  --kw:   #c04010;
+  --str:  #207840;
+  --num:  #c08000;
+  --fn:   #185898;
+  --var:  #9c3070;
+  --cm:   #8090a0;
+  --rx:   #107878;
+  --op:   #586070;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Nunito', sans-serif;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── DECORATIVE PAPER TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 27px,
+      rgba(26,39,68,0.04) 27px,
+      rgba(26,39,68,0.04) 28px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── COVER ── */
+.cover {
+  background: var(--navy);
+  color: var(--cream);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+.cover::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: -80px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(232,97,26,0.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; right: -60px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(14,124,110,0.15) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cover-inner {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 64px 48px 56px;
+  position: relative;
+  z-index: 1;
+}
+.cover-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--orange);
+  color: #fff;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+.cover-badge::before { content: '●'; font-size: 8px; }
+
+h1 {
+  font-family: 'Abril Fatface', Georgia, serif;
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  line-height: 1.0;
+  letter-spacing: -0.01em;
+  color: var(--cream);
+  margin-bottom: 8px;
+}
+h1 .accent { color: var(--orange2); }
+
+.cover-tagline {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #8898c0;
+  margin-top: 14px;
+  max-width: 480px;
+  font-weight: 400;
+}
+
+.cover-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 30px;
+}
+.chip {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #a0b4d8;
+  padding: 4px 12px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+}
+
+/* ── STICKY NAV ── */
+.nav-bar {
+  background: var(--navy);
+  border-bottom: 3px solid var(--orange);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.nav-inner {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 10px 48px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.nav-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 9.5px;
+  color: #5068a0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+.nav-bar a {
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a0b4d8;
+  text-decoration: none;
+  padding: 4px 11px;
+  border-radius: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-bar a:hover {
+  background: var(--orange);
+  color: #fff;
+}
+
+/* ── MAIN ── */
+main {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 52px 48px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── SECTION HEADER ── */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 48px 0 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--cream3);
+}
+.section-head:first-child { margin-top: 0; }
+.section-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: var(--orange2);
+  font-family: 'Abril Fatface', serif;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.section-title {
+  font-family: 'Abril Fatface', Georgia, serif;
+  font-size: 1.5rem;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+}
+
+/* ── CONCEPT CARD ── */
+.card {
+  background: white;
+  border: 1.5px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  box-shadow: 0 2px 8px rgba(26,39,68,0.06);
+  transition: box-shadow 0.2s;
+}
+.card:hover {
+  box-shadow: 0 4px 20px rgba(26,39,68,0.10);
+}
+
+.card-head {
+  background: var(--cream2);
+  border-bottom: 1.5px solid var(--rule);
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.card-num {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--orange);
+  background: var(--orange-lt);
+  border: 1.5px solid var(--orange-md);
+  padding: 2px 9px;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+.card-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--navy);
+  flex: 1;
+}
+.card-tags {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.ctag {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+.tg-o  { background: var(--orange-lt); color: var(--orange); border: 1px solid var(--orange-md); }
+.tg-t  { background: var(--teal-lt);   color: var(--teal);   border: 1px solid #a0ddd8; }
+.tg-g  { background: var(--gold-lt);   color: var(--gold);   border: 1px solid #e0c060; }
+.tg-r  { background: var(--red-lt);    color: var(--red);    border: 1px solid #e0a0a4; }
+.tg-n  { background: #eef0f8;          color: var(--navy2);  border: 1px solid #c0c8e0; }
+
+/* ── INTRO BLURB ── */
+.blurb {
+  padding: 16px 22px;
+  font-size: 0.97rem;
+  color: var(--ink2);
+  line-height: 1.75;
+  border-bottom: 1px solid var(--cream2);
+  background: #fdfcf9;
+}
+.blurb p { margin-bottom: 0.7em; }
+.blurb p:last-child { margin-bottom: 0; }
+.blurb strong { color: var(--navy); font-weight: 700; }
+.blurb em { font-style: italic; color: var(--ink); }
+.blurb code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85em;
+  background: var(--cream2);
+  color: var(--red);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ── CODE ── */
+.code-wrap {
+  border-bottom: 1px solid var(--cream2);
+}
+.code-bar {
+  background: var(--navy);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.code-dots { display: flex; gap: 6px; }
+.code-dots span { width: 11px; height: 11px; border-radius: 50%; }
+.dot-r { background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.code-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 10.5px;
+  color: #5068a0;
+  letter-spacing: 0.06em;
+}
+pre {
+  margin: 0;
+  padding: 20px 22px;
+  background: var(--navy);
+  overflow-x: auto;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #c8d4e8;
+}
+.kw  { color: #e08060; font-weight: 600; }
+.str { color: #78c890; }
+.num { color: #e0c060; }
+.fn  { color: #70b0f0; }
+.var { color: #f090c0; }
+.cm  { color: #4e6070; font-style: italic; }
+.rx  { color: #60d0d8; }
+.op  { color: #8898b0; }
+.hi  { background: rgba(232,97,26,0.12); border-radius: 2px; padding: 0 2px; }
+
+/* ── EXPLAIN POINTS ── */
+.explain {
+  padding: 18px 22px;
+}
+.explain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.explain-grid.single { grid-template-columns: 1fr; }
+.explain-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+.ep {
+  background: var(--cream2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px 16px;
+  position: relative;
+}
+.ep-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 6px;
+}
+.ep-text {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--ink2);
+}
+.ep-text code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.82em;
+  background: white;
+  color: var(--red);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+.ep-text strong { color: var(--navy); font-weight: 700; }
+
+/* colour variants for explain panels */
+.ep.blue  { background: #eef3ff; border-color: #c0cce8; }
+.ep.blue .ep-label { color: var(--navy2); }
+.ep.green { background: var(--teal-lt); border-color: #a8dcd8; }
+.ep.green .ep-label { color: var(--teal); }
+.ep.gold  { background: var(--gold-lt); border-color: #d8c060; }
+.ep.gold .ep-label { color: var(--gold); }
+.ep.red   { background: var(--red-lt); border-color: #e0a8ac; }
+.ep.red .ep-label { color: var(--red); }
+
+/* ── CALLOUTS ── */
+.callout {
+  margin: 0 22px 18px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  border-left: 4px solid;
+}
+.callout.remember { border-color: var(--orange); background: var(--orange-lt); color: #8a3808; }
+.callout.watch    { border-color: var(--red);    background: var(--red-lt);    color: #7a2028; }
+.callout.tip      { border-color: var(--teal);   background: var(--teal-lt);   color: #0a5040; }
+.callout.note     { border-color: var(--navy2);  background: #eef0f8;          color: #1a2a5a; }
+.cl-lbl {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+.callout code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.83em;
+  background: rgba(255,255,255,0.6);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── QUICK TABLE ── */
+.qtable {
+  margin: 0 22px 18px;
+  width: calc(100% - 44px);
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+}
+.qtable th {
+  background: var(--navy);
+  color: var(--cream2);
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  text-align: left;
+}
+.qtable td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--cream3);
+  color: var(--ink2);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.qtable tr:last-child td { border-bottom: none; }
+.qtable tr:nth-child(even) td { background: var(--cream2); }
+.qtable td:first-child {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── OUTPUT BOX ── */
+.output {
+  margin: 0 22px 18px;
+  background: #1a2030;
+  border: 1px solid #2a3050;
+  border-radius: 6px;
+  padding: 12px 16px;
+}
+.output-lbl {
+  font-family: 'Fira Code', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #3a5070;
+  margin-bottom: 8px;
+}
+.output pre {
+  padding: 0;
+  background: transparent;
+  font-size: 12px;
+  color: #78c890;
+  line-height: 1.65;
+}
+
+/* ── MENTAL MODEL BOX ── */
+.mental-model {
+  margin: 0 22px 18px;
+  background: var(--gold-lt);
+  border: 1.5px solid #d8c060;
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 0.9rem;
+  color: #5a4008;
+  line-height: 1.7;
+}
+.mm-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.mental-model code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.83em;
+  background: rgba(255,255,255,0.6);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── SPACER ── */
+.spacer { height: 12px; }
+
+@media (max-width: 680px) {
+  h1 { font-size: 2.5rem; }
+  .cover-inner, main, .nav-inner { padding-left: 20px; padding-right: 20px; }
+  .explain-grid, .explain-grid.triple { grid-template-columns: 1fr; }
+  .card-tags { display: none; }
+  pre { font-size: 11.5px; }
+  .qtable { font-size: 0.82rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ COVER ══ -->
+<header class="cover">
+  <div class="cover-inner">
+    <div class="cover-badge">Beginner Friendly · Level 1</div>
+    <h1>Perl <span class="accent">Nuts &amp;<br>Bolts</span></h1>
+    <p class="cover-tagline">Every basic building block explained clearly — how it works, why it exists, and what to watch out for.</p>
+    <div class="cover-chips">
+      <span class="chip">Variables</span>
+      <span class="chip">Strings</span>
+      <span class="chip">Numbers</span>
+      <span class="chip">Arrays</span>
+      <span class="chip">Hashes</span>
+      <span class="chip">Control Flow</span>
+      <span class="chip">Loops</span>
+      <span class="chip">Subs</span>
+      <span class="chip">Refs</span>
+      <span class="chip">Regex</span>
+      <span class="chip">File I/O</span>
+      <span class="chip">Strict &amp; Warnings</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ NAV ══ -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <span class="nav-label">Topics</span>
+    <a href="#s1">Sigils</a>
+    <a href="#s2">Strings</a>
+    <a href="#s3">Numbers</a>
+    <a href="#s4">Arrays</a>
+    <a href="#s5">Hashes</a>
+    <a href="#s6">Context</a>
+    <a href="#s7">Control Flow</a>
+    <a href="#s8">Loops</a>
+    <a href="#s9">Subs</a>
+    <a href="#s10">Refs</a>
+    <a href="#s11">Regex</a>
+    <a href="#s12">File I/O</a>
+    <a href="#s13">Strict</a>
+    <a href="#s14">Special Vars</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 1 — SIGILS & VARIABLES    -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s1">
+  <div class="section-icon">$</div>
+  <div class="section-title">Sigils &amp; Variable Types</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#01</span>
+    <span class="card-title">The three variable types — scalar, array, hash</span>
+    <div class="card-tags"><span class="ctag tg-o">basics</span><span class="ctag tg-n">sigils</span></div>
+  </div>
+  <div class="blurb">
+    <p>Perl has three fundamental variable types, each identified by a <strong>sigil</strong> — a punctuation character at the start of the name. <strong><code>$</code></strong> means "one thing" (scalar). <strong><code>@</code></strong> means "a list of things" (array). <strong><code>%</code></strong> means "a dictionary of key-value pairs" (hash). The sigil is part of the syntax, not the name — the variable named <code>fruit</code> can exist in all three forms at once.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">sigils.pl</span>
+    </div>
+    <pre><span class="cm">#!/usr/bin/perl</span>
+<span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># $ sigil — ONE value (a scalar)</span>
+<span class="kw">my</span> <span class="var">$name</span>   <span class="op">=</span> <span class="str">"Alice"</span><span class="op">;</span>    <span class="cm"># holds a string</span>
+<span class="kw">my</span> <span class="var">$age</span>    <span class="op">=</span> <span class="num">30</span><span class="op">;</span>          <span class="cm"># holds a number</span>
+<span class="kw">my</span> <span class="var">$pi</span>     <span class="op">=</span> <span class="num">3.14159</span><span class="op">;</span>     <span class="cm"># holds a float</span>
+<span class="kw">my</span> <span class="var">$empty</span><span class="op">;</span>                <span class="cm"># holds undef (no value)</span>
+
+<span class="cm"># @ sigil — an ORDERED LIST (array)</span>
+<span class="kw">my</span> <span class="var">@colors</span>  <span class="op">=</span> <span class="op">(</span><span class="str">"red"</span><span class="op">,</span> <span class="str">"green"</span><span class="op">,</span> <span class="str">"blue"</span><span class="op">)</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">@numbers</span> <span class="op">=</span> <span class="op">(</span><span class="num">1</span><span class="op">,</span> <span class="num">2</span><span class="op">,</span> <span class="num">3</span><span class="op">,</span> <span class="num">4</span><span class="op">,</span> <span class="num">5</span><span class="op">);</span>
+<span class="kw">my</span> <span class="var">@empty_list</span> <span class="op">=</span> <span class="op">();</span>     <span class="cm"># empty array</span>
+
+<span class="cm"># % sigil — KEY-VALUE PAIRS (hash / dictionary)</span>
+<span class="kw">my</span> <span class="var">%person</span>  <span class="op">=</span> <span class="op">(</span>
+    <span class="str">name</span>  <span class="op">=&gt;</span> <span class="str">"Bob"</span><span class="op">,</span>         <span class="cm"># => is the "fat comma" — same as ","</span>
+    <span class="str">age</span>   <span class="op">=&gt;</span> <span class="num">25</span><span class="op">,</span>
+    <span class="str">city</span>  <span class="op">=&gt;</span> <span class="str">"London"</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Accessing values — sigil changes based on WHAT you get back</span>
+<span class="fn">print</span> <span class="var">$name</span><span class="op">;</span>              <span class="cm"># scalar — stays $</span>
+<span class="fn">print</span> <span class="var">$colors</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">;</span>         <span class="cm"># ONE element from array — $ (not @)</span>
+<span class="fn">print</span> <span class="var">$person</span><span class="op">{</span><span class="str">name</span><span class="op">}</span><span class="op">;</span>      <span class="cm"># ONE value from hash  — $ (not %)</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep">
+        <div class="ep-label">The $ sigil rule</div>
+        <div class="ep-text">When you access a <strong>single element</strong> from any container — even an array or hash — you use <code>$</code>. You're getting one thing back. <code>$colors[0]</code> not <code>@colors[0]</code>.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">The fat comma =></div>
+        <div class="ep-text"><code>=></code> is just a comma that auto-quotes the left side. <code>name => "Bob"</code> is identical to <code>"name", "Bob"</code>. It makes hash assignments read like key-value pairs.</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">undef — Perl's "nothing"</div>
+        <div class="ep-text">An uninitialised variable holds <code>undef</code>. It's false in boolean context, <code>""</code> in string context, and <code>0</code> in numeric context. Check with <code>defined($var)</code>.</div>
+      </div>
+      <div class="ep gold">
+        <div class="ep-label">my = declare locally</div>
+        <div class="ep-text"><code>my</code> declares a <em>lexical</em> variable — it only exists in the current block <code>{ }</code> or file. Always use <code>my</code>. Never use undeclared globals.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 2 — STRINGS               -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s2">
+  <div class="section-icon">"</div>
+  <div class="section-title">Strings</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#02</span>
+    <span class="card-title">Single quotes, double quotes, and interpolation</span>
+    <div class="card-tags"><span class="ctag tg-t">strings</span></div>
+  </div>
+  <div class="blurb">
+    <p>Perl has two main string delimiters with completely different behaviour. <strong>Double quotes</strong> <code>" "</code> interpret escape sequences and <em>interpolate</em> variables — variables inside them are expanded to their values. <strong>Single quotes</strong> <code>' '</code> are completely literal — no escapes (except <code>\'</code> and <code>\\</code>), no interpolation. This is the most important beginner distinction in Perl.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">strings.pl</span>
+    </div>
+    <pre><span class="kw">my</span> <span class="var">$name</span> <span class="op">=</span> <span class="str">"Alice"</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$age</span>  <span class="op">=</span> <span class="num">30</span><span class="op">;</span>
+
+<span class="cm"># Double quotes: variables ARE expanded, \n IS a newline</span>
+<span class="fn">print</span> <span class="str">"Hello, $name! You are $age years old.\n"</span><span class="op">;</span>
+<span class="cm"># Output: Hello, Alice! You are 30 years old.</span>
+
+<span class="cm"># Single quotes: everything is LITERAL — \ is just a backslash</span>
+<span class="fn">print</span> <span class="str">'Hello, $name! \n'</span><span class="op">;</span>
+<span class="cm"># Output: Hello, $name! \n   (literally)</span>
+
+<span class="cm"># String concatenation uses the . (dot) operator</span>
+<span class="kw">my</span> <span class="var">$greeting</span> <span class="op">=</span> <span class="str">"Hello"</span> <span class="op">.</span> <span class="str">", "</span> <span class="op">.</span> <span class="var">$name</span><span class="op">;</span>    <span class="cm"># "Hello, Alice"</span>
+
+<span class="cm"># String repetition uses the x operator</span>
+<span class="kw">my</span> <span class="var">$line</span>  <span class="op">=</span> <span class="str">"-"</span> <span class="op">x</span> <span class="num">20</span><span class="op">;</span>    <span class="cm"># "--------------------"</span>
+<span class="kw">my</span> <span class="var">$stars</span> <span class="op">=</span> <span class="str">"*"</span> <span class="op">x</span> <span class="num">5</span><span class="op">;</span>    <span class="cm"># "*****"</span>
+
+<span class="cm"># Common string functions</span>
+<span class="kw">my</span> <span class="var">$s</span> <span class="op">=</span> <span class="str">"  Hello, World!  "</span><span class="op">;</span>
+
+<span class="fn">length</span><span class="op">(</span><span class="var">$s</span><span class="op">)</span><span class="op">;</span>             <span class="cm"># 18  — number of characters</span>
+<span class="fn">uc</span><span class="op">(</span><span class="var">$s</span><span class="op">)</span><span class="op">;</span>                <span class="cm"># "  HELLO, WORLD!  " — uppercase</span>
+<span class="fn">lc</span><span class="op">(</span><span class="var">$s</span><span class="op">)</span><span class="op">;</span>                <span class="cm"># "  hello, world!  " — lowercase</span>
+<span class="fn">ucfirst</span><span class="op">(</span><span class="str">"hello"</span><span class="op">)</span><span class="op">;</span>       <span class="cm"># "Hello"</span>
+<span class="fn">index</span><span class="op">(</span><span class="var">$s</span><span class="op">,</span> <span class="str">"World"</span><span class="op">)</span><span class="op">;</span>    <span class="cm"># 9   — position (0-based), -1 if not found</span>
+<span class="fn">substr</span><span class="op">(</span><span class="var">$s</span><span class="op">,</span> <span class="num">2</span><span class="op">,</span> <span class="num">5</span><span class="op">)</span><span class="op">;</span>      <span class="cm"># "Hello" — start at 2, length 5</span>
+
+<span class="cm"># Trim whitespace (no built-in — use a substitution)</span>
+<span class="var">$s</span> <span class="op">=~</span> <span class="rx">s/^\s+|\s+$//g</span><span class="op">;</span>  <span class="cm"># now "Hello, World!"</span>
+
+<span class="cm"># Heredoc — multiline string (useful for templates)</span>
+<span class="kw">my</span> <span class="var">$block</span> <span class="op">=</span> <span class="op">&lt;&lt;</span><span class="str">END</span><span class="op">;</span>
+<span class="str">Line one
+Line two: $name
+Line three
+END</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep">
+        <div class="ep-label">Interpolation in detail</div>
+        <div class="ep-text">Inside double quotes, <code>$var</code> expands to its value. <code>@arr</code> expands to the array joined by spaces. To avoid interpolation: use single quotes, or escape with backslash: <code>\$name</code>.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">Common escape sequences</div>
+        <div class="ep-text"><code>\n</code> newline · <code>\t</code> tab · <code>\r</code> carriage return · <code>\\</code> literal backslash · <code>\"</code> literal double quote · <code>\0</code> null byte</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">. vs + for concatenation</div>
+        <div class="ep-text">Perl uses <strong><code>.</code></strong> (dot) for string joining — NOT <code>+</code> like JavaScript. <code>"Hello" + " World"</code> gives <code>0</code> (numeric addition of two non-numeric strings).</div>
+      </div>
+      <div class="ep gold">
+        <div class="ep-label">Heredoc styles</div>
+        <div class="ep-text"><code>&lt;&lt;END</code> interpolates variables (like double quotes). <code>&lt;&lt;'END'</code> is literal (like single quotes). The closing word must be at column 1, alone on its line.</div>
+      </div>
+    </div>
+  </div>
+  <div class="callout watch">
+    <span class="cl-lbl">Watch Out</span>
+    <code>"$hash{key}"</code> works fine in strings, but <code>"@array"</code> joins all elements with spaces. To embed a single element use <code>"$array[0]"</code>. To embed a hash value use <code>"$hash{key}"</code>.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 3 — NUMBERS               -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s3">
+  <div class="section-icon">7</div>
+  <div class="section-title">Numbers &amp; Operators</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#03</span>
+    <span class="card-title">Numeric literals, arithmetic, and comparison</span>
+    <div class="card-tags"><span class="ctag tg-g">numbers</span><span class="ctag tg-o">operators</span></div>
+  </div>
+  <div class="blurb">
+    <p>Perl stores numbers internally as integers or floating-point and converts automatically. There's no separate int/float/double distinction — a scalar holds whatever the number is. Perl also has two completely separate sets of comparison operators: one for <strong>numbers</strong> and one for <strong>strings</strong>. Using the wrong one is a common bug.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">numbers.pl</span>
+    </div>
+    <pre><span class="cm"># Numeric literals</span>
+<span class="kw">my</span> <span class="var">$int</span>   <span class="op">=</span> <span class="num">42</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$float</span> <span class="op">=</span> <span class="num">3.14</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$neg</span>   <span class="op">=</span> <span class="op">-</span><span class="num">7</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$sci</span>   <span class="op">=</span> <span class="num">1.5e6</span><span class="op">;</span>       <span class="cm"># 1,500,000</span>
+<span class="kw">my</span> <span class="var">$big</span>   <span class="op">=</span> <span class="num">1_000_000</span><span class="op">;</span>   <span class="cm"># _ separators: ignored, for readability</span>
+<span class="kw">my</span> <span class="var">$hex</span>   <span class="op">=</span> <span class="num">0xFF</span><span class="op">;</span>         <span class="cm"># 255  (0x prefix = hexadecimal)</span>
+<span class="kw">my</span> <span class="var">$oct</span>   <span class="op">=</span> <span class="num">0755</span><span class="op">;</span>         <span class="cm"># 493  (0 prefix  = octal!)</span>
+<span class="kw">my</span> <span class="var">$bin</span>   <span class="op">=</span> <span class="num">0b1010</span><span class="op">;</span>      <span class="cm"># 10   (0b prefix = binary)</span>
+
+<span class="cm"># Arithmetic operators</span>
+<span class="kw">my</span> <span class="var">$sum</span>  <span class="op">=</span> <span class="num">10</span> <span class="op">+</span>  <span class="num">3</span><span class="op">;</span>   <span class="cm"># 13   addition</span>
+<span class="kw">my</span> <span class="var">$diff</span> <span class="op">=</span> <span class="num">10</span> <span class="op">-</span>  <span class="num">3</span><span class="op">;</span>   <span class="cm"># 7    subtraction</span>
+<span class="kw">my</span> <span class="var">$prod</span> <span class="op">=</span> <span class="num">10</span> <span class="op">*</span>  <span class="num">3</span><span class="op">;</span>   <span class="cm"># 30   multiplication</span>
+<span class="kw">my</span> <span class="var">$quot</span> <span class="op">=</span> <span class="num">10</span> <span class="op">/</span>  <span class="num">3</span><span class="op">;</span>   <span class="cm"># 3.33 division (float)</span>
+<span class="kw">my</span> <span class="var">$mod</span>  <span class="op">=</span> <span class="num">10</span> <span class="op">%</span>  <span class="num">3</span><span class="op">;</span>   <span class="cm"># 1    modulo (remainder)</span>
+<span class="kw">my</span> <span class="var">$pow</span>  <span class="op">=</span>  <span class="num">2</span> <span class="op">**</span> <span class="num">8</span><span class="op">;</span>   <span class="cm"># 256  exponentiation (power)</span>
+
+<span class="cm"># Increment / Decrement</span>
+<span class="var">$sum</span><span class="op">++;</span>    <span class="cm"># $sum += 1 — post-increment</span>
+<span class="var">$sum</span><span class="op">--;</span>    <span class="cm"># $sum -= 1 — post-decrement</span>
+<span class="var">$sum</span> <span class="op">+=</span> <span class="num">5</span><span class="op">;</span> <span class="cm"># compound assignment: $sum = $sum + 5</span>
+
+<span class="cm"># NUMERIC comparison (returns true/false)</span>
+<span class="num">10</span> <span class="op">==</span> <span class="num">10</span><span class="op">;</span>   <span class="cm"># equal</span>
+<span class="num">10</span> <span class="op">!=</span>  <span class="num">5</span><span class="op">;</span>   <span class="cm"># not equal</span>
+<span class="num">10</span> <span class="op">&gt;</span>   <span class="num">5</span><span class="op">;</span>   <span class="cm"># greater than</span>
+<span class="num">10</span> <span class="op">&lt;</span>  <span class="num">20</span><span class="op">;</span>   <span class="cm"># less than</span>
+<span class="num">10</span> <span class="op">&gt;=</span> <span class="num">10</span><span class="op">;</span>   <span class="cm"># greater than or equal</span>
+
+<span class="cm"># STRING comparison (uses alphabetical/ASCII order)</span>
+<span class="str">"abc"</span> <span class="kw">eq</span> <span class="str">"abc"</span><span class="op">;</span>   <span class="cm"># equal</span>
+<span class="str">"abc"</span> <span class="kw">ne</span> <span class="str">"xyz"</span><span class="op">;</span>   <span class="cm"># not equal</span>
+<span class="str">"abc"</span> <span class="kw">lt</span> <span class="str">"xyz"</span><span class="op">;</span>   <span class="cm"># less than (alphabetically)</span>
+<span class="str">"abc"</span> <span class="kw">gt</span> <span class="str">"aaa"</span><span class="op">;</span>   <span class="cm"># greater than</span>
+
+<span class="cm"># Spaceship operators — return -1, 0, or 1 (for sorting)</span>
+<span class="num">5</span> <span class="op">&lt;=&gt;</span> <span class="num">3</span><span class="op">;</span>          <span class="cm"># 1  (numeric spaceship)</span>
+<span class="str">"b"</span> <span class="kw">cmp</span> <span class="str">"a"</span><span class="op">;</span>       <span class="cm"># 1  (string spaceship)</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid triple">
+      <div class="ep red">
+        <div class="ep-label">Number vs String ops</div>
+        <div class="ep-text">Use <code>== != &lt; &gt;</code> for numbers. Use <code>eq ne lt gt</code> for strings. <code>"10" == "10.0"</code> is true (numeric). <code>"10" eq "10.0"</code> is false (string).</div>
+      </div>
+      <div class="ep">
+        <div class="ep-label">** is exponentiation</div>
+        <div class="ep-text">Unlike many languages, Perl uses <code>**</code> for powers: <code>2**10</code> is 1024. Not the caret <code>^</code> — which is bitwise XOR.</div>
+      </div>
+      <div class="ep gold">
+        <div class="ep-label">0 prefix = octal!</div>
+        <div class="ep-text">A leading zero makes a number <em>octal</em>. <code>010 == 8</code>, not 10. This surprises everyone. Use <code>oct("010")</code> to convert strings, <code>oct("0x1f")</code> for hex strings.</div>
+      </div>
+    </div>
+  </div>
+  <table class="qtable">
+    <tr><th>Numeric</th><th>String equivalent</th><th>Meaning</th></tr>
+    <tr><td>==</td><td>eq</td><td>equal</td></tr>
+    <tr><td>!=</td><td>ne</td><td>not equal</td></tr>
+    <tr><td>&lt;</td><td>lt</td><td>less than</td></tr>
+    <tr><td>&gt;</td><td>gt</td><td>greater than</td></tr>
+    <tr><td>&lt;=</td><td>le</td><td>less than or equal</td></tr>
+    <tr><td>&gt;=</td><td>ge</td><td>greater than or equal</td></tr>
+    <tr><td>&lt;=&gt;</td><td>cmp</td><td>three-way compare (for sort)</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 4 — ARRAYS                -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s4">
+  <div class="section-icon">@</div>
+  <div class="section-title">Arrays</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#04</span>
+    <span class="card-title">Creating, accessing, and manipulating arrays</span>
+    <div class="card-tags"><span class="ctag tg-t">arrays</span><span class="ctag tg-o">lists</span></div>
+  </div>
+  <div class="blurb">
+    <p>Arrays hold an <strong>ordered list</strong> of scalars, indexed from <code>0</code>. They grow and shrink automatically. Perl provides built-in functions like <code>push</code>, <code>pop</code>, <code>shift</code>, <code>unshift</code>, <code>splice</code>, <code>sort</code>, <code>reverse</code>, <code>grep</code>, and <code>map</code> — mastering these eliminates most hand-written loops.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">arrays.pl</span>
+    </div>
+    <pre><span class="kw">my</span> <span class="var">@fruits</span> <span class="op">=</span> <span class="op">(</span><span class="str">"apple"</span><span class="op">,</span> <span class="str">"banana"</span><span class="op">,</span> <span class="str">"cherry"</span><span class="op">);</span>
+
+<span class="cm"># Access by index — ALWAYS use $ because you get one thing back</span>
+<span class="fn">print</span> <span class="var">$fruits</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">;</span>      <span class="cm"># "apple"  (first element)</span>
+<span class="fn">print</span> <span class="var">$fruits</span><span class="op">[-</span><span class="num">1</span><span class="op">]</span><span class="op">;</span>     <span class="cm"># "cherry" (last element — negative indexes)</span>
+<span class="fn">print</span> <span class="var">$fruits</span><span class="op">[-</span><span class="num">2</span><span class="op">]</span><span class="op">;</span>     <span class="cm"># "banana" (second-to-last)</span>
+
+<span class="cm"># Length — use scalar() or $# (last index)</span>
+<span class="kw">my</span> <span class="var">$count</span>      <span class="op">=</span> <span class="fn">scalar</span><span class="op">(</span><span class="var">@fruits</span><span class="op">);</span>  <span class="cm"># 3 — number of elements</span>
+<span class="kw">my</span> <span class="var">$last_index</span> <span class="op">=</span> <span class="var">$#fruits</span><span class="op">;</span>         <span class="cm"># 2 — last valid index (count - 1)</span>
+
+<span class="cm"># push/pop — add/remove from the END</span>
+<span class="fn">push</span> <span class="var">@fruits</span><span class="op">,</span> <span class="str">"date"</span><span class="op">;</span>      <span class="cm"># ("apple","banana","cherry","date")</span>
+<span class="kw">my</span> <span class="var">$last</span> <span class="op">=</span> <span class="fn">pop</span> <span class="var">@fruits</span><span class="op">;</span>   <span class="cm"># removes and returns "date"</span>
+
+<span class="cm"># shift/unshift — add/remove from the FRONT</span>
+<span class="fn">unshift</span> <span class="var">@fruits</span><span class="op">,</span> <span class="str">"avocado"</span><span class="op">;</span>  <span class="cm"># ("avocado","apple","banana","cherry")</span>
+<span class="kw">my</span> <span class="var">$first</span> <span class="op">=</span> <span class="fn">shift</span> <span class="var">@fruits</span><span class="op">;</span>  <span class="cm"># removes and returns "avocado"</span>
+
+<span class="cm"># sort and reverse</span>
+<span class="kw">my</span> <span class="var">@sorted</span>  <span class="op">=</span> <span class="fn">sort</span> <span class="var">@fruits</span><span class="op">;</span>            <span class="cm"># alphabetical</span>
+<span class="kw">my</span> <span class="var">@nums</span>    <span class="op">=</span> <span class="fn">sort</span> <span class="op">{</span> <span class="var">$a</span> <span class="op">&lt;=&gt;</span> <span class="var">$b</span> <span class="op">}</span> <span class="op">(</span><span class="num">5</span><span class="op">,</span><span class="num">2</span><span class="op">,</span><span class="num">8</span><span class="op">,</span><span class="num">1</span><span class="op">);</span>  <span class="cm"># numeric sort</span>
+<span class="kw">my</span> <span class="var">@rev</span>     <span class="op">=</span> <span class="fn">reverse</span> <span class="var">@sorted</span><span class="op">;</span>
+
+<span class="cm"># grep — filter (like WHERE in SQL)</span>
+<span class="kw">my</span> <span class="var">@long</span> <span class="op">=</span> <span class="fn">grep</span> <span class="op">{</span> <span class="fn">length</span><span class="op">(</span><span class="var">$_</span><span class="op">)</span> <span class="op">&gt;</span> <span class="num">5</span> <span class="op">}</span> <span class="var">@fruits</span><span class="op">;</span>
+
+<span class="cm"># map — transform (like SELECT in SQL)</span>
+<span class="kw">my</span> <span class="var">@upper</span> <span class="op">=</span> <span class="fn">map</span> <span class="op">{</span> <span class="fn">uc</span><span class="op">(</span><span class="var">$_</span><span class="op">)</span> <span class="op">}</span> <span class="var">@fruits</span><span class="op">;</span>
+
+<span class="cm"># join — turn array into a single string</span>
+<span class="kw">my</span> <span class="var">$csv</span>    <span class="op">=</span> <span class="fn">join</span><span class="op">(</span><span class="str">","</span><span class="op">,</span>  <span class="var">@fruits</span><span class="op">);</span>  <span class="cm"># "apple,banana,cherry"</span>
+<span class="kw">my</span> <span class="var">$spaced</span> <span class="op">=</span> <span class="fn">join</span><span class="op">(</span><span class="str">" "</span><span class="op">,</span> <span class="var">@fruits</span><span class="op">);</span>  <span class="cm"># "apple banana cherry"</span>
+
+<span class="cm"># split — turn a string into an array</span>
+<span class="kw">my</span> <span class="var">@parts</span>  <span class="op">=</span> <span class="fn">split</span><span class="op">(</span><span class="rx">/,/</span><span class="op">,</span> <span class="str">"a,b,c"</span><span class="op">);</span>  <span class="cm"># ("a","b","c")</span>
+<span class="kw">my</span> <span class="var">@words</span>  <span class="op">=</span> <span class="fn">split</span><span class="op">(</span><span class="rx">/\s+/</span><span class="op">,</span> <span class="str">"hello world foo"</span><span class="op">);</span>
+
+<span class="cm"># Array slices — multiple elements at once</span>
+<span class="kw">my</span> <span class="var">@two</span>    <span class="op">=</span> <span class="var">@fruits</span><span class="op">[</span><span class="num">0</span><span class="op">,</span> <span class="num">2</span><span class="op">]</span><span class="op">;</span>   <span class="cm"># elements 0 and 2  — note @ not $</span>
+<span class="kw">my</span> <span class="var">@range</span>  <span class="op">=</span> <span class="var">@fruits</span><span class="op">[</span><span class="num">0</span><span class="op">..</span><span class="num">1</span><span class="op">]</span><span class="op">;</span>  <span class="cm"># elements 0 to 1 (range operator)</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep">
+        <div class="ep-label">$_ — the default variable</div>
+        <div class="ep-text">Inside <code>grep { }</code> and <code>map { }</code>, the current element is in <code>$_</code>. Many Perl functions use <code>$_</code> as their implicit argument. You'll see <code>$_</code> everywhere in Perl code.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">push/pop vs shift/unshift</div>
+        <div class="ep-text"><code>push</code>/<code>pop</code> work on the <strong>right end</strong> (fast). <code>shift</code>/<code>unshift</code> work on the <strong>left end</strong> (slower — shifts all indices). Use push/pop for stacks.</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">$a and $b in sort</div>
+        <div class="ep-text">Inside <code>sort { }</code>, Perl provides <code>$a</code> and <code>$b</code> — the two elements being compared. Return negative, 0, or positive. <code>$a &lt;=&gt; $b</code> sorts ascending numerically.</div>
+      </div>
+      <div class="ep gold">
+        <div class="ep-label">Array slice uses @</div>
+        <div class="ep-text">When taking <em>multiple elements</em> from an array, use <code>@array[0, 2]</code> (with @). You're getting a list back, so the sigil changes to @.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 5 — HASHES                -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s5">
+  <div class="section-icon">%</div>
+  <div class="section-title">Hashes</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#05</span>
+    <span class="card-title">Key-value stores — creating, reading, modifying</span>
+    <div class="card-tags"><span class="ctag tg-o">hashes</span><span class="ctag tg-g">dicts</span></div>
+  </div>
+  <div class="blurb">
+    <p>A hash is Perl's key-value dictionary. Keys are always strings; values are any scalar. Hash order is <strong>not guaranteed</strong> — don't rely on insertion order. Use <code>keys</code>, <code>values</code>, and <code>each</code> to iterate. The <code>exists</code> and <code>delete</code> functions test and remove entries.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">hashes.pl</span>
+    </div>
+    <pre><span class="kw">my</span> <span class="var">%person</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="str">name</span>  <span class="op">=&gt;</span> <span class="str">"Carol"</span><span class="op">,</span>
+    <span class="str">age</span>   <span class="op">=&gt;</span> <span class="num">28</span><span class="op">,</span>
+    <span class="str">city</span>  <span class="op">=&gt;</span> <span class="str">"Paris"</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Read a value — use $ because you get ONE thing back</span>
+<span class="fn">print</span> <span class="var">$person</span><span class="op">{</span><span class="str">name</span><span class="op">}</span><span class="op">;</span>    <span class="cm"># "Carol"</span>
+<span class="fn">print</span> <span class="var">$person</span><span class="op">{</span><span class="str">age</span><span class="op">}</span><span class="op">;</span>     <span class="cm"># 28</span>
+
+<span class="cm"># Add a new key or modify existing</span>
+<span class="var">$person</span><span class="op">{</span><span class="str">email</span><span class="op">}</span> <span class="op">=</span> <span class="str">"carol@example.com"</span><span class="op">;</span>
+<span class="var">$person</span><span class="op">{</span><span class="str">age</span><span class="op">}</span>   <span class="op">=</span> <span class="num">29</span><span class="op">;</span>              <span class="cm"># update</span>
+
+<span class="cm"># Check if a key exists (don't just test the value!)</span>
+<span class="kw">if</span> <span class="op">(</span><span class="fn">exists</span> <span class="var">$person</span><span class="op">{</span><span class="str">email</span><span class="op">}</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"email is set\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Delete a key</span>
+<span class="kw">delete</span> <span class="var">$person</span><span class="op">{</span><span class="str">city</span><span class="op">}</span><span class="op">;</span>
+
+<span class="cm"># List all keys (order is RANDOM each run)</span>
+<span class="kw">my</span> <span class="var">@k</span> <span class="op">=</span> <span class="fn">keys</span>   <span class="var">%person</span><span class="op">;</span>   <span class="cm"># ("name","age","email") in some order</span>
+<span class="kw">my</span> <span class="var">@v</span> <span class="op">=</span> <span class="fn">values</span> <span class="var">%person</span><span class="op">;</span>   <span class="cm"># ("Carol",29,"carol@...") same order as keys</span>
+
+<span class="cm"># Iterate with for — sort keys for consistent order</span>
+<span class="kw">for my</span> <span class="var">$key</span> <span class="op">(</span><span class="fn">sort</span> <span class="fn">keys</span> <span class="var">%person</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$key: $person{$key}\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Iterate with while/each (key-value at once)</span>
+<span class="kw">while</span> <span class="op">(</span><span class="kw">my</span> <span class="op">(</span><span class="var">$k</span><span class="op">,</span> <span class="var">$v</span><span class="op">)</span> <span class="op">=</span> <span class="fn">each</span> <span class="var">%person</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$k = $v\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Count entries</span>
+<span class="kw">my</span> <span class="var">$count</span> <span class="op">=</span> <span class="fn">scalar</span><span class="op">(</span><span class="fn">keys</span> <span class="var">%person</span><span class="op">);</span>  <span class="cm"># 3</span>
+
+<span class="cm"># Hash slice — get multiple values at once</span>
+<span class="kw">my</span> <span class="op">(</span><span class="var">$name</span><span class="op">,</span> <span class="var">$age</span><span class="op">)</span> <span class="op">=</span> <span class="var">@person</span><span class="op">{</span><span class="str">qw(name age)</span><span class="op">}</span><span class="op">;</span>  <span class="cm"># @ sigil for multiple</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep red">
+        <div class="ep-label">exists vs defined</div>
+        <div class="ep-text"><code>exists $h{k}</code> asks "is there a key called k?" — even if value is undef. <code>defined $h{k}</code> asks "is the value not undef?" Use <code>exists</code> to check key presence.</div>
+      </div>
+      <div class="ep">
+        <div class="ep-label">qw() — quote words</div>
+        <div class="ep-text"><code>qw(name age city)</code> is shorthand for <code>("name", "age", "city")</code> — splits on whitespace, no commas needed. Great for lists of strings.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">Hash order is random</div>
+        <div class="ep-text">Perl intentionally randomises hash key order (security against hash collision attacks). Always <code>sort keys %hash</code> if you need consistent output.</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">Auto-vivification</div>
+        <div class="ep-text">Assigning to a nested key that doesn't exist creates it: <code>$h{a}{b} = 1</code> creates <code>%h</code>, the inner hashref <code>$h{a}</code>, and the key <code>b</code> — all at once.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 6 — CONTEXT               -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s6">
+  <div class="section-icon">~</div>
+  <div class="section-title">Context: scalar vs list</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#06</span>
+    <span class="card-title">How context changes what you get back</span>
+    <div class="card-tags"><span class="ctag tg-g">context</span><span class="ctag tg-n">core</span></div>
+  </div>
+  <div class="blurb">
+    <p><strong>Context</strong> is one of Perl's most distinctive features. The same expression returns different things depending on <em>where</em> it's used. An array in <strong>scalar context</strong> returns its element count. An array in <strong>list context</strong> returns all its elements. Many functions also behave differently based on context. Understanding this is essential for reading Perl code correctly.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">context.pl</span>
+    </div>
+    <pre><span class="kw">my</span> <span class="var">@arr</span> <span class="op">=</span> <span class="op">(</span><span class="str">"a"</span><span class="op">,</span> <span class="str">"b"</span><span class="op">,</span> <span class="str">"c"</span><span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># SCALAR context — @arr evaluates to its COUNT</span>
+<span class="kw">my</span> <span class="var">$n</span>    <span class="op">=</span> <span class="var">@arr</span><span class="op">;</span>           <span class="cm"># $n = 3</span>
+<span class="kw">my</span> <span class="var">$n2</span>   <span class="op">=</span> <span class="fn">scalar</span><span class="op">(</span><span class="var">@arr</span><span class="op">)</span><span class="op">;</span>  <span class="cm"># explicit scalar context</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">@arr</span><span class="op">)</span> <span class="op">{</span> <span class="op">...</span> <span class="op">}</span>          <span class="cm"># boolean (true if array not empty)</span>
+<span class="fn">print</span> <span class="str">"count: "</span> <span class="op">.</span> <span class="var">@arr</span><span class="op">;</span>   <span class="cm"># . forces scalar: "count: 3"</span>
+
+<span class="cm"># LIST context — @arr returns all elements</span>
+<span class="kw">my</span> <span class="op">(</span><span class="var">$first</span><span class="op">,</span> <span class="var">$second</span><span class="op">)</span> <span class="op">=</span> <span class="var">@arr</span><span class="op">;</span>  <span class="cm"># $first="a", $second="b"</span>
+<span class="kw">my</span> <span class="var">@copy</span>             <span class="op">=</span> <span class="var">@arr</span><span class="op">;</span>  <span class="cm"># @copy = ("a","b","c")</span>
+
+<span class="cm"># localtime in scalar context = formatted string</span>
+<span class="kw">my</span> <span class="var">$time_str</span> <span class="op">=</span> <span class="fn">localtime</span><span class="op">;</span>    <span class="cm"># "Mon Jan  1 12:00:00 2024"</span>
+
+<span class="cm"># localtime in list context = individual components</span>
+<span class="kw">my</span> <span class="op">(</span><span class="var">$sec</span><span class="op">,</span> <span class="var">$min</span><span class="op">,</span> <span class="var">$hour</span><span class="op">,</span> <span class="var">$day</span><span class="op">,</span> <span class="var">$mon</span><span class="op">,</span> <span class="var">$year</span><span class="op">)</span> <span class="op">=</span> <span class="fn">localtime</span><span class="op">;</span>
+
+<span class="cm"># wantarray() — test which context YOUR sub was called in</span>
+<span class="kw">sub</span> <span class="fn">flexible</span> <span class="op">{</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="fn">wantarray</span><span class="op">)</span> <span class="op">{</span>
+        <span class="kw">return</span> <span class="op">(</span><span class="num">1</span><span class="op">,</span> <span class="num">2</span><span class="op">,</span> <span class="num">3</span><span class="op">)</span><span class="op">;</span>   <span class="cm"># list context: return list</span>
+    <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span>
+        <span class="kw">return</span> <span class="str">"summary"</span><span class="op">;</span>    <span class="cm"># scalar context: return string</span>
+    <span class="op">}</span>
+<span class="op">}</span>
+<span class="kw">my</span> <span class="var">$s</span>  <span class="op">=</span> <span class="fn">flexible</span><span class="op">();</span>        <span class="cm"># "summary"</span>
+<span class="kw">my</span> <span class="var">@l</span>  <span class="op">=</span> <span class="fn">flexible</span><span class="op">();</span>        <span class="cm"># (1, 2, 3)</span></pre>
+  </div>
+  <div class="mental-model">
+    <div class="mm-title">Mental Model</div>
+    Think of context like asking a question. Scalar context asks <em>"how many?"</em> — the array answers with a count. List context asks <em>"what do you have?"</em> — the array gives you everything. The same entity (<code>@arr</code>), different questions, different answers.
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep">
+        <div class="ep-label">What forces scalar context</div>
+        <div class="ep-text">Assigning to <code>$scalar =</code>, using in <code>if()</code>/<code>while()</code>, using with <code>.</code> concatenation, calling <code>scalar()</code> explicitly, or any arithmetic.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">What forces list context</div>
+        <div class="ep-text">Assigning to <code>@array =</code> or <code>my ($a, $b) =</code>, passing to a function that expects a list, using in <code>for/foreach</code>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 7 — CONTROL FLOW          -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s7">
+  <div class="section-icon">?</div>
+  <div class="section-title">Control Flow</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#07</span>
+    <span class="card-title">if / elsif / else / unless and postfix forms</span>
+    <div class="card-tags"><span class="ctag tg-r">control</span><span class="ctag tg-o">logic</span></div>
+  </div>
+  <div class="blurb">
+    <p>Perl's conditionals are very readable. Besides the standard <code>if/elsif/else</code>, Perl has <code>unless</code> (if-not), <strong>postfix</strong> forms (condition after statement), and the ternary operator. <strong>Truth in Perl</strong>: false is <code>0</code>, <code>"0"</code>, <code>""</code>, <code>undef</code>. Everything else — including <code>"0.0"</code>, <code>"false"</code>, and <code>" "</code> — is <strong>true</strong>.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">control_flow.pl</span>
+    </div>
+    <pre><span class="kw">my</span> <span class="var">$score</span> <span class="op">=</span> <span class="num">75</span><span class="op">;</span>
+
+<span class="cm"># Standard if / elsif / else</span>
+<span class="kw">if</span>    <span class="op">(</span><span class="var">$score</span> <span class="op">&gt;=</span> <span class="num">90</span><span class="op">)</span> <span class="op">{</span> <span class="fn">print</span> <span class="str">"A\n"</span> <span class="op">}</span>
+<span class="kw">elsif</span> <span class="op">(</span><span class="var">$score</span> <span class="op">&gt;=</span> <span class="num">80</span><span class="op">)</span> <span class="op">{</span> <span class="fn">print</span> <span class="str">"B\n"</span> <span class="op">}</span>
+<span class="kw">elsif</span> <span class="op">(</span><span class="var">$score</span> <span class="op">&gt;=</span> <span class="num">70</span><span class="op">)</span> <span class="op">{</span> <span class="fn">print</span> <span class="str">"C\n"</span> <span class="op">}</span>  <span class="cm"># fires: score is 75</span>
+<span class="kw">else</span>                  <span class="op">{</span> <span class="fn">print</span> <span class="str">"F\n"</span> <span class="op">}</span>
+
+<span class="cm"># unless = "if NOT" — reads naturally in English</span>
+<span class="kw">unless</span> <span class="op">(</span><span class="var">$score</span> <span class="op">&lt;</span> <span class="num">60</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Passed!\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Ternary operator: condition ? if_true : if_false</span>
+<span class="kw">my</span> <span class="var">$label</span> <span class="op">=</span> <span class="op">(</span><span class="var">$score</span> <span class="op">&gt;=</span> <span class="num">60</span><span class="op">)</span> <span class="op">?</span> <span class="str">"pass"</span> <span class="op">:</span> <span class="str">"fail"</span><span class="op">;</span>
+
+<span class="cm"># Postfix forms — condition AFTER the statement (very Perlish)</span>
+<span class="fn">print</span> <span class="str">"High score!\n"</span>  <span class="kw">if</span>     <span class="var">$score</span> <span class="op">&gt;</span>  <span class="num">90</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"Not perfect\n"</span>  <span class="kw">unless</span> <span class="var">$score</span> <span class="op">==</span> <span class="num">100</span><span class="op">;</span>
+
+<span class="cm"># Defined-or operator // — use default if value is undef</span>
+<span class="kw">my</span> <span class="var">$name</span>  <span class="op">=</span> <span class="kw">undef</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$label2</span> <span class="op">=</span> <span class="var">$name</span> <span class="op">//</span> <span class="str">"Guest"</span><span class="op">;</span>    <span class="cm"># "Guest" (because $name is undef)</span>
+<span class="var">$name</span> <span class="op">//=</span> <span class="str">"Guest"</span><span class="op">;</span>                <span class="cm"># assign only if currently undef</span>
+
+<span class="cm"># Boolean operators: && and || (or 'and' / 'or' in words)</span>
+<span class="kw">my</span> <span class="var">$valid</span> <span class="op">=</span> <span class="op">(</span><span class="var">$score</span> <span class="op">&gt;</span> <span class="num">0</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(</span><span class="var">$score</span> <span class="op">&lt;=</span> <span class="num">100</span><span class="op">)</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$ok</span>    <span class="op">=</span> <span class="op">(</span><span class="var">$score</span> <span class="op">&gt;=</span> <span class="num">90</span><span class="op">)</span> <span class="op">||</span> <span class="op">(</span><span class="var">$score</span> <span class="op">==</span> <span class="num">42</span><span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># 'or' and 'and' are the same but lower precedence (for flow control)</span>
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$fh</span><span class="op">,</span> <span class="str">'&lt;'</span><span class="op">,</span> <span class="str">'file.txt'</span><span class="op">)</span> <span class="kw">or die</span> <span class="str">"Can't open: $!\n"</span><span class="op">;</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep red">
+        <div class="ep-label">What is FALSE in Perl</div>
+        <div class="ep-text">Only these 5 are false: <code>0</code> · <code>"0"</code> · <code>""</code> (empty string) · <code>undef</code> · empty list <code>()</code>. The string <code>"false"</code> is <strong>TRUE</strong>. <code>"0.0"</code> is <strong>TRUE</strong>. <code>" "</code> (space) is <strong>TRUE</strong>.</div>
+      </div>
+      <div class="ep">
+        <div class="ep-label">// vs ||</div>
+        <div class="ep-text"><code>//</code> (defined-or) tests if the value is <em>defined</em>. <code>||</code> tests if it's <em>truthy</em>. Use <code>//</code> when <code>0</code> or <code>""</code> are valid values you want to keep.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">Postfix form</div>
+        <div class="ep-text"><code>do_thing() if $condition</code> is idiomatic Perl for simple one-liners. It reads like English. Use it for guards: <code>return if $error</code>, <code>next if $skip</code>.</div>
+      </div>
+      <div class="ep gold">
+        <div class="ep-label">or die pattern</div>
+        <div class="ep-text"><code>open(...) or die "..."</code> is the standard error-checking idiom. If <code>open</code> returns false (failure), <code>die</code> runs. The <code>$!</code> variable holds the system error message.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 8 — LOOPS                 -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s8">
+  <div class="section-icon">↻</div>
+  <div class="section-title">Loops</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#08</span>
+    <span class="card-title">for, foreach, while, until — and loop control</span>
+    <div class="card-tags"><span class="ctag tg-r">loops</span><span class="ctag tg-n">iteration</span></div>
+  </div>
+  <div class="blurb">
+    <p>Perl has four loop types. <code>foreach</code> (or <code>for</code> — they're identical) iterates over a list. <code>while</code> loops while a condition is true. <code>until</code> loops until a condition becomes true. C-style <code>for</code> gives fine-grained control. <code>last</code>, <code>next</code>, and <code>redo</code> control loop flow — Perl's equivalents of <code>break</code>, <code>continue</code>, and restart.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">loops.pl</span>
+    </div>
+    <pre><span class="cm"># foreach — iterate over a list (most common)</span>
+<span class="kw">foreach my</span> <span class="var">$fruit</span> <span class="op">(</span><span class="str">"apple"</span><span class="op">,</span> <span class="str">"banana"</span><span class="op">,</span> <span class="str">"cherry"</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$fruit\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># for and foreach are interchangeable in Perl</span>
+<span class="kw">for my</span> <span class="var">$i</span> <span class="op">(</span><span class="num">1</span><span class="op">..</span><span class="num">5</span><span class="op">)</span> <span class="op">{</span>    <span class="cm"># 1..5 is the range operator</span>
+    <span class="fn">print</span> <span class="str">"$i\n"</span><span class="op">;</span>       <span class="cm"># prints 1 2 3 4 5</span>
+<span class="op">}</span>
+
+<span class="cm"># Default variable $_ — no explicit loop variable needed</span>
+<span class="kw">for</span> <span class="op">(</span><span class="str">qw(red green blue)</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$_\n"</span><span class="op">;</span>    <span class="cm"># $_ holds the current element</span>
+<span class="op">}</span>
+
+<span class="cm"># C-style for loop</span>
+<span class="kw">for</span> <span class="op">(</span><span class="kw">my</span> <span class="var">$i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="var">$i</span> <span class="op">&lt;</span> <span class="num">5</span><span class="op">;</span> <span class="var">$i</span><span class="op">++)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$i\n"</span><span class="op">;</span>      <span class="cm"># init; condition; increment</span>
+<span class="op">}</span>
+
+<span class="cm"># while — loop while condition is true</span>
+<span class="kw">my</span> <span class="var">$count</span> <span class="op">=</span> <span class="num">3</span><span class="op">;</span>
+<span class="kw">while</span> <span class="op">(</span><span class="var">$count</span> <span class="op">&gt;</span> <span class="num">0</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$count\n"</span><span class="op">;</span>
+    <span class="var">$count</span><span class="op">--;</span>
+<span class="op">}</span>
+
+<span class="cm"># until — loop UNTIL condition becomes true (while NOT)</span>
+<span class="var">$count</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span>
+<span class="kw">until</span> <span class="op">(</span><span class="var">$count</span> <span class="op">&gt;=</span> <span class="num">3</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$count\n"</span><span class="op">;</span>
+    <span class="var">$count</span><span class="op">++;</span>
+<span class="op">}</span>
+
+<span class="cm"># Loop control</span>
+<span class="kw">for my</span> <span class="var">$n</span> <span class="op">(</span><span class="num">1</span><span class="op">..</span><span class="num">10</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">next</span> <span class="kw">if</span> <span class="var">$n</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span><span class="op">;</span>  <span class="cm"># skip even numbers (next = continue)</span>
+    <span class="kw">last</span> <span class="kw">if</span> <span class="var">$n</span> <span class="op">&gt;</span> <span class="num">7</span><span class="op">;</span>        <span class="cm"># stop when n > 7 (last = break)</span>
+    <span class="fn">print</span> <span class="str">"$n\n"</span><span class="op">;</span>           <span class="cm"># prints 1, 3, 5, 7</span>
+<span class="op">}</span>
+
+<span class="cm"># Postfix for — one-liner iteration</span>
+<span class="fn">print</span> <span class="str">"$_\n"</span> <span class="kw">for</span> <span class="op">(</span><span class="num">1</span><span class="op">..</span><span class="num">3</span><span class="op">);</span>     <span class="cm"># prints 1, 2, 3</span>
+
+<span class="cm"># Reading a file line by line (canonical while loop pattern)</span>
+<span class="kw">while</span> <span class="op">(</span><span class="kw">my</span> <span class="var">$line</span> <span class="op">=</span> <span class="op">&lt;</span><span class="var">$fh</span><span class="op">&gt;</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">chomp</span> <span class="var">$line</span><span class="op">;</span>            <span class="cm"># remove trailing newline</span>
+    <span class="fn">print</span> <span class="var">$line</span><span class="op">;</span>
+<span class="op">}</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid triple">
+      <div class="ep">
+        <div class="ep-label">last / next / redo</div>
+        <div class="ep-text"><code>last</code> = break out of the loop. <code>next</code> = skip to next iteration. <code>redo</code> = restart current iteration without re-testing the condition. All work with postfix conditions too.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">Range operator ..</div>
+        <div class="ep-text"><code>1..10</code> creates a list <code>(1,2,3...10)</code>. Works in <code>for</code> loops, array assignment, and slices. Also works for strings: <code>'a'..'z'</code>.</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">$_ is an alias</div>
+        <div class="ep-text">Inside a loop, <code>$_</code> is an <em>alias</em> to the actual list element — modifying <code>$_</code> modifies the original. To avoid this, use <code>for my $item (@list)</code>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 9 — SUBS                  -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s9">
+  <div class="section-icon">ƒ</div>
+  <div class="section-title">Subroutines</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#09</span>
+    <span class="card-title">Defining and calling subroutines — @_, return, defaults</span>
+    <div class="card-tags"><span class="ctag tg-t">subs</span><span class="ctag tg-o">functions</span></div>
+  </div>
+  <div class="blurb">
+    <p>Subroutines (functions) are defined with <code>sub</code>. All arguments arrive in the special array <code>@_</code> — always unpack them at the top of the sub. The last evaluated expression is returned automatically, but explicit <code>return</code> is clearer. Perl subs can return multiple values naturally as a list.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">subs.pl</span>
+    </div>
+    <pre><span class="cm"># Basic sub definition</span>
+<span class="kw">sub</span> <span class="fn">greet</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$name</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>   <span class="cm"># @_ holds ALL arguments</span>
+    <span class="kw">return</span> <span class="str">"Hello, $name!"</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="fn">print</span> <span class="fn">greet</span><span class="op">(</span><span class="str">"World"</span><span class="op">)</span><span class="op">;</span>   <span class="cm"># "Hello, World!"</span>
+
+<span class="cm"># Multiple arguments</span>
+<span class="kw">sub</span> <span class="fn">add</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="var">$a</span> <span class="op">+</span> <span class="var">$b</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Default parameter values using //=</span>
+<span class="kw">sub</span> <span class="fn">greet2</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$name</span><span class="op">,</span> <span class="var">$title</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="var">$title</span> <span class="op">//=</span> <span class="str">"friend"</span><span class="op">;</span>    <span class="cm"># use "friend" if $title is undef</span>
+    <span class="kw">return</span> <span class="str">"Hello, $title $name!"</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="fn">print</span> <span class="fn">greet2</span><span class="op">(</span><span class="str">"Alice"</span><span class="op">)</span><span class="op">;</span>          <span class="cm"># "Hello, friend Alice!"</span>
+<span class="fn">print</span> <span class="fn">greet2</span><span class="op">(</span><span class="str">"Bob"</span><span class="op">,</span> <span class="str">"Dr."</span><span class="op">)</span><span class="op">;</span>    <span class="cm"># "Hello, Dr. Bob!"</span>
+
+<span class="cm"># Returning multiple values (as a list)</span>
+<span class="kw">sub</span> <span class="fn">min_max</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">@nums</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$min</span> <span class="op">=</span> <span class="var">$nums</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$max</span> <span class="op">=</span> <span class="var">$nums</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">;</span>
+    <span class="kw">for my</span> <span class="var">$n</span> <span class="op">(</span><span class="var">@nums</span><span class="op">)</span> <span class="op">{</span>
+        <span class="var">$min</span> <span class="op">=</span> <span class="var">$n</span> <span class="kw">if</span> <span class="var">$n</span> <span class="op">&lt;</span> <span class="var">$min</span><span class="op">;</span>
+        <span class="var">$max</span> <span class="op">=</span> <span class="var">$n</span> <span class="kw">if</span> <span class="var">$n</span> <span class="op">&gt;</span> <span class="var">$max</span><span class="op">;</span>
+    <span class="op">}</span>
+    <span class="kw">return</span> <span class="op">(</span><span class="var">$min</span><span class="op">,</span> <span class="var">$max</span><span class="op">)</span><span class="op">;</span>   <span class="cm"># return TWO values</span>
+<span class="op">}</span>
+<span class="kw">my</span> <span class="op">(</span><span class="var">$lo</span><span class="op">,</span> <span class="var">$hi</span><span class="op">)</span> <span class="op">=</span> <span class="fn">min_max</span><span class="op">(</span><span class="num">5</span><span class="op">,</span><span class="num">2</span><span class="op">,</span><span class="num">9</span><span class="op">,</span><span class="num">1</span><span class="op">);</span>  <span class="cm"># $lo=1, $hi=9</span>
+
+<span class="cm"># Named parameters via a hash (useful for many args)</span>
+<span class="kw">sub</span> <span class="fn">create_user</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">%args</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>        <span class="cm"># unpack @_ as a hash</span>
+    <span class="var">$args</span><span class="op">{</span><span class="str">role</span><span class="op">}</span> <span class="op">//=</span> <span class="str">"user"</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="op">\</span><span class="var">%args</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="kw">my</span> <span class="var">$u</span> <span class="op">=</span> <span class="fn">create_user</span><span class="op">(</span><span class="str">name</span><span class="op">=&gt;</span><span class="str">"Eve"</span><span class="op">,</span> <span class="str">age</span><span class="op">=&gt;</span><span class="num">22</span><span class="op">);</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep">
+        <div class="ep-label">@_ is always a flat list</div>
+        <div class="ep-text">When you call <code>f(1, 2, 3)</code>, inside <code>f</code>, <code>@_ = (1,2,3)</code>. If you pass an array <code>f(@arr)</code>, its elements are flattened into <code>@_</code>. To pass an array without flattening, pass a reference: <code>f(\@arr)</code>.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">Implicit return</div>
+        <div class="ep-text">Without <code>return</code>, a Perl sub returns the value of the last expression evaluated. This is fine for simple getters but use explicit <code>return</code> in complex subs — it's clearer and prevents surprises.</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">Named parameters pattern</div>
+        <div class="ep-text">Using <code>my (%args) = @_</code> turns argument pairs into a hash. Call it as <code>f(key=>"val", key2=>"val2")</code>. This is the cleanest way to handle subs with many optional parameters.</div>
+      </div>
+      <div class="ep red">
+        <div class="ep-label">Declare before use</div>
+        <div class="ep-text">Perl compiles the whole file before running it, so you can call a sub defined later in the file. However with <code>use strict</code>, it's good practice to define subs before using them or forward-declare them.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 10 — REFERENCES           -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s10">
+  <div class="section-icon">\</div>
+  <div class="section-title">References</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#10</span>
+    <span class="card-title">Creating and using references — the \ and -> operators</span>
+    <div class="card-tags"><span class="ctag tg-n">refs</span><span class="ctag tg-o">pointers</span></div>
+  </div>
+  <div class="blurb">
+    <p>A <strong>reference</strong> is a scalar that points to another variable. References are how Perl builds complex data structures (arrays of hashes, hashes of arrays) and how you pass arrays without flattening them. Use <code>\</code> to create a reference, use <code>-></code> to dereference it.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">refs.pl</span>
+    </div>
+    <pre><span class="cm"># Creating references with backslash \</span>
+<span class="kw">my</span> <span class="var">@arr</span>   <span class="op">=</span> <span class="op">(</span><span class="num">1</span><span class="op">,</span><span class="num">2</span><span class="op">,</span><span class="num">3</span><span class="op">)</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$aref</span>  <span class="op">=</span> <span class="op">\</span><span class="var">@arr</span><span class="op">;</span>         <span class="cm"># ref to existing array</span>
+
+<span class="kw">my</span> <span class="var">%hash</span>  <span class="op">=</span> <span class="op">(</span><span class="str">a</span><span class="op">=&gt;</span><span class="num">1</span><span class="op">,</span> <span class="str">b</span><span class="op">=&gt;</span><span class="num">2</span><span class="op">)</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$href</span>  <span class="op">=</span> <span class="op">\</span><span class="var">%hash</span><span class="op">;</span>         <span class="cm"># ref to existing hash</span>
+
+<span class="cm"># Anonymous refs — create without naming the original</span>
+<span class="kw">my</span> <span class="var">$aref2</span> <span class="op">=</span> <span class="op">[</span><span class="num">10</span><span class="op">,</span> <span class="num">20</span><span class="op">,</span> <span class="num">30</span><span class="op">]</span><span class="op">;</span>  <span class="cm"># [ ] creates anonymous arrayref</span>
+<span class="kw">my</span> <span class="var">$href2</span> <span class="op">=</span> <span class="op">{</span> <span class="str">x</span><span class="op">=&gt;</span><span class="num">1</span><span class="op">,</span> <span class="str">y</span><span class="op">=&gt;</span><span class="num">2</span> <span class="op">}</span><span class="op">;</span> <span class="cm"># { } creates anonymous hashref</span>
+
+<span class="cm"># Accessing via -> (arrow/dereference operator)</span>
+<span class="fn">print</span> <span class="var">$aref2</span><span class="op">-&gt;[</span><span class="num">0</span><span class="op">]</span><span class="op">;</span>         <span class="cm"># 10 — element 0</span>
+<span class="fn">print</span> <span class="var">$href2</span><span class="op">-&gt;{</span><span class="str">x</span><span class="op">}</span><span class="op">;</span>         <span class="cm"># 1  — key "x"</span>
+
+<span class="cm"># Nested structures — array of hashes (common pattern)</span>
+<span class="kw">my</span> <span class="var">@people</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="op">{</span> <span class="str">name</span> <span class="op">=&gt;</span> <span class="str">"Alice"</span><span class="op">,</span> <span class="str">age</span> <span class="op">=&gt;</span> <span class="num">30</span> <span class="op">}</span><span class="op">,</span>  <span class="cm"># hashref</span>
+    <span class="op">{</span> <span class="str">name</span> <span class="op">=&gt;</span> <span class="str">"Bob"</span><span class="op">,</span>   <span class="str">age</span> <span class="op">=&gt;</span> <span class="num">25</span> <span class="op">}</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Access nested: $array[index]->{key}</span>
+<span class="fn">print</span> <span class="var">$people</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">name</span><span class="op">}</span><span class="op">;</span>    <span class="cm"># "Alice"</span>
+<span class="fn">print</span> <span class="var">$people</span><span class="op">[</span><span class="num">1</span><span class="op">]-&gt;{</span><span class="str">age</span><span class="op">}</span><span class="op">;</span>     <span class="cm"># 25</span>
+
+<span class="cm"># Iterate array of hashes</span>
+<span class="kw">for my</span> <span class="var">$p</span> <span class="op">(</span><span class="var">@people</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"$p->{name} is $p->{age}\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># ref() tells you what kind of reference something is</span>
+<span class="fn">print</span> <span class="fn">ref</span><span class="op">(</span><span class="var">$aref</span><span class="op">)</span><span class="op">;</span>   <span class="cm"># "ARRAY"</span>
+<span class="fn">print</span> <span class="fn">ref</span><span class="op">(</span><span class="var">$href</span><span class="op">)</span><span class="op">;</span>   <span class="cm"># "HASH"</span>
+<span class="fn">print</span> <span class="fn">ref</span><span class="op">(</span><span class="op">\</span><span class="var">$aref</span><span class="op">)</span><span class="op">;</span>  <span class="cm"># "REF"  (reference to a reference)</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep">
+        <div class="ep-label">[ ] vs ( ) for arrays</div>
+        <div class="ep-text"><code>( )</code> creates a list — context-dependent. <code>[ ]</code> creates an <em>anonymous arrayref</em> — always returns a scalar reference. Use <code>[ ]</code> when building nested structures.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">{ } ambiguity</div>
+        <div class="ep-text"><code>{ }</code> is either a hash ref or a code block depending on context. To force hash ref: <code>+{ key =&gt; val }</code>. To force block: put a semicolon first: <code>{; key =&gt; val }</code>.</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">Arrow -> is optional between brackets</div>
+        <div class="ep-text">Between consecutive brackets, the arrow is optional: <code>$a->[0]{key}</code> is the same as <code>$a->[0]->{key}</code>. The first arrow is always required.</div>
+      </div>
+      <div class="ep gold">
+        <div class="ep-label">ref() for type checking</div>
+        <div class="ep-text">Always check what kind of reference you have before dereferencing it. <code>ref($x) eq 'ARRAY'</code> ensures it's safe to use <code>@{$x}</code>. On non-references, <code>ref()</code> returns <code>""</code>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 11 — REGEX                -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s11">
+  <div class="section-icon">/</div>
+  <div class="section-title">Regular Expressions</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#11</span>
+    <span class="card-title">Matching, capturing, and substituting with regex</span>
+    <div class="card-tags"><span class="ctag tg-t">regex</span><span class="ctag tg-r">patterns</span></div>
+  </div>
+  <div class="blurb">
+    <p>Perl's regex support is legendary — it's where the <code>=~</code> operator, capture groups, global matches, and the <code>s///</code> substitution all live. The pattern is delimited by <code>/</code> slashes. Capture groups use <code>( )</code>. Results land in <code>$1</code>, <code>$2</code>, etc. The <code>/g</code> modifier finds all matches.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">regex.pl</span>
+    </div>
+    <pre><span class="kw">my</span> <span class="var">$text</span> <span class="op">=</span> <span class="str">"The price is $42.50 today"</span><span class="op">;</span>
+
+<span class="cm"># =~ tests if a string matches a pattern</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">$text</span> <span class="op">=~</span> <span class="rx">/price/</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Found 'price'\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Capture groups ( ) — results in $1, $2, $3...</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">$text</span> <span class="op">=~</span> <span class="rx">/\$(\d+\.\d+)/</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Amount: $1\n"</span><span class="op">;</span>    <span class="cm"># "42.50"</span>
+<span class="op">}</span>
+
+<span class="cm"># !~ tests if something does NOT match</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">$text</span> <span class="op">!~</span> <span class="rx">/banana/</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"No banana here\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Common modifiers</span>
+<span class="cm"># /i  — case-insensitive</span>
+<span class="cm"># /g  — global (find all matches)</span>
+<span class="cm"># /m  — multiline (^ and $ match line boundaries)</span>
+<span class="cm"># /x  — extended (ignore whitespace, allow comments)</span>
+<span class="var">$text</span> <span class="op">=~</span> <span class="rx">/PRICE/i</span><span class="op">;</span>          <span class="cm"># matches "price" case-insensitively</span>
+
+<span class="cm"># Global match — capture all occurrences into an array</span>
+<span class="kw">my</span> <span class="var">$html</span>   <span class="op">=</span> <span class="str">"&lt;b&gt;bold&lt;/b&gt; and &lt;i&gt;italic&lt;/i&gt;"</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">@tags</span>   <span class="op">=</span> <span class="op">(</span><span class="var">$html</span> <span class="op">=~</span> <span class="rx">/&lt;(\w+)&gt;/g</span><span class="op">)</span><span class="op">;</span>
+<span class="cm"># @tags = ("b", "b", "i", "i") — all tag names</span>
+
+<span class="cm"># Substitution: s/pattern/replacement/</span>
+<span class="kw">my</span> <span class="var">$str</span> <span class="op">=</span> <span class="str">"Hello World"</span><span class="op">;</span>
+<span class="var">$str</span> <span class="op">=~</span> <span class="rx">s/World/Perl/</span><span class="op">;</span>    <span class="cm"># "Hello Perl"  (first match)</span>
+
+<span class="cm"># Global substitution /g — replace all occurrences</span>
+<span class="kw">my</span> <span class="var">$s2</span> <span class="op">=</span> <span class="str">"aaa bbb aaa"</span><span class="op">;</span>
+<span class="var">$s2</span> <span class="op">=~</span> <span class="rx">s/aaa/xxx/g</span><span class="op">;</span>      <span class="cm"># "xxx bbb xxx"</span>
+
+<span class="cm"># Common metacharacters</span>
+<span class="cm"># .    any character except newline</span>
+<span class="cm"># \d   digit [0-9]        \D  non-digit</span>
+<span class="cm"># \w   word char [a-z0-9_]\W  non-word</span>
+<span class="cm"># \s   whitespace         \S  non-whitespace</span>
+<span class="cm"># ^    start of string    $   end of string</span>
+<span class="cm"># +    one or more        *   zero or more</span>
+<span class="cm"># ?    zero or one        {n} exactly n times</span>
+<span class="cm"># |    alternation (or)   [abc] character class</span></pre>
+  </div>
+  <div class="callout tip">
+    <span class="cl-lbl">Tip</span>
+    Use the <code>/x</code> modifier to write readable regex with whitespace and comments: <code>s/ ^\s+ | \s+$ //gx</code> is much clearer than <code>s/^\s+|\s+$//g</code> for trimming.
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep">
+        <div class="ep-label">$1, $2 are temporary</div>
+        <div class="ep-text">Capture variables <code>$1</code>, <code>$2</code>... are only valid until the <em>next</em> regex match. Always copy them immediately: <code>my $val = $1</code>.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">Modifying a copy</div>
+        <div class="ep-text">To substitute without changing the original: <code>(my $copy = $str) =~ s/old/new/g</code>. The parentheses copy first, then apply the substitution.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 12 — FILE I/O             -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s12">
+  <div class="section-icon">📄</div>
+  <div class="section-title">File I/O</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#12</span>
+    <span class="card-title">Reading and writing files safely</span>
+    <div class="card-tags"><span class="ctag tg-o">file i/o</span><span class="ctag tg-n">io</span></div>
+  </div>
+  <div class="blurb">
+    <p>Always use the <strong>three-argument form</strong> of <code>open</code> and always check for errors with <code>or die</code>. The mode strings are: <code>'&lt;'</code> read, <code>'&gt;'</code> write (create/overwrite), <code>'&gt;&gt;'</code> append. The <code>&lt;$fh&gt;</code> diamond operator reads one line at a time. <code>chomp</code> removes the trailing newline.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">file_io.pl</span>
+    </div>
+    <pre><span class="cm"># Write a file — '>' creates/overwrites</span>
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$out</span><span class="op">,</span> <span class="str">'>'</span><span class="op">,</span> <span class="str">'myfile.txt'</span><span class="op">)</span>
+    <span class="kw">or die</span> <span class="str">"Cannot open for writing: $!\n"</span><span class="op">;</span>
+<span class="cm"># $! holds the OS error message on failure</span>
+
+<span class="fn">print</span> <span class="var">$out</span> <span class="str">"First line\n"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="var">$out</span> <span class="str">"Second line\n"</span><span class="op">;</span>
+<span class="fn">close</span><span class="op">(</span><span class="var">$out</span><span class="op">)</span><span class="op">;</span>    <span class="cm"># always close when done</span>
+
+<span class="cm"># Read a file line by line — most memory-efficient</span>
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$in</span><span class="op">,</span> <span class="str">'&lt;'</span><span class="op">,</span> <span class="str">'myfile.txt'</span><span class="op">)</span>
+    <span class="kw">or die</span> <span class="str">"Cannot open: $!\n"</span><span class="op">;</span>
+
+<span class="kw">while</span> <span class="op">(</span><span class="kw">my</span> <span class="var">$line</span> <span class="op">=</span> <span class="op">&lt;</span><span class="var">$in</span><span class="op">&gt;</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">chomp</span> <span class="var">$line</span><span class="op">;</span>         <span class="cm"># remove trailing \n</span>
+    <span class="fn">print</span> <span class="str">"Line: $line\n"</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="fn">close</span><span class="op">(</span><span class="var">$in</span><span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Read entire file into an array (one line per element)</span>
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$fh</span><span class="op">,</span> <span class="str">'&lt;'</span><span class="op">,</span> <span class="str">'myfile.txt'</span><span class="op">)</span> <span class="kw">or die</span> <span class="var">$!</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">@lines</span> <span class="op">=</span> <span class="op">&lt;</span><span class="var">$fh</span><span class="op">&gt;</span><span class="op">;</span>   <span class="cm"># list context: reads all lines</span>
+<span class="fn">close</span><span class="op">(</span><span class="var">$fh</span><span class="op">)</span><span class="op">;</span>
+<span class="fn">chomp</span> <span class="var">@lines</span><span class="op">;</span>          <span class="cm"># chomp all elements at once</span>
+
+<span class="cm"># Append to a file — '>>' keeps existing content</span>
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$app</span><span class="op">,</span> <span class="str">'>>'</span><span class="op">,</span> <span class="str">'myfile.txt'</span><span class="op">)</span> <span class="kw">or die</span> <span class="var">$!</span><span class="op">;</span>
+<span class="fn">print</span> <span class="var">$app</span> <span class="str">"Third line\n"</span><span class="op">;</span>
+<span class="fn">close</span><span class="op">(</span><span class="var">$app</span><span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Test operators — check file attributes</span>
+<span class="kw">if</span> <span class="op">(</span><span class="op">-</span><span class="fn">e</span> <span class="str">'myfile.txt'</span><span class="op">)</span>  <span class="op">{</span> <span class="fn">print</span> <span class="str">"exists\n"</span>      <span class="op">}</span>
+<span class="kw">if</span> <span class="op">(</span><span class="op">-</span><span class="fn">f</span> <span class="str">'myfile.txt'</span><span class="op">)</span>  <span class="op">{</span> <span class="fn">print</span> <span class="str">"is a file\n"</span>   <span class="op">}</span>
+<span class="kw">if</span> <span class="op">(</span><span class="op">-</span><span class="fn">d</span> <span class="str">'/tmp'</span><span class="op">)</span>        <span class="op">{</span> <span class="fn">print</span> <span class="str">"is a dir\n"</span>    <span class="op">}</span>
+<span class="kw">if</span> <span class="op">(</span><span class="op">-</span><span class="fn">r</span> <span class="str">'myfile.txt'</span><span class="op">)</span>  <span class="op">{</span> <span class="fn">print</span> <span class="str">"is readable\n"</span> <span class="op">}</span>
+<span class="kw">my</span> <span class="var">$sz</span> <span class="op">=</span> <span class="op">-</span><span class="fn">s</span> <span class="str">'myfile.txt'</span><span class="op">;</span>  <span class="cm"># file size in bytes</span></pre>
+  </div>
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="ep red">
+        <div class="ep-label">3-arg open is mandatory</div>
+        <div class="ep-text">Old-style <code>open(FH, "&gt;file")</code> is unsafe — if a filename starts with <code>&gt;</code>, the mode is ambiguous. Always use 3-arg: <code>open($fh, '&gt;', $filename)</code>. This separates mode from filename cleanly.</div>
+      </div>
+      <div class="ep">
+        <div class="ep-label">$! — system error</div>
+        <div class="ep-text"><code>$!</code> holds the operating system error string (like "No such file or directory") after a failed system call. Always include it in die messages: <code>die "Can't open: $!"</code>.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">chomp vs chop</div>
+        <div class="ep-text"><code>chomp</code> removes the trailing newline (if present) — safe to call even if there's no newline. <code>chop</code> removes the last character unconditionally — rarely what you want.</div>
+      </div>
+      <div class="ep blue">
+        <div class="ep-label">Filehandle scoping</div>
+        <div class="ep-text">Lexical filehandles (<code>my $fh</code>) close automatically when they go out of scope. Old-style bareword handles (<code>FH</code>) are global and don't auto-close. Always use <code>my $fh</code>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 13 — STRICT & WARNINGS    -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s13">
+  <div class="section-icon">!</div>
+  <div class="section-title">strict &amp; warnings</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#13</span>
+    <span class="card-title">Why use strict and use warnings are non-negotiable</span>
+    <div class="card-tags"><span class="ctag tg-r">essential</span><span class="ctag tg-n">safety</span></div>
+  </div>
+  <div class="blurb">
+    <p><strong>Every Perl file should start with these two lines.</strong> No exceptions. <code>use strict</code> requires all variables to be declared with <code>my</code> (catching typos before they become bugs). <code>use warnings</code> enables helpful diagnostic messages about suspicious operations. Together they catch a huge class of beginner and expert bugs at compile time.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">strict_warnings.pl</span>
+    </div>
+    <pre><span class="cm">#!/usr/bin/perl</span>
+<span class="kw">use strict</span><span class="op">;</span>     <span class="cm"># ALWAYS — require declared variables</span>
+<span class="kw">use warnings</span><span class="op">;</span>  <span class="cm"># ALWAYS — enable diagnostic messages</span>
+
+<span class="cm"># Without strict, this silently creates a new global $nme (typo!):</span>
+<span class="cm"># $nme = "Alice";  # oops! $name was intended</span>
+
+<span class="cm"># With strict, this fails at compile time with "Global symbol...</span>
+<span class="cm"># requires explicit package name" — you catch the bug immediately</span>
+
+<span class="cm"># With strict, you MUST use my (or our for globals, local for dynamic)</span>
+<span class="kw">my</span> <span class="var">$name</span> <span class="op">=</span> <span class="str">"Alice"</span><span class="op">;</span>  <span class="cm"># correct</span>
+
+<span class="cm"># use warnings catches these common problems:</span>
+
+<span class="cm"># 1. Using undef in a numeric context</span>
+<span class="kw">my</span> <span class="var">$x</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$y</span> <span class="op">=</span> <span class="var">$x</span> <span class="op">+</span> <span class="num">1</span><span class="op">;</span>   <span class="cm"># warns: "Use of uninitialized value"</span>
+
+<span class="cm"># 2. Comparing string with == (numeric operator)</span>
+<span class="kw">if</span> <span class="op">(</span><span class="str">"hello"</span> <span class="op">==</span> <span class="str">"world"</span><span class="op">)</span> <span class="op">{}</span>  <span class="cm"># warns: both treated as 0</span>
+
+<span class="cm"># 3. Useless use of a variable in void context</span>
+<span class="var">$name</span><span class="op">;</span>   <span class="cm"># warns: "Useless use of $name in void context"</span>
+
+<span class="cm"># Suppressing a specific warning when you know it's safe:</span>
+<span class="op">{</span>
+    <span class="kw">no warnings</span> <span class="str">'uninitialized'</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$val</span> <span class="op">=</span> <span class="var">$x</span> <span class="op">.</span> <span class="str">"suffix"</span><span class="op">;</span>  <span class="cm"># no warning in this block</span>
+<span class="op">}</span>
+
+<span class="cm"># For modern Perl (5.10+), add these too:</span>
+<span class="kw">use</span> <span class="fn">feature</span> <span class="str">'say'</span><span class="op">;</span>     <span class="cm"># enables say() — print with auto-newline</span>
+<span class="kw">use</span> <span class="fn">feature</span> <span class="str">'state'</span><span class="op">;</span>   <span class="cm"># enables state variables (persistent in subs)</span>
+
+<span class="cm"># Or all in one:</span>
+<span class="kw">use</span> <span class="num">5.010</span><span class="op">;</span>  <span class="cm"># enables all features from Perl 5.10 onwards</span>
+<span class="kw">use</span> <span class="num">5.020</span><span class="op">;</span>  <span class="cm"># enables all features from Perl 5.20 onwards</span></pre>
+  </div>
+  <div class="callout remember">
+    <span class="cl-lbl">Golden Rule</span>
+    The first three lines of every Perl script should be: <code>#!/usr/bin/perl</code> · <code>use strict;</code> · <code>use warnings;</code>. If you see Perl code without these, treat it with suspicion — it may have hidden bugs.
+  </div>
+  <div class="explain">
+    <div class="explain-grid triple">
+      <div class="ep red">
+        <div class="ep-label">strict vars</div>
+        <div class="ep-text">Requires <code>my</code>, <code>our</code>, or <code>local</code> for every variable. Typos in variable names become compile-time errors, not silent wrong-value bugs.</div>
+      </div>
+      <div class="ep">
+        <div class="ep-label">strict refs</div>
+        <div class="ep-text">Prevents using a string as a variable name (symbolic reference). This closes a footgun: <code>$$name</code> where <code>$name = "x"</code> would access <code>$x</code> without strict.</div>
+      </div>
+      <div class="ep green">
+        <div class="ep-label">say vs print</div>
+        <div class="ep-text"><code>say "hello"</code> is <code>print "hello\n"</code> with an automatic newline appended. Available from Perl 5.10 with <code>use feature 'say'</code> or <code>use 5.010</code>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- SECTION 14 — SPECIAL VARIABLES    -->
+<!-- ══════════════════════════════════ -->
+<div class="section-head" id="s14">
+  <div class="section-icon">$$</div>
+  <div class="section-title">Special Variables</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-num">#14</span>
+    <span class="card-title">The most important built-in Perl variables</span>
+    <div class="card-tags"><span class="ctag tg-g">special vars</span><span class="ctag tg-n">built-in</span></div>
+  </div>
+  <div class="blurb">
+    <p>Perl has dozens of special punctuation variables. Most have long English aliases via <code>use English</code>. Here are the ones you'll encounter constantly. They're documented fully in <code>perlvar</code>.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      <span class="code-label">special_vars.pl</span>
+    </div>
+    <pre><span class="cm"># $_ — the default variable (used by loops, grep, map, etc.)</span>
+<span class="kw">for</span> <span class="op">(</span><span class="str">qw(a b c)</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span><span class="op">;</span>        <span class="cm"># print $_ — print without argument uses $_</span>
+<span class="op">}</span>
+
+<span class="cm"># @_ — arguments to the current subroutine</span>
+<span class="kw">sub</span> <span class="fn">show_args</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Got: "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@_</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># $! — OS error string after failed system call</span>
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$fh</span><span class="op">,</span> <span class="str">'&lt;'</span><span class="op">,</span> <span class="str">'missing.txt'</span><span class="op">)</span> <span class="kw">or</span> <span class="fn">print</span> <span class="str">"Error: $!\n"</span><span class="op">;</span>
+<span class="cm"># Error: No such file or directory</span>
+
+<span class="cm"># $@ — error from last eval { } block</span>
+<span class="kw">eval</span> <span class="op">{</span> <span class="kw">die</span> <span class="str">"something failed\n"</span> <span class="op">};</span>
+<span class="fn">print</span> <span class="str">"Caught: $@"</span> <span class="kw">if</span> <span class="var">$@</span><span class="op">;</span>
+
+<span class="cm"># $0 — name of the current script</span>
+<span class="fn">print</span> <span class="str">"Running: $0\n"</span><span class="op">;</span>
+
+<span class="cm"># $$ — process ID of current Perl process</span>
+<span class="fn">print</span> <span class="str">"PID: $$\n"</span><span class="op">;</span>
+
+<span class="cm"># @ARGV — command-line arguments to the script</span>
+<span class="cm"># perl script.pl arg1 arg2  -->  @ARGV = ("arg1","arg2")</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">@ARGV</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"First arg: $ARGV[0]\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># %ENV — environment variables</span>
+<span class="fn">print</span> <span class="str">"Home: $ENV{HOME}\n"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"Path: $ENV{PATH}\n"</span><span class="op">;</span>
+
+<span class="cm"># $/ — input record separator (default: newline)</span>
+<span class="cm"># Setting $/ to undef makes <$fh> read entire file at once (slurp mode)</span>
+<span class="kw">my</span> <span class="var">$entire_file</span><span class="op">;</span>
+<span class="op">{</span>
+    <span class="kw">local</span> <span class="var">$/</span> <span class="op">=</span> <span class="kw">undef</span><span class="op">;</span>   <span class="cm"># temporarily unset (local = restore after block)</span>
+    <span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$f</span><span class="op">,</span> <span class="str">'&lt;'</span><span class="op">,</span> <span class="str">'myfile.txt'</span><span class="op">)</span> <span class="kw">or die</span> <span class="var">$!</span><span class="op">;</span>
+    <span class="var">$entire_file</span> <span class="op">=</span> <span class="op">&lt;</span><span class="var">$f</span><span class="op">&gt;</span><span class="op">;</span> <span class="cm"># reads entire file</span>
+<span class="op">}</span>
+
+<span class="cm"># $, — output field separator (between print args, default: none)</span>
+<span class="cm"># $\ — output record separator (after each print, default: none)</span>
+<span class="op">{</span>
+    <span class="kw">local</span> <span class="var">$,</span> <span class="op">=</span> <span class="str">", "</span><span class="op">;</span>   <span class="cm"># print "a","b","c"  ==>  "a, b, c"</span>
+    <span class="kw">local</span> <span class="var">$\</span> <span class="op">=</span> <span class="str">"\n"</span><span class="op">;</span>   <span class="cm"># auto-append newline to every print</span>
+    <span class="fn">print</span> <span class="str">"x"</span><span class="op">,</span> <span class="str">"y"</span><span class="op">,</span> <span class="str">"z"</span><span class="op">;</span>
+<span class="op">}</span></pre>
+  </div>
+  <table class="qtable">
+    <tr><th>Variable</th><th>Long name (use English)</th><th>What it holds</th></tr>
+    <tr><td>$_</td><td>$ARG</td><td>Default input / loop variable</td></tr>
+    <tr><td>@_</td><td>—</td><td>Sub argument list</td></tr>
+    <tr><td>$!</td><td>$OS_ERROR</td><td>OS error from last failed syscall</td></tr>
+    <tr><td>$@</td><td>$EVAL_ERROR</td><td>Error from last eval block</td></tr>
+    <tr><td>$0</td><td>$PROGRAM_NAME</td><td>Script filename</td></tr>
+    <tr><td>$$</td><td>$PID / $PROCESS_ID</td><td>Current process ID</td></tr>
+    <tr><td>@ARGV</td><td>—</td><td>Command-line arguments</td></tr>
+    <tr><td>%ENV</td><td>—</td><td>Environment variables</td></tr>
+    <tr><td>$/</td><td>$INPUT_RECORD_SEPARATOR</td><td>Line ending for reading</td></tr>
+    <tr><td>$,</td><td>$OUTPUT_FIELD_SEPARATOR</td><td>Separator between print args</td></tr>
+    <tr><td>$\</td><td>$OUTPUT_RECORD_SEPARATOR</td><td>Appended after each print</td></tr>
+    <tr><td>$1 $2...</td><td>—</td><td>Regex capture groups</td></tr>
+    <tr><td>#fruits</td><td>—</td><td>Last index of @fruits</td></tr>
+  </table>
+  <div class="callout tip">
+    <span class="cl-lbl">Tip</span>
+    Use <code>local</code> — not <code>my</code> — when temporarily changing special variables like <code>$/</code>, <code>$,</code>, <code>$\</code>. <code>local</code> saves the old value and restores it when the block exits, even if an error occurs. <code>my</code> creates a new variable that shadows the global without restoring it.
+  </div>
+</div>
+
+</main>
+</body>
+</html>

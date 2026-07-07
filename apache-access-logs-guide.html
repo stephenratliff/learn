@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Access Logs — macOS M4 Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@300;400;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #f8f6f2;
+    --surface:   #ffffff;
+    --card:      #fdfcfa;
+    --border:    #e4e0d8;
+    --border2:   #ccc8be;
+    --ink:       #1a1814;
+    --muted:     #5a5650;
+    --faint:     #9a948c;
+    --rule:      #d4cfc6;
+
+    --teal:      #0a6e6e;
+    --teal-pale: #e6f4f4;
+    --teal-mid:  #1a9090;
+
+    --rust:      #b83a1a;
+    --rust-pale: #fdf0ec;
+
+    --gold:      #8a6a00;
+    --gold-pale: #fdf8e8;
+
+    --slate:     #2a4a6a;
+    --slate-pale:#eef3f8;
+
+    --green:     #1a6a2a;
+    --green-pale:#eef7f0;
+
+    --code-bg:   #1c1a16;
+    --code-border:#302c24;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Martian Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* Top accent bar */
+  .top-bar {
+    height: 4px;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--teal-mid) 40%, var(--gold) 70%, var(--rust) 100%);
+  }
+
+  .wrapper {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 52px 32px 120px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    margin-bottom: 60px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: start;
+    animation: fadeDown 0.5s ease both;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 2px;
+    background: var(--teal);
+    border-radius: 2px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--teal);
+  }
+
+  .header-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 480px;
+  }
+
+  .header-badge {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .badge-pill {
+    display: inline-block;
+    background: var(--teal-pale);
+    border: 1px solid rgba(10,110,110,0.2);
+    color: var(--teal);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    padding: 5px 12px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  /* ── LOG FORMAT ANATOMY ── */
+  .anatomy-box {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 56px;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+
+  .anatomy-top {
+    padding: 10px 18px;
+    background: #252118;
+    border-bottom: 1px solid var(--code-border);
+    font-size: 10px;
+    color: #6a6050;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .log-sample {
+    padding: 18px 20px;
+    font-size: 12.5px;
+    line-height: 2.2;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .ls-ip   { color: #e8c840; }
+  .ls-dash { color: #4a4030; }
+  .ls-user { color: #80d0c0; }
+  .ls-time { color: #c080e8; }
+  .ls-req  { color: #60c0f0; }
+  .ls-code { color: #50d080; }
+  .ls-size { color: #e08040; }
+  .ls-ref  { color: #d060a0; }
+  .ls-ua   { color: #a0c0e0; }
+
+  .anatomy-labels {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--code-border);
+    border-top: 1px solid var(--code-border);
+  }
+
+  .al-cell {
+    background: #181410;
+    padding: 10px 14px;
+  }
+
+  .al-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .al-name  { font-size: 11px; color: #c0b090; font-weight: 600; }
+  .al-desc  { font-size: 10px; color: #5a5040; margin-top: 2px; line-height: 1.4; }
+
+  /* ── SECTIONS ── */
+  section {
+    margin-bottom: 56px;
+    animation: fadeUp 0.45s ease both;
+  }
+
+  section:nth-child(1){ animation-delay:0.1s }
+  section:nth-child(2){ animation-delay:0.15s }
+  section:nth-child(3){ animation-delay:0.2s }
+  section:nth-child(4){ animation-delay:0.25s }
+  section:nth-child(5){ animation-delay:0.3s }
+  section:nth-child(6){ animation-delay:0.35s }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .sec-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--faint);
+    letter-spacing: 0.1em;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.65rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  h3 {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 28px 0 10px;
+  }
+
+  p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    line-height: 1.85;
+    font-weight: 300;
+  }
+
+  p code, li code, td code {
+    font-family: 'Martian Mono', monospace;
+    font-size: 11.5px;
+    background: var(--teal-pale);
+    color: var(--teal);
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid rgba(10,110,110,0.15);
+    font-weight: 400;
+  }
+
+  strong { font-weight: 600; color: var(--ink); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 12px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+
+  .cb-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #252118;
+    border-bottom: 1px solid var(--code-border);
+  }
+
+  .cb-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6a6050;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    font-family: 'Martian Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #5a5040;
+    background: transparent;
+    border: 1px solid #302c24;
+    padding: 3px 9px;
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--teal-mid); border-color: var(--teal-mid); }
+
+  pre {
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-family: 'Martian Mono', monospace;
+    font-size: 12.5px;
+    line-height: 2;
+  }
+
+  .c  { color: #d4c8a8; }
+  .cmd{ color: #e8c840; }
+  .fl { color: #80c8f0; }
+  .pt { color: #f0a030; }
+  .cm { color: #4a4030; font-style: italic; }
+  .kw { color: #c07080; }
+  .vl { color: #60d090; }
+  .st { color: #e08060; }
+  .hl { color: #e8c840; font-weight: 600; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    display: flex;
+    gap: 13px;
+    padding: 14px 18px;
+    border-radius: 4px;
+    margin: 14px 0;
+    font-size: 12.5px;
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  .ci { flex-shrink:0; font-size:15px; margin-top:1px; }
+  .callout p { color:inherit; margin:0; font-size:12.5px; }
+
+  .callout.info    { background:var(--slate-pale);  border:1px solid rgba(42,74,106,0.2);  color: var(--slate); }
+  .callout.warn    { background:var(--gold-pale);   border:1px solid rgba(138,106,0,0.2);  color: var(--gold); }
+  .callout.danger  { background:var(--rust-pale);   border:1px solid rgba(184,58,26,0.2);  color: var(--rust); }
+  .callout.ok      { background:var(--green-pale);  border:1px solid rgba(26,106,42,0.2);  color: var(--green); }
+  .callout.teal    { background:var(--teal-pale);   border:1px solid rgba(10,110,110,0.2); color: var(--teal); }
+
+  /* ── TABLES ── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin: 14px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .ref-table th {
+    background: var(--bg);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--faint);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ref-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-weight: 300;
+    vertical-align: top;
+    line-height: 1.6;
+  }
+
+  .ref-table tr:last-child td { border-bottom: none; }
+  .ref-table tr:hover td { background: var(--teal-pale); }
+
+  /* ── STATUS CODE GRID ── */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .sg-cell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left-width: 3px;
+  }
+
+  .sg-code { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .sg-name { font-size: 10px; color: var(--faint); letter-spacing: 0.08em; margin-bottom: 3px; font-weight: 600; }
+  .sg-desc { font-size: 11px; color: var(--muted); font-weight: 300; line-height: 1.5; }
+
+  .sg-cell.s2xx { border-left-color: var(--green); }
+  .sg-cell.s2xx .sg-code { color: var(--green); }
+  .sg-cell.s3xx { border-left-color: var(--teal); }
+  .sg-cell.s3xx .sg-code { color: var(--teal); }
+  .sg-cell.s4xx { border-left-color: var(--gold); }
+  .sg-cell.s4xx .sg-code { color: var(--gold); }
+  .sg-cell.s5xx { border-left-color: var(--rust); }
+  .sg-cell.s5xx .sg-code { color: var(--rust); }
+
+  /* ── LISTS ── */
+  ul, ol {
+    padding-left: 22px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.9;
+    margin-bottom: 12px;
+  }
+
+  ul li::marker { color: var(--teal); }
+  ol li::marker { font-size: 11px; color: var(--teal); font-weight: 600; }
+
+  /* ── TWO-COL ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+
+  .tc-cell {
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+
+  .tc-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .tc-cell p { font-size: 12px; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 80px;
+    padding-top: 20px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--faint);
+    letter-spacing: 0.08em;
+  }
+
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(12px);  } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width:640px) {
+    header { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .anatomy-labels { grid-template-columns: repeat(2, 1fr); }
+    .wrapper { padding: 32px 16px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <div class="eyebrow">Apache · macOS M4</div>
+      <h1>Apache Access<br><em>Logs</em></h1>
+      <p class="header-desc">Everything you need to find, read, filter, and understand who is accessing your Apache web server — covering both the built-in macOS Apache and Homebrew Apache.</p>
+    </div>
+    <div class="header-badge">
+      <span class="badge-pill">Built-in Apache</span>
+      <span class="badge-pill">Homebrew Apache</span>
+      <span class="badge-pill">MacBook Air M4</span>
+    </div>
+  </header>
+
+  <!-- LOG FORMAT ANATOMY -->
+  <div class="anatomy-box">
+    <div class="anatomy-top">// A single access log entry — decoded</div>
+    <div class="log-sample">
+<span class="ls-ip">192.168.1.42</span> <span class="ls-dash">-</span> <span class="ls-user">frank</span> <span class="ls-time">[07/May/2026:14:23:01 -0500]</span> <span class="ls-req">"GET /index.html HTTP/1.1"</span> <span class="ls-code">200</span> <span class="ls-size">4823</span> <span class="ls-ref">"https://google.com"</span> <span class="ls-ua">"Mozilla/5.0 (Macintosh; ...)"</span>
+    </div>
+    <div class="anatomy-labels">
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#e8c840"></span><span class="al-name">Client IP</span>
+        <div class="al-desc">Who made the request</div>
+      </div>
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#80d0c0"></span><span class="al-name">Auth User</span>
+        <div class="al-desc">Username if HTTP auth used (- = none)</div>
+      </div>
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#c080e8"></span><span class="al-name">Timestamp</span>
+        <div class="al-desc">Date, time &amp; timezone</div>
+      </div>
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#60c0f0"></span><span class="al-name">Request</span>
+        <div class="al-desc">Method, path, HTTP version</div>
+      </div>
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#50d080"></span><span class="al-name">Status Code</span>
+        <div class="al-desc">HTTP response code</div>
+      </div>
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#e08040"></span><span class="al-name">Bytes Sent</span>
+        <div class="al-desc">Response size in bytes</div>
+      </div>
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#d060a0"></span><span class="al-name">Referrer</span>
+        <div class="al-desc">Where visitor came from</div>
+      </div>
+      <div class="al-cell">
+        <span class="al-swatch" style="background:#a0c0e0"></span><span class="al-name">User Agent</span>
+        <div class="al-desc">Browser / device info</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>Log File Locations</h2>
+    </div>
+
+    <p>The location of the access log depends on whether you are using the macOS built-in Apache or Homebrew's Apache.</p>
+
+    <div class="two-col">
+      <div class="tc-cell">
+        <div class="tc-label">Built-in macOS Apache</div>
+        <p>Access log:</p>
+        <p><code>/private/var/log/apache2/access_log</code></p>
+        <p>Error log:</p>
+        <p><code>/private/var/log/apache2/error_log</code></p>
+        <p style="margin-top:8px;">Symlink also works:</p>
+        <p><code>/var/log/apache2/access_log</code></p>
+      </div>
+      <div class="tc-cell">
+        <div class="tc-label">Homebrew Apache</div>
+        <p>Access log:</p>
+        <p><code>/opt/homebrew/var/log/httpd/access_log</code></p>
+        <p>Error log:</p>
+        <p><code>/opt/homebrew/var/log/httpd/error_log</code></p>
+        <p style="margin-top:8px;">Virtual host logs are defined per-vhost in config.</p>
+      </div>
+    </div>
+
+    <h3>Confirm the log path from your config</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Built-in Apache — grep the config for CustomLog</span>
+<span class="cmd">grep</span> <span class="fl">-i</span> <span class="st">"CustomLog"</span> /etc/apache2/httpd.conf
+
+<span class="cm"># Homebrew Apache</span>
+<span class="cmd">grep</span> <span class="fl">-i</span> <span class="st">"CustomLog"</span> /opt/homebrew/etc/httpd/httpd.conf</pre>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Reading the Access Log</h2>
+    </div>
+
+    <p>These are the essential Terminal commands for viewing log content in real time or reviewing history.</p>
+
+    <h3>Watch live traffic as it happens</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — live tailing</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Built-in Apache — watch every hit as it comes in</span>
+<span class="cmd">tail</span> <span class="fl">-f</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># Homebrew Apache</span>
+<span class="cmd">tail</span> <span class="fl">-f</span> <span class="pt">/opt/homebrew/var/log/httpd/access_log</span>
+
+<span class="cm"># Show last 100 lines then follow</span>
+<span class="cmd">tail</span> <span class="fl">-n 100 -f</span> <span class="pt">/private/var/log/apache2/access_log</span></pre>
+    </div>
+
+    <h3>View recent entries without following</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Last 50 lines</span>
+<span class="cmd">tail</span> <span class="fl">-n 50</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># First 20 lines (oldest entries)</span>
+<span class="cmd">head</span> <span class="fl">-n 20</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># Page through the whole file</span>
+<span class="cmd">less</span> <span class="pt">/private/var/log/apache2/access_log</span>
+<span class="cm"># In less: press G to jump to end, g to go to start, q to quit</span></pre>
+    </div>
+
+    <h3>Count total number of requests</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">wc</span> <span class="fl">-l</span> <span class="pt">/private/var/log/apache2/access_log</span>
+<span class="cm"># Each line = one request</span></pre>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>Filtering &amp; Searching the Log</h2>
+    </div>
+
+    <p>Use <code>grep</code> and <code>awk</code> to zero in on specific visitors, pages, errors, or time ranges without any extra tools.</p>
+
+    <h3>Find requests from a specific IP address</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — filter by IP</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">grep</span> <span class="st">"192.168.1.42"</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># Count how many times that IP visited</span>
+<span class="cmd">grep</span> <span class="fl">-c</span> <span class="st">"192.168.1.42"</span> <span class="pt">/private/var/log/apache2/access_log</span></pre>
+    </div>
+
+    <h3>Find all requests to a specific page or path</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — filter by URL path</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">grep</span> <span class="st">"GET /contact"</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># Any request containing /admin</span>
+<span class="cmd">grep</span> <span class="st">"/admin"</span> <span class="pt">/private/var/log/apache2/access_log</span></pre>
+    </div>
+
+    <h3>Find all 404 errors (pages not found)</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — filter by status code</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">grep</span> <span class="st">" 404 "</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># All 5xx server errors</span>
+<span class="cmd">grep</span> <span class="fl">-E</span> <span class="st">" 5[0-9]{2} "</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># All 4xx client errors</span>
+<span class="cmd">grep</span> <span class="fl">-E</span> <span class="st">" 4[0-9]{2} "</span> <span class="pt">/private/var/log/apache2/access_log</span></pre>
+    </div>
+
+    <h3>Filter by date or time window</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — filter by date</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># All entries on May 7th 2026</span>
+<span class="cmd">grep</span> <span class="st">"07/May/2026"</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># Between 2pm and 3pm</span>
+<span class="cmd">grep</span> <span class="st">"07/May/2026:14:"</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># This month</span>
+<span class="cmd">grep</span> <span class="st">"May/2026"</span> <span class="pt">/private/var/log/apache2/access_log</span></pre>
+    </div>
+
+    <h3>Filter by browser or device (User Agent)</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — filter by User Agent</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># All requests from iPhones</span>
+<span class="cmd">grep</span> <span class="fl">-i</span> <span class="st">"iphone"</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># All requests from bots/crawlers</span>
+<span class="cmd">grep</span> <span class="fl">-iE</span> <span class="st">"bot|crawler|spider"</span> <span class="pt">/private/var/log/apache2/access_log</span>
+
+<span class="cm"># Exclude bots — show only real visitors</span>
+<span class="cmd">grep</span> <span class="fl">-ivE</span> <span class="st">"bot|crawler|spider"</span> <span class="pt">/private/var/log/apache2/access_log</span></pre>
+    </div>
+
+    <h3>Combine filters (IP + status code)</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — chaining greps</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># All 404 errors from a specific IP</span>
+<span class="cmd">grep</span> <span class="st">"192.168.1.42"</span> <span class="pt">/private/var/log/apache2/access_log</span> | <span class="cmd">grep</span> <span class="st">" 404 "</span>
+
+<span class="cm"># Errors on a specific date</span>
+<span class="cmd">grep</span> <span class="st">"07/May/2026"</span> <span class="pt">/private/var/log/apache2/access_log</span> | <span class="cmd">grep</span> <span class="fl">-E</span> <span class="st">" [45][0-9]{2} "</span></pre>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>Traffic Analysis with awk</h2>
+    </div>
+
+    <p>These one-liners extract useful intelligence directly from the log file — no extra software needed.</p>
+
+    <h3>Top 10 visitor IP addresses</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — most active IPs</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">awk</span> <span class="st">'{print $1}'</span> <span class="pt">/private/var/log/apache2/access_log</span> \
+  | <span class="cmd">sort</span> | <span class="cmd">uniq</span> <span class="fl">-c</span> | <span class="cmd">sort</span> <span class="fl">-rn</span> | <span class="cmd">head</span> <span class="fl">-10</span></pre>
+    </div>
+
+    <h3>Top 10 most-requested pages</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — most visited URLs</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">awk</span> <span class="st">'{print $7}'</span> <span class="pt">/private/var/log/apache2/access_log</span> \
+  | <span class="cmd">sort</span> | <span class="cmd">uniq</span> <span class="fl">-c</span> | <span class="cmd">sort</span> <span class="fl">-rn</span> | <span class="cmd">head</span> <span class="fl">-10</span></pre>
+    </div>
+
+    <h3>Count requests by HTTP status code</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — breakdown by status</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">awk</span> <span class="st">'{print $9}'</span> <span class="pt">/private/var/log/apache2/access_log</span> \
+  | <span class="cmd">sort</span> | <span class="cmd">uniq</span> <span class="fl">-c</span> | <span class="cmd">sort</span> <span class="fl">-rn</span></pre>
+    </div>
+
+    <h3>Top referrers (where visitors came from)</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — top referrers</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">awk</span> <span class="st">'{print $11}'</span> <span class="pt">/private/var/log/apache2/access_log</span> \
+  | <span class="cmd">sort</span> | <span class="cmd">uniq</span> <span class="fl">-c</span> | <span class="cmd">sort</span> <span class="fl">-rn</span> | <span class="cmd">head</span> <span class="fl">-10</span></pre>
+    </div>
+
+    <h3>Unique visitor IPs (total distinct visitors)</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">awk</span> <span class="st">'{print $1}'</span> <span class="pt">/private/var/log/apache2/access_log</span> \
+  | <span class="cmd">sort</span> <span class="fl">-u</span> | <span class="cmd">wc</span> <span class="fl">-l</span></pre>
+    </div>
+
+    <h3>Total bandwidth served (bytes)</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">awk</span> <span class="st">'{sum += $10} END {print sum " bytes / " sum/1024/1024 " MB"}'</span> \
+  <span class="pt">/private/var/log/apache2/access_log</span></pre>
+    </div>
+
+    <h3>Requests per hour (traffic pattern)</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">awk</span> <span class="st">'{print substr($4,14,2)":00"}'</span> <span class="pt">/private/var/log/apache2/access_log</span> \
+  | <span class="cmd">sort</span> | <span class="cmd">uniq</span> <span class="fl">-c</span> | <span class="cmd">sort</span> <span class="fl">-k2</span></pre>
+    </div>
+  </section>
+
+  <!-- SECTION 5 — Status Codes -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>HTTP Status Codes in Logs</h2>
+    </div>
+
+    <p>The status code (field 9 in the log) tells you what happened with each request. Here are the ones you'll see most often:</p>
+
+    <div class="status-grid">
+      <div class="sg-cell s2xx">
+        <div class="sg-code">200</div>
+        <div class="sg-name">OK</div>
+        <div class="sg-desc">Request succeeded. Page delivered normally.</div>
+      </div>
+      <div class="sg-cell s2xx">
+        <div class="sg-code">201</div>
+        <div class="sg-name">Created</div>
+        <div class="sg-desc">Resource created (POST/PUT success).</div>
+      </div>
+      <div class="sg-cell s2xx">
+        <div class="sg-code">204</div>
+        <div class="sg-name">No Content</div>
+        <div class="sg-desc">Success but no body returned.</div>
+      </div>
+      <div class="sg-cell s3xx">
+        <div class="sg-code">301</div>
+        <div class="sg-name">Moved Permanently</div>
+        <div class="sg-desc">URL has permanently moved. Browser updates bookmark.</div>
+      </div>
+      <div class="sg-cell s3xx">
+        <div class="sg-code">302</div>
+        <div class="sg-name">Found / Redirect</div>
+        <div class="sg-desc">Temporary redirect to another URL.</div>
+      </div>
+      <div class="sg-cell s3xx">
+        <div class="sg-code">304</div>
+        <div class="sg-name">Not Modified</div>
+        <div class="sg-desc">Browser used its cached version.</div>
+      </div>
+      <div class="sg-cell s4xx">
+        <div class="sg-code">400</div>
+        <div class="sg-name">Bad Request</div>
+        <div class="sg-desc">Malformed request from client.</div>
+      </div>
+      <div class="sg-cell s4xx">
+        <div class="sg-code">401</div>
+        <div class="sg-name">Unauthorized</div>
+        <div class="sg-desc">Authentication required.</div>
+      </div>
+      <div class="sg-cell s4xx">
+        <div class="sg-code">403</div>
+        <div class="sg-name">Forbidden</div>
+        <div class="sg-desc">Server understood but refused access.</div>
+      </div>
+      <div class="sg-cell s4xx">
+        <div class="sg-code">404</div>
+        <div class="sg-name">Not Found</div>
+        <div class="sg-desc">Page or file does not exist.</div>
+      </div>
+      <div class="sg-cell s5xx">
+        <div class="sg-code">500</div>
+        <div class="sg-name">Server Error</div>
+        <div class="sg-desc">Apache/script crashed. Check error_log.</div>
+      </div>
+      <div class="sg-cell s5xx">
+        <div class="sg-code">503</div>
+        <div class="sg-name">Unavailable</div>
+        <div class="sg-desc">Server overloaded or in maintenance.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6 — Configuring Logs -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>Configuring Log Format &amp; Location</h2>
+    </div>
+
+    <p>You can control exactly what gets logged, in what format, and where, by editing your Apache config file.</p>
+
+    <h3>Make sure logging is enabled (httpd.conf)</h3>
+    <p>Open your config and confirm these two module lines are uncommented:</p>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">httpd.conf — required modules</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Built-in Apache paths:</span>
+<span class="kw">LoadModule</span> <span class="vl">log_config_module</span>  libexec/apache2/mod_log_config.so
+<span class="kw">LoadModule</span> <span class="vl">logio_module</span>       libexec/apache2/mod_logio.so
+
+<span class="cm"># Homebrew Apache paths:</span>
+<span class="kw">LoadModule</span> <span class="vl">log_config_module</span>  lib/httpd/modules/mod_log_config.so
+<span class="kw">LoadModule</span> <span class="vl">logio_module</span>       lib/httpd/modules/mod_logio.so</pre>
+    </div>
+
+    <h3>Log format definitions</h3>
+    <p>The <code>combined</code> format includes IP, timestamp, request, status, size, referrer, and user agent — this is the default and the most useful.</p>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">httpd.conf — built-in log formats</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># "combined" — most informative (recommended)</span>
+<span class="kw">LogFormat</span> <span class="st">"%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\""</span> combined
+
+<span class="cm"># "common" — minimal (no referrer or user agent)</span>
+<span class="kw">LogFormat</span> <span class="st">"%h %l %u %t \"%r\" %>s %b"</span> common
+
+<span class="cm"># Set which format to use and where to write:</span>
+<span class="kw">CustomLog</span> <span class="st">"/private/var/log/apache2/access_log"</span> combined</pre>
+    </div>
+
+    <h3>Custom log format with response time</h3>
+    <p>Add <code>%D</code> (microseconds) to log how long each request took — useful for performance debugging:</p>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">httpd.conf — add to your config</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="kw">LogFormat</span> <span class="st">"%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %D"</span> combined_time
+<span class="kw">CustomLog</span> <span class="st">"/private/var/log/apache2/access_log"</span> combined_time</pre>
+    </div>
+
+    <h3>Separate log per Virtual Host</h3>
+    <p>If you have virtual hosts, give each one its own log file inside the <code>&lt;VirtualHost&gt;</code> block:</p>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">httpd-vhosts.conf</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="kw">&lt;VirtualHost</span> <span class="vl">*:80</span><span class="kw">&gt;</span>
+    <span class="kw">ServerName</span>  myapp.test
+    <span class="kw">DocumentRoot</span> <span class="st">"/Users/YOUR_USERNAME/Sites/myapp"</span>
+
+    <span class="cm"># Separate access and error log per site</span>
+    <span class="kw">CustomLog</span>  <span class="st">"/private/var/log/apache2/myapp-access.log"</span>  combined
+    <span class="kw">ErrorLog</span>   <span class="st">"/private/var/log/apache2/myapp-error.log"</span>
+<span class="kw">&lt;/VirtualHost&gt;</span></pre>
+    </div>
+
+    <h3>LogFormat field reference</h3>
+    <table class="ref-table">
+      <thead><tr><th>Token</th><th>What it logs</th></tr></thead>
+      <tbody>
+        <tr><td><code>%h</code></td><td>Client IP address (or hostname if HostnameLookups On)</td></tr>
+        <tr><td><code>%l</code></td><td>RFC 1413 identity (almost always <code>-</code>)</td></tr>
+        <tr><td><code>%u</code></td><td>Authenticated username (<code>-</code> if no auth)</td></tr>
+        <tr><td><code>%t</code></td><td>Time the request was received</td></tr>
+        <tr><td><code>%r</code></td><td>First line of request (method + path + protocol)</td></tr>
+        <tr><td><code>%&gt;s</code></td><td>Final HTTP status code sent to client</td></tr>
+        <tr><td><code>%b</code></td><td>Bytes sent (excluding headers), <code>-</code> if zero</td></tr>
+        <tr><td><code>%{Referer}i</code></td><td>Referer header — where the visitor came from</td></tr>
+        <tr><td><code>%{User-Agent}i</code></td><td>User-Agent header — browser and OS string</td></tr>
+        <tr><td><code>%D</code></td><td>Request time in microseconds (performance)</td></tr>
+        <tr><td><code>%T</code></td><td>Request time in seconds</td></tr>
+        <tr><td><code>%v</code></td><td>ServerName of virtual host serving the request</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Apply changes</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Test config first</span>
+<span class="cmd">sudo apachectl</span> configtest
+
+<span class="cm"># Then graceful restart</span>
+<span class="cmd">sudo apachectl</span> graceful</pre>
+    </div>
+
+    <div class="callout teal">
+      <span class="ci">💡</span>
+      <p>After changing the log format, only <em>new</em> requests will use the new format. Existing log entries keep the old format. Consider rotating the log after a format change to keep things consistent.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 7 — Log Rotation -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <h2>Log Rotation &amp; Management</h2>
+    </div>
+
+    <p>Access logs grow without limit unless you rotate them. macOS uses <code>newsyslog</code> to rotate system logs automatically — Apache's built-in logs are included by default.</p>
+
+    <h3>Check current log size</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Check size of Apache log files</span>
+<span class="cmd">ls</span> <span class="fl">-lh</span> <span class="pt">/private/var/log/apache2/</span>
+
+<span class="cm"># Homebrew</span>
+<span class="cmd">ls</span> <span class="fl">-lh</span> <span class="pt">/opt/homebrew/var/log/httpd/</span></pre>
+    </div>
+
+    <h3>Manually rotate (truncate) the log</h3>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">Terminal — manual rotation</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Archive the current log with a timestamp</span>
+<span class="cmd">sudo mv</span> <span class="pt">/private/var/log/apache2/access_log</span> \
+        <span class="pt">/private/var/log/apache2/access_log.$(date +%Y%m%d)</span>
+
+<span class="cm"># Graceful restart so Apache creates a fresh log file</span>
+<span class="cmd">sudo apachectl</span> graceful</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="ci">⚠️</span>
+      <p>Never just delete an active log file while Apache is running — it will keep writing to the deleted file descriptor. Always move or rename it, then do a graceful restart so Apache opens a new file.</p>
+    </div>
+
+    <h3>Disable logging entirely (not recommended)</h3>
+    <p>If you want to turn off access logging completely, comment out the <code>CustomLog</code> line in <code>httpd.conf</code>:</p>
+    <div class="code-block">
+      <div class="cb-top">
+        <span class="cb-label">httpd.conf</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Add a # to disable:</span>
+#CustomLog "/private/var/log/apache2/access_log" combined</pre>
+    </div>
+  </section>
+
+  <footer>
+    <span>APACHE ACCESS LOGS GUIDE</span>
+    <span>MACOS M4 · MAY 2026</span>
+    <span>GENERATED WITH CLAUDE</span>
+  </footer>
+
+</div>
+
+<script>
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'COPIED ✓';
+      btn.style.color = 'var(--teal-mid)';
+      btn.style.borderColor = 'var(--teal-mid)';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 1800);
+    });
+  }
+</script>
+
+</body>
+</html>

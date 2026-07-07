@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyond Perl/Tk — Alternative GUI Toolkits for Perl 5 on FreeBSD 16</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+/* ── Design tokens ──────────────────────────────────────────────────── */
+:root {
+  --bg:      #09090f; --bg-side: #05050a; --bg-card: #0f0f1c;
+  --bg-code: #0c0c18; --border:  #1e1e30;
+  --amber:   #f0a030; --amber-d: #b87820; --amber-g: #f0a03018;
+  --text:    #e2d9c8; --dim:     #9b9380;  --muted:   #5a5448;
+  --accent:  #4db8ff; --green:   #6fcf97;  --red:     #eb5757;
+  --purple:  #9b7de0; --teal:    #4dd0c8;  --orange:  #e08030;
+  --sw: 268px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text);
+       font-family: 'Source Serif 4', Georgia, serif;
+       font-size: 16.5px; line-height: 1.78; display: flex; min-height: 100vh; }
+
+/* ── Sidebar ────────────────────────────────────────────────────────── */
+#sb { width: var(--sw); min-width: var(--sw); background: var(--bg-side);
+      border-right: 1px solid var(--border); position: fixed; top: 0;
+      left: 0; bottom: 0; overflow-y: auto; z-index: 100; padding-bottom: 40px; }
+#sb::-webkit-scrollbar { width: 4px; }
+#sb::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.sb-logo { padding: 26px 20px 16px; border-bottom: 1px solid var(--border); }
+.sb-title { font-family: 'Playfair Display', serif; font-size: 14px;
+            font-weight: 700; color: var(--amber); line-height: 1.3; }
+.sb-sub   { font-family: 'JetBrains Mono', monospace; font-size: 10px;
+            color: var(--muted); margin-top: 3px; letter-spacing: .06em; }
+.sb-head  { padding: 14px 20px 4px; font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; letter-spacing: .16em; color: var(--amber);
+            text-transform: uppercase; }
+.sb-tk    { padding: 4px 20px 4px 12px; margin: 0 8px;
+            border-left: 3px solid transparent; font-family: 'JetBrains Mono', monospace;
+            font-size: 11px; }
+.sb-tk.wx     { border-color: var(--purple); color: var(--purple); }
+.sb-tk.gtk    { border-color: var(--teal);   color: var(--teal);   }
+.sb-tk.prima  { border-color: var(--green);  color: var(--green);  }
+.sb-tk.iup    { border-color: var(--orange); color: var(--orange); }
+a.lk { display: block; padding: 4px 20px; text-decoration: none;
+       color: var(--dim); font-family: 'JetBrains Mono', monospace;
+       font-size: 12px; border-left: 2px solid transparent;
+       transition: color .14s, background .14s; }
+a.lk:hover  { color: var(--text); background: var(--bg-card); }
+a.lk.act    { color: var(--amber); border-left-color: var(--amber); background: var(--amber-g); }
+
+/* ── Main ───────────────────────────────────────────────────────────── */
+#main    { margin-left: var(--sw); flex: 1; min-width: 0; }
+#content { max-width: 900px; margin: 0 auto; padding: 56px 48px 100px; }
+
+/* ── Hero ───────────────────────────────────────────────────────────── */
+.hero { padding-bottom: 44px; border-bottom: 1px solid var(--border); margin-bottom: 54px; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px;
+           letter-spacing: .18em; color: var(--amber); text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(30px,4.5vw,52px);
+           font-weight: 900; line-height: 1.1; margin-bottom: 10px; }
+.hero h1 em { font-style: italic; color: var(--amber); }
+.hero p  { font-style: italic; font-size: 18px; color: var(--dim);
+           font-weight: 300; margin-bottom: 24px; }
+.badges  { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge   { background: var(--bg-card); border: 1px solid var(--border);
+           font-family: 'JetBrains Mono', monospace; font-size: 11px;
+           color: var(--dim); padding: 4px 10px; border-radius: 3px; }
+.badge.wx     { border-color: var(--purple); color: var(--purple); }
+.badge.gtk    { border-color: var(--teal);   color: var(--teal);   }
+.badge.prima  { border-color: var(--green);  color: var(--green);  }
+.badge.iup    { border-color: var(--orange); color: var(--orange); }
+.badge.amber  { border-color: var(--amber-d); color: var(--amber); }
+
+/* ── Section headers ────────────────────────────────────────────────── */
+.sec { margin-bottom: 70px; scroll-margin-top: 20px; }
+.sh  { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px;
+       padding-bottom: 12px; border-bottom: 2px solid; }
+.sh.wx    { border-color: var(--purple); }
+.sh.gtk   { border-color: var(--teal);   }
+.sh.prima { border-color: var(--green);  }
+.sh.iup   { border-color: var(--orange); }
+.sh.amber { border-color: var(--amber);  }
+.tk-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px;
+            padding: 3px 10px; border-radius: 3px; letter-spacing: .06em; }
+.tk-badge.wx    { background: #1a102a; color: var(--purple); border: 1px solid var(--purple); }
+.tk-badge.gtk   { background: #0a1a1a; color: var(--teal);   border: 1px solid var(--teal);   }
+.tk-badge.prima { background: #0a1a10; color: var(--green);  border: 1px solid var(--green);  }
+.tk-badge.iup   { background: #1a1208; color: var(--orange); border: 1px solid var(--orange); }
+.sh h2 { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; }
+h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700;
+     color: var(--amber); margin: 28px 0 10px; }
+h4 { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500;
+     letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin: 20px 0 8px; }
+p  { margin-bottom: 13px; } p:last-child { margin-bottom: 0; }
+strong { color: var(--text); }
+em     { color: var(--amber); font-style: italic; }
+ul, ol { padding-left: 22px; margin: 10px 0; }
+li     { margin-bottom: 5px; }
+ul li::marker { color: var(--amber-d); }
+
+/* ── Code blocks ────────────────────────────────────────────────────── */
+.cb  { position: relative; margin: 16px 0; border-radius: 6px;
+       overflow: hidden; border: 1px solid var(--border); background: var(--bg-code); }
+.ch  { display: flex; align-items: center; justify-content: space-between;
+       padding: 7px 14px; background: #0a0a14; border-bottom: 1px solid var(--border); }
+.cl  { font-family: 'JetBrains Mono', monospace; font-size: 10px;
+       letter-spacing: .12em; color: var(--amber); text-transform: uppercase; }
+.cf  { font-family: 'JetBrains Mono', monospace; font-size: 10px;
+       color: var(--muted); }
+.cp  { background: none; border: 1px solid var(--border); color: var(--muted);
+       font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px;
+       border-radius: 3px; cursor: pointer; transition: all .14s; }
+.cp:hover { color: var(--amber); border-color: var(--amber-d); }
+.cp.ok    { color: var(--green); border-color: var(--green); }
+.cb pre[class*="language-"] { margin: 0; padding: 18px 20px;
+    background: transparent !important; font-size: 13px; line-height: 1.68; overflow-x: auto; }
+.cb code[class*="language-"] { font-family: 'JetBrains Mono', monospace !important; }
+/* Amber Prism overrides */
+.token.comment, .token.prolog { color: #6a7a5a !important; font-style: italic; }
+.token.keyword  { color: #f0a030 !important; font-weight: 500; }
+.token.string, .token.char { color: #a8d8a0 !important; }
+.token.number   { color: #a8c4e0 !important; }
+.token.operator { color: #d4c090 !important; }
+.token.function { color: #8fbce0 !important; }
+.token.variable { color: #e0b87a !important; }
+.token.regex    { color: #d4a0c8 !important; }
+.token.punctuation { color: #6a7080 !important; }
+code:not([class]) { font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    background: var(--bg-card); color: var(--amber); padding: 2px 6px;
+    border-radius: 3px; border: 1px solid var(--border); }
+
+/* ── Tables ─────────────────────────────────────────────────────────── */
+.tw { overflow-x: auto; margin: 16px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+thead tr { background: var(--bg-card); border-bottom: 2px solid var(--amber-d); }
+th { text-align: left; padding: 10px 14px; font-family: 'JetBrains Mono', monospace;
+     font-size: 10.5px; letter-spacing: .1em; color: var(--amber); text-transform: uppercase; }
+td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:hover { background: var(--bg-card); }
+
+/* ── Callouts ───────────────────────────────────────────────────────── */
+.ca   { padding: 14px 18px; border-radius: 4px; border-left: 3px solid;
+        margin: 16px 0; font-size: 14.5px; }
+.ca.n { background: #0a1020; border-color: var(--accent);  color: #a8c8e0; }
+.ca.t { background: #081510; border-color: var(--green);   color: #90c890; }
+.ca.w { background: #130c04; border-color: var(--amber);   color: #c8a060; }
+.ca.r { background: #100a0a; border-color: var(--red);     color: #c88080; }
+.ca strong { color: inherit; }
+
+/* ── Install steps ──────────────────────────────────────────────────── */
+.is { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+.in { background: var(--amber); color: var(--bg); font-family: 'JetBrains Mono', monospace;
+     font-size: 12px; font-weight: 700; width: 26px; height: 26px; border-radius: 50%;
+     display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.ic { flex: 1; }
+.ic strong { display: block; color: var(--text); font-family: 'Playfair Display', serif;
+             font-size: 15px; margin-bottom: 6px; }
+
+/* ── Concept grid ───────────────────────────────────────────────────── */
+.cg { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr));
+      gap: 10px; margin: 16px 0; }
+.cc { background: var(--bg-card); border: 1px solid var(--border);
+      padding: 13px 15px; border-radius: 4px; transition: border-color .14s; }
+.cc:hover { border-color: var(--amber-d); }
+.cc .cn { font-family: 'JetBrains Mono', monospace; font-size: 12px;
+          color: var(--amber); margin-bottom: 5px; }
+.cc p   { font-size: 13px; color: var(--dim); margin: 0; }
+
+/* ── Comparison strip ───────────────────────────────────────────────── */
+.tk-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 20px 0; }
+.tk-card  { background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 18px 16px; text-align: center;
+            transition: border-color .2s, transform .2s; }
+.tk-card:hover { transform: translateY(-3px); }
+.tk-card.wx     { border-top: 3px solid var(--purple); }
+.tk-card.gtk    { border-top: 3px solid var(--teal);   }
+.tk-card.prima  { border-top: 3px solid var(--green);  }
+.tk-card.iup    { border-top: 3px solid var(--orange); }
+.tk-card .tk-name { font-family: 'Playfair Display', serif; font-size: 17px;
+                    font-weight: 700; margin-bottom: 4px; }
+.tk-card.wx     .tk-name { color: var(--purple); }
+.tk-card.gtk    .tk-name { color: var(--teal);   }
+.tk-card.prima  .tk-name { color: var(--green);  }
+.tk-card.iup    .tk-name { color: var(--orange); }
+.tk-card .tk-mod { font-family: 'JetBrains Mono', monospace; font-size: 11px;
+                   color: var(--muted); margin-bottom: 10px; }
+.tk-card .tk-tag { font-size: 12.5px; color: var(--dim); }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 920px) {
+  #sb { transform: translateX(-100%); transition: transform .2s; }
+  #sb.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  #content { padding: 40px 22px 80px; }
+  #mt { display: flex; }
+  .tk-strip { grid-template-columns: repeat(2,1fr); }
+}
+#mt { display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--amber); padding: 8px 12px; border-radius: 4px; cursor: pointer;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<button id="mt" onclick="document.getElementById('sb').classList.toggle('open')">☰ Menu</button>
+
+<!-- ═══════════════════════════════════════════ SIDEBAR -->
+<nav id="sb">
+  <div class="sb-logo">
+    <div class="sb-title">Beyond Perl/Tk</div>
+    <div class="sb-sub">alternative gui toolkits · perl 5</div>
+  </div>
+
+  <div class="sb-head">Overview</div>
+  <a class="lk" href="#overview">Toolkit Comparison</a>
+  <a class="lk" href="#install">FreeBSD 16 Install</a>
+
+  <div class="sb-head">wxPerl (Wx)</div>
+  <div class="sb-tk wx">wxWidgets binding</div>
+  <a class="lk" href="#wx-concepts">Concepts</a>
+  <a class="lk" href="#wx-hello">Hello World</a>
+  <a class="lk" href="#wx-app">Full App</a>
+
+  <div class="sb-head">Gtk3</div>
+  <div class="sb-tk gtk">GTK3 binding</div>
+  <a class="lk" href="#gtk-concepts">Concepts</a>
+  <a class="lk" href="#gtk-hello">Hello World</a>
+  <a class="lk" href="#gtk-app">Full App</a>
+
+  <div class="sb-head">Prima</div>
+  <div class="sb-tk prima">Perl-native toolkit</div>
+  <a class="lk" href="#prima-concepts">Concepts</a>
+  <a class="lk" href="#prima-hello">Hello World</a>
+  <a class="lk" href="#prima-app">Full App</a>
+
+  <div class="sb-head">IUP</div>
+  <div class="sb-tk iup">Lightweight cross-platform</div>
+  <a class="lk" href="#iup">Overview &amp; Examples</a>
+
+  <div class="sb-head">Decision Guide</div>
+  <a class="lk" href="#choose">Which to Choose</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════ MAIN -->
+<main id="main"><div id="content">
+
+<!-- Hero -->
+<header class="hero">
+  <div class="eyebrow">Perl 5 GUI Development · FreeBSD 16 via Lima</div>
+  <h1>Beyond <em>Perl/Tk</em></h1>
+  <p>Four alternative GUI toolkits — each with complete working examples.</p>
+  <div class="badges">
+    <span class="badge wx">Wx — wxPerl</span>
+    <span class="badge gtk">Gtk3</span>
+    <span class="badge prima">Prima</span>
+    <span class="badge iup">IUP</span>
+    <span class="badge amber">FreeBSD 16 · Lima · X11</span>
+  </div>
+</header>
+
+<!-- ═══════════════════ OVERVIEW ══════════════════════════════════════ -->
+<section class="sec" id="overview">
+  <div class="sh amber"><h2>Toolkit Overview &amp; Comparison</h2></div>
+
+  <p>Perl/Tk is not the only game in town. Four mature GUI toolkits offer excellent Perl 5 bindings, each with a distinct philosophy:</p>
+
+  <div class="tk-strip">
+    <div class="tk-card wx">
+      <div class="tk-name">wxPerl</div>
+      <div class="tk-mod">use Wx</div>
+      <div class="tk-tag">Native widgets via wxWidgets. Closest to Tk in feel. Best Windows + Linux cross-compat.</div>
+    </div>
+    <div class="tk-card gtk">
+      <div class="tk-name">Gtk3</div>
+      <div class="tk-mod">use Gtk3</div>
+      <div class="tk-tag">GTK3 binding. Natural on FreeBSD/GNOME/XFCE. CSS theming. Signal/slot model.</div>
+    </div>
+    <div class="tk-card prima">
+      <div class="tk-name">Prima</div>
+      <div class="tk-mod">use Prima</div>
+      <div class="tk-tag">Written entirely in Perl+C. Its own rendering engine. No external toolkit dependency.</div>
+    </div>
+    <div class="tk-card iup">
+      <div class="tk-name">IUP</div>
+      <div class="tk-mod">use IUP</div>
+      <div class="tk-tag">Tiny, fast, attribute-driven API. PUC-Rio origin. Unique layout engine.</div>
+    </div>
+  </div>
+
+  <h3>Feature Comparison</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Wx (wxPerl)</th><th>Gtk3</th><th>Prima</th><th>IUP</th></tr></thead>
+    <tbody>
+      <tr><td><strong>FreeBSD pkg</strong></td><td><code>p5-Wx</code></td><td><code>p5-Gtk3</code></td><td><code>p5-Prima</code></td><td>cpanm IUP</td></tr>
+      <tr><td><strong>Architecture</strong></td><td>wxWidgets C++ binding</td><td>GObject introspection</td><td>Perl + C engine</td><td>C library binding</td></tr>
+      <tr><td><strong>Layout</strong></td><td>Sizers (powerful)</td><td>Box/Grid containers</td><td>Absolute + Layout</td><td>Attribute-driven</td></tr>
+      <tr><td><strong>Theming</strong></td><td>System native</td><td>CSS stylesheets</td><td>Built-in skins</td><td>Minimal, consistent</td></tr>
+      <tr><td><strong>Learning curve</strong></td><td>Moderate</td><td>Moderate</td><td>Steep (inverted Y)</td><td>Easy</td></tr>
+      <tr><td><strong>Documentation</strong></td><td>Excellent</td><td>Good</td><td>Fair</td><td>Good</td></tr>
+      <tr><td><strong>OOP style</strong></td><td>Subclass frames</td><td>Functional/OOP</td><td>Property-based OOP</td><td>Functional/OOP</td></tr>
+      <tr><td><strong>Event model</strong></td><td>EVT_* macros</td><td>signal_connect</td><td>onEvent callbacks</td><td>callbacks</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Desktop apps, menus</td><td>Linux/BSD apps</td><td>Custom graphics</td><td>Quick utilities</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ═══════════════════ INSTALL ═══════════════════════════════════════ -->
+<section class="sec" id="install">
+  <div class="sh amber"><h2>Installing on FreeBSD 16 via Lima</h2></div>
+  <p>All four toolkits are available in FreeBSD's ports/packages. Run these commands <em>inside</em> the Lima VM after connecting with <code>ssh -X</code>.</p>
+
+  <div class="is">
+    <div class="in">1</div>
+    <div class="ic">
+      <strong>wxPerl</strong>
+      <div class="cb"><div class="ch"><span class="cl">bash</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pkg install p5-Wx
+# Verify:
+perl -e 'use Wx; print "wxWidgets ", $Wx::wx_version, "\n"'</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="in">2</div>
+    <div class="ic">
+      <strong>Gtk3</strong>
+      <div class="cb"><div class="ch"><span class="cl">bash</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pkg install p5-Gtk3 p5-Glib
+# Verify:
+perl -e 'use Gtk3; print "Gtk3 OK\n"'</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="in">3</div>
+    <div class="ic">
+      <strong>Prima</strong>
+      <div class="cb"><div class="ch"><span class="cl">bash</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pkg install p5-Prima
+# or build from ports:
+cd /usr/ports/x11-toolkits/p5-Prima && make install clean
+# Verify:
+perl -e 'use Prima; print Prima::Application->new->version, "\n"'</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="in">4</div>
+    <div class="ic">
+      <strong>IUP</strong>
+      <div class="cb"><div class="ch"><span class="cl">bash</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pkg install iup
+cpanm IUP
+# Verify:
+perl -e 'use IUP; print "IUP OK\n"'</code></pre></div>
+    </div>
+  </div>
+
+  <div class="ca t"><strong>Tip:</strong> Run <code>echo $DISPLAY</code> before any GUI program. If empty, reconnect with <code>ssh -X -p $PORT -i ~/.lima/_config/user 127.0.0.1</code>. Windows appear in XQuartz on your macOS host.</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     WX — wxPerl
+══════════════════════════════════════════════════════════════════════ -->
+
+<section class="sec" id="wx-concepts">
+  <div class="sh wx"><span class="tk-badge wx">wxPerl · Wx</span><h2>Core Concepts</h2></div>
+
+  <p>wxPerl wraps the <strong>wxWidgets</strong> C++ library. The three key ideas to understand are the <em>App/Frame pattern</em>, the <em>Panel+Sizer layout system</em>, and the <em>EVT_* event macros</em>.</p>
+
+  <h3>The App / Frame Pattern</h3>
+  <p>Every wxPerl program has two mandatory classes: a <code>Wx::App</code> subclass that owns the event loop, and at least one <code>Wx::Frame</code> subclass for each window.</p>
+  <div class="cb"><div class="ch"><span class="cl">perl — structure</span></div>
+<pre><code class="language-perl">package MyApp;
+use parent -norequire, 'Wx::App';
+sub OnInit {
+    my ($self) = @_;
+    my $frame = MyFrame->new;      # Create the main window
+    $self->SetTopWindow($frame);   # Tell app which window is "main"
+    $frame->Show(1);               # Make it visible
+    return 1;                      # MUST return true
+}
+
+package MyFrame;
+use parent -norequire, 'Wx::Frame';
+sub new {
+    my ($class) = @_;
+    my $self = $class->SUPER::new(
+        undef,                    # No parent window
+        wxID_ANY,                 # Auto-assign ID
+        "My Application",         # Title bar text
+        wxDefaultPosition,        # OS decides where to place it
+        Wx::Size->new(700, 500),  # Width x Height in pixels
+        wxDEFAULT_FRAME_STYLE,    # Standard minimize/maximize/close
+    );
+    # ... add widgets here ...
+    return $self;
+}
+
+package main;
+MyApp->new->MainLoop;  # Create app and enter event loop</code></pre></div>
+
+  <h3>Panels and Sizers</h3>
+  <p>Widgets should always be placed on a <code>Wx::Panel</code> (not directly on the frame). Layout is controlled by <strong>Sizers</strong> — objects that position and resize widgets automatically when the window changes size.</p>
+
+  <div class="cg">
+    <div class="cc"><div class="cn">Wx::BoxSizer</div><p>Lays out widgets in a row (H) or column (V). The most-used sizer.</p></div>
+    <div class="cc"><div class="cn">Wx::StaticBoxSizer</div><p>Like BoxSizer but draws a labeled border box around the group.</p></div>
+    <div class="cc"><div class="cn">Wx::GridSizer</div><p>Equal-sized grid cells. Good for button grids.</p></div>
+    <div class="cc"><div class="cn">Wx::FlexGridSizer</div><p>Grid where rows/columns can have different sizes.</p></div>
+  </div>
+
+  <div class="cb"><div class="ch"><span class="cl">perl — sizer example</span></div>
+<pre><code class="language-perl">my $panel = Wx::Panel->new($frame, wxID_ANY);
+my $sizer = Wx::BoxSizer->new(wxVERTICAL);  # Vertical column
+
+# $sizer->Add($widget, $proportion, $flags, $border)
+#   $proportion: 0 = fixed size,  1+ = stretches proportionally
+#   $flags:      wxEXPAND, wxALL, wxALIGN_CENTER, etc.
+#   $border:     pixels of padding around the widget
+
+my $label  = Wx::StaticText->new($panel, wxID_ANY, "Name:");
+my $entry  = Wx::TextCtrl->new($panel, wxID_ANY, "");
+my $button = Wx::Button->new($panel, wxID_ANY, "OK");
+
+$sizer->Add($label,  0, wxALL,              6);   # Fixed, 6px pad
+$sizer->Add($entry,  0, wxEXPAND | wxALL,   6);   # Full width, 6px pad
+$sizer->Add($button, 0, wxALIGN_RIGHT | wxALL, 6); # Right-aligned
+
+$panel->SetSizer($sizer);
+$sizer->SetSizeHints($frame);   # Resize frame to fit contents</code></pre></div>
+
+  <h3>Event Binding with EVT_* Macros</h3>
+  <div class="cb"><div class="ch"><span class="cl">perl — events</span></div>
+<pre><code class="language-perl">use Wx::Event qw(EVT_BUTTON EVT_MENU EVT_TEXT EVT_CLOSE EVT_SIZE);
+
+# EVT_BUTTON($handler_object, $button_widget, \&callback_sub)
+EVT_BUTTON($frame, $ok_btn, \&on_ok);
+EVT_BUTTON($frame, $cancel_btn, sub {
+    my ($frame_self, $event) = @_;   # First arg is always the handler object
+    $frame_self->Close;
+});
+
+# Menu events use the menu item ID
+EVT_MENU($frame, wxID_EXIT,  sub { $_[0]->Close(1) });
+EVT_MENU($frame, wxID_ABOUT, \&on_about);
+
+# Named callback receives ($self, $event)
+sub on_ok {
+    my ($self, $event) = @_;
+    Wx::MessageBox("OK clicked!", "Info", wxOK | wxICON_INFORMATION, $self);
+}</code></pre></div>
+
+  <h3>Key Constants</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Category</th><th>Constants</th></tr></thead>
+    <tbody>
+      <tr><td>Orientation</td><td><code>wxHORIZONTAL  wxVERTICAL</code></td></tr>
+      <tr><td>Sizer flags</td><td><code>wxEXPAND  wxALL  wxTOP wxBOTTOM wxLEFT wxRIGHT  wxALIGN_CENTER  wxALIGN_RIGHT</code></td></tr>
+      <tr><td>IDs</td><td><code>wxID_ANY  wxID_OK  wxID_CANCEL  wxID_EXIT  wxID_ABOUT  wxID_NEW  wxID_OPEN  wxID_SAVE</code></td></tr>
+      <tr><td>Dialog buttons</td><td><code>wxOK  wxCANCEL  wxYES  wxNO  wxYES_NO  wxOK_DEFAULT</code></td></tr>
+      <tr><td>Dialog icons</td><td><code>wxICON_INFORMATION  wxICON_WARNING  wxICON_ERROR  wxICON_QUESTION</code></td></tr>
+      <tr><td>Text style</td><td><code>wxTE_MULTILINE  wxTE_READONLY  wxTE_RICH2  wxTE_PROCESS_ENTER</code></td></tr>
+      <tr><td>Font</td><td><code>wxFONTFAMILY_DEFAULT  wxFONTFAMILY_MODERN  wxFONTSTYLE_NORMAL  wxFONTWEIGHT_BOLD</code></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sec" id="wx-hello">
+  <div class="sh wx"><span class="tk-badge wx">wxPerl · Hello World</span><h2>Hello World</h2></div>
+  <p>The minimal wxPerl program: an App class, a Frame with a Panel, a label, and a button.</p>
+
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">wx_hello.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  wx_hello.pl  —  Minimal wxPerl window
+#  Install:  pkg install p5-Wx
+#  Run:      perl wx_hello.pl
+# =============================================================================
+use strict;
+use warnings;
+use Wx qw(:everything);
+use Wx::Event qw(EVT_BUTTON);
+
+# ── Application: owns the event loop ──────────────────────────────────────────
+package HelloApp;
+use parent -norequire, 'Wx::App';
+
+sub OnInit {
+    my ($self) = @_;
+    my $frame = HelloFrame->new;
+    $self->SetTopWindow($frame);
+    $frame->Show(1);
+    return 1;   # Must return true or app exits immediately
+}
+
+# ── Main window ───────────────────────────────────────────────────────────────
+package HelloFrame;
+use parent -norequire, 'Wx::Frame';
+use Wx qw(:everything);
+use Wx::Event qw(EVT_BUTTON);
+
+sub new {
+    my ($class) = @_;
+    my $self = $class->SUPER::new(
+        undef, wxID_ANY,
+        'Hello from wxPerl!',       # Window title
+        wxDefaultPosition,
+        Wx::Size->new(400, 200),    # Width, Height
+    );
+
+    # Panel is the correct container for widgets in a Frame
+    my $panel = Wx::Panel->new($self, wxID_ANY);
+    my $sizer = Wx::BoxSizer->new(wxVERTICAL);
+
+    # Label with large bold font
+    my $lbl = Wx::StaticText->new(
+        $panel, wxID_ANY,
+        'Hello, wxPerl!',
+        wxDefaultPosition, wxDefaultSize,
+        wxALIGN_CENTRE_HORIZONTAL,
+    );
+    $lbl->SetFont(Wx::Font->new(
+        18,                      # Point size
+        wxFONTFAMILY_DEFAULT,    # Family
+        wxFONTSTYLE_NORMAL,      # Style
+        wxFONTWEIGHT_BOLD,       # Weight
+    ));
+    $sizer->Add($lbl, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 24);
+
+    # Button
+    my $btn = Wx::Button->new($panel, wxID_ANY, 'Greet Me');
+    $sizer->Add($btn, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, 20);
+
+    $panel->SetSizer($sizer);
+    $sizer->SetSizeHints($self);   # Resize frame to fit sizer
+
+    # Bind button click — EVT_BUTTON($handler, $button, $callback)
+    EVT_BUTTON($self, $btn, sub {
+        Wx::MessageBox(
+            'Greetings from wxPerl on FreeBSD 16!',
+            'Hello',
+            wxOK | wxICON_INFORMATION,
+            $self,
+        );
+    });
+
+    return $self;
+}
+
+# ── Entry point ───────────────────────────────────────────────────────────────
+package main;
+HelloApp->new->MainLoop;</code></pre></div>
+</section>
+
+<section class="sec" id="wx-app">
+  <div class="sh wx"><span class="tk-badge wx">wxPerl · Full Application</span><h2>wxPerl Greeting Generator</h2></div>
+  <p>A complete application demonstrating menus, <code>StaticBoxSizer</code> grouped inputs, a <code>Wx::Choice</code> dropdown, a multiline read-only output area, a status bar with two fields, and a confirm-on-close dialog.</p>
+
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">wx_greeting.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  wx_greeting.pl  —  wxPerl complete application demo
+#  Demonstrates: menus, StaticBoxSizer, Choice, TextCtrl (multi), status bar,
+#                EVT_TEXT_ENTER, close intercept, MessageDialog
+#  Install:  pkg install p5-Wx
+#  Run:      perl wx_greeting.pl
+# =============================================================================
+use strict;
+use warnings;
+use Wx qw(:everything);
+use Wx::Event qw(EVT_BUTTON EVT_CLOSE EVT_MENU EVT_TEXT_ENTER);
+
+# ══════════════════════════════════════════════════════════════════════
+# Application class
+# ══════════════════════════════════════════════════════════════════════
+package GreetApp;
+use parent -norequire, 'Wx::App';
+
+sub OnInit {
+    my ($self) = @_;
+    my $frame = GreetFrame->new;
+    $self->SetTopWindow($frame);
+    $frame->Show(1);
+    return 1;
+}
+
+# ══════════════════════════════════════════════════════════════════════
+# Main frame
+# ══════════════════════════════════════════════════════════════════════
+package GreetFrame;
+use parent -norequire, 'Wx::Frame';
+use Wx qw(:everything);
+use Wx::Event qw(EVT_BUTTON EVT_CLOSE EVT_MENU EVT_TEXT_ENTER);
+
+sub new {
+    my ($class) = @_;
+    my $self = $class->SUPER::new(
+        undef, wxID_ANY,
+        'wxPerl Greeting Generator',
+        wxDefaultPosition,
+        Wx::Size->new(640, 520),
+        wxDEFAULT_FRAME_STYLE,
+    );
+
+    $self->{count} = 0;           # State: number of greetings generated
+    $self->_build_menubar;
+    $self->_build_body;
+    $self->_build_statusbar;
+    EVT_CLOSE($self, \&on_close);
+    return $self;
+}
+
+# ── Menu bar ──────────────────────────────────────────────────────────
+sub _build_menubar {
+    my ($self) = @_;
+    my $bar = Wx::MenuBar->new;
+
+    my $file = Wx::Menu->new;
+    $file->Append(wxID_NEW,  "New\tCtrl+N");
+    $file->AppendSeparator;
+    $file->Append(wxID_EXIT, "Quit\tCtrl+Q");
+
+    my $help = Wx::Menu->new;
+    $help->Append(wxID_ABOUT, "About…");
+
+    $bar->Append($file, "&File");
+    $bar->Append($help, "&Help");
+    $self->SetMenuBar($bar);
+
+    EVT_MENU($self, wxID_NEW,   \&on_new);
+    EVT_MENU($self, wxID_EXIT,  sub { $_[0]->Close(1) });
+    EVT_MENU($self, wxID_ABOUT, \&on_about);
+}
+
+# ── Main UI ───────────────────────────────────────────────────────────
+sub _build_body {
+    my ($self) = @_;
+    my $panel = Wx::Panel->new($self, wxID_ANY);
+    my $root  = Wx::BoxSizer->new(wxVERTICAL);
+
+    # ── Title label ──────────────────────────────────────────────────
+    my $title = Wx::StaticText->new($panel, wxID_ANY, "wxPerl Greeting Generator");
+    $title->SetFont(Wx::Font->new(
+        16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD
+    ));
+    $root->Add($title, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 12);
+
+    # ── Input group — StaticBoxSizer creates a labeled bordered region ──
+    my $in_sizer = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new($panel, wxID_ANY, "Your Details"),
+        wxVERTICAL,
+    );
+
+    # Helper: build a label+control row and add it to $in_sizer
+    my $add_row = sub {
+        my ($label, $ctrl) = @_;
+        my $row = Wx::BoxSizer->new(wxHORIZONTAL);
+        my $lbl = Wx::StaticText->new($panel, wxID_ANY, $label);
+        $row->Add($lbl,  0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 8);
+        $row->Add($ctrl, 1, wxEXPAND);
+        $in_sizer->Add($row, 0, wxEXPAND | wxALL, 6);
+    };
+
+    # Name entry — process Enter key to trigger generation
+    my $name_ctrl = Wx::TextCtrl->new(
+        $panel, wxID_ANY, "",
+        wxDefaultPosition, Wx::Size->new(260, -1),
+        wxTE_PROCESS_ENTER,          # Enable EVT_TEXT_ENTER
+    );
+    $add_row->("Name:     ", $name_ctrl);
+
+    # Greeting selector dropdown
+    my $choice = Wx::Choice->new(
+        $panel, wxID_ANY,
+        wxDefaultPosition, wxDefaultSize,
+        ["Hello", "Hi there", "Greetings", "Good day", "Howdy", "Salutations"],
+    );
+    $choice->SetSelection(0);
+    $add_row->("Greeting: ", $choice);
+
+    $root->Add($in_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
+
+    # ── Button row ────────────────────────────────────────────────────
+    my $btn_row  = Wx::BoxSizer->new(wxHORIZONTAL);
+    my $gen_btn  = Wx::Button->new($panel, wxID_ANY, "Generate ▶");
+    my $clr_btn  = Wx::Button->new($panel, wxID_ANY, "Clear");
+    $gen_btn->SetDefault;   # Pressing Enter anywhere triggers this
+    $btn_row->Add($gen_btn, 0, wxRIGHT, 8);
+    $btn_row->Add($clr_btn, 0);
+    $root->Add($btn_row, 0, wxLEFT | wxBOTTOM, 10);
+
+    # ── Output text area — StaticBoxSizer with multiline TextCtrl ─────
+    my $out_sizer = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new($panel, wxID_ANY, "Generated Greetings"),
+        wxVERTICAL,
+    );
+    my $output = Wx::TextCtrl->new(
+        $panel, wxID_ANY, "",
+        wxDefaultPosition, wxDefaultSize,
+        wxTE_MULTILINE | wxTE_READONLY,  # Read-only, multi-line
+    );
+    $output->SetFont(Wx::Font->new(
+        12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL
+    ));
+    $out_sizer->Add($output, 1, wxEXPAND | wxALL, 4);
+    $root->Add($out_sizer, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
+
+    $panel->SetSizer($root);
+
+    # ── Store widget refs in $self for use in callbacks ───────────────
+    $self->{name_ctrl} = $name_ctrl;
+    $self->{choice}    = $choice;
+    $self->{output}    = $output;
+
+    # ── Bind events ───────────────────────────────────────────────────
+    EVT_BUTTON($self, $gen_btn, \&on_generate);
+    EVT_BUTTON($self, $clr_btn, \&on_new);
+    EVT_TEXT_ENTER($self, $name_ctrl, \&on_generate);  # Enter in text field
+}
+
+sub _build_statusbar {
+    my ($self) = @_;
+    $self->CreateStatusBar(2);
+    $self->SetStatusWidths(-1, 150);     # Field 0 stretches, field 1 = 150px
+    $self->SetStatusText("Ready", 0);
+    $self->SetStatusText("wxPerl v$Wx::VERSION", 1);
+}
+
+# ── Callbacks ─────────────────────────────────────────────────────────────────
+sub on_generate {
+    my ($self) = @_;
+    my $name  = $self->{name_ctrl}->GetValue;
+    $name = "World" unless length $name;
+    my $greet = $self->{choice}->GetStringSelection;
+    $self->{count}++;
+    my $line = sprintf "%3d.  %s, %s!\n", $self->{count}, $greet, $name;
+    $self->{output}->AppendText($line);
+    $self->SetStatusText("Generated greeting #$self->{count}", 0);
+}
+
+sub on_new {
+    my ($self) = @_;
+    $self->{output}->Clear;
+    $self->{name_ctrl}->Clear;
+    $self->{count} = 0;
+    $self->SetStatusText("Cleared", 0);
+}
+
+sub on_about {
+    my ($self) = @_;
+    Wx::MessageBox(
+        "wxPerl Greeting Generator\n\n"
+      . "Demonstrates:\n"
+      . "  \x{2022}  Wx::Frame / Wx::Panel\n"
+      . "  \x{2022}  Wx::BoxSizer / Wx::StaticBoxSizer\n"
+      . "  \x{2022}  Wx::TextCtrl, Wx::Choice, Wx::Button\n"
+      . "  \x{2022}  Menus, status bar, events\n\n"
+      . "Running wxWidgets $Wx::wx_version",
+        "About", wxOK | wxICON_INFORMATION, $self,
+    );
+}
+
+sub on_close {
+    my ($self, $event) = @_;
+    # Show confirmation only if greetings have been generated
+    if ($self->{count} > 0) {
+        my $dlg = Wx::MessageDialog->new(
+            $self,
+            "Exit the application?",
+            "Confirm",
+            wxYES_NO | wxICON_QUESTION | wxNO_DEFAULT,
+        );
+        my $answer = $dlg->ShowModal;
+        $dlg->Destroy;
+        return unless $answer == wxID_YES;
+    }
+    $self->Destroy;
+}
+
+# ══════════════════════════════════════════════════════════════════════
+# Entry point
+# ══════════════════════════════════════════════════════════════════════
+package main;
+GreetApp->new->MainLoop;</code></pre></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     GTK3
+══════════════════════════════════════════════════════════════════════ -->
+
+<section class="sec" id="gtk-concepts">
+  <div class="sh gtk"><span class="tk-badge gtk">Gtk3</span><h2>Core Concepts</h2></div>
+
+  <p>The Gtk3 Perl binding uses <strong>GObject introspection</strong> — it reads the GTK3 library's metadata at runtime to generate Perl bindings automatically. This means the API closely mirrors the C library documentation.</p>
+
+  <h3>Initialization and Main Loop</h3>
+  <div class="cb"><div class="ch"><span class="cl">perl</span></div>
+<pre><code class="language-perl">use Gtk3 '-init';   # Initializes GTK3 with the display; must be first
+use Glib qw(TRUE FALSE);  # Import Glib boolean constants
+
+# Create window
+my $win = Gtk3::Window->new('toplevel');
+$win->set_title("My App");
+$win->set_default_size(700, 500);
+$win->set_border_width(10);
+
+# MUST handle window close — otherwise clicking X does nothing!
+$win->signal_connect(destroy => sub { Gtk3->main_quit });
+
+# ... add widgets ...
+
+$win->show_all;    # Show window and ALL child widgets
+Gtk3->main;        # Enter event loop (blocks until main_quit)</code></pre></div>
+
+  <h3>Signal / Slot Event Model</h3>
+  <p>Unlike Tk's <code>-command</code> or Wx's <code>EVT_*</code> macros, Gtk3 uses <strong>signals</strong> — named events that widgets emit, and <strong>handlers</strong> (callbacks) that you connect to them.</p>
+  <div class="cb"><div class="ch"><span class="cl">perl</span></div>
+<pre><code class="language-perl"># $widget->signal_connect($signal_name => $callback, @extra_args)
+$button->signal_connect(clicked => sub {
+    my ($btn, $user_data) = @_;   # Widget that emitted + any extra args
+    print "Button clicked!\n";
+});
+
+$entry->signal_connect('activate' => sub {   # 'activate' = Enter key
+    my $text = $entry->get_text;
+    print "Entered: $text\n";
+});
+
+$win->signal_connect('key-press-event' => sub {
+    my ($widget, $event) = @_;
+    return FALSE;   # Return TRUE to stop further processing
+});</code></pre></div>
+
+  <h3>Containers and Layout</h3>
+  <div class="cg">
+    <div class="cc"><div class="cn">Gtk3::Box</div><p>Horizontal or vertical box. Uses pack_start / pack_end.</p></div>
+    <div class="cc"><div class="cn">Gtk3::Grid</div><p>Table layout with attach(). Supports row/column spans.</p></div>
+    <div class="cc"><div class="cn">Gtk3::Frame</div><p>Adds a titled border around one child widget.</p></div>
+    <div class="cc"><div class="cn">Gtk3::ScrolledWindow</div><p>Adds scrollbars to TextView, TreeView, etc.</p></div>
+    <div class="cc"><div class="cn">Gtk3::Notebook</div><p>Tabbed panels. Append pages with append_page().</p></div>
+    <div class="cc"><div class="cn">Gtk3::Paned</div><p>Draggable split panel (HPaned or VPaned).</p></div>
+  </div>
+
+  <div class="cb"><div class="ch"><span class="cl">perl — layout</span></div>
+<pre><code class="language-perl">my $vbox = Gtk3::Box->new('vertical', 6);  # 'vertical', spacing=6
+$win->add($vbox);
+
+# pack_start($child, $expand, $fill, $padding)
+$vbox->pack_start($label,  FALSE, FALSE, 5);  # Fixed size
+$vbox->pack_start($entry,  TRUE,  TRUE,  5);  # Stretches
+$vbox->pack_end  ($button, FALSE, FALSE, 5);  # Packed from bottom
+
+# Grid layout
+my $grid = Gtk3::Grid->new;
+$grid->set_column_spacing(8);
+$grid->set_row_spacing(6);
+$grid->attach($label, 0, 0, 1, 1);   # col, row, col_span, row_span
+$grid->attach($entry, 1, 0, 1, 1);
+$entry->set_hexpand(TRUE);            # Entry stretches horizontally</code></pre></div>
+</section>
+
+<section class="sec" id="gtk-hello">
+  <div class="sh gtk"><span class="tk-badge gtk">Gtk3 · Hello World</span><h2>Hello World</h2></div>
+
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">gtk3_hello.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  gtk3_hello.pl  —  Minimal Gtk3 window
+#  Install:  pkg install p5-Gtk3
+#  Run:      perl gtk3_hello.pl
+# =============================================================================
+use strict;
+use warnings;
+use Gtk3 '-init';
+use Glib qw(TRUE FALSE);
+
+# Main window
+my $win = Gtk3::Window->new('toplevel');
+$win->set_title('Hello from Gtk3!');
+$win->set_default_size(380, 170);
+$win->set_border_width(20);
+$win->signal_connect(destroy => sub { Gtk3->main_quit });
+
+# Vertical layout box
+my $vbox = Gtk3::Box->new('vertical', 12);
+$win->add($vbox);
+
+# Title label — use markup for rich text
+my $label = Gtk3::Label->new('');
+$label->set_markup(
+    '<span size="18000" weight="bold">Hello, Gtk3!</span>'
+);
+$vbox->pack_start($label, TRUE, TRUE, 0);
+
+# Button
+my $btn = Gtk3::Button->new_with_label('Greet Me');
+$btn->signal_connect(clicked => sub {
+    my $dlg = Gtk3::MessageDialog->new(
+        $win,                  # Parent window (for centering)
+        'destroy-with-parent', # Flags
+        'info',                # Message type: info warning error question
+        'ok',                  # Buttons: none ok ok-cancel yes-no
+        'Greetings from Gtk3 on FreeBSD 16!'
+    );
+    $dlg->run;
+    $dlg->destroy;
+});
+$vbox->pack_start($btn, FALSE, FALSE, 0);
+
+$win->show_all;
+Gtk3->main;</code></pre></div>
+</section>
+
+<section class="sec" id="gtk-app">
+  <div class="sh gtk"><span class="tk-badge gtk">Gtk3 · Full Application</span><h2>Gtk3 RGB Color Mixer</h2></div>
+  <p>A complete Gtk3 application demonstrating <code>Gtk3::Scale</code> sliders, a live color preview using CSS, a <code>Gtk3::Grid</code> layout, markup labels, preset buttons, and clipboard integration.</p>
+
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">gtk3_color_mixer.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  gtk3_color_mixer.pl  —  Gtk3 RGB Color Mixer
+#  Demonstrates: Scale, Grid, CSS, markup, clipboard, preset buttons
+#  Install:  pkg install p5-Gtk3 p5-Glib
+#  Run:      perl gtk3_color_mixer.pl
+# =============================================================================
+use strict;
+use warnings;
+use Gtk3 '-init';
+use Glib qw(TRUE FALSE);
+
+# ── Main window ────────────────────────────────────────────────────────────────
+my $win = Gtk3::Window->new('toplevel');
+$win->set_title('Gtk3 RGB Color Mixer');
+$win->set_default_size(520, 440);
+$win->set_border_width(14);
+$win->signal_connect(destroy => sub { Gtk3->main_quit });
+
+my $root = Gtk3::Box->new('vertical', 10);
+$win->add($root);
+
+# ── Title ──────────────────────────────────────────────────────────────────────
+my $title = Gtk3::Label->new('');
+$title->set_markup('<span size="18000" weight="bold">RGB Color Mixer</span>');
+$root->pack_start($title, FALSE, FALSE, 4);
+
+# ── Color preview: an EventBox so we can change its background ────────────────
+my $preview_eb = Gtk3::EventBox->new;
+$preview_eb->set_size_request(-1, 90);
+my $preview_lbl = Gtk3::Label->new('');
+$preview_lbl->set_markup('<span size="14000" font_family="monospace">#808080</span>');
+$preview_eb->add($preview_lbl);
+$root->pack_start($preview_eb, FALSE, FALSE, 0);
+
+# CSS provider for background color — we update it as sliders move
+my $css = Gtk3::CssProvider->new;
+
+# ── Slider grid ───────────────────────────────────────────────────────────────
+my $grid = Gtk3::Grid->new;
+$grid->set_row_spacing(8);
+$grid->set_column_spacing(10);
+$grid->set_margin_top(8);
+$root->pack_start($grid, FALSE, FALSE, 0);
+
+my (%sliders, %val_labels);
+my @channels = (
+    ['R', 'Red',   '#cc3333'],
+    ['G', 'Green', '#33cc55'],
+    ['B', 'Blue',  '#3366cc'],
+);
+
+for my $i (0 .. $#channels) {
+    my ($key, $name, $color) = @{ $channels[$i] };
+
+    # Colored name label
+    my $name_lbl = Gtk3::Label->new('');
+    $name_lbl->set_markup(
+        "<span foreground=\"$color\" weight=\"bold\" size=\"13000\">$name</span>"
+    );
+    $name_lbl->set_halign('end');
+    $grid->attach($name_lbl, 0, $i, 1, 1);
+
+    # Slider (Scale widget)
+    my $scale = Gtk3::Scale->new_with_range('horizontal', 0, 255, 1);
+    $scale->set_value(128);
+    $scale->set_draw_value(FALSE);   # Hide built-in value label (we make our own)
+    $scale->set_hexpand(TRUE);
+    $sliders{$key} = $scale;
+    $grid->attach($scale, 1, $i, 1, 1);
+
+    # Value readout
+    my $vl = Gtk3::Label->new('');
+    $vl->set_markup('<span font_family="monospace" size="12000">128</span>');
+    $vl->set_width_chars(4);
+    $vl->set_halign('start');
+    $val_labels{$key} = $vl;
+    $grid->attach($vl, 2, $i, 1, 1);
+}
+
+# ── Separator ──────────────────────────────────────────────────────────────────
+$root->pack_start(Gtk3::Separator->new('horizontal'), FALSE, FALSE, 2);
+
+# ── Preset buttons ─────────────────────────────────────────────────────────────
+my $preset_outer = Gtk3::Box->new('horizontal', 6);
+$preset_outer->set_margin_start(2);
+$root->pack_start($preset_outer, FALSE, FALSE, 0);
+$preset_outer->pack_start(Gtk3::Label->new('Presets:'), FALSE, FALSE, 0);
+
+my %presets = (
+    Amber   => [240, 160, 48],
+    Red     => [220,  50, 50],
+    Green   => [ 50, 180, 80],
+    Blue    => [ 40, 100, 210],
+    White   => [255, 255, 255],
+    Black   => [  0,   0,   0],
+    Violet  => [150,  60, 200],
+);
+
+for my $name (sort keys %presets) {
+    my @rgb = @{ $presets{$name} };
+    my $btn = Gtk3::Button->new_with_label($name);
+    $btn->signal_connect(clicked => sub {
+        $sliders{R}->set_value($rgb[0]);
+        $sliders{G}->set_value($rgb[1]);
+        $sliders{B}->set_value($rgb[2]);
+        # update_color is called by slider value-changed signals
+    });
+    $preset_outer->pack_start($btn, FALSE, FALSE, 0);
+}
+
+# ── Copy hex button ────────────────────────────────────────────────────────────
+my $copy_btn = Gtk3::Button->new_with_label('Copy Hex');
+$preset_outer->pack_end($copy_btn, FALSE, FALSE, 0);
+
+# ── Hex label at bottom ────────────────────────────────────────────────────────
+my $hex_lbl = Gtk3::Label->new('');
+$hex_lbl->set_markup(
+    '<span font_family="monospace" size="13000" color="#808080">#808080</span>'
+);
+$root->pack_start($hex_lbl, FALSE, FALSE, 4);
+
+# ── Update callback: recompute color from slider positions ────────────────────
+my $update_color = sub {
+    my $r = int($sliders{R}->get_value);
+    my $g = int($sliders{G}->get_value);
+    my $b = int($sliders{B}->get_value);
+    my $hex = sprintf "#%02x%02x%02x", $r, $g, $b;
+
+    # Update value readout labels
+    for my $info (['R', $r], ['G', $g], ['B', $b]) {
+        my ($key, $val) = @$info;
+        $val_labels{$key}->set_markup(
+            "<span font_family=\"monospace\" size=\"12000\">$val</span>"
+        );
+    }
+    # Update hex display labels
+    my $markup = "<span font_family=\"monospace\" size=\"13000\" color=\"#dddddd\">$hex</span>";
+    $hex_lbl->set_markup($markup);
+    $preview_lbl->set_markup(
+        "<span font_family=\"monospace\" size=\"14000\" color=\"#333333\">$hex</span>"
+    );
+
+    # Update preview background via CSS
+    $css->load_from_data("* { background-color: $hex; }");
+    $preview_eb->get_style_context->add_provider(
+        $css, Gtk3::STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+};
+
+# Connect all sliders to the update function
+for my $key (qw(R G B)) {
+    $sliders{$key}->signal_connect('value-changed' => $update_color);
+}
+
+# Copy to clipboard
+$copy_btn->signal_connect(clicked => sub {
+    my $r = int($sliders{R}->get_value);
+    my $g = int($sliders{G}->get_value);
+    my $b = int($sliders{B}->get_value);
+    my $hex = sprintf "#%02x%02x%02x", $r, $g, $b;
+    my $clip = Gtk3::Clipboard::get(Gtk3::Gdk::Atom::intern('CLIPBOARD', FALSE));
+    $clip->set_text($hex, -1);
+});
+
+$update_color->();   # Set initial display state
+$win->show_all;
+Gtk3->main;</code></pre></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PRIMA
+══════════════════════════════════════════════════════════════════════ -->
+
+<section class="sec" id="prima-concepts">
+  <div class="sh prima"><span class="tk-badge prima">Prima</span><h2>Core Concepts</h2></div>
+
+  <p>Prima is unique: it is written entirely in Perl and C with its own rendering engine — <strong>no external toolkit</strong> (no Tk, no GTK, no wxWidgets). Its API is purely property-based OOP.</p>
+
+  <div class="ca w"><strong>Coordinate system warning:</strong> Prima's origin <code>[0, 0]</code> is at the <strong>bottom-left</strong> of the parent widget, with Y increasing upward. This is the opposite of most toolkits. A widget at <code>origin => [10, 350]</code> in a 400px-tall window is near the top, not the bottom.</div>
+
+  <h3>Application and Windows</h3>
+  <div class="cb"><div class="ch"><span class="cl">perl</span></div>
+<pre><code class="language-perl">use Prima qw(Application Buttons Labels InputLine Edit MsgBox);
+
+# Exactly one application object per program
+my $app = Prima::Application->new(
+    name  => 'MyApp',    # Used in title bar on some platforms
+    title => 'MyApp',
+);
+
+# Main window — use Prima::MainWindow (not Prima::Window)
+# Prima::MainWindow automatically calls $::application->close on destroy
+my $win = Prima::MainWindow->new(
+    text     => 'My Application',   # Window title
+    size     => [700, 500],         # [width, height] in pixels
+    centered => 1,                  # Center on screen
+    # Optional: override destroy behavior
+    onDestroy => sub { $::application->close },
+);
+
+$app->run;   # Enter event loop — blocks until all windows close</code></pre></div>
+
+  <h3>Creating Widgets</h3>
+  <p>Widgets are inserted into their parent with <code>insert()</code> or directly with <code>WidgetClass->new($owner, %props)</code>. All properties are set at creation time (or with accessor methods).</p>
+  <div class="cb"><div class="ch"><span class="cl">perl</span></div>
+<pre><code class="language-perl"># Method 1: parent->insert('ClassName', props...)
+my $btn = $win->insert('Prima::Button',
+    text    => 'Click Me',
+    origin  => [10, 20],     # [x, y] from bottom-left
+    size    => [100, 32],    # [width, height]
+    onClick => sub { ... },
+);
+
+# Method 2: direct construction
+my $lbl = Prima::Label->new($win,
+    text      => 'Hello!',
+    origin    => [20, 400],  # Near top of 500px window
+    size      => [200, 24],
+    alignment => ta::Center,
+    font      => { size => 14, style => fs::Bold },
+);
+
+# Read/write properties after creation
+print $btn->text;         # Get
+$btn->text('New Label');  # Set
+
+# Colors: use hex-string or Prima color constants
+$lbl->color(cl::Blue);           # Foreground
+$lbl->backColor(0xF0E0D0);       # Background (hex integer)
+$lbl->backColor(Prima::Color::from_rgb(240, 160, 48)); # RGB</code></pre></div>
+
+  <h3>Font and Style Constants</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Category</th><th>Constants</th></tr></thead>
+    <tbody>
+      <tr><td>Font style</td><td><code>fs::Normal  fs::Bold  fs::Italic  fs::Underline  fs::StruckOut</code></td></tr>
+      <tr><td>Text alignment</td><td><code>ta::Left  ta::Center  ta::Right  ta::Top  ta::Middle  ta::Bottom</code></td></tr>
+      <tr><td>Colors</td><td><code>cl::Black  cl::White  cl::Red  cl::Green  cl::Blue  cl::Yellow</code></td></tr>
+      <tr><td>Message box</td><td><code>mb::Ok  mb::OkCancel  mb::YesNo  mb::YesNoCancel</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Menus</h3>
+  <div class="cb"><div class="ch"><span class="cl">perl</span></div>
+<pre><code class="language-perl"># menuItems is an arrayref of [label => [items...]]
+$win->menuItems([
+    ['~File' => [
+        # Each item: [id, label, hotkey_display, keystroke, callback]
+        ['new_item',  '~New',  'Ctrl+N', '^N', sub { ... }],
+        ['*'],                            # Separator
+        ['exit_item', 'E~xit', 'Ctrl+Q', '^Q',
+            sub { $::application->close }
+        ],
+    ]],
+    ['~Help' => [
+        ['about_item', '~About', '', '',
+            sub { Prima::MsgBox::message("About MyApp", mb::Ok) }
+        ],
+    ]],
+]);</code></pre></div>
+</section>
+
+<section class="sec" id="prima-hello">
+  <div class="sh prima"><span class="tk-badge prima">Prima · Hello World</span><h2>Hello World</h2></div>
+
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">prima_hello.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  prima_hello.pl  —  Minimal Prima window
+#  Install:  pkg install p5-Prima   OR   cpanm Prima
+#  Run:      perl prima_hello.pl
+# =============================================================================
+use strict;
+use warnings;
+use Prima qw(Application Buttons Labels MsgBox);
+
+# One application object
+my $app = Prima::Application->new(name => 'Hello');
+
+# Main window (800px wide, 200px tall)
+my $win = Prima::MainWindow->new(
+    text     => 'Hello from Prima!',
+    size     => [400, 200],
+    centered => 1,
+    # REMEMBER: y=0 is bottom-left; y=170 is near the top of a 200px window
+    onDestroy => sub { $::application->close },
+);
+
+# Label — placed near the top (y=140 in a 200px window)
+$win->insert('Prima::Label',
+    text      => 'Hello, Prima!',
+    origin    => [50, 130],     # 50px from left, 130px from bottom
+    size      => [300, 36],
+    alignment => ta::Center,
+    font      => { size => 18, style => fs::Bold },
+);
+
+# Explanation label
+$win->insert('Prima::Label',
+    text   => "Y=0 is bottom-left in Prima's coordinate system",
+    origin => [20, 90],
+    size   => [360, 24],
+    alignment => ta::Center,
+    font   => { size => 10 },
+    color  => cl::DarkGray,
+);
+
+# Button
+$win->insert('Prima::Button',
+    text   => 'Click Me',
+    origin => [150, 30],         # 150px from left, 30px from bottom
+    size   => [100, 40],
+    onClick => sub {
+        Prima::MsgBox::message("Greetings from Prima!", mb::Ok);
+    },
+);
+
+$app->run;</code></pre></div>
+</section>
+
+<section class="sec" id="prima-app">
+  <div class="sh prima"><span class="tk-badge prima">Prima · Full Application</span><h2>Prima Simple Notepad</h2></div>
+  <p>A complete Prima application: menubar, toolbar-style buttons, a GroupBox with InputLine, a full-height Edit area, and status text — all using Prima's absolute-coordinate layout.</p>
+
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">prima_notepad.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  prima_notepad.pl  —  Prima simple notepad
+#  Demonstrates: MainWindow, menus, GroupBox, InputLine, Edit, Button,
+#                onResize to keep layout responsive, MsgBox
+#  Install:  pkg install p5-Prima   OR   cpanm Prima
+#  Run:      perl prima_notepad.pl
+# =============================================================================
+use strict;
+use warnings;
+use Prima qw(Application Buttons Labels InputLine Edit MsgBox StdDlg GroupBox);
+
+# ── State ──────────────────────────────────────────────────────────────────────
+my $current_file = '';
+my $count        = 0;
+
+# ── Application ────────────────────────────────────────────────────────────────
+my $app = Prima::Application->new(name => 'PrimaNotepad');
+
+# ── Main window ────────────────────────────────────────────────────────────────
+my $win = Prima::MainWindow->new(
+    text     => 'Prima Notepad',
+    size     => [680, 520],
+    centered => 1,
+    onDestroy => sub { $::application->close },
+);
+
+# ── Menus ──────────────────────────────────────────────────────────────────────
+$win->menuItems([
+    ['~File' => [
+        ['new_m',  '~New',     'Ctrl+N', '^N', \&on_new ],
+        ['open_m', '~Open…',   'Ctrl+O', '^O', \&on_open],
+        ['save_m', '~Save As…','Ctrl+S', '^S', \&on_save],
+        ['*'],
+        ['exit_m', 'E~xit',    'Ctrl+Q', '^Q', sub { $::application->close }],
+    ]],
+    ['~Edit' => [
+        ['clear_m', 'Clear ~All', '', '', \&on_clear],
+    ]],
+    ['~Help' => [
+        ['about_m', '~About', '', '', \&on_about],
+    ]],
+]);
+
+# ── Toolbar area (near top — remember y=0 is bottom!) ─────────────────────────
+# In a 520px window:
+#   y=480 = very top
+#   y=460 = toolbar row
+#   y=350 = search group top
+#   y=  0 = very bottom
+
+# Toolbar buttons along the top
+for my $info (
+    ['New',    \&on_new,   10],
+    ['Open',   \&on_open,  70],
+    ['Save',   \&on_save, 130],
+    ['Clear',  \&on_clear,190],
+) {
+    my ($label, $cb, $x) = @$info;
+    $win->insert('Prima::Button',
+        text   => $label,
+        origin => [$x, 476],   # 476px from bottom = near top of 520px window
+        size   => [55, 28],
+        onClick => $cb,
+    );
+}
+
+# ── Search / Input group ───────────────────────────────────────────────────────
+my $grp = $win->insert('Prima::GroupBox',
+    text   => 'Add Entry',
+    origin => [8, 390],    # y=390 in 520px window
+    size   => [660, 80],
+);
+
+$grp->insert('Prima::Label',
+    text   => 'Text:',
+    origin => [10, 36],
+    size   => [40, 22],
+);
+
+my $input = $grp->insert('Prima::InputLine',
+    origin => [56, 33],
+    size   => [480, 26],
+    text   => '',
+);
+
+my $add_btn = $grp->insert('Prima::Button',
+    text    => 'Add ▶',
+    origin  => [545, 28],
+    size    => [100, 36],
+    onClick => \&on_add_entry,
+);
+
+# ── Main edit area ─────────────────────────────────────────────────────────────
+my $edit = $win->insert('Prima::Edit',
+    origin   => [8, 30],     # 30px from bottom (leaves room for status)
+    size     => [660, 354],  # Fills most of the window
+    readOnly => 1,
+    wordWrap => 1,
+    font     => { name => 'Courier', size => 11 },
+    backColor => cl::White,
+);
+
+# ── Status label at the very bottom ────────────────────────────────────────────
+my $status = $win->insert('Prima::Label',
+    text   => 'Ready — type text above and click Add',
+    origin => [8, 6],
+    size   => [660, 20],
+    font   => { size => 10 },
+    color  => cl::DarkGray,
+);
+
+# ── Resize handler — keep widgets proportional when window resizes ─────────────
+$win->onResize(sub {
+    my ($self) = @_;
+    my ($w, $h) = ($self->width, $self->height);
+    # Reposition toolbar buttons
+    $add_btn->origin($add_btn->left, $h - 44);
+    # Move group box
+    $grp->origin(8, $h - 130);
+    # Resize edit area
+    $edit->size($w - 20, $h - 180);
+    # Keep status at very bottom
+    $status->size($w - 20, 20);
+});
+
+# ── Callbacks ──────────────────────────────────────────────────────────────────
+sub on_add_entry {
+    my $text = $input->text;
+    return unless length $text;
+    $count++;
+    $edit->text(
+        $edit->text . sprintf("%3d.  %s\n", $count, $text)
+    );
+    $input->text('');
+    $status->text("Added entry #$count");
+}
+
+sub on_new {
+    $edit->text('');
+    $current_file = '';
+    $count = 0;
+    $win->text('Prima Notepad');
+    $status->text('New document');
+}
+
+sub on_clear {
+    $edit->text('');
+    $count = 0;
+    $status->text('Cleared');
+}
+
+sub on_open {
+    my $dlg = Prima::OpenDialog->new(
+        filter => [['Text files' => '*.txt'], ['All files' => '*']],
+    );
+    if ($dlg->execute) {
+        my $file = $dlg->fileName;
+        if (open my $fh, '<', $file) {
+            local $/;
+            $edit->text(<$fh>);
+            close $fh;
+            $current_file = $file;
+            $win->text("Prima Notepad — $file");
+            $status->text("Opened: $file");
+        } else {
+            Prima::MsgBox::message("Could not open: $!", mb::Ok);
+        }
+    }
+    $dlg->destroy;
+}
+
+sub on_save {
+    my $dlg = Prima::SaveDialog->new(
+        fileName => $current_file || 'untitled.txt',
+        filter   => [['Text files' => '*.txt'], ['All files' => '*']],
+    );
+    if ($dlg->execute) {
+        my $file = $dlg->fileName;
+        if (open my $fh, '>', $file) {
+            print $fh $edit->text;
+            close $fh;
+            $current_file = $file;
+            $win->text("Prima Notepad — $file");
+            $status->text("Saved: $file");
+        } else {
+            Prima::MsgBox::message("Could not save: $!", mb::Ok);
+        }
+    }
+    $dlg->destroy;
+}
+
+sub on_about {
+    Prima::MsgBox::message(
+        "Prima Notepad\n\n"
+      . "Demonstrates:\n"
+      . "  \x{2022}  Prima::MainWindow\n"
+      . "  \x{2022}  Menus (menuItems)\n"
+      . "  \x{2022}  Prima::GroupBox layout\n"
+      . "  \x{2022}  Prima::InputLine, Prima::Edit\n"
+      . "  \x{2022}  Prima::OpenDialog, SaveDialog\n"
+      . "  \x{2022}  Bottom-left coordinate system",
+        mb::Ok,
+    );
+}
+
+$app->run;</code></pre></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     IUP
+══════════════════════════════════════════════════════════════════════ -->
+
+<section class="sec" id="iup">
+  <div class="sh iup"><span class="tk-badge iup">IUP</span><h2>IUP — Lightweight Cross-Platform GUI</h2></div>
+
+  <p><strong>IUP</strong> (Portable User Interface) was created at PUC-Rio (Brazil). It uses a unique <strong>attribute-driven API</strong> — every widget property is set and read as a named string attribute, and the layout uses abstract containers rather than pixel positioning.</p>
+
+  <h3>Installation on FreeBSD 16</h3>
+  <div class="cb"><div class="ch"><span class="cl">bash</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pkg install iup    # The C library
+cpanm IUP          # The Perl binding
+perl -e 'use IUP; print "IUP OK\n"'</code></pre></div>
+
+  <h3>The Attribute System</h3>
+  <p>Unlike other toolkits, IUP uses <em>string attributes</em> for everything — sizes, colors, fonts, and state are all set as <code>"ATTRIBUTE" => "value"</code> pairs.</p>
+  <div class="cb"><div class="ch"><span class="cl">perl — IUP concepts</span></div>
+<pre><code class="language-perl">use IUP ':all';
+
+# Widgets are created with attributes as a hash
+my $btn = IUP::Button->new(TITLE => "Click Me", SIZE => "80x30");
+
+# Attributes can be read and set at any time
+$btn->TITLE("New Text");           # Set
+my $txt = $btn->TITLE;             # Get
+
+# Sizes in IUP use a special format:
+#   "WxH"      absolute pixels
+#   "HALFxHALF"  half the container
+#   ""         natural (auto) size
+# Colors: "R G B" (0-255) or color names
+$btn->BGCOLOR("255 128 0");        # Orange background
+$btn->FGCOLOR("255 255 255");      # White text</code></pre></div>
+
+  <h3>IUP Hello World</h3>
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">iup_hello.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  iup_hello.pl  —  Minimal IUP window
+#  Install:  pkg install iup && cpanm IUP
+#  Run:      perl iup_hello.pl
+# =============================================================================
+use strict;
+use warnings;
+use IUP ':all';
+
+IUP->Open() or die "Cannot init IUP\n";
+
+my $lbl = IUP::Label->new(
+    TITLE     => "Hello from IUP!",
+    FONT      => "Helvetica, Bold 18",
+    ALIGNMENT => "ACENTER:ACENTER",
+);
+
+my $btn = IUP::Button->new(
+    TITLE   => "Click Me",
+    SIZE    => "80x28",
+    ACTION  => sub {
+        IUP->Message("Hello", "Greetings from IUP on FreeBSD!");
+        return IUP_DEFAULT;
+    },
+);
+
+my $vbox = IUP::Vbox->new(
+    MARGIN    => "20x20",
+    GAP       => "10",
+    ALIGNMENT => "ACENTER",
+    $lbl, $btn,
+);
+
+my $dlg = IUP::Dialog->new(
+    TITLE  => "IUP Hello World",
+    $vbox,
+);
+
+$dlg->ShowXY(IUP_CENTER, IUP_CENTER);
+IUP->MainLoop;
+IUP->Close;</code></pre></div>
+
+  <h3>IUP Complete App — Unit Converter</h3>
+  <div class="cb"><div class="ch"><span class="cl">perl</span><span class="cf">iup_converter.pl</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/local/bin/perl
+# =============================================================================
+#  iup_converter.pl  —  IUP Unit Converter
+#  Demonstrates: Vbox/Hbox layout, Text, List, Label, menus, timer
+#  Install:  pkg install iup && cpanm IUP
+#  Run:      perl iup_converter.pl
+# =============================================================================
+use strict;
+use warnings;
+use IUP ':all';
+
+IUP->Open() or die "Cannot init IUP\n";
+
+# ── Conversion table ───────────────────────────────────────────────────────────
+my %conversions = (
+    'km  → miles'   => sub { $_[0] * 0.621371 },
+    'miles → km'    => sub { $_[0] * 1.60934  },
+    'kg  → pounds'  => sub { $_[0] * 2.20462  },
+    'pounds → kg'   => sub { $_[0] * 0.453592 },
+    'C°  → F°'      => sub { $_[0] * 9/5 + 32 },
+    'F°  → C°'      => sub { ($_[0] - 32) * 5/9 },
+    'cm  → inches'  => sub { $_[0] * 0.393701 },
+    'inches → cm'   => sub { $_[0] * 2.54     },
+    'liters → gal'  => sub { $_[0] * 0.264172 },
+    'gal → liters'  => sub { $_[0] * 3.78541  },
+);
+
+# ── Widgets ────────────────────────────────────────────────────────────────────
+my $input_lbl = IUP::Label->new(TITLE => "Input value:");
+
+my $input = IUP::Text->new(
+    SIZE    => "100x",
+    VALUE   => "0",
+    SPIN    => "YES",        # Add spinner buttons
+);
+
+my $conv_lbl = IUP::Label->new(TITLE => "Conversion:");
+
+# Build the list string (IUP uses |-separated values for list items)
+my @conv_names = sort keys %conversions;
+my $list = IUP::List->new(
+    SIZE      => "150x130",
+    VISIBLELINES => "8",
+    VALUE        => "1",         # Select first item
+);
+$list->$_(1 + $_, $conv_names[$_]) for 0..$#conv_names;
+
+my $result_lbl = IUP::Label->new(
+    TITLE  => "Result: —",
+    FONT   => "Helvetica, Bold 14",
+    SIZE   => "200x",
+);
+
+my $convert_btn = IUP::Button->new(
+    TITLE  => "Convert  ▶",
+    SIZE   => "80x28",
+    BGCOLOR => "0 100 200",
+    FGCOLOR => "255 255 255",
+);
+
+# ── Layout ─────────────────────────────────────────────────────────────────────
+my $top_hbox = IUP::Hbox->new(
+    MARGIN    => "0x0",
+    GAP       => "8",
+    ALIGNMENT => "ACENTER",
+    $input_lbl, $input,
+);
+
+my $main_vbox = IUP::Vbox->new(
+    MARGIN    => "16x16",
+    GAP       => "10",
+    ALIGNMENT => "ACENTER",
+    $top_hbox,
+    IUP::Label->new(TITLE => ""),  # Spacer
+    $conv_lbl,
+    $list,
+    $convert_btn,
+    IUP::Fill->new,               # Flexible space
+    $result_lbl,
+);
+
+# ── Dialog ─────────────────────────────────────────────────────────────────────
+my $dlg = IUP::Dialog->new(
+    TITLE   => "IUP Unit Converter",
+    SIZE    => "240x340",
+    MINSIZE => "220x300",
+    $main_vbox,
+);
+
+# ── Events ─────────────────────────────────────────────────────────────────────
+$convert_btn->ACTION(sub {
+    my $raw = $input->VALUE;
+    unless ($raw =~ /^-?\d+\.?\d*$/) {
+        $result_lbl->TITLE("Error: not a number");
+        return IUP_DEFAULT;
+    }
+    my $value   = $raw + 0;
+    my $sel_idx = $list->VALUE - 1;   # IUP list index is 1-based
+    my $name    = $conv_names[$sel_idx];
+    my $func    = $conversions{$name};
+    my $result  = $func->($value);
+    $result_lbl->TITLE(sprintf "%.6g  %s", $result, $name);
+    return IUP_DEFAULT;
+});
+
+# Allow Enter key in input field to trigger conversion
+$input->ACTION(sub {
+    $convert_btn->ACTION->();
+    return IUP_DEFAULT;
+});
+
+$dlg->ShowXY(IUP_CENTER, IUP_CENTER);
+IUP->MainLoop;
+IUP->Close;</code></pre></div>
+</section>
+
+<!-- ═══════════════════ DECISION GUIDE ════════════════════════════════ -->
+<section class="sec" id="choose">
+  <div class="sh amber"><h2>Which Toolkit Should You Choose?</h2></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Your Situation</th><th>Best Choice</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>Coming from Perl/Tk, want similar feel</td><td><strong>Wx (wxPerl)</strong></td><td>Closest mental model: App/Frame/Panel maps to MainWindow/Frame/Widget</td></tr>
+      <tr><td>Building a proper Linux/BSD desktop app</td><td><strong>Gtk3</strong></td><td>Integrates natively with GNOME/XFCE. CSS theming. Best ecosystem on FreeBSD.</td></tr>
+      <tr><td>Need custom drawing / unique graphics</td><td><strong>Prima</strong></td><td>Its own rendering engine — you can draw anything. No external dependency.</td></tr>
+      <tr><td>Quick utility, simple forms</td><td><strong>IUP</strong></td><td>Smallest, fastest, simplest API. Great for internal tools.</td></tr>
+      <tr><td>Maximum cross-platform (Windows too)</td><td><strong>Wx</strong> or <strong>Gtk3</strong></td><td>Both run on Windows/Mac/Linux/BSD without code changes.</td></tr>
+      <tr><td>Want to learn GUI programming concepts</td><td><strong>Wx</strong></td><td>Sizers and the App/Frame pattern teach transferable concepts (similar to Qt).</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Mental Model Comparison</h3>
+  <div class="cb"><div class="ch"><span class="cl">comparison — the same "label + button" in all four toolkits</span></div>
+<pre><code class="language-perl">##############################################################
+## Perl/Tk (reference)
+use Tk;
+my $mw  = MainWindow->new;
+my $lbl = $mw->Label(-text => "Hello")->pack;
+my $btn = $mw->Button(-text => "Click", -command => sub {...})->pack;
+MainLoop;
+
+##############################################################
+## wxPerl
+use Wx qw(:everything); use Wx::Event qw(EVT_BUTTON);
+package App; use parent -norequire, 'Wx::App';
+sub OnInit {
+    my $f = Wx::Frame->new(undef, wxID_ANY, "Title");
+    my $p = Wx::Panel->new($f, wxID_ANY);
+    my $s = Wx::BoxSizer->new(wxVERTICAL);
+    my $l = Wx::StaticText->new($p, wxID_ANY, "Hello");
+    my $b = Wx::Button->new($p, wxID_ANY, "Click");
+    EVT_BUTTON($f, $b, sub {...});
+    $s->Add($l, 0, wxALL, 5); $s->Add($b, 0, wxALL, 5);
+    $p->SetSizer($s); $f->Show(1); return 1;
+}
+package main; App->new->MainLoop;
+
+##############################################################
+## Gtk3
+use Gtk3 '-init';
+my $w = Gtk3::Window->new('toplevel');
+my $v = Gtk3::Box->new('vertical', 6);
+my $l = Gtk3::Label->new("Hello");
+my $b = Gtk3::Button->new_with_label("Click");
+$b->signal_connect(clicked => sub {...});
+$v->pack_start($l, 0,0,5); $v->pack_start($b, 0,0,5);
+$w->add($v); $w->show_all; Gtk3->main;
+
+##############################################################
+## Prima
+use Prima qw(Application Buttons Labels);
+my $app = Prima::Application->new;
+my $win = Prima::MainWindow->new(size => [300, 150]);
+$win->insert('Prima::Label',  text => "Hello", origin => [20,100], size => [200,24]);
+$win->insert('Prima::Button', text => "Click", origin => [100,30], size => [80,32],
+    onClick => sub {...});
+$app->run;
+
+##############################################################
+## IUP
+use IUP ':all'; IUP->Open;
+my $l = IUP::Label->new(TITLE => "Hello");
+my $b = IUP::Button->new(TITLE => "Click", ACTION => sub {...; IUP_DEFAULT});
+my $v = IUP::Vbox->new($l, $b);
+IUP::Dialog->new(TITLE => "Title", $v)->ShowXY(IUP_CENTER, IUP_CENTER);
+IUP->MainLoop; IUP->Close;</code></pre></div>
+
+  <h3>Running Your Scripts via Lima</h3>
+  <div class="cb"><div class="ch"><span class="cl">bash — daily workflow</span><button class="cp" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># On your macOS host — get Lima VM SSH port
+PORT=$(limactl list --format '{{.SSHLocalPort}}' experimental/freebsd-16)
+KEY=~/.lima/_config/user
+
+# Copy script(s) to the FreeBSD VM
+scp -P $PORT -i $KEY wx_greeting.pl 127.0.0.1:~/
+
+# Connect with X11 forwarding and run
+ssh -X -p $PORT -i $KEY -o StrictHostKeyChecking=no 127.0.0.1
+
+# Inside the VM:
+perl wx_greeting.pl        # Window opens in XQuartz on your Mac desktop
+perl gtk3_color_mixer.pl
+perl prima_notepad.pl
+perl iup_converter.pl</code></pre></div>
+
+  <div class="ca t"><strong>Comparison summary:</strong> For a beginner coming from Perl/Tk, <strong>wxPerl</strong> is the gentlest transition. For building something that looks native on FreeBSD desktops, <strong>Gtk3</strong> is the best choice. For unusual graphics needs, <strong>Prima</strong> is uniquely capable. For the simplest possible code, <strong>IUP</strong> is hardest to beat.</div>
+</section>
+
+</div></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-perl.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script>
+function cc(b){const p=b.closest('.cb').querySelector('pre');navigator.clipboard.writeText(p.textContent).then(()=>{b.textContent='copied!';b.classList.add('ok');setTimeout(()=>{b.textContent='copy';b.classList.remove('ok');},1800);});}
+
+// Scroll-spy sidebar
+const ss=document.querySelectorAll('section.sec'),ls=document.querySelectorAll('a.lk');
+ss.forEach(s=>new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      ls.forEach(l=>l.classList.remove('act'));
+      const a=document.querySelector(`a.lk[href="#${e.target.id}"]`);
+      if(a){a.classList.add('act');a.scrollIntoView({block:'nearest'});}
+    }
+  });
+},{rootMargin:'-10% 0px -80% 0px'}).observe(s));
+</script>
+</body>
+</html>

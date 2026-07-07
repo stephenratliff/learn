@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algorithms — A Field Guide with GNU Octave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script id="MathJax-script" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{
+  --paper:#f4eee0;
+  --paper2:#ebe2cf;
+  --ink:#211d1a;
+  --ink-soft:#4a443d;
+  --rust:#9b3220;
+  --rust-deep:#7a2415;
+  --teal:#155e5a;
+  --teal-soft:#1f807a;
+  --gold:#b8860b;
+  --line:#cdc2a8;
+  --term-bg:#1d2230;
+  --term-bg2:#161a26;
+  --term-fg:#e8e3d4;
+  --term-cm:#7f8aa3;
+  --term-kw:#e0975a;
+  --term-str:#86c98f;
+  --term-num:#c98fc9;
+  --shadow:0 1px 2px rgba(33,29,26,.08),0 8px 30px rgba(33,29,26,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:"Newsreader",Georgia,serif;
+  font-size:19px;
+  line-height:1.7;
+  color:var(--ink);
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(rgba(155,50,32,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(155,50,32,.035) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-font-smoothing:antialiased;
+}
+.progress{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--rust),var(--gold));z-index:1000;transition:width .08s linear}
+
+/* ---------- layout ---------- */
+.shell{display:flex;max-width:1320px;margin:0 auto;gap:0;align-items:flex-start}
+.toc{
+  position:sticky;top:0;flex:0 0 280px;height:100vh;overflow-y:auto;
+  padding:34px 22px 60px;border-right:1px solid var(--line);
+  background:rgba(244,238,224,.7);backdrop-filter:blur(4px)
+}
+.toc .brand{font-family:"Fraunces",serif;font-weight:900;font-size:20px;line-height:1.1;letter-spacing:-.01em;margin-bottom:4px}
+.toc .brand small{display:block;font-family:"JetBrains Mono",monospace;font-weight:400;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--rust);margin-top:8px}
+.toc nav{margin-top:26px;font-size:14.5px}
+.toc nav a{display:block;color:var(--ink-soft);text-decoration:none;padding:5px 10px;border-left:2px solid transparent;border-radius:0 6px 6px 0;transition:.18s;line-height:1.35}
+.toc nav a:hover{color:var(--rust);background:rgba(155,50,32,.06)}
+.toc nav a.sub{padding-left:24px;font-size:13.5px;color:#6b6457}
+.toc nav a.active{color:var(--rust-deep);border-left-color:var(--rust);background:rgba(155,50,32,.08);font-weight:500}
+.toc nav .grp{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9a917f;margin:20px 0 6px 10px}
+
+.content{flex:1 1 auto;min-width:0;padding:0 56px 120px;max-width:980px}
+
+/* ---------- hero ---------- */
+.hero{padding:90px 0 50px;border-bottom:2px solid var(--ink);margin-bottom:14px}
+.hero .kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--rust);margin-bottom:22px}
+.hero h1{font-family:"Fraunces",serif;font-weight:900;font-size:clamp(46px,7vw,86px);line-height:.95;letter-spacing:-.03em;margin:0 0 18px}
+.hero h1 em{font-style:italic;color:var(--rust)}
+.hero .sub{font-size:22px;color:var(--ink-soft);max-width:640px;font-style:italic}
+.hero .meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px}
+.tag{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.06em;padding:6px 12px;border:1px solid var(--line);border-radius:30px;background:var(--paper2);color:var(--ink-soft)}
+
+/* ---------- typography ---------- */
+section{padding-top:46px}
+h2{font-family:"Fraunces",serif;font-weight:900;font-size:clamp(30px,4vw,42px);letter-spacing:-.02em;line-height:1.05;margin:14px 0 6px;scroll-margin-top:20px}
+h2 .num{font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:700;color:var(--rust);letter-spacing:.05em;display:block;margin-bottom:10px}
+h3{font-family:"Fraunces",serif;font-weight:600;font-size:26px;letter-spacing:-.01em;margin:42px 0 4px;scroll-margin-top:20px;color:var(--ink)}
+h4{font-family:"Fraunces",serif;font-weight:600;font-size:20px;margin:30px 0 2px}
+p{margin:14px 0}
+a{color:var(--rust)}
+strong{font-weight:600}
+.rule{height:1px;background:var(--line);border:0;margin:42px 0}
+.lead{font-size:21px;line-height:1.6;color:var(--ink-soft)}
+ul,ol{padding-left:24px}
+li{margin:7px 0}
+.muted{color:var(--ink-soft)}
+
+/* ---------- boxes ---------- */
+.box{border-radius:10px;padding:22px 26px;margin:26px 0;position:relative;box-shadow:var(--shadow)}
+.box .label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;display:block;margin-bottom:8px}
+.box p:first-of-type{margin-top:0}.box p:last-child{margin-bottom:0}
+.def{background:#fff;border:1px solid var(--line);border-left:5px solid var(--teal)}
+.def .label{color:var(--teal)}
+.thm{background:#fbf6e9;border:1px solid #e7d9b4;border-left:5px solid var(--gold)}
+.thm .label{color:var(--gold)}
+.thm .stmt{font-style:italic}
+.proof{background:transparent;border:1px dashed var(--line);box-shadow:none;font-size:18px}
+.proof .label{color:var(--rust)}
+.proof::after{content:"\220E";float:right;font-size:20px;color:var(--ink-soft);margin-top:-4px}
+.note{background:var(--paper2);border:1px solid var(--line);border-left:5px solid var(--rust)}
+.note .label{color:var(--rust)}
+.keytake{background:#102b29;color:#e8e3d4;border:0}
+.keytake .label{color:#6fd0c8}
+.keytake a{color:#9ee6df}
+
+/* ---------- code ---------- */
+.code{margin:24px 0;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);border:1px solid #0c0f17}
+.codehead{display:flex;align-items:center;justify-content:space-between;background:var(--term-bg2);padding:9px 14px;border-bottom:1px solid #0c0f17}
+.codehead .lang{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--term-kw)}
+.codehead .dots{display:flex;gap:6px}
+.codehead .dots i{width:11px;height:11px;border-radius:50%;display:block}
+.codehead .dots i:nth-child(1){background:#e06c55}.codehead .dots i:nth-child(2){background:#e0b34d}.codehead .dots i:nth-child(3){background:#74b96a}
+.copy{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--term-cm);background:transparent;border:1px solid #333a4d;border-radius:6px;padding:3px 10px;cursor:pointer;transition:.15s}
+.copy:hover{color:var(--term-fg);border-color:var(--term-kw)}
+pre{margin:0;background:var(--term-bg);color:var(--term-fg);padding:18px 20px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:14px;line-height:1.6;tab-size:2}
+pre code{font-family:inherit;white-space:pre}
+.cm{color:var(--term-cm);font-style:italic}
+.kw{color:var(--term-kw);font-weight:500}
+.str{color:var(--term-str)}
+.num{color:var(--term-num)}
+code:not(pre code){font-family:"JetBrains Mono",monospace;font-size:.86em;background:var(--paper2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--rust-deep)}
+
+/* ---------- tables ---------- */
+.tbl{margin:24px 0;overflow-x:auto;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:16px}
+th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:var(--term-bg);color:var(--term-fg);font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:var(--paper2)}
+td code{background:var(--paper2)}
+
+/* ---------- widgets ---------- */
+.widget{background:#fff;border:1px solid var(--line);border-top:4px solid var(--teal);border-radius:12px;padding:24px;margin:30px 0;box-shadow:var(--shadow)}
+.widget .whead{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.widget .whead .tagi{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--teal);padding:4px 9px;border-radius:5px}
+.widget h4{margin:0;font-size:19px}
+.widget .wdesc{font-size:15.5px;color:var(--ink-soft);margin:8px 0 18px}
+.controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-bottom:18px}
+.ctl{display:flex;flex-direction:column;gap:5px}
+.ctl label{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+select,input[type=text],input[type=number]{font-family:"JetBrains Mono",monospace;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink)}
+input[type=range]{accent-color:var(--teal);width:160px}
+.btn{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.04em;padding:8px 16px;border:0;border-radius:7px;background:var(--rust);color:#fff;cursor:pointer;transition:.15s;font-weight:500}
+.btn:hover{background:var(--rust-deep)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.alt{background:var(--teal)}.btn.alt:hover{background:#0e4a47}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}.btn.ghost:hover{border-color:var(--rust);color:var(--rust)}
+.readout{font-family:"JetBrains Mono",monospace;font-size:13px;display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;color:var(--ink-soft)}
+.readout b{color:var(--ink);font-weight:700}
+canvas{max-width:100%;display:block}
+
+/* bars */
+.bars{display:flex;align-items:flex-end;gap:2px;height:230px;padding:10px;background:var(--term-bg);border-radius:8px;overflow:hidden}
+.bar{flex:1 1 0;background:var(--teal-soft);border-radius:3px 3px 0 0;transition:height .04s linear,background .04s}
+.bar.cmp{background:var(--gold)}
+.bar.swp{background:var(--rust)}
+.bar.done{background:var(--term-str)}
+.chk{display:flex;align-items:center;gap:7px;font-family:"JetBrains Mono",monospace;font-size:12.5px;cursor:pointer;color:var(--ink-soft)}
+.chk input{accent-color:var(--teal)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink-soft)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:13px;height:13px;border-radius:3px;display:inline-block}
+
+/* binary search cells */
+.cells{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.cell{min-width:46px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:7px;background:#fff;font-family:"JetBrains Mono",monospace;font-size:15px;position:relative;transition:.2s}
+.cell .ix{font-size:9px;color:#aaa;position:absolute;top:2px}
+.cell.range{background:#eaf4f3}
+.cell.lo{box-shadow:inset 0 -4px 0 var(--teal)}
+.cell.hi{box-shadow:inset 0 -4px 0 var(--rust)}
+.cell.lo.hi{box-shadow:inset 0 -4px 0 var(--teal),inset 0 4px 0 var(--rust)}
+.cell.mid{background:var(--gold);color:#fff;transform:translateY(-4px)}
+.cell.out{opacity:.3}
+.cell.found{background:var(--term-str);color:#fff;border-color:var(--term-str)}
+.mt-result{font-family:"JetBrains Mono",monospace;font-size:15px;background:var(--term-bg);color:var(--term-fg);padding:16px;border-radius:8px;margin-top:14px;line-height:1.7}
+.mt-result .hl{color:var(--term-kw)}
+
+/* footer */
+footer{border-top:2px solid var(--ink);margin-top:80px;padding-top:30px;font-size:15px;color:var(--ink-soft)}
+footer .big{font-family:"Fraunces",serif;font-size:24px;color:var(--ink);font-weight:600;margin-bottom:6px}
+
+.toc-toggle{display:none}
+
+@media(max-width:1024px){
+  .content{padding:0 32px 90px}
+}
+@media(max-width:860px){
+  .shell{flex-direction:column}
+  .toc{position:static;height:auto;width:100%;flex-basis:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .toc nav{display:none}
+  .toc nav.open{display:block}
+  .toc-toggle{display:inline-block;margin-top:14px}
+  .content{padding:0 22px 80px}
+  body{font-size:18px}
+  .hero{padding:50px 0 36px}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="shell">
+<aside class="toc">
+  <div class="brand">Algorithms<small>A Field Guide · Octave</small></div>
+  <button class="btn ghost toc-toggle" onclick="document.getElementById('navlist').classList.toggle('open')">☰ Contents</button>
+  <nav id="navlist">
+    <div class="grp">Theory</div>
+    <a href="#foundations">0 · Foundations</a>
+    <a href="#asymptotics">1 · Asymptotic Analysis</a>
+    <a href="#asymptotics" class="sub">Big-O, Ω, Θ &amp; proofs</a>
+    <a href="#growth" class="sub">▶ Growth explorer</a>
+    <a href="#recurrences">2 · Recurrences &amp; D&amp;C</a>
+    <a href="#recurrences" class="sub">Master Theorem</a>
+    <a href="#master-calc" class="sub">▶ Master calculator</a>
+    <a href="#correctness">3 · Correctness &amp; Invariants</a>
+    <div class="grp">Algorithms</div>
+    <a href="#sorting">4 · Sorting</a>
+    <a href="#sort-viz" class="sub">▶ Sorting visualizer</a>
+    <a href="#sorting" class="sub">Ω(n log n) lower bound</a>
+    <a href="#searching">5 · Searching</a>
+    <a href="#search-viz" class="sub">▶ Binary search</a>
+    <a href="#graphs">6 · Graph Algorithms</a>
+    <a href="#dp">7 · Dynamic Programming</a>
+    <a href="#greedy">8 · Greedy Algorithms</a>
+    <div class="grp">Close</div>
+    <a href="#complexity">9 · P, NP &amp; Beyond</a>
+    <a href="#reference">10 · Quick Reference</a>
+  </nav>
+</aside>
+
+<main class="content">
+
+<header class="hero">
+  <div class="kicker">Computer Science · Numerical Computing</div>
+  <h1>The Art of the <em>Algorithm</em></h1>
+  <p class="sub">A complete tour — from formal definitions and asymptotic proofs to working code you can run today in GNU Octave, with interactive visualizations woven throughout.</p>
+  <div class="meta">
+    <span class="tag">★ Formal proofs</span>
+    <span class="tag">⌨ Runnable Octave</span>
+    <span class="tag">▶ 4 interactive labs</span>
+    <span class="tag">∑ Sorting · Graphs · DP · Greedy</span>
+  </div>
+</header>
+
+<section id="foundations">
+  <h2><span class="num">SECTION 0</span>What Is an Algorithm?</h2>
+  <p class="lead">An <strong>algorithm</strong> is a finite, well-defined sequence of computational steps that transforms an input into an output. The word honors the 9th-century mathematician al-Khwārizmī, but the idea is older than the name and far older than the computer.</p>
+
+  <div class="box def">
+    <span class="label">Definition · Knuth's Five Properties</span>
+    <p>A procedure is an algorithm if it has:</p>
+    <ol style="margin:8px 0">
+      <li><strong>Finiteness</strong> — it terminates after finitely many steps.</li>
+      <li><strong>Definiteness</strong> — each step is precisely, unambiguously specified.</li>
+      <li><strong>Input</strong> — zero or more quantities supplied before it begins.</li>
+      <li><strong>Output</strong> — one or more quantities with a specified relation to the input.</li>
+      <li><strong>Effectiveness</strong> — every operation is basic enough to be done exactly, in principle, by a human with pencil and paper.</li>
+    </ol>
+  </div>
+
+  <p>When we <em>analyze</em> an algorithm we ask two separate questions, and we must never conflate them:</p>
+  <ul>
+    <li><strong>Correctness</strong> — does it always produce the right output? (Section 3.)</li>
+    <li><strong>Efficiency</strong> — how do its time and memory requirements grow as the input grows? (Sections 1–2.)</li>
+  </ul>
+
+  <h3>The model of computation</h3>
+  <p>To count "steps" meaningfully we adopt the <strong>RAM (Random-Access Machine)</strong> model. We assume each basic operation — an arithmetic op, a comparison, a memory read or write of a single word — costs one unit of time. We then count operations as a function of input size <code>n</code>. This abstraction lets us compare algorithms <em>independently of hardware, compiler, or programming language</em>: a fact that will outlive any particular CPU.</p>
+
+  <div class="note">
+    <span class="label">Why Octave?</span>
+    <p>GNU Octave is a free, open-source environment for numerical computation, largely compatible with MATLAB. Its 1-based array indexing and matrix-native syntax make algorithmic ideas read almost like pseudocode. Every code block in this guide is valid Octave you can paste straight into the interpreter. Save a function block as <code>name.m</code> (the filename must match the function name) and call it from the prompt.</p>
+  </div>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">% Your first runnable example: sum 1..n two ways and compare cost.
+% The closed form is O(1); the loop is O(n). Same answer, different work.
+
+function s = sum_loop(n)        % O(n) time, O(1) space
+  s = 0;
+  for k = 1:n
+    s = s + k;
+  endfor
+endfunction
+
+function s = sum_formula(n)     % O(1) time -- Gauss's trick
+  s = n * (n + 1) / 2;
+endfunction
+
+% Try it:  sum_loop(100), sum_formula(100)  -> both give 5050</code></pre>
+  </div>
+</section>
+
+<section id="asymptotics">
+  <h2><span class="num">SECTION 1</span>Asymptotic Analysis</h2>
+  <p class="lead">We don't care that one machine is twice as fast as another, nor about the cost of a single addition. We care about <em>shape</em>: how the running time scales as <code>n → ∞</code>. Asymptotic notation is the language for that shape.</p>
+
+  <div class="box def">
+    <span class="label">Definition · Big-O (asymptotic upper bound)</span>
+    <p>For functions \(f,g:\mathbb{N}\to\mathbb{R}^{+}\), we write \(f(n)=O(g(n))\) if there exist positive constants \(c\) and \(n_0\) such that</p>
+    <p style="text-align:center">\( 0 \le f(n) \le c\,g(n) \quad\text{for all } n \ge n_0. \)</p>
+    <p class="muted" style="font-size:16px">Read: "beyond some point \(n_0\), \(f\) is no worse than a constant multiple of \(g\)." It is an <em>upper</em> bound, and a loose one is still valid.</p>
+  </div>
+
+  <div class="box def">
+    <span class="label">Definition · Big-Ω and Big-Θ</span>
+    <p>\(f(n)=\Omega(g(n))\) if \(\exists\,c,n_0>0\) with \(0\le c\,g(n)\le f(n)\) for all \(n\ge n_0\) — a <em>lower</em> bound.</p>
+    <p>\(f(n)=\Theta(g(n))\) if \(f(n)=O(g(n))\) <em>and</em> \(f(n)=\Omega(g(n))\) — a <em>tight</em> bound. Equivalently, \(\exists\,c_1,c_2,n_0>0\) with \(c_1 g(n)\le f(n)\le c_2 g(n)\) for all \(n\ge n_0\).</p>
+    <p class="muted" style="font-size:16px">The strict cousins: \(f=o(g)\) means the ratio \(f/g\to 0\) (strictly smaller); \(f=\omega(g)\) means \(f/g\to\infty\) (strictly larger).</p>
+  </div>
+
+  <h3>Proof technique: produce the witnesses</h3>
+  <p>To prove a Big-O claim you must <em>exhibit</em> a constant \(c\) and threshold \(n_0\) that work. Here is the canonical example.</p>
+
+  <div class="box thm">
+    <span class="label">Proposition 1.1</span>
+    <p class="stmt">\(3n^2 + 5n + 2 = O(n^2).\)</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p>We seek \(c,n_0\) with \(3n^2+5n+2 \le c\,n^2\) for all \(n\ge n_0\). For every \(n\ge 1\) we have \(n \le n^2\) and \(1 \le n^2\). Therefore</p>
+    <p style="text-align:center">\(3n^2 + 5n + 2 \;\le\; 3n^2 + 5n^2 + 2n^2 \;=\; 10n^2.\)</p>
+    <p>So the choice \(c = 10,\; n_0 = 1\) satisfies the definition. Hence \(3n^2+5n+2 = O(n^2)\).</p>
+  </div>
+
+  <p>The same function is also \(O(n^3)\) (true but loose) and \(\Omega(n^2)\) (since \(3n^2+5n+2 \ge 3n^2\) for all \(n\ge 1\), take \(c=3\)). Combining the two tight bounds gives \(\Theta(n^2)\) — the honest answer.</p>
+
+  <h3>Proving a negative bound</h3>
+  <div class="box thm">
+    <span class="label">Proposition 1.2</span>
+    <p class="stmt">\(n^2 \ne O(n).\)</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof (by contradiction)</span>
+    <p>Suppose, for contradiction, that \(n^2 = O(n)\). Then there exist \(c,n_0>0\) with \(n^2 \le c\,n\) for all \(n\ge n_0\). Dividing both sides by the positive quantity \(n\) gives \(n \le c\) for all \(n\ge n_0\). But \(n\) grows without bound, so choosing any \(n > \max(c, n_0)\) violates the inequality. This contradiction shows no such constants exist, hence \(n^2 \ne O(n)\).</p>
+  </div>
+
+  <div class="box note">
+    <span class="label">The limit shortcut</span>
+    <p>When \(L=\lim_{n\to\infty} f(n)/g(n)\) exists: if \(L=0\) then \(f=o(g)\); if \(0<L<\infty\) then \(f=\Theta(g)\); if \(L=\infty\) then \(f=\omega(g)\). This turns many bound proofs into a single limit computation — though the witness method above always works and needs no calculus.</p>
+  </div>
+
+  <h3>The hierarchy you must memorize</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Class</th><th>Name</th><th>n = 1,000,000 means…</th><th>Typical source</th></tr></thead>
+      <tbody>
+        <tr><td><code>O(1)</code></td><td>constant</td><td>1 step</td><td>array index, hash lookup</td></tr>
+        <tr><td><code>O(log n)</code></td><td>logarithmic</td><td>~20 steps</td><td>binary search, balanced trees</td></tr>
+        <tr><td><code>O(n)</code></td><td>linear</td><td>10⁶ steps</td><td>one scan of the input</td></tr>
+        <tr><td><code>O(n log n)</code></td><td>linearithmic</td><td>~2×10⁷ steps</td><td>merge sort, heap sort, FFT</td></tr>
+        <tr><td><code>O(n²)</code></td><td>quadratic</td><td>10¹² steps</td><td>nested loops, naive sorts</td></tr>
+        <tr><td><code>O(n³)</code></td><td>cubic</td><td>10¹⁸ steps</td><td>naive matrix multiply</td></tr>
+        <tr><td><code>O(2ⁿ)</code></td><td>exponential</td><td>astronomically large</td><td>brute-force subsets</td></tr>
+        <tr><td><code>O(n!)</code></td><td>factorial</td><td>beyond astronomical</td><td>brute-force permutations</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The gap between \(n\log n\) and \(n^2\) is the difference between an algorithm finishing in a blink and one that never finishes at all. <em>This is why analysis matters more than micro-optimization.</em></p>
+
+  <div class="widget" id="growth">
+    <div class="whead"><span class="tagi">▶ Interactive Lab 1</span><h4>Growth-Rate Explorer</h4></div>
+    <p class="wdesc">Drag <code>n</code> and watch the curves diverge. The y-axis is logarithmic so every class stays visible — note how each "step up" in the hierarchy eventually buries everything below it, no matter the constant factors.</p>
+    <div class="controls">
+      <div class="ctl"><label>input size n = <b id="gn-val">40</b></label><input type="range" id="gn" min="2" max="200" value="40"></div>
+      <div class="ctl"><label>y-axis</label><select id="gscale"><option value="log">logarithmic</option><option value="lin">linear</option></select></div>
+    </div>
+    <div class="controls" id="gtoggles" style="gap:8px 16px"></div>
+    <canvas id="gcanvas" width="900" height="380"></canvas>
+    <div class="readout" id="greadout"></div>
+  </div>
+</section>
+<section id="recurrences">
+  <h2><span class="num">SECTION 2</span>Recurrences &amp; Divide-and-Conquer</h2>
+  <p class="lead">Divide-and-conquer algorithms split a problem into smaller subproblems, solve those recursively, and combine the results. Their running time is naturally described by a <strong>recurrence relation</strong> — an equation that defines \(T(n)\) in terms of itself at smaller inputs.</p>
+
+  <p>A generic divide-and-conquer recurrence has the form</p>
+  <p style="text-align:center">\( T(n) = a\,T(n/b) + f(n), \)</p>
+  <p>where \(a\ge 1\) subproblems are each of size \(n/b\) (with \(b>1\)), and \(f(n)\) is the cost to divide the problem and combine the answers. Three methods solve such recurrences.</p>
+
+  <h3>Method 1 — Substitution (guess &amp; verify by induction)</h3>
+  <div class="box thm">
+    <span class="label">Claim</span>
+    <p class="stmt">The recurrence \(T(n) = 2T(n/2) + n\), with \(T(1)=1\), satisfies \(T(n) = O(n\log n)\).</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof (induction)</span>
+    <p>Guess \(T(n) \le c\,n\log_2 n + n\) for some constant \(c>0\) (the extra \(+n\) absorbs the base case). <strong>Base:</strong> for \(n=1\), \(\log_2 1 = 0\), so the bound reads \(T(1)\le 1\), which holds. <strong>Step:</strong> assume the bound for all sizes below \(n\). Then</p>
+    <p style="text-align:center">\(T(n) = 2T(n/2)+n \le 2\!\left[c\tfrac{n}{2}\log_2\tfrac{n}{2}+\tfrac{n}{2}\right]+n\)</p>
+    <p style="text-align:center">\(= c\,n(\log_2 n - 1) + n + n = c\,n\log_2 n - cn + 2n.\)</p>
+    <p>For any \(c\ge 2\) the term \(-cn+2n \le 0 \le n\), so \(T(n)\le c\,n\log_2 n + n\), completing the induction. Hence \(T(n)=O(n\log n)\). (This is exactly merge sort.)</p>
+  </div>
+
+  <h3>Method 2 — The recursion tree</h3>
+  <p>Unroll the recurrence as a tree: the root does \(f(n)\) work, its \(a\) children each do \(f(n/b)\), and so on. Summing work <em>level by level</em> often reveals the answer by inspection. For \(T(n)=2T(n/2)+n\): each of the \(\log_2 n + 1\) levels contributes exactly \(n\) total work (level \(i\) has \(2^i\) nodes each costing \(n/2^i\)), giving \(n\cdot(\log_2 n + 1) = \Theta(n\log n)\). The tree picture is also the fastest way to <em>guess</em> the bound the substitution method then proves.</p>
+
+  <h3>Method 3 — The Master Theorem</h3>
+  <p>For the common shape \(T(n)=aT(n/b)+f(n)\), one theorem dispatches most cases mechanically. The pivot is comparing \(f(n)\) against the "watershed" function \(n^{\log_b a}\).</p>
+
+  <div class="box thm">
+    <span class="label">Theorem 2.1 · Master Theorem</span>
+    <p>Let \(a\ge 1\), \(b>1\) be constants, \(f(n)\) a function, and \(T(n)=a\,T(n/b)+f(n)\). Let \(c^\star=\log_b a\). Then:</p>
+    <p><strong>Case 1.</strong> If \(f(n)=O\!\left(n^{c^\star-\varepsilon}\right)\) for some \(\varepsilon>0\), then \(T(n)=\Theta\!\left(n^{c^\star}\right)\). <span class="muted">— the leaves dominate.</span></p>
+    <p><strong>Case 2.</strong> If \(f(n)=\Theta\!\left(n^{c^\star}\right)\), then \(T(n)=\Theta\!\left(n^{c^\star}\log n\right)\). <span class="muted">— work is balanced across levels.</span></p>
+    <p><strong>Case 3.</strong> If \(f(n)=\Omega\!\left(n^{c^\star+\varepsilon}\right)\) for some \(\varepsilon>0\), <em>and</em> the regularity condition \(a\,f(n/b)\le k\,f(n)\) holds for some \(k<1\), then \(T(n)=\Theta\!\left(f(n)\right)\). <span class="muted">— the root dominates.</span></p>
+  </div>
+
+  <div class="box note">
+    <span class="label">Why \(n^{\log_b a}\)?</span>
+    <p>The recursion tree has depth \(\log_b n\) and a branching factor \(a\), so it has \(a^{\log_b n} = n^{\log_b a}\) leaves. That leaf count is the work done at the bottom of the tree. The theorem simply asks: is the combine-cost \(f(n)\) smaller than (Case 1), equal to (Case 2), or larger than (Case 3) the work at the leaves? Whoever wins, wins the whole sum.</p>
+  </div>
+
+  <p><strong>Worked example — merge sort.</strong> \(T(n)=2T(n/2)+\Theta(n)\). Here \(a=2,b=2\), so \(c^\star=\log_2 2 = 1\) and \(f(n)=\Theta(n)=\Theta(n^{1})=\Theta(n^{c^\star})\). That is Case 2, giving \(T(n)=\Theta(n\log n)\) — matching the substitution proof above.</p>
+  <p><strong>Worked example — binary search.</strong> \(T(n)=T(n/2)+\Theta(1)\). Now \(a=1,b=2\), \(c^\star=\log_2 1 = 0\), and \(f(n)=\Theta(1)=\Theta(n^0)\): Case 2 again, \(T(n)=\Theta(\log n)\).</p>
+
+  <div class="widget" id="master-calc">
+    <div class="whead"><span class="tagi">▶ Interactive Lab 2</span><h4>Master Theorem Calculator</h4></div>
+    <p class="wdesc">Enter a recurrence \(T(n)=a\,T(n/b)+f(n)\). For \(f\), supply the polynomial degree \(d\) (i.e. \(f(n)=\Theta(n^d)\); use \(d=0\) for constant work, \(d=1\) for linear, etc.). The calculator computes the watershed \(c^\star=\log_b a\), picks the case, and reports the closed-form \(\Theta\).</p>
+    <div class="controls">
+      <div class="ctl"><label>a — subproblems</label><input type="number" id="mt-a" value="2" min="1" step="1" style="width:90px"></div>
+      <div class="ctl"><label>b — shrink factor</label><input type="number" id="mt-b" value="2" min="2" step="0.5" style="width:90px"></div>
+      <div class="ctl"><label>d — degree of f(n)=Θ(nᵈ)</label><input type="number" id="mt-d" value="1" min="0" step="0.5" style="width:90px"></div>
+      <button class="btn alt" id="mt-go">solve</button>
+    </div>
+    <div class="mt-result" id="mt-out">Enter values and press solve.</div>
+  </div>
+</section>
+
+<section id="correctness">
+  <h2><span class="num">SECTION 3</span>Correctness &amp; Loop Invariants</h2>
+  <p class="lead">A fast algorithm that returns wrong answers is worthless. The workhorse tool for proving an iterative algorithm correct is the <strong>loop invariant</strong> — a property that is true before the loop starts and stays true after every iteration, like an inductive hypothesis embedded in the code.</p>
+
+  <div class="box def">
+    <span class="label">Definition · Loop-invariant proof</span>
+    <p>To prove correctness with a loop invariant, show three things:</p>
+    <ol style="margin:8px 0">
+      <li><strong>Initialization</strong> — the invariant holds before the first iteration.</li>
+      <li><strong>Maintenance</strong> — if it holds before an iteration, it holds before the next.</li>
+      <li><strong>Termination</strong> — when the loop ends, the invariant (plus the exit condition) implies the algorithm is correct.</li>
+    </ol>
+    <p class="muted" style="font-size:16px">This is mathematical induction wearing work clothes: initialization is the base case, maintenance is the inductive step.</p>
+  </div>
+
+  <h3>Case study: Insertion Sort</h3>
+  <p>Insertion sort builds a sorted prefix one element at a time, exactly the way most people sort a hand of playing cards. Here it is in Octave.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function A = insertion_sort(A)
+  % Sorts row vector A ascending, in place. Time: O(n^2) worst, O(n) best.
+  for j = 2:numel(A)
+    key = A(j);            % the element to insert into the sorted prefix
+    i = j - 1;
+    % shift everything larger than key one slot to the right
+    while i >= 1 && A(i) > key
+      A(i+1) = A(i);
+      i = i - 1;
+    endwhile
+    A(i+1) = key;          % drop key into the gap
+  endfor
+endfunction</code></pre>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 3.1</span>
+    <p class="stmt"><code>insertion_sort</code> returns a permutation of its input arranged in non-decreasing order.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p><strong>Invariant.</strong> At the start of each iteration of the <code>for</code> loop with index \(j\), the subarray \(A[1..j-1]\) contains the original elements of those positions, now in sorted order.</p>
+    <p><strong>Initialization.</strong> When \(j=2\), the prefix \(A[1..1]\) is a single element, which is trivially sorted and unchanged. ✓</p>
+    <p><strong>Maintenance.</strong> Assume \(A[1..j-1]\) is sorted. The <code>while</code> loop moves every element of \(A[1..j-1]\) strictly greater than <code>key</code> one position right, preserving their relative order, until it finds the slot where <code>key</code> is \(\ge\) its left neighbour and \(\le\) its right neighbour. Placing <code>key</code> there yields a sorted \(A[1..j]\). Only original elements were moved or inserted, so it remains a permutation. Thus the invariant holds for \(j+1\). ✓</p>
+    <p><strong>Termination.</strong> The loop ends when \(j = n+1\). Substituting into the invariant, \(A[1..n]\) — the whole array — is sorted and is a permutation of the input. ∎ Therefore the algorithm is correct.</p>
+  </div>
+
+  <div class="box note">
+    <span class="label">Cost, both ends</span>
+    <p>The outer loop runs \(n-1\) times. In the <em>worst</em> case (reverse-sorted input) the inner <code>while</code> shifts all \(j-1\) prior elements, giving \(\sum_{j=2}^{n}(j-1)=\frac{n(n-1)}{2}=\Theta(n^2)\). In the <em>best</em> case (already sorted) the <code>while</code> test fails immediately, so the work is \(\Theta(n)\). This sensitivity to input order is why insertion sort is the algorithm of choice for small or nearly-sorted arrays — and why hybrid sorts (e.g. Timsort) switch to it on small subranges.</p>
+  </div>
+</section>
+<section id="sorting">
+  <h2><span class="num">SECTION 4</span>Sorting</h2>
+  <p class="lead">Sorting is the most studied problem in computing — partly because it is everywhere, and partly because it is the perfect arena for learning every analysis technique at once. We meet the quadratic family, then the \(\Theta(n\log n)\) family, then prove that no comparison sort can ever beat \(n\log n\).</p>
+
+  <h3>The quadratic family</h3>
+  <p>Three classic \(O(n^2)\) sorts. They are slow on large inputs but simple, in-place, and instructive.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function A = bubble_sort(A)
+  % Repeatedly swap adjacent out-of-order pairs; large items "bubble" up.
+  n = numel(A);
+  for i = 1:n-1
+    swapped = false;
+    for j = 1:n-i                 % last i items are already in place
+      if A(j) > A(j+1)
+        tmp = A(j); A(j) = A(j+1); A(j+1) = tmp;
+        swapped = true;
+      endif
+    endfor
+    if !swapped, break; endif      % early exit if a full pass made no swap
+  endfor
+endfunction
+
+function A = selection_sort(A)
+  % Each pass selects the minimum of the unsorted tail and places it.
+  n = numel(A);
+  for i = 1:n-1
+    m = i;
+    for j = i+1:n
+      if A(j) < A(m), m = j; endif
+    endfor
+    tmp = A(i); A(i) = A(m); A(m) = tmp;
+  endfor
+endfunction</code></pre>
+  </div>
+
+  <h3>Merge sort — divide and conquer, provably \(\Theta(n\log n)\)</h3>
+  <p>Split the array in half, sort each half recursively, then merge the two sorted halves in linear time. The merge step is the whole trick: comparing the fronts of two sorted lists lets you emit the global minimum in \(O(1)\).</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function A = merge_sort(A)
+  n = numel(A);
+  if n <= 1, return; endif          % base case: 0 or 1 element is sorted
+  mid = floor(n/2);
+  L = merge_sort(A(1:mid));
+  R = merge_sort(A(mid+1:end));
+  A = merge(L, R);
+endfunction
+
+function M = merge(L, R)
+  % Combine two sorted vectors into one sorted vector in O(|L|+|R|).
+  M = zeros(1, numel(L) + numel(R));
+  i = 1; j = 1; k = 1;
+  while i <= numel(L) && j <= numel(R)
+    if L(i) <= R(j)               % "<=" keeps the sort STABLE
+      M(k) = L(i); i = i + 1;
+    else
+      M(k) = R(j); j = j + 1;
+    endif
+    k = k + 1;
+  endwhile
+  while i <= numel(L), M(k) = L(i); i++; k++; endwhile   % drain L
+  while j <= numel(R), M(k) = R(j); j++; k++; endwhile   % drain R
+endfunction</code></pre>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 4.1</span>
+    <p class="stmt">Merge sort runs in \(\Theta(n\log n)\) time in the worst case.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p>The <code>merge</code> of two lists of combined length \(m\) performs at most \(m-1\) comparisons and exactly \(m\) writes, so it costs \(\Theta(m)\). Splitting is \(\Theta(1)\) with index arithmetic. Hence the running time obeys</p>
+    <p style="text-align:center">\(T(n) = 2\,T(n/2) + \Theta(n),\qquad T(1)=\Theta(1).\)</p>
+    <p>Apply the Master Theorem with \(a=2,\,b=2\): the watershed is \(n^{\log_2 2}=n^1\), and \(f(n)=\Theta(n)=\Theta(n^{1})\), so we are in Case 2. Therefore \(T(n)=\Theta(n^{1}\log n)=\Theta(n\log n)\). Because every input is split identically regardless of its values, this bound is the same in the best, average, and worst cases. ∎</p>
+  </div>
+
+  <h3>Quicksort — fast in practice, fragile in the worst case</h3>
+  <p>Pick a <strong>pivot</strong>, partition the array so smaller elements go left and larger go right, then recurse on each side. No merge needed — the work is all in partitioning.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function A = quick_sort(A, lo, hi)
+  if nargin < 2, lo = 1; hi = numel(A); endif   % allow quick_sort(A)
+  if lo < hi
+    [A, p] = partition(A, lo, hi);   % p is the pivot's final resting index
+    A = quick_sort(A, lo, p - 1);
+    A = quick_sort(A, p + 1, hi);
+  endif
+endfunction
+
+function [A, i] = partition(A, lo, hi)
+  pivot = A(hi);                   % Lomuto scheme: last element is the pivot
+  i = lo - 1;
+  for j = lo:hi-1
+    if A(j) <= pivot
+      i = i + 1;
+      tmp = A(i); A(i) = A(j); A(j) = tmp;
+    endif
+  endfor
+  i = i + 1;
+  tmp = A(i); A(i) = A(hi); A(hi) = tmp;   % put pivot between the two sides
+endfunction</code></pre>
+  </div>
+
+  <div class="box note">
+    <span class="label">Average vs. worst case</span>
+    <p>If each partition splits the array into reasonably balanced pieces, the recurrence is \(T(n)=2T(n/2)+\Theta(n)=\Theta(n\log n)\) — and this is the <em>expected</em> behavior over random pivots. But if the pivot is always the smallest or largest element (e.g. an already-sorted array with last-element pivot), partitions are maximally unbalanced: \(T(n)=T(n-1)+\Theta(n)=\Theta(n^2)\). The standard defenses are <strong>randomized pivots</strong> or <strong>median-of-three</strong> selection, which make the bad case astronomically unlikely. Quicksort is usually the fastest comparison sort in practice because its inner loop is tight and cache-friendly, despite the worse worst case.</p>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable?</th></tr></thead>
+      <tbody>
+        <tr><td>Bubble sort</td><td>Θ(n)</td><td>Θ(n²)</td><td>Θ(n²)</td><td>Θ(1)</td><td>yes</td></tr>
+        <tr><td>Selection sort</td><td>Θ(n²)</td><td>Θ(n²)</td><td>Θ(n²)</td><td>Θ(1)</td><td>no</td></tr>
+        <tr><td>Insertion sort</td><td>Θ(n)</td><td>Θ(n²)</td><td>Θ(n²)</td><td>Θ(1)</td><td>yes</td></tr>
+        <tr><td>Merge sort</td><td>Θ(n log n)</td><td>Θ(n log n)</td><td>Θ(n log n)</td><td>Θ(n)</td><td>yes</td></tr>
+        <tr><td>Quicksort</td><td>Θ(n log n)</td><td>Θ(n log n)</td><td>Θ(n²)</td><td>Θ(log n)</td><td>no</td></tr>
+        <tr><td>Heap sort</td><td>Θ(n log n)</td><td>Θ(n log n)</td><td>Θ(n log n)</td><td>Θ(1)</td><td>no</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="widget" id="sort-viz">
+    <div class="whead"><span class="tagi">▶ Interactive Lab 3</span><h4>Sorting Visualizer</h4></div>
+    <p class="wdesc">Watch each algorithm move data in real time. <span style="color:var(--gold)">Gold</span> = a comparison, <span style="color:var(--rust)">red</span> = a swap/write, <span style="color:var(--teal-soft)">teal</span> = at rest, <span style="color:var(--term-str)">green</span> = finalized. The comparison and swap counters make the complexity classes <em>visible</em>: try the same array with bubble vs. merge.</p>
+    <div class="controls">
+      <div class="ctl"><label>algorithm</label><select id="sv-algo">
+        <option value="bubble">Bubble sort</option>
+        <option value="selection">Selection sort</option>
+        <option value="insertion">Insertion sort</option>
+        <option value="merge">Merge sort</option>
+        <option value="quick">Quicksort</option>
+      </select></div>
+      <div class="ctl"><label>size = <b id="sv-nval">28</b></label><input type="range" id="sv-n" min="6" max="60" value="28"></div>
+      <div class="ctl"><label>speed = <b id="sv-sval">6</b></label><input type="range" id="sv-speed" min="1" max="12" value="6"></div>
+      <button class="btn" id="sv-run">▶ run</button>
+      <button class="btn ghost" id="sv-shuffle">⤮ shuffle</button>
+    </div>
+    <div class="bars" id="sv-bars"></div>
+    <div class="legend">
+      <span><i style="background:var(--teal-soft)"></i>resting</span>
+      <span><i style="background:var(--gold)"></i>comparing</span>
+      <span><i style="background:var(--rust)"></i>swap / write</span>
+      <span><i style="background:var(--term-str)"></i>sorted</span>
+    </div>
+    <div class="readout" id="sv-readout"><span>comparisons: <b id="sv-comp">0</b></span><span>swaps/writes: <b id="sv-swap">0</b></span></div>
+  </div>
+
+  <h3>The fundamental limit: why \(n\log n\) is a wall</h3>
+  <p>Every sort above that works only by <em>comparing</em> elements is a <strong>comparison sort</strong>. Remarkably, we can prove that <em>no</em> comparison sort — present or future, however clever — can beat \(n\log n\) in the worst case.</p>
+
+  <div class="box thm">
+    <span class="label">Theorem 4.2 · Comparison-sort lower bound</span>
+    <p class="stmt">Any comparison sort makes \(\Omega(n\log n)\) comparisons in the worst case.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof (decision tree)</span>
+    <p>Model any comparison sort as a binary <em>decision tree</em>: each internal node is a comparison "is \(a_i \le a_j\)?", with the two answers as the two children; each leaf is a final permutation the algorithm outputs. To sort correctly, the tree must be able to produce every one of the \(n!\) possible orderings of the input — so it has at least \(n!\) reachable leaves.</p>
+    <p>A binary tree of height \(h\) has at most \(2^h\) leaves. Therefore</p>
+    <p style="text-align:center">\(2^h \ge n! \;\Longrightarrow\; h \ge \log_2(n!).\)</p>
+    <p>By Stirling's approximation, \(\log_2(n!) = n\log_2 n - n\log_2 e + O(\log n) = \Theta(n\log n)\). The worst-case number of comparisons equals the longest root-to-leaf path — the height \(h\). Hence \(h = \Omega(n\log n)\). ∎</p>
+  </div>
+  <p>Merge sort and heap sort <em>match</em> this bound, so they are asymptotically optimal among comparison sorts. (Counting sort and radix sort can beat it — but only by abandoning comparisons and exploiting structure in the keys, so the theorem does not apply to them.)</p>
+</section>
+<section id="searching">
+  <h2><span class="num">SECTION 5</span>Searching</h2>
+  <p class="lead">Finding an element in a collection. The lesson here is sharp: a tiny structural assumption — <em>sortedness</em> — collapses a linear scan into a logarithmic leap.</p>
+
+  <h3>Linear search — \(O(n)\), no assumptions</h3>
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function idx = linear_search(A, target)
+  idx = -1;                       % sentinel: -1 means "not found"
+  for i = 1:numel(A)
+    if A(i) == target
+      idx = i; return;            % first match wins
+    endif
+  endfor
+endfunction</code></pre>
+  </div>
+
+  <h3>Binary search — \(O(\log n)\) on sorted data</h3>
+  <p>Look at the middle. If it's the target, done. If the target is smaller, the answer can only be in the left half; if larger, the right half. Each step throws away half of what remains.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function idx = binary_search(A, target)
+  % PRECONDITION: A is sorted ascending. Returns an index of target, or -1.
+  lo = 1; hi = numel(A); idx = -1;
+  while lo <= hi
+    mid = floor((lo + hi) / 2);   % integer midpoint, no overflow in Octave
+    if A(mid) == target
+      idx = mid; return;
+    elseif A(mid) < target
+      lo = mid + 1;               % target must be to the right
+    else
+      hi = mid - 1;               % target must be to the left
+    endif
+  endwhile
+endfunction</code></pre>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 5.1</span>
+    <p class="stmt">Binary search is correct and runs in \(O(\log n)\) time.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof</span>
+    <p><strong>Correctness (invariant).</strong> The invariant is: <em>if</em> <code>target</code> is in <code>A</code>, then it lies within the window <code>A[lo..hi]</code>. Initially the window is the whole array, so it holds. Each iteration inspects <code>A[mid]</code>: if <code>A[mid] &lt; target</code>, then by sortedness every index \(\le\) mid holds a value \(&lt;\) target, so target (if present) is in <code>A[mid+1..hi]</code> — exactly the new window. The symmetric argument handles <code>A[mid] &gt; target</code>. The invariant is thus maintained. The loop exits either by returning a found index, or when <code>lo &gt; hi</code>, i.e. the window is empty — and the invariant then says target is not present, so returning \(-1\) is correct.</p>
+    <p><strong>Running time.</strong> Let the window size be \(s = hi-lo+1\). Each iteration replaces the window with one of size at most \(\lfloor s/2\rfloor\). Starting from \(s=n\), after \(k\) iterations the size is at most \(n/2^k\). The loop stops once the size drops below \(1\), which happens when \(2^k > n\), i.e. \(k > \log_2 n\). Hence at most \(\lfloor\log_2 n\rfloor + 1\) iterations, each \(O(1)\) work: \(O(\log n)\) total. ∎</p>
+  </div>
+
+  <div class="widget" id="search-viz">
+    <div class="whead"><span class="tagi">▶ Interactive Lab 4</span><h4>Binary Search Stepper</h4></div>
+    <p class="wdesc">Step through the algorithm on a sorted array. The shaded band is the live window <code>[lo..hi]</code>; <span style="color:var(--gold)">gold</span> is the current <code>mid</code> under examination. Notice that even a 32-element array is decided in 5–6 probes.</p>
+    <div class="controls">
+      <div class="ctl"><label>target</label><input type="number" id="bs-target" value="42" style="width:90px"></div>
+      <button class="btn" id="bs-step">step ▸</button>
+      <button class="btn alt" id="bs-auto">▶ auto-run</button>
+      <button class="btn ghost" id="bs-new">⤮ new array</button>
+    </div>
+    <div class="cells" id="bs-cells"></div>
+    <div class="mt-result" id="bs-log">Press “step” to begin. lo and hi bracket the search window.</div>
+  </div>
+</section>
+
+<section id="graphs">
+  <h2><span class="num">SECTION 6</span>Graph Algorithms</h2>
+  <p class="lead">A graph \(G=(V,E)\) is a set of vertices joined by edges — the right model for maps, networks, dependencies, and relationships of every kind. We store one as an <strong>adjacency matrix</strong> <code>adj(u,v)=1</code> when an edge \(u\to v\) exists, which is wonderfully natural in Octave's matrix world.</p>
+
+  <h3>Breadth-First Search — shortest paths in unweighted graphs</h3>
+  <p>BFS explores in concentric rings: all vertices at distance 1, then distance 2, and so on, using a FIFO queue. It visits every vertex and edge once, so it runs in \(O(V+E)\).</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function order = bfs(adj, start)
+  % Returns vertices in the order BFS first reaches them from `start`.
+  n = rows(adj);
+  visited = false(1, n);
+  order = [];
+  queue = [start];
+  visited(start) = true;
+  while !isempty(queue)
+    u = queue(1); queue(1) = [];   % dequeue front
+    order(end+1) = u;
+    for v = 1:n                    % enqueue unvisited neighbours
+      if adj(u, v) && !visited(v)
+        visited(v) = true;
+        queue(end+1) = v;
+      endif
+    endfor
+  endwhile
+endfunction</code></pre>
+  </div>
+
+  <h3>Depth-First Search — go deep, then backtrack</h3>
+  <p>DFS plunges as far as possible along each branch before backing up. It is the backbone of cycle detection, topological sorting, and connectivity. Also \(O(V+E)\).</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function order = dfs(adj, start)
+  n = rows(adj);
+  visited = false(1, n);
+  order = [];
+  [order, ~] = dfs_visit(adj, start, visited, order);
+endfunction
+
+function [order, visited] = dfs_visit(adj, u, visited, order)
+  visited(u) = true;
+  order(end+1) = u;
+  for v = 1:rows(adj)
+    if adj(u, v) && !visited(v)
+      [order, visited] = dfs_visit(adj, v, visited, order);  % recurse
+    endif
+  endfor
+endfunction</code></pre>
+  </div>
+
+  <h3>Dijkstra's algorithm — shortest paths with weights</h3>
+  <p>When edges carry non-negative weights, Dijkstra greedily finalizes the closest unfinished vertex, relaxing its outgoing edges. Here <code>W(u,v)</code> is the positive weight of edge \(u\to v\), and <code>0</code> means "no edge".</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function dist = dijkstra(W, src)
+  % W: n-by-n weight matrix, W(u,v) > 0 is an edge, 0 = no edge. Weights >= 0.
+  n = rows(W);
+  dist = inf(1, n);
+  dist(src) = 0;
+  visited = false(1, n);
+  for iter = 1:n
+    % pick the unvisited vertex with the smallest tentative distance
+    u = -1; best = inf;
+    for v = 1:n
+      if !visited(v) && dist(v) < best
+        best = dist(v); u = v;
+      endif
+    endfor
+    if u == -1, break; endif        % remaining vertices unreachable
+    visited(u) = true;
+    for v = 1:n                     % relax edges out of u
+      if W(u, v) > 0 && !visited(v) && dist(u) + W(u, v) < dist(v)
+        dist(v) = dist(u) + W(u, v);
+      endif
+    endfor
+  endfor
+endfunction</code></pre>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 6.1</span>
+    <p class="stmt">With non-negative edge weights, when Dijkstra marks a vertex \(u\) visited, <code>dist(u)</code> equals the true shortest-path distance from the source to \(u\).</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof (greedy exchange)</span>
+    <p>Suppose not, and let \(u\) be the <em>first</em> vertex finalized with an incorrect (too large) <code>dist(u)</code>. Let \(P\) be a true shortest path from the source to \(u\). Walking \(P\) from the source, it begins among visited vertices and ends at the unvisited \(u\); let \((x,y)\) be the first edge of \(P\) crossing from a visited vertex \(x\) to an unvisited vertex \(y\). Because \(x\) was finalized correctly (it precedes \(u\)) and its edge was relaxed, \(\text{dist}(y) \le \text{dist}(x)+w(x,y)\), which equals the length of \(P\) up to \(y\). Since edge weights are non-negative, that prefix length is \(\le\) the full length of \(P\), i.e. \(\text{dist}(y) \le \text{dist}(u)_{\text{true}} \le \text{dist}(u)\). But the algorithm chose \(u\) as the unvisited vertex of <em>minimum</em> tentative distance, so \(\text{dist}(u) \le \text{dist}(y)\). The two inequalities force \(\text{dist}(u)=\text{dist}(u)_{\text{true}}\), contradicting the assumption. ∎</p>
+  </div>
+  <div class="box note">
+    <span class="label">Caveat — negative edges break it</span>
+    <p>The proof uses non-negativity crucially (the prefix of \(P\) is no longer than all of \(P\)). With negative weights a later cheap edge could undercut an already-finalized vertex, and Dijkstra fails. Use the Bellman–Ford algorithm there: it relaxes all edges \(|V|-1\) times for \(O(VE)\), and also detects negative cycles. The simple \(O(V^2)\) selection loop above becomes \(O((V+E)\log V)\) with a binary-heap priority queue.</p>
+  </div>
+</section>
+<section id="dp">
+  <h2><span class="num">SECTION 7</span>Dynamic Programming</h2>
+  <p class="lead">Dynamic programming (DP) solves a problem by combining solutions to overlapping subproblems, each solved <em>once</em> and cached. It applies precisely when a problem has two features.</p>
+
+  <div class="box def">
+    <span class="label">Definition · When DP applies</span>
+    <p><strong>Optimal substructure</strong> — an optimal solution is built from optimal solutions to subproblems.<br>
+    <strong>Overlapping subproblems</strong> — a naive recursion would solve the same subproblems again and again. DP stores each answer so it is computed only once.</p>
+  </div>
+
+  <h3>The motivating example: Fibonacci</h3>
+  <p>The naive recursion recomputes the same values exponentially many times — \(T(n)=T(n-1)+T(n-2)+\Theta(1)\), which is \(\Theta(\varphi^{\,n})\). Caching collapses it to \(\Theta(n)\).</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function f = fib_naive(n)         % EXPONENTIAL: O(phi^n) -- do not use for big n
+  if n <= 1
+    f = n;
+  else
+    f = fib_naive(n-1) + fib_naive(n-2);
+  endif
+endfunction
+
+function f = fib_dp(n)            % BOTTOM-UP: O(n) time, O(n) space
+  memo = zeros(1, n+1);
+  memo(1) = 0;                   % fib(0); Octave is 1-indexed so memo(k+1)=fib(k)
+  if n >= 1, memo(2) = 1; endif  % fib(1)
+  for i = 3:n+1
+    memo(i) = memo(i-1) + memo(i-2);
+  endfor
+  f = memo(n+1);
+endfunction</code></pre>
+  </div>
+
+  <h3>0/1 Knapsack — the canonical DP table</h3>
+  <p>Given items with integer weights and values and a capacity \(W\), choose a subset of maximum value that fits. The recurrence considers each item either left out or taken:</p>
+  <p style="text-align:center">\(\;dp[i][w] = \max\big(\,dp[i\!-\!1][w],\; v_i + dp[i\!-\!1][w-w_i]\,\big)\;\) (the second term only if \(w_i \le w\)).</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function best = knapsack(weights, values, W)
+  % 0/1 knapsack. Time O(n*W), space O(n*W). Column j stores capacity j-1.
+  n = numel(weights);
+  dp = zeros(n+1, W+1);          % dp(i+1, w+1) = best value, first i items, cap w
+  for i = 1:n
+    for w = 0:W
+      if weights(i) <= w
+        take  = dp(i, w - weights(i) + 1) + values(i);
+        leave = dp(i, w + 1);
+        dp(i+1, w+1) = max(leave, take);
+      else
+        dp(i+1, w+1) = dp(i, w+1);     % item i too heavy; cannot take it
+      endif
+    endfor
+  endfor
+  best = dp(n+1, W+1);
+endfunction
+% Example: knapsack([1 3 4 5], [1 4 5 7], 7)  ->  9</code></pre>
+  </div>
+
+  <h3>Longest Common Subsequence</h3>
+  <p>The edit-distance cousin behind <code>diff</code> and DNA alignment. Match extends the diagonal; a mismatch takes the better of dropping one character from either string.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function len = lcs(X, Y)
+  % Length of the longest common subsequence of vectors/strings X and Y. O(mn).
+  m = numel(X); n = numel(Y);
+  dp = zeros(m+1, n+1);
+  for i = 1:m
+    for j = 1:n
+      if X(i) == Y(j)
+        dp(i+1, j+1) = dp(i, j) + 1;                  % extend the match
+      else
+        dp(i+1, j+1) = max(dp(i, j+1), dp(i+1, j));   % drop from X or from Y
+      endif
+    endfor
+  endfor
+  len = dp(m+1, n+1);
+endfunction
+% Example: lcs('ABCBDAB', 'BDCAB')  ->  4   ("BCAB")</code></pre>
+  </div>
+
+  <div class="box note">
+    <span class="label">Memoization vs. tabulation</span>
+    <p>Both are DP. <strong>Top-down memoization</strong> keeps the natural recursion but caches results in a table, computing only the subproblems actually needed. <strong>Bottom-up tabulation</strong> (as above) fills the table in dependency order with simple loops, avoiding recursion overhead and making the \(\Theta(\text{number of subproblems})\) cost obvious. Choose top-down when the reachable subproblem set is sparse; bottom-up when you'll need them all.</p>
+  </div>
+</section>
+
+<section id="greedy">
+  <h2><span class="num">SECTION 8</span>Greedy Algorithms</h2>
+  <p class="lead">A greedy algorithm makes the locally optimal choice at each step and never reconsiders. When it works, it is simpler and faster than DP — but it works only when the problem has a special structure, and proving it requires care.</p>
+
+  <div class="box def">
+    <span class="label">Definition · The greedy-choice property</span>
+    <p>A problem admits a greedy solution when a globally optimal solution can always be reached by a sequence of locally optimal (greedy) choices — i.e. there is always an optimal solution that <em>agrees with</em> the first greedy choice. Combined with optimal substructure, this licenses the greedy strategy.</p>
+  </div>
+
+  <h3>Activity selection</h3>
+  <p>Given activities with start and finish times, schedule the most that don't overlap. The greedy rule — <em>always take the activity that finishes earliest among those still compatible</em> — is optimal.</p>
+
+  <div class="code">
+    <div class="codehead"><span class="lang">Octave</span><div class="dots"><i></i><i></i><i></i></div><button class="copy">copy</button></div>
+    <pre><code class="octave">function chosen = activity_select(starts, finishes)
+  % Returns indices of a maximum set of mutually compatible activities.
+  [finishes, idx] = sort(finishes);     % sort by finish time, keep original idx
+  starts = starts(idx);
+  chosen = [idx(1)];                     % always take the earliest-finishing one
+  last_finish = finishes(1);
+  for i = 2:numel(starts)
+    if starts(i) >= last_finish          % compatible: starts after last finishes
+      chosen(end+1) = idx(i);
+      last_finish = finishes(i);
+    endif
+  endfor
+endfunction</code></pre>
+  </div>
+
+  <div class="box thm">
+    <span class="label">Theorem 8.1</span>
+    <p class="stmt">Choosing the compatible activity with the earliest finish time yields a maximum-size set of non-overlapping activities.</p>
+  </div>
+  <div class="box proof">
+    <span class="label">Proof (exchange argument)</span>
+    <p>Let \(g\) be the activity that finishes earliest overall, and let \(O\) be any optimal solution. If \(g\in O\) we are done for this step. Otherwise let \(o\) be the earliest-finishing activity in \(O\). Since \(g\) finishes no later than \(o\) and the activities of \(O\) are pairwise compatible, replacing \(o\) by \(g\) in \(O\) keeps every activity compatible (nothing started before \(o\) finished, hence before \(g\) finished either) and does not change the count. So \(O' = (O\setminus\{o\})\cup\{g\}\) is also optimal and contains the greedy choice. The remaining problem — activities compatible with \(g\) — is a smaller instance of the same form; by induction the greedy algorithm solves it optimally. Hence the greedy solution is optimal. ∎</p>
+  </div>
+
+  <div class="box note">
+    <span class="label">When greedy fails</span>
+    <p>Greedy is seductive but often wrong. For <strong>0/1 knapsack</strong>, taking the highest value-per-weight item first can be strictly suboptimal — that problem needs the DP of Section 7. For coin change with arbitrary denominations (say coins {1, 3, 4} making 6), greedy takes 4+1+1 = three coins while the optimum is 3+3 = two. The discipline: never trust a greedy algorithm without an exchange-argument proof — or a DP fallback.</p>
+  </div>
+</section>
+
+<section id="complexity">
+  <h2><span class="num">SECTION 9</span>P, NP &amp; the Edge of the Map</h2>
+  <p class="lead">Some problems we can solve quickly; some we can only <em>check</em> quickly; and for a vast, important class, nobody knows which it is. This is the deepest open question in computer science.</p>
+
+  <div class="box def">
+    <span class="label">Definition · P and NP</span>
+    <p><strong>P</strong> — decision problems solvable in polynomial time, \(O(n^k)\) for some constant \(k\). These are the problems we consider "tractable." (Sorting, shortest paths, and everything coded above live here.)</p>
+    <p><strong>NP</strong> — decision problems whose "yes" answers can be <em>verified</em> in polynomial time given a certificate. Example: given a proposed route, checking it visits every city under a budget is easy — even though <em>finding</em> such a route seems hard.</p>
+  </div>
+
+  <p>Clearly \(P \subseteq NP\) (if you can solve it fast, you can verify it fast). Whether \(P = NP\) — whether every quickly-checkable problem is also quickly-solvable — is unsolved, and carries a \$1,000,000 Clay Millennium Prize. The hardest problems in NP are called <strong>NP-complete</strong>: the traveling salesman, Boolean satisfiability, graph coloring, and thousands more. A polynomial algorithm for any one of them would solve them <em>all</em>.</p>
+
+  <div class="box keytake">
+    <span class="label">The practical takeaway</span>
+    <p>When you face a problem that smells NP-hard, stop hunting for a fast exact algorithm. Instead reach for: <strong>approximation algorithms</strong> (provably near-optimal), <strong>heuristics</strong> (fast, usually good), <strong>parameterized algorithms</strong> (fast when some structural parameter is small), or accepting <strong>exponential cost</strong> on inputs you know are small. Knowing a problem is hard is itself valuable knowledge — it tells you where <em>not</em> to spend your effort.</p>
+  </div>
+</section>
+
+<section id="reference">
+  <h2><span class="num">SECTION 10</span>Quick Reference</h2>
+  <p class="lead">A pocket card for the road. Octave idioms on the left, complexity facts on the right.</p>
+
+  <h3>Octave survival kit</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Task</th><th>Octave</th></tr></thead>
+      <tbody>
+        <tr><td>Length of vector</td><td><code>numel(A)</code> or <code>length(A)</code></td></tr>
+        <tr><td>Rows / columns of matrix</td><td><code>rows(M)</code>, <code>columns(M)</code>, <code>size(M)</code></td></tr>
+        <tr><td>Slice (1-indexed, inclusive)</td><td><code>A(1:mid)</code>, <code>A(mid+1:end)</code></td></tr>
+        <tr><td>Append to a vector</td><td><code>A(end+1) = x;</code></td></tr>
+        <tr><td>Delete an element</td><td><code>A(1) = [];</code></td></tr>
+        <tr><td>Built-in sort / search</td><td><code>sort(A)</code>, <code>[tf,loc]=ismember(x,A)</code></td></tr>
+        <tr><td>Pre-allocate (avoid O(n²) growth)</td><td><code>v = zeros(1,n);</code></td></tr>
+        <tr><td>Boolean array of falses</td><td><code>false(1,n)</code></td></tr>
+        <tr><td>Infinity / not-a-number</td><td><code>inf</code>, <code>nan</code></td></tr>
+        <tr><td>Time a snippet</td><td><code>tic; f(x); toc</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The complexity cheat sheet</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Operation</th><th>Time</th></tr></thead>
+      <tbody>
+        <tr><td>Array index / hash lookup</td><td>O(1)</td></tr>
+        <tr><td>Binary search (sorted)</td><td>O(log n)</td></tr>
+        <tr><td>Linear scan</td><td>O(n)</td></tr>
+        <tr><td>Optimal comparison sort</td><td>O(n log n)</td></tr>
+        <tr><td>BFS / DFS</td><td>O(V + E)</td></tr>
+        <tr><td>Dijkstra (heap)</td><td>O((V + E) log V)</td></tr>
+        <tr><td>0/1 Knapsack / LCS (DP)</td><td>O(n·W) / O(m·n)</td></tr>
+        <tr><td>Bellman–Ford</td><td>O(V·E)</td></tr>
+        <tr><td>Naive matrix multiply</td><td>O(n³)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box keytake">
+    <span class="label">Five habits of an algorithmist</span>
+    <p>1 · Always state the input size your bound is in terms of. &nbsp; 2 · Prove correctness with an invariant before you optimize. &nbsp; 3 · Write the recurrence, then reach for the Master Theorem. &nbsp; 4 · A loose upper bound is honest; a wrong tight bound is not. &nbsp; 5 · The best optimization is almost always a better asymptotic class, not a faster constant.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="big">Now go run the code.</div>
+  <p>Every block in this guide is valid GNU Octave. Paste a function into a file named after it (e.g. <code>merge_sort.m</code>), then call it from the prompt — <code>merge_sort([5 2 8 1 9 3])</code> — and watch the theory become bytes. The proofs tell you <em>why</em> it works; the interpreter tells you <em>that</em> it works. Hold both, and you understand the algorithm.</p>
+  <p class="muted" style="font-size:13px;font-family:'JetBrains Mono',monospace;margin-top:24px">A field guide to algorithms · built for the curious · interactive labs render best with an internet connection (fonts &amp; math typesetting)</p>
+</footer>
+
+</main>
+</div>
+<script>
+/* ===== reading progress + active TOC ===== */
+const prog = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const max = h.scrollHeight - h.clientHeight;
+  prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+}, {passive:true});
+
+const navLinks = [...document.querySelectorAll('#navlist a')];
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+    }
+  });
+}, {rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('section[id]').forEach(s => io.observe(s));
+
+/* ===== copy buttons ===== */
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const code = btn.closest('.code').querySelector('code');
+    navigator.clipboard.writeText(code.textContent).then(() => {
+      const t = btn.textContent; btn.textContent = 'copied ✓';
+      setTimeout(() => btn.textContent = t, 1200);
+    });
+  });
+});
+
+/* ===== lightweight Octave syntax highlighter ===== */
+(function(){
+  const KW = ['function','endfunction','for','endfor','while','endwhile','if','elseif','else','endif','return','break','continue','do','until','switch','case','endswitch'];
+  const kwRe = new RegExp('\\b(' + KW.join('|') + ')\\b','g');
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  document.querySelectorAll('code.octave').forEach(block => {
+    const out = block.textContent.split('\n').map(line => {
+      // split off a trailing comment starting at first % or # (none of our strings contain them)
+      const m = line.match(/(%|#)/);
+      let codePart = line, comment = '';
+      if (m){ codePart = line.slice(0, m.index); comment = line.slice(m.index); }
+      let html = esc(codePart)
+        .replace(/'([^']*)'/g, '<span class="str">\'$1\'</span>')   // single-quoted strings
+        .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>')  // numbers
+        .replace(kwRe, '<span class="kw">$1</span>');                // keywords
+      if (comment) html += '<span class="cm">' + esc(comment) + '</span>';
+      return html;
+    }).join('\n');
+    block.innerHTML = out;
+  });
+})();
+
+/* ================= LAB 1 — Growth explorer ================= */
+(function(){
+  const GF = [
+    {key:'c',    name:'O(1)',        color:'#8a8170', fn:n=>1,               on:true},
+    {key:'log',  name:'O(log n)',    color:'#155e5a', fn:n=>Math.log2(n),    on:true},
+    {key:'n',    name:'O(n)',        color:'#1f807a', fn:n=>n,               on:true},
+    {key:'nln',  name:'O(n log n)',  color:'#b8860b', fn:n=>n*Math.log2(n),  on:true},
+    {key:'n2',   name:'O(n\u00B2)',  color:'#9b3220', fn:n=>n*n,             on:true},
+    {key:'exp',  name:'O(2\u207F)',  color:'#6a2d8f', fn:n=>Math.min(Math.pow(2,n),1e18), on:false},
+  ];
+  const cv = document.getElementById('gcanvas'), ctx = cv.getContext('2d');
+  const nSlider = document.getElementById('gn'), nVal = document.getElementById('gn-val');
+  const scaleSel = document.getElementById('gscale'), tog = document.getElementById('gtoggles');
+  const ro = document.getElementById('greadout');
+
+  GF.forEach((f,i) => {
+    const lab = document.createElement('label'); lab.className = 'chk';
+    lab.innerHTML = `<input type="checkbox" ${f.on?'checked':''}><i style="width:12px;height:12px;border-radius:3px;display:inline-block;background:${f.color}"></i>${f.name}`;
+    lab.querySelector('input').addEventListener('change', e => { f.on = e.target.checked; draw(); });
+    tog.appendChild(lab);
+  });
+
+  function fmt(v){
+    if (!isFinite(v)) return '\u221E';
+    if (v >= 1e6) return v.toExponential(1);
+    if (v < 10) return (Math.round(v*10)/10).toString();
+    return Math.round(v).toLocaleString();
+  }
+
+  function draw(){
+    const N = +nSlider.value; nVal.textContent = N;
+    const W = cv.width, H = cv.height;
+    const L = 60, R = 16, T = 16, B = 36;
+    const pw = W - L - R, ph = H - T - B;
+    const logScale = scaleSel.value === 'log';
+    ctx.clearRect(0,0,W,H);
+    const active = GF.filter(f => f.on);
+
+    let ymax = 1;
+    active.forEach(f => { ymax = Math.max(ymax, f.fn(N)); });
+    const logMax = Math.max(Math.log10(ymax), 0.001);
+
+    const xToPx = x => L + (N<=2 ? 0 : (x-2)/(N-2)) * pw;
+    const yToPx = v => {
+      v = Math.max(v, logScale ? 1 : 0);
+      const frac = logScale ? (Math.log10(v)/logMax) : (v/ymax);
+      return T + ph - Math.min(frac,1)*ph;
+    };
+
+    // grid + axes
+    ctx.strokeStyle = '#e4dcc8'; ctx.lineWidth = 1;
+    ctx.fillStyle = '#9a917f'; ctx.font = '11px "JetBrains Mono", monospace';
+    for (let g=0; g<=5; g++){
+      const yy = T + ph - (g/5)*ph;
+      ctx.beginPath(); ctx.moveTo(L,yy); ctx.lineTo(W-R,yy); ctx.stroke();
+      let lab;
+      if (logScale){ lab = '10^' + Math.round((g/5)*logMax); }
+      else { lab = fmt((g/5)*ymax); }
+      ctx.fillText(lab, 4, yy+3);
+    }
+    ctx.strokeStyle = '#211d1a'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(L,T); ctx.lineTo(L,T+ph); ctx.lineTo(W-R,T+ph); ctx.stroke();
+    ctx.fillText('n \u2192', W-R-30, T+ph+24);
+    ctx.fillText('2', L-2, T+ph+18); ctx.fillText(''+N, W-R-14, T+ph+18);
+    ctx.fillText(logScale ? 'operations (log scale)' : 'operations', L+6, T+12);
+
+    // curves
+    active.forEach(f => {
+      ctx.strokeStyle = f.color; ctx.lineWidth = 2.4; ctx.beginPath();
+      const step = Math.max(1, Math.floor((N-2)/400));
+      let first = true;
+      for (let x=2; x<=N; x+=step){
+        const px = xToPx(x), py = yToPx(f.fn(x));
+        if (first){ ctx.moveTo(px,py); first=false; } else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+    });
+
+    // readout @ n
+    ro.innerHTML = active.map(f =>
+      `<span><b style="color:${f.color}">${f.name}</b> @ n=${N}: <b>${fmt(f.fn(N))}</b> ops</span>`
+    ).join('');
+  }
+
+  nSlider.addEventListener('input', draw);
+  scaleSel.addEventListener('change', draw);
+  draw();
+})();
+
+/* ================= LAB 2 — Master Theorem ================= */
+(function(){
+  const a = document.getElementById('mt-a'), b = document.getElementById('mt-b'), d = document.getElementById('mt-d');
+  const out = document.getElementById('mt-out');
+  function expo(p){
+    p = Math.round(p*1000)/1000;
+    if (Math.abs(p) < 1e-9) return '1';
+    if (Math.abs(p-1) < 1e-9) return 'n';
+    return 'n^' + p;
+  }
+  function solve(){
+    const A = +a.value, B = +b.value, D = +d.value;
+    if (!(A >= 1) || !(B > 1)){ out.innerHTML = '<span class="hl">Invalid:</span> need a \u2265 1 and b &gt; 1.'; return; }
+    const cstar = Math.log(A)/Math.log(B);
+    const cs = Math.round(cstar*1000)/1000;
+    const tol = 1e-9;
+    let html = `Recurrence: <span class="hl">T(n) = ${A}\u00B7T(n/${B}) + \u0398(${expo(D)})</span><br>`;
+    html += `Watershed exponent c* = log<sub>${B}</sub>(${A}) = <span class="hl">${cs}</span><br>`;
+    html += `Compare degree d = ${D} against c* = ${cs}: `;
+    let res;
+    if (D < cstar - tol){ html += '<span class="hl">d &lt; c* \u2192 Case 1</span> (leaves dominate)'; res = `\u0398(${expo(cstar)})`; }
+    else if (Math.abs(D - cstar) <= 1e-6){ html += '<span class="hl">d = c* \u2192 Case 2</span> (balanced)'; res = `\u0398(${expo(cstar)} log n)`; }
+    else { html += '<span class="hl">d &gt; c* \u2192 Case 3</span> (root dominates)'; res = `\u0398(${expo(D)})`; }
+    html += `<br><br>\u21D2 &nbsp; <span class="hl" style="font-size:18px">T(n) = ${res}</span>`;
+    out.innerHTML = html;
+  }
+  document.getElementById('mt-go').addEventListener('click', solve);
+  [a,b,d].forEach(el => el.addEventListener('keydown', e => { if (e.key==='Enter') solve(); }));
+  solve();
+})();
+
+/* ================= LAB 3 — Sorting visualizer ================= */
+(function(){
+  const algoSel = document.getElementById('sv-algo');
+  const nSl = document.getElementById('sv-n'), nVal = document.getElementById('sv-nval');
+  const spSl = document.getElementById('sv-speed'), spVal = document.getElementById('sv-sval');
+  const barsEl = document.getElementById('sv-bars');
+  const runBtn = document.getElementById('sv-run'), shufBtn = document.getElementById('sv-shuffle');
+  const compEl = document.getElementById('sv-comp'), swapEl = document.getElementById('sv-swap');
+  let data = [], bars = [], timer = null, running = false;
+
+  function makeData(n){
+    data = Array.from({length:n}, () => Math.floor(Math.random()*95)+5);
+    renderBars(data, [], null, 0, 0);
+  }
+  function renderBars(arr, hi, type, comp, swap){
+    barsEl.innerHTML = '';
+    const max = Math.max(...arr);
+    bars = arr.map((v,i) => {
+      const el = document.createElement('div');
+      el.className = 'bar' + (hi && hi.includes(i) ? (type==='compare'?' cmp':(type==='done'?' done':' swp')) : (type==='done'?' done':''));
+      el.style.height = (v/max*100) + '%';
+      barsEl.appendChild(el); return el;
+    });
+    compEl.textContent = comp; swapEl.textContent = swap;
+  }
+
+  /* ---- frame generators ---- */
+  function genFrames(algo, src){
+    const a = src.slice(); const F = []; let comp=0, swap=0;
+    const push = (hi,type) => F.push({arr:a.slice(), hi, type, comp, swap});
+    const sw = (i,j) => { const t=a[i]; a[i]=a[j]; a[j]=t; };
+
+    if (algo==='bubble'){
+      for (let i=0;i<a.length-1;i++){ let did=false;
+        for (let j=0;j<a.length-1-i;j++){ comp++; push([j,j+1],'compare');
+          if (a[j]>a[j+1]){ sw(j,j+1); swap++; push([j,j+1],'swap'); did=true; } }
+        if(!did) break; }
+    } else if (algo==='selection'){
+      for (let i=0;i<a.length-1;i++){ let m=i;
+        for (let j=i+1;j<a.length;j++){ comp++; push([m,j],'compare'); if (a[j]<a[m]) m=j; }
+        if (m!==i){ sw(i,m); swap++; push([i,m],'swap'); } }
+    } else if (algo==='insertion'){
+      for (let i=1;i<a.length;i++){ const key=a[i]; let j=i-1;
+        while (j>=0){ comp++; push([j,j+1],'compare'); if (a[j]>key){ a[j+1]=a[j]; swap++; push([j+1],'swap'); j--; } else break; }
+        a[j+1]=key; swap++; push([j+1],'swap'); }
+    } else if (algo==='merge'){
+      const ms = (lo,hi) => { if (hi-lo<1) return; const mid=Math.floor((lo+hi)/2); ms(lo,mid); ms(mid+1,hi);
+        const L=a.slice(lo,mid+1), R=a.slice(mid+1,hi+1); let i=0,j=0,k=lo;
+        while (i<L.length && j<R.length){ comp++; push([k],'compare');
+          if (L[i]<=R[j]){ a[k]=L[i]; i++; } else { a[k]=R[j]; j++; } swap++; push([k],'swap'); k++; }
+        while (i<L.length){ a[k]=L[i]; i++; swap++; push([k],'swap'); k++; }
+        while (j<R.length){ a[k]=R[j]; j++; swap++; push([k],'swap'); k++; } };
+      ms(0, a.length-1);
+    } else if (algo==='quick'){
+      const part = (lo,hi) => { const piv=a[hi]; let i=lo-1;
+        for (let j=lo;j<hi;j++){ comp++; push([j,hi],'compare'); if (a[j]<=piv){ i++; sw(i,j); swap++; push([i,j],'swap'); } }
+        i++; sw(i,hi); swap++; push([i,hi],'swap'); return i; };
+      const qs = (lo,hi) => { if (lo<hi){ const p=part(lo,hi); qs(lo,p-1); qs(p+1,hi); } };
+      qs(0, a.length-1);
+    }
+    F.push({arr:a.slice(), hi:a.map((_,i)=>i), type:'done', comp, swap});
+    return F;
+  }
+
+  function setEnabled(on){ [algoSel,nSl,spSl,shufBtn].forEach(e=>e.disabled=!on); runBtn.disabled=false;
+    runBtn.textContent = on ? '\u25B6 run' : '\u25A0 stop'; }
+
+  function run(){
+    if (running){ clearInterval(timer); running=false; setEnabled(true); renderBars(data,[],null,compEl.textContent,swapEl.textContent); return; }
+    const frames = genFrames(algoSel.value, data);
+    running = true; setEnabled(false);
+    let idx = 0;
+    const tick = () => {
+      if (idx >= frames.length){ clearInterval(timer); running=false; setEnabled(true);
+        const last=frames[frames.length-1]; data=last.arr.slice(); return; }
+      const f = frames[idx++];
+      renderBars(f.arr, f.hi, f.type, f.comp, f.swap);
+      const delay = Math.max(8, 240/(+spSl.value));
+      clearInterval(timer); timer = setInterval(tick, delay);
+    };
+    const delay = Math.max(8, 240/(+spSl.value));
+    timer = setInterval(tick, delay);
+  }
+
+  nSl.addEventListener('input', () => { nVal.textContent = nSl.value; if(!running) makeData(+nSl.value); });
+  spSl.addEventListener('input', () => spVal.textContent = spSl.value);
+  shufBtn.addEventListener('click', () => { if(!running) makeData(+nSl.value); });
+  runBtn.addEventListener('click', run);
+  makeData(+nSl.value);
+})();
+
+/* ================= LAB 4 — Binary search stepper ================= */
+(function(){
+  const cellsEl = document.getElementById('bs-cells');
+  const logEl = document.getElementById('bs-log');
+  const targetIn = document.getElementById('bs-target');
+  const stepBtn = document.getElementById('bs-step'), autoBtn = document.getElementById('bs-auto'), newBtn = document.getElementById('bs-new');
+  let arr=[], lo=0, hi=0, mid=-1, found=-1, done=false, autoT=null, probes=0;
+
+  function newArray(){
+    const set = new Set();
+    while (set.size < 18) set.add(Math.floor(Math.random()*98)+1);
+    arr = [...set].sort((x,y)=>x-y);
+    reset();
+  }
+  function reset(){
+    lo=0; hi=arr.length-1; mid=-1; found=-1; done=false; probes=0;
+    if (autoT){ clearInterval(autoT); autoT=null; autoBtn.textContent='\u25B6 auto-run'; }
+    logEl.innerHTML = `Searching for <span class="hl">${targetIn.value}</span> in a sorted array of ${arr.length}. Window = [lo=1 .. hi=${arr.length}].`;
+    render();
+  }
+  function render(){
+    cellsEl.innerHTML = '';
+    arr.forEach((v,i) => {
+      const c = document.createElement('div'); c.className = 'cell';
+      if (found===i) c.classList.add('found');
+      else { if (i<lo||i>hi) c.classList.add('out'); else c.classList.add('range');
+        if (i===lo) c.classList.add('lo'); if (i===hi) c.classList.add('hi');
+        if (i===mid) c.classList.add('mid'); }
+      c.innerHTML = `<span class="ix">${i+1}</span>${v}`;
+      cellsEl.appendChild(c);
+    });
+  }
+  function step(){
+    if (done) return;
+    const target = +targetIn.value;
+    if (lo > hi){ done=true; logEl.innerHTML = `Window empty (lo &gt; hi) after ${probes} probes \u2014 <span class="hl">${target} is not present</span>.`; mid=-1; render(); return; }
+    mid = Math.floor((lo+hi)/2); probes++;
+    if (arr[mid]===target){ found=mid; done=true;
+      logEl.innerHTML = `Probe ${probes}: A[${mid+1}] = ${arr[mid]} = target \u2014 <span class="hl">found at index ${mid+1}</span> in ${probes} probe(s).`; }
+    else if (arr[mid] < target){ logEl.innerHTML = `Probe ${probes}: A[${mid+1}] = ${arr[mid]} &lt; ${target} \u2192 discard left half, search right. New lo = ${mid+2}.`; lo = mid+1; }
+    else { logEl.innerHTML = `Probe ${probes}: A[${mid+1}] = ${arr[mid]} &gt; ${target} \u2192 discard right half, search left. New hi = ${mid}.`; hi = mid-1; }
+    render();
+  }
+  function auto(){
+    if (autoT){ clearInterval(autoT); autoT=null; autoBtn.textContent='\u25B6 auto-run'; return; }
+    autoBtn.textContent='\u25A0 pause';
+    autoT = setInterval(() => { step(); if (done){ clearInterval(autoT); autoT=null; autoBtn.textContent='\u25B6 auto-run'; } }, 800);
+  }
+  stepBtn.addEventListener('click', step);
+  autoBtn.addEventListener('click', auto);
+  newBtn.addEventListener('click', newArray);
+  targetIn.addEventListener('change', reset);
+  newArray();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Fundamentals — Interactive Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg:        #0a0e0f;
+    --bg2:       #0f1416;
+    --panel:     #111820;
+    --panel2:    #152028;
+    --border:    #1e3040;
+    --green:     #00e676;
+    --green-dim: #00c853;
+    --green-faint:#003010;
+    --cyan:      #00e5ff;
+    --amber:     #ffa726;
+    --red:       #ff5252;
+    --purple:    #b388ff;
+    --text:      #cfe8d8;
+    --text-dim:  #6a9980;
+    --text-faint:#2a4a38;
+    --grid:      rgba(0,230,118,0.04);
+    --glow:      0 0 20px rgba(0,230,118,0.2);
+    --glow-s:    0 0 8px rgba(0,230,118,0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* ── TOP NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; gap: 0; height: 52px;
+    overflow-x: auto;
+  }
+  .nav-brand {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--green);
+    font-size: 1rem;
+    white-space: nowrap;
+    margin-right: 2rem;
+    text-shadow: var(--glow-s);
+    letter-spacing: 2px;
+  }
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 0 0.9rem;
+    height: 52px;
+    display: inline-flex; align-items: center;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color .2s, border-color .2s;
+  }
+  nav a:hover { color: var(--green); border-color: var(--green); }
+
+  /* ── LAYOUT ── */
+  main { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 6rem; }
+
+  .hero {
+    text-align: center;
+    padding: 5rem 1rem 3rem;
+    position: relative;
+  }
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    color: var(--green-dim);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(0,230,118,0.3);
+    margin-bottom: 1rem;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero-sub {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.7rem;
+    margin-top: 2rem;
+  }
+  .toc-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.7rem 1rem;
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all .2s;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .toc-item:hover { background: var(--green-faint); border-color: var(--green); color: var(--green); box-shadow: var(--glow); }
+  .toc-num { font-family: 'Share Tech Mono', monospace; color: var(--green-dim); font-size: 0.7rem; }
+
+  /* ── SECTIONS ── */
+  section {
+    margin-top: 4rem;
+    scroll-margin-top: 64px;
+  }
+  .sec-header {
+    display: flex; align-items: center; gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.8rem;
+    margin-bottom: 1.8rem;
+  }
+  .sec-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--green);
+    background: var(--green-faint);
+    border: 1px solid var(--green-dim);
+    border-radius: 4px;
+    padding: 2px 7px;
+    letter-spacing: 1px;
+  }
+  .sec-header h2 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  p { color: var(--text); margin-bottom: 1rem; }
+  p + p { margin-top: -0.3rem; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.6rem;
+    margin-bottom: 1.4rem;
+  }
+  .card-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 0.8rem;
+  }
+
+  /* ── FORMULA BOXES ── */
+  .formula-row {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    margin: 1.2rem 0;
+  }
+  .formula {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 6px;
+    padding: 0.8rem 1.4rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.15rem;
+    color: var(--green);
+    text-shadow: var(--glow-s);
+    flex: 1; min-width: 160px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.5rem;
+  }
+  .formula.amber { border-left-color: var(--amber); color: var(--amber); text-shadow: 0 0 8px rgba(255,167,38,.4); }
+  .formula.cyan  { border-left-color: var(--cyan);  color: var(--cyan);  text-shadow: 0 0 8px rgba(0,229,255,.4); }
+  .formula.purple{ border-left-color: var(--purple);color: var(--purple);text-shadow: 0 0 8px rgba(179,136,255,.4); }
+
+  .formula-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  /* ── QUANTITY TABLE ── */
+  .qty-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin: 1.2rem 0;
+  }
+  .qty-table th {
+    background: var(--panel2);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  .qty-table td {
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  .qty-table tr:hover td { background: var(--green-faint); }
+  .qty-symbol { font-family: 'Share Tech Mono', monospace; color: var(--amber); }
+  .qty-unit   { font-family: 'Share Tech Mono', monospace; color: var(--cyan); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    position: relative;
+    background: #060d0a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.2rem 0;
+  }
+  .code-header {
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .code-lang {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green-dim);
+  }
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .copy-btn:hover { border-color: var(--green); color: var(--green); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+  pre {
+    padding: 1.2rem 1.4rem;
+    overflow-x: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: #7ec8a0;
+  }
+  .kw  { color: var(--cyan); }
+  .fn  { color: var(--green); }
+  .str { color: var(--amber); }
+  .cm  { color: #3a6a50; font-style: italic; }
+  .num { color: var(--purple); }
+  .op  { color: var(--red); }
+
+  /* ── INTERACTIVE DEMO PANELS ── */
+  .demo-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.4rem 0;
+  }
+  .demo-header {
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1.2rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .demo-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .demo-dot.g { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .demo-dot.a { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .demo-dot.r { background: var(--red);   box-shadow: 0 0 6px var(--red);   }
+  .demo-title { font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: var(--text-dim); letter-spacing: 2px; margin-left: 0.4rem; }
+  .demo-body { padding: 1.4rem; }
+
+  /* Controls */
+  .ctrl-row {
+    display: flex; flex-wrap: wrap; gap: 1.2rem;
+    margin-bottom: 1.4rem;
+  }
+  .ctrl-group { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 130px; }
+  .ctrl-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .ctrl-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    color: var(--green);
+    text-shadow: var(--glow-s);
+    min-width: 70px;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    cursor: pointer; border: none;
+  }
+  .result-row {
+    display: flex; flex-wrap: wrap; gap: 0.8rem;
+    margin-top: 0.6rem;
+  }
+  .result-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    flex: 1; min-width: 110px;
+    text-align: center;
+  }
+  .result-box .r-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .result-box .r-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--amber);
+    text-shadow: 0 0 8px rgba(255,167,38,.3);
+  }
+  .result-box.green .r-val { color: var(--green); text-shadow: var(--glow-s); }
+  .result-box.cyan  .r-val { color: var(--cyan);  text-shadow: 0 0 8px rgba(0,229,255,.3); }
+  .result-box.purple .r-val{ color: var(--purple);text-shadow: 0 0 8px rgba(179,136,255,.3);}
+
+  /* Canvas */
+  canvas {
+    display: block;
+    width: 100%;
+    border-radius: 6px;
+    background: #050c08;
+    border: 1px solid var(--border);
+  }
+
+  /* Circuit SVG diagrams */
+  .circuit-svg {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin: 1rem auto;
+    background: #050c08;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: rgba(255,167,38,0.06);
+    padding: 0.9rem 1.2rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1.2rem 0;
+    font-size: 0.92rem;
+    color: #e8c88a;
+  }
+  .callout.info { border-left-color: var(--cyan); background: rgba(0,229,255,0.05); color: #9ad8e8; }
+  .callout.tip  { border-left-color: var(--green);background: rgba(0,230,118,0.05);color: var(--text); }
+  .callout strong { color: var(--amber); }
+  .callout.info strong { color: var(--cyan); }
+  .callout.tip  strong { color: var(--green); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+  .tab-btn {
+    background: none; border: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .15s;
+  }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Meter bars */
+  .meter { background: var(--bg2); border-radius: 4px; height: 10px; overflow: hidden; margin-top: 4px; }
+  .meter-fill { height: 100%; background: linear-gradient(90deg, var(--green-dim), var(--green)); border-radius: 4px; transition: width .15s; box-shadow: 0 0 6px var(--green); }
+  .meter-fill.amber { background: linear-gradient(90deg, #cc8800, var(--amber)); box-shadow: 0 0 6px var(--amber); }
+  .meter-fill.cyan  { background: linear-gradient(90deg, #008898, var(--cyan));  box-shadow: 0 0 6px var(--cyan); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-faint);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  /* Scroll fade-in */
+  .fade-in { opacity: 0; transform: translateY(18px); transition: opacity .5s, transform .5s; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 600px) {
+    .formula-row { flex-direction: column; }
+    .ctrl-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">⚡ CIRCUITS</span>
+  <a href="#s1">Fundamentals</a>
+  <a href="#s2">Ohm's Law</a>
+  <a href="#s3">Series &amp; Parallel</a>
+  <a href="#s4">Kirchhoff</a>
+  <a href="#s5">Capacitors</a>
+  <a href="#s6">Inductors</a>
+  <a href="#s7">AC Signals</a>
+  <a href="#s8">Power</a>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<div class="hero fade-in">
+  <div class="hero-tag">// Interactive Reference Guide</div>
+  <h1>Circuit <span>Fundamentals</span></h1>
+  <p class="hero-sub">Master voltage, current, resistance, and reactive components — with live calculators, waveform visualizers, and GNU Octave code you can run immediately.</p>
+  <div class="toc-grid">
+    <a href="#s1" class="toc-item"><span class="toc-num">01</span> Fundamentals</a>
+    <a href="#s2" class="toc-item"><span class="toc-num">02</span> Ohm's Law</a>
+    <a href="#s3" class="toc-item"><span class="toc-num">03</span> Series &amp; Parallel</a>
+    <a href="#s4" class="toc-item"><span class="toc-num">04</span> Kirchhoff's Laws</a>
+    <a href="#s5" class="toc-item"><span class="toc-num">05</span> Capacitors / RC</a>
+    <a href="#s6" class="toc-item"><span class="toc-num">06</span> Inductors / RL</a>
+    <a href="#s7" class="toc-item"><span class="toc-num">07</span> AC Signals</a>
+    <a href="#s8" class="toc-item"><span class="toc-num">08</span> Power</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 1: FUNDAMENTALS                     -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s1" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <h2>Fundamental Quantities</h2>
+  </div>
+
+  <p>Every electric circuit can be described by three core quantities: <strong>Voltage</strong>, <strong>Current</strong>, and <strong>Resistance</strong>. Understanding what they represent physically is the foundation of all circuit analysis.</p>
+
+  <table class="qty-table">
+    <thead>
+      <tr>
+        <th>Quantity</th><th>Symbol</th><th>Unit</th><th>Physical Meaning</th><th>Water Analogy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Voltage</strong> (EMF)</td>
+        <td><span class="qty-symbol">V</span></td>
+        <td><span class="qty-unit">Volt (V)</span></td>
+        <td>Electric potential difference — the "push" that drives charge</td>
+        <td>Water pressure in a pipe</td>
+      </tr>
+      <tr>
+        <td><strong>Current</strong></td>
+        <td><span class="qty-symbol">I</span></td>
+        <td><span class="qty-unit">Ampere (A)</span></td>
+        <td>Flow rate of electric charge (1 A = 1 Coulomb/second)</td>
+        <td>Volume of water flowing per second</td>
+      </tr>
+      <tr>
+        <td><strong>Resistance</strong></td>
+        <td><span class="qty-symbol">R</span></td>
+        <td><span class="qty-unit">Ohm (Ω)</span></td>
+        <td>Opposition to current flow; converts electrical energy to heat</td>
+        <td>Pipe narrowness or friction</td>
+      </tr>
+      <tr>
+        <td><strong>Charge</strong></td>
+        <td><span class="qty-symbol">Q</span></td>
+        <td><span class="qty-unit">Coulomb (C)</span></td>
+        <td>Fundamental quantity — Q = I × t</td>
+        <td>Total volume of water</td>
+      </tr>
+      <tr>
+        <td><strong>Capacitance</strong></td>
+        <td><span class="qty-symbol">C</span></td>
+        <td><span class="qty-unit">Farad (F)</span></td>
+        <td>Ability to store charge; Q = C × V</td>
+        <td>Tank that stores water</td>
+      </tr>
+      <tr>
+        <td><strong>Inductance</strong></td>
+        <td><span class="qty-symbol">L</span></td>
+        <td><span class="qty-unit">Henry (H)</span></td>
+        <td>Opposition to change in current; stores energy in a magnetic field</td>
+        <td>Flywheel / water hammer</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Water pipe analogy diagram -->
+  <div class="card fade-in">
+    <div class="card-title">// Water Pipe Analogy — Interactive</div>
+    <canvas id="waterCanvas" height="160"></canvas>
+    <div class="ctrl-row" style="margin-top:1rem;">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Pressure (Voltage)</span>
+        <input type="range" id="wPressure" min="1" max="10" value="5" step="0.1">
+        <span class="ctrl-val" id="wPressureVal">5.0 V</span>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Pipe Width (1/R)</span>
+        <input type="range" id="wWidth" min="1" max="10" value="4" step="0.1">
+        <span class="ctrl-val" id="wWidthVal">4.0 → R=2.5 Ω</span>
+      </div>
+    </div>
+    <div class="result-row">
+      <div class="result-box cyan"><span class="r-label">Current Flow</span><span class="r-val" id="wCurrent">2.00 A</span></div>
+      <div class="result-box purple"><span class="r-label">Resistance</span><span class="r-val" id="wResist">2.50 Ω</span></div>
+    </div>
+  </div>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — Basic Quantities</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── Basic Electrical Quantities in GNU Octave ──────────────────</span>
+<span class="cm">% Run in Octave:  octave --persist basics.m</span>
+
+<span class="cm">% Define basic quantities</span>
+V = <span class="num">12</span>;         <span class="cm">% Voltage in Volts</span>
+I = <span class="num">2</span>;          <span class="cm">% Current in Amperes</span>
+R = V / I;     <span class="cm">% Resistance in Ohms (= 6 Ω)</span>
+Q = I * <span class="num">60</span>;    <span class="cm">% Charge in Coulombs over 60 seconds</span>
+
+<span class="fn">printf</span>(<span class="str">"Voltage:     %.2f V\n"</span>, V);
+<span class="fn">printf</span>(<span class="str">"Current:     %.2f A\n"</span>, I);
+<span class="fn">printf</span>(<span class="str">"Resistance:  %.2f Ohm\n"</span>, R);
+<span class="fn">printf</span>(<span class="str">"Charge (60s):%.2f C\n"</span>, Q);
+
+<span class="cm">% Plot V-I characteristic of a 6 Ω resistor</span>
+V_range = <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">24</span>, <span class="num">100</span>);
+I_range = V_range / R;
+
+<span class="fn">figure</span>(<span class="num">1</span>); <span class="fn">clf</span>;
+<span class="fn">plot</span>(V_range, I_range, <span class="str">'g-'</span>, <span class="str">'LineWidth'</span>, <span class="num">2</span>);
+<span class="fn">xlabel</span>(<span class="str">'Voltage (V)'</span>); <span class="fn">ylabel</span>(<span class="str">'Current (A)'</span>);
+<span class="fn">title</span>(<span class="str">'V-I Characteristic: 6Ω Resistor'</span>);
+<span class="fn">grid on</span>;</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 2: OHM'S LAW                        -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s2" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <h2>Ohm's Law</h2>
+  </div>
+
+  <p>Ohm's Law is the most fundamental relationship in circuit analysis. It states that the voltage across a resistor is directly proportional to the current flowing through it, with resistance as the constant of proportionality.</p>
+
+  <div class="formula-row">
+    <div class="formula" style="flex-direction:column; align-items:flex-start; gap:2px;">
+      <span class="formula-label">Voltage</span>V = I × R
+    </div>
+    <div class="formula amber" style="flex-direction:column; align-items:flex-start; gap:2px;">
+      <span class="formula-label">Current</span>I = V / R
+    </div>
+    <div class="formula cyan" style="flex-direction:column; align-items:flex-start; gap:2px;">
+      <span class="formula-label">Resistance</span>R = V / I
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <strong>Memory trick:</strong> Use the VIR triangle. Cover the quantity you want to find — the remaining two show the operation (side-by-side = multiply, stacked = divide).
+  </div>
+
+  <!-- Ohm's Law Interactive Calculator -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — OHM'S LAW SOLVER</span>
+    </div>
+    <div class="demo-body">
+      <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1rem;">Enter any TWO values — the third is calculated automatically.</p>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Voltage (V)</span>
+          <input type="range" id="oV" min="0" max="100" value="12" step="0.1" oninput="ohmCalc('V')">
+          <span class="ctrl-val" id="oVval">12.0 V</span>
+          <div class="meter"><div class="meter-fill" id="oVm" style="width:12%"></div></div>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Current (A)</span>
+          <input type="range" id="oI" min="0.01" max="10" value="2" step="0.01" oninput="ohmCalc('I')">
+          <span class="ctrl-val" id="oIval">2.00 A</span>
+          <div class="meter"><div class="meter-fill amber" id="oIm" style="width:20%"></div></div>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Resistance (Ω)</span>
+          <input type="range" id="oR" min="0.1" max="1000" value="6" step="0.1" oninput="ohmCalc('R')">
+          <span class="ctrl-val" id="oRval">6.0 Ω</span>
+          <div class="meter"><div class="meter-fill cyan" id="oRm" style="width:0.6%"></div></div>
+        </div>
+      </div>
+      <canvas id="ohmCanvas" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- V-I graph explanation -->
+  <p>The slope of the V-I line is always <code style="background:var(--panel2);padding:1px 6px;border-radius:3px;font-family:'Share Tech Mono',monospace;color:var(--amber);">1/R</code>. A steeper slope means lower resistance (more current for the same voltage).</p>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — Ohm's Law Visualization</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── Ohm's Law — V-I curves for multiple resistors ────────────────</span>
+R_vals = [<span class="num">10</span>, <span class="num">50</span>, <span class="num">100</span>, <span class="num">470</span>, <span class="num">1000</span>];   <span class="cm">% Ohms</span>
+V = <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">12</span>, <span class="num">200</span>);              <span class="cm">% 0–12 V</span>
+colors = {<span class="str">'g'</span>,<span class="str">'c'</span>,<span class="str">'y'</span>,<span class="str">'m'</span>,<span class="str">'r'</span>};
+
+<span class="fn">figure</span>(<span class="num">1</span>); <span class="fn">clf</span>; <span class="fn">hold on</span>;
+<span class="kw">for</span> k = <span class="num">1</span>:<span class="fn">length</span>(R_vals)
+  I = V / R_vals(k);
+  <span class="fn">plot</span>(V, I * <span class="num">1000</span>, colors{k}, <span class="str">'LineWidth'</span>, <span class="num">2</span>);  <span class="cm">% mA</span>
+<span class="kw">end</span>
+<span class="fn">legend</span>(<span class="fn">arrayfun</span>(@(r) <span class="fn">sprintf</span>(<span class="str">'%d Ω'</span>,r), R_vals, <span class="str">'UniformOutput'</span>,<span class="kw">false</span>));
+<span class="fn">xlabel</span>(<span class="str">'Voltage (V)'</span>); <span class="fn">ylabel</span>(<span class="str">'Current (mA)'</span>);
+<span class="fn">title</span>(<span class="str">"Ohm's Law: V-I Characteristics"</span>); <span class="fn">grid on</span>;
+
+<span class="cm">% Quick solve: unknown resistance</span>
+V_meas = <span class="num">9.3</span>;   <span class="cm">% measured voltage</span>
+I_meas = <span class="num">0.019</span>; <span class="cm">% measured current (19 mA)</span>
+R_unknown = V_meas / I_meas;
+<span class="fn">printf</span>(<span class="str">"Unknown R = %.1f Ω  (nearest std: 470 Ω)\n"</span>, R_unknown);</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 3: SERIES & PARALLEL               -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s3" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <h2>Series &amp; Parallel Circuits</h2>
+  </div>
+
+  <p>Resistors (and other components) can be connected in series, parallel, or combinations of both. Each configuration has distinct properties for current and voltage distribution.</p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.2rem 0;">
+    <div class="card">
+      <div class="card-title">// Series Circuit</div>
+      <div class="formula">R_total = R₁ + R₂ + … + Rₙ</div>
+      <ul style="margin-top:0.8rem; padding-left:1.4rem; color:var(--text-dim); font-size:0.88rem; line-height:2;">
+        <li>Same current through all components</li>
+        <li>Voltages add up to supply voltage</li>
+        <li>Total R always greater than any single R</li>
+        <li>One break opens the whole circuit</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">// Parallel Circuit</div>
+      <div class="formula amber">1/R_total = 1/R₁ + 1/R₂ + …</div>
+      <ul style="margin-top:0.8rem; padding-left:1.4rem; color:var(--text-dim); font-size:0.88rem; line-height:2;">
+        <li>Same voltage across all branches</li>
+        <li>Currents add up to total current</li>
+        <li>Total R always less than smallest R</li>
+        <li>One break doesn't kill other branches</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SVG Circuit Diagrams -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0;">
+    <div>
+      <p style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);margin-bottom:0.4rem;">SERIES CIRCUIT</p>
+      <svg class="circuit-svg" viewBox="0 0 320 160">
+        <!-- Battery -->
+        <line x1="30" y1="40" x2="30" y2="120" stroke="#00e676" stroke-width="2"/>
+        <line x1="20" y1="68" x2="40" y2="68" stroke="#00e676" stroke-width="3"/>
+        <line x1="24" y1="80" x2="36" y2="80" stroke="#00e676" stroke-width="1.5"/>
+        <line x1="20" y1="92" x2="40" y2="92" stroke="#00e676" stroke-width="3"/>
+        <text x="8" y="77" fill="#00e676" font-size="9" font-family="Share Tech Mono">+</text>
+        <text x="8" y="96" fill="#00e676" font-size="9" font-family="Share Tech Mono">-</text>
+        <!-- Wires top -->
+        <line x1="30" y1="40" x2="290" y2="40" stroke="#00e676" stroke-width="2"/>
+        <!-- R1 -->
+        <line x1="90" y1="40" x2="100" y2="40" stroke="#00e676" stroke-width="2"/>
+        <rect x="100" y="30" width="40" height="20" rx="3" fill="none" stroke="#ffa726" stroke-width="2"/>
+        <text x="112" y="44" fill="#ffa726" font-size="9" font-family="Share Tech Mono">R1</text>
+        <line x1="140" y1="40" x2="150" y2="40" stroke="#00e676" stroke-width="2"/>
+        <!-- R2 -->
+        <line x1="170" y1="40" x2="180" y2="40" stroke="#00e676" stroke-width="2"/>
+        <rect x="180" y="30" width="40" height="20" rx="3" fill="none" stroke="#ffa726" stroke-width="2"/>
+        <text x="192" y="44" fill="#ffa726" font-size="9" font-family="Share Tech Mono">R2</text>
+        <line x1="220" y1="40" x2="230" y2="40" stroke="#00e676" stroke-width="2"/>
+        <!-- R3 -->
+        <line x1="250" y1="40" x2="260" y2="40" stroke="#00e676" stroke-width="2"/>
+        <rect x="260" y="30" width="40" height="20" rx="3" fill="none" stroke="#ffa726" stroke-width="2"/>
+        <text x="272" y="44" fill="#ffa726" font-size="9" font-family="Share Tech Mono">R3</text>
+        <!-- Wire bottom return -->
+        <line x1="30" y1="120" x2="300" y2="120" stroke="#00e676" stroke-width="2"/>
+        <line x1="300" y1="40" x2="300" y2="120" stroke="#00e676" stroke-width="2"/>
+        <!-- Current arrow -->
+        <text x="55" y="36" fill="#00e5ff" font-size="10" font-family="Share Tech Mono">→ I</text>
+        <!-- Labels -->
+        <text x="10" y="140" fill="#3a6a50" font-size="8" font-family="Share Tech Mono">Same current I everywhere</text>
+        <text x="10" y="152" fill="#3a6a50" font-size="8" font-family="Share Tech Mono">V = V_R1 + V_R2 + V_R3</text>
+      </svg>
+    </div>
+    <div>
+      <p style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);margin-bottom:0.4rem;">PARALLEL CIRCUIT</p>
+      <svg class="circuit-svg" viewBox="0 0 320 180">
+        <!-- Battery -->
+        <line x1="30" y1="20" x2="30" y2="160" stroke="#00e676" stroke-width="2"/>
+        <line x1="20" y1="75" x2="40" y2="75" stroke="#00e676" stroke-width="3"/>
+        <line x1="24" y1="87" x2="36" y2="87" stroke="#00e676" stroke-width="1.5"/>
+        <line x1="20" y1="99" x2="40" y2="99" stroke="#00e676" stroke-width="3"/>
+        <text x="8" y="84" fill="#00e676" font-size="9" font-family="Share Tech Mono">+</text>
+        <text x="8" y="103" fill="#00e676" font-size="9" font-family="Share Tech Mono">-</text>
+        <!-- Bus rails -->
+        <line x1="30" y1="20" x2="290" y2="20" stroke="#00e676" stroke-width="2"/>
+        <line x1="30" y1="160" x2="290" y2="160" stroke="#00e676" stroke-width="2"/>
+        <line x1="290" y1="20" x2="290" y2="160" stroke="#00e676" stroke-width="2"/>
+        <!-- R1 branch -->
+        <line x1="100" y1="20" x2="100" y2="55" stroke="#00e676" stroke-width="1.5"/>
+        <rect x="82" y="55" width="36" height="20" rx="3" fill="none" stroke="#ffa726" stroke-width="2"/>
+        <text x="90" y="69" fill="#ffa726" font-size="9" font-family="Share Tech Mono">R1</text>
+        <line x1="100" y1="75" x2="100" y2="160" stroke="#00e676" stroke-width="1.5"/>
+        <!-- R2 branch -->
+        <line x1="180" y1="20" x2="180" y2="55" stroke="#00e676" stroke-width="1.5"/>
+        <rect x="162" y="55" width="36" height="20" rx="3" fill="none" stroke="#ffa726" stroke-width="2"/>
+        <text x="170" y="69" fill="#ffa726" font-size="9" font-family="Share Tech Mono">R2</text>
+        <line x1="180" y1="75" x2="180" y2="160" stroke="#00e676" stroke-width="1.5"/>
+        <!-- R3 branch -->
+        <line x1="250" y1="20" x2="250" y2="55" stroke="#00e676" stroke-width="1.5"/>
+        <rect x="232" y="55" width="36" height="20" rx="3" fill="none" stroke="#ffa726" stroke-width="2"/>
+        <text x="240" y="69" fill="#ffa726" font-size="9" font-family="Share Tech Mono">R3</text>
+        <line x1="250" y1="75" x2="250" y2="160" stroke="#00e676" stroke-width="1.5"/>
+        <!-- Labels -->
+        <text x="10" y="172" fill="#3a6a50" font-size="8" font-family="Share Tech Mono">Same V across each R</text>
+        <text x="165" y="172" fill="#3a6a50" font-size="8" font-family="Share Tech Mono">I = I1+I2+I3</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Interactive Series/Parallel Calculator -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — RESISTANCE CALCULATOR</span>
+    </div>
+    <div class="demo-body">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'series-tab')">SERIES</button>
+        <button class="tab-btn" onclick="switchTab(this,'parallel-tab')">PARALLEL</button>
+        <button class="tab-btn" onclick="switchTab(this,'divider-tab')">VOLTAGE DIVIDER</button>
+      </div>
+
+      <div id="series-tab" class="tab-content active" style="padding-top:1.2rem;">
+        <div class="ctrl-row">
+          <div class="ctrl-group">
+            <span class="ctrl-label">R1 (Ω)</span>
+            <input type="range" id="sr1" min="10" max="10000" value="100" oninput="seriesCalc()">
+            <span class="ctrl-val" id="sr1v">100 Ω</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">R2 (Ω)</span>
+            <input type="range" id="sr2" min="10" max="10000" value="220" oninput="seriesCalc()">
+            <span class="ctrl-val" id="sr2v">220 Ω</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">R3 (Ω)</span>
+            <input type="range" id="sr3" min="10" max="10000" value="470" oninput="seriesCalc()">
+            <span class="ctrl-val" id="sr3v">470 Ω</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">Supply (V)</span>
+            <input type="range" id="sV" min="1" max="50" value="12" oninput="seriesCalc()">
+            <span class="ctrl-val" id="sVv">12 V</span>
+          </div>
+        </div>
+        <div class="result-row" id="seriesResult"></div>
+      </div>
+
+      <div id="parallel-tab" class="tab-content" style="padding-top:1.2rem;">
+        <div class="ctrl-row">
+          <div class="ctrl-group">
+            <span class="ctrl-label">R1 (Ω)</span>
+            <input type="range" id="pr1" min="10" max="10000" value="100" oninput="parallelCalc()">
+            <span class="ctrl-val" id="pr1v">100 Ω</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">R2 (Ω)</span>
+            <input type="range" id="pr2" min="10" max="10000" value="220" oninput="parallelCalc()">
+            <span class="ctrl-val" id="pr2v">220 Ω</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">R3 (Ω)</span>
+            <input type="range" id="pr3" min="10" max="10000" value="470" oninput="parallelCalc()">
+            <span class="ctrl-val" id="pr3v">470 Ω</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">Supply (V)</span>
+            <input type="range" id="pV" min="1" max="50" value="12" oninput="parallelCalc()">
+            <span class="ctrl-val" id="pVv">12 V</span>
+          </div>
+        </div>
+        <div class="result-row" id="parallelResult"></div>
+      </div>
+
+      <div id="divider-tab" class="tab-content" style="padding-top:1.2rem;">
+        <p style="font-size:0.88rem; color:var(--text-dim); margin-bottom:0.8rem;">A voltage divider uses two resistors to produce a fraction of the supply voltage: <code style="font-family:'Share Tech Mono',monospace;color:var(--green);">V_out = V_in × R2 / (R1+R2)</code></p>
+        <div class="ctrl-row">
+          <div class="ctrl-group">
+            <span class="ctrl-label">Vin (V)</span>
+            <input type="range" id="dVin" min="1" max="50" value="12" oninput="dividerCalc()">
+            <span class="ctrl-val" id="dVinv">12 V</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">R1 (Ω)</span>
+            <input type="range" id="dr1" min="100" max="100000" value="10000" oninput="dividerCalc()">
+            <span class="ctrl-val" id="dr1v">10000 Ω</span>
+          </div>
+          <div class="ctrl-group">
+            <span class="ctrl-label">R2 (Ω)</span>
+            <input type="range" id="dr2" min="100" max="100000" value="5600" oninput="dividerCalc()">
+            <span class="ctrl-val" id="dr2v">5600 Ω</span>
+          </div>
+        </div>
+        <div class="result-row" id="dividerResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — Series & Parallel Analysis</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── Series and Parallel Resistor Analysis ────────────────────────</span>
+R = [<span class="num">100</span>, <span class="num">220</span>, <span class="num">470</span>];   <span class="cm">% Resistor values in Ohms</span>
+Vs = <span class="num">12</span>;              <span class="cm">% Supply voltage</span>
+
+<span class="cm">%% Series combination</span>
+R_series = <span class="fn">sum</span>(R);
+I_series = Vs / R_series;
+V_drops  = I_series * R;     <span class="cm">% voltage across each</span>
+
+<span class="fn">printf</span>(<span class="str">"=== SERIES ===\n"</span>);
+<span class="fn">printf</span>(<span class="str">"R_total = %.1f Ω\n"</span>, R_series);
+<span class="fn">printf</span>(<span class="str">"Current = %.4f A = %.2f mA\n"</span>, I_series, I_series*<span class="num">1000</span>);
+<span class="kw">for</span> k = <span class="num">1</span>:<span class="fn">length</span>(R)
+  <span class="fn">printf</span>(<span class="str">"  V_R%d = %.2f V\n"</span>, k, V_drops(k));
+<span class="kw">end</span>
+
+<span class="cm">%% Parallel combination</span>
+R_parallel = <span class="num">1</span> / <span class="fn">sum</span>(<span class="num">1</span> ./ R);
+I_total    = Vs / R_parallel;
+I_branches = Vs ./ R;        <span class="cm">% current through each branch</span>
+
+<span class="fn">printf</span>(<span class="str">"\n=== PARALLEL ===\n"</span>);
+<span class="fn">printf</span>(<span class="str">"R_total = %.2f Ω\n"</span>, R_parallel);
+<span class="fn">printf</span>(<span class="str">"I_total = %.4f A = %.2f mA\n"</span>, I_total, I_total*<span class="num">1000</span>);
+<span class="kw">for</span> k = <span class="num">1</span>:<span class="fn">length</span>(R)
+  <span class="fn">printf</span>(<span class="str">"  I_R%d = %.2f mA\n"</span>, k, I_branches(k)*<span class="num">1000</span>);
+<span class="kw">end</span>
+
+<span class="cm">%% Voltage Divider</span>
+R1 = <span class="num">10000</span>; R2 = <span class="num">5600</span>;
+Vout = Vs * R2 / (R1 + R2);
+<span class="fn">printf</span>(<span class="str">"\nVoltage Divider: Vout = %.3f V (%.1f%%)\n"</span>, Vout, Vout/Vs*<span class="num">100</span>);</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 4: KIRCHHOFF'S LAWS                -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s4" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <h2>Kirchhoff's Laws</h2>
+  </div>
+
+  <p>Kirchhoff's laws generalize Ohm's Law for complex multi-loop, multi-source circuits. They derive from conservation of energy (KVL) and conservation of charge (KCL).</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0;">
+    <div class="card">
+      <div class="card-title">// KCL — Current Law</div>
+      <div class="formula">Σ I_in = Σ I_out</div>
+      <p style="margin-top:0.8rem;font-size:0.88rem;color:var(--text-dim);">At any junction (node), the sum of currents entering equals the sum leaving. Charge cannot accumulate at a node.</p>
+      <div class="callout info" style="margin-top:0.8rem;font-size:0.82rem;">
+        <strong>Node equation:</strong> Choose a reference node (ground). Write KCL for every other node to get a system of equations.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">// KVL — Voltage Law</div>
+      <div class="formula amber">Σ V = 0 (around any loop)</div>
+      <p style="margin-top:0.8rem;font-size:0.88rem;color:var(--text-dim);">The sum of all voltage rises and drops around any closed loop equals zero. Energy is conserved over a complete loop.</p>
+      <div class="callout info" style="margin-top:0.8rem;font-size:0.82rem;">
+        <strong>Sign convention:</strong> Going through a resistor in the direction of current = voltage drop (negative). Going through a battery from − to + = voltage rise (positive).
+      </div>
+    </div>
+  </div>
+
+  <!-- KCL/KVL Node Demo -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — KCL NODE ANALYZER</span>
+    </div>
+    <div class="demo-body">
+      <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:1rem;">Adjust currents I1, I2 into a node. KCL forces I3 = I1 + I2 out.</p>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">I1 in (mA)</span>
+          <input type="range" id="ki1" min="0" max="200" value="80" oninput="kclDemo()">
+          <span class="ctrl-val" id="ki1v">80 mA</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">I2 in (mA)</span>
+          <input type="range" id="ki2" min="0" max="200" value="50" oninput="kclDemo()">
+          <span class="ctrl-val" id="ki2v">50 mA</span>
+        </div>
+      </div>
+      <canvas id="kclCanvas" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — Kirchhoff's Laws (Matrix Method)</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── KVL via Matrix (Mesh Analysis) ───────────────────────────────
+%
+%  Two-mesh circuit:
+%
+%  +Vs1─R1──A──R3──B──R2─+Vs2
+%            |            |
+%           GND          GND
+%
+%  Mesh 1: I1 through R1, R3
+%  Mesh 2: I2 through R2, R3 (shared, opposite direction)
+%
+%  KVL Mesh 1: Vs1 = R1*I1 + R3*(I1-I2)
+%  KVL Mesh 2: Vs2 = R2*I2 + R3*(I2-I1)</span>
+
+Vs1 = <span class="num">12</span>;  Vs2 = <span class="num">6</span>;
+R1  = <span class="num">100</span>; R2  = <span class="num">200</span>; R3 = <span class="num">150</span>;
+
+<span class="cm">% Matrix form: [A]{I} = {b}</span>
+A = [R1+R3,    -R3;
+     -R3,    R2+R3];
+b = [Vs1; Vs2];
+
+I_mesh = A \ b;   <span class="cm">% Solve system of linear equations</span>
+I1 = I_mesh(<span class="num">1</span>);
+I2 = I_mesh(<span class="num">2</span>);
+I_R3 = I1 - I2;   <span class="cm">% current through shared resistor</span>
+
+<span class="fn">printf</span>(<span class="str">"Mesh 1 current: %.4f A = %.2f mA\n"</span>, I1, I1*<span class="num">1000</span>);
+<span class="fn">printf</span>(<span class="str">"Mesh 2 current: %.4f A = %.2f mA\n"</span>, I2, I2*<span class="num">1000</span>);
+<span class="fn">printf</span>(<span class="str">"Current in R3:  %.4f A = %.2f mA\n"</span>, I_R3, I_R3*<span class="num">1000</span>);
+
+<span class="cm">% Verify KVL for mesh 1</span>
+KVL1 = Vs1 - R1*I1 - R3*I_R3;
+<span class="fn">printf</span>(<span class="str">"KVL check (should be ~0): %.6f\n"</span>, KVL1);</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 5: CAPACITORS & RC CIRCUITS        -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s5" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <h2>Capacitors &amp; RC Circuits</h2>
+  </div>
+
+  <p>A capacitor stores electric charge and energy in an electric field between two conductive plates separated by an insulating material (dielectric). It opposes sudden changes in voltage — exactly dual to a resistor opposing current.</p>
+
+  <div class="formula-row">
+    <div class="formula" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Charge Stored</span>Q = C × V
+    </div>
+    <div class="formula amber" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Capacitor Current</span>i(t) = C × dV/dt
+    </div>
+    <div class="formula cyan" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Energy Stored</span>E = ½ C V²
+    </div>
+    <div class="formula purple" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Time Constant</span>τ = R × C
+    </div>
+  </div>
+
+  <p>When a capacitor charges through a resistor (RC circuit), the voltage follows an exponential curve defined by the <strong>time constant τ = RC</strong>. After 5τ, the capacitor is considered fully charged (99.3%).</p>
+
+  <table class="qty-table">
+    <thead><tr><th>Time</th><th>Charging V_C</th><th>Discharging V_C</th></tr></thead>
+    <tbody>
+      <tr><td>t = 0</td><td>0 V</td><td>V₀</td></tr>
+      <tr><td>t = τ</td><td>63.2% of Vs</td><td>36.8% of V₀</td></tr>
+      <tr><td>t = 2τ</td><td>86.5%</td><td>13.5%</td></tr>
+      <tr><td>t = 3τ</td><td>95.0%</td><td>5.0%</td></tr>
+      <tr><td>t = 5τ</td><td>99.3% (≈ full)</td><td>0.7% (≈ zero)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- RC Demo -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — RC CHARGE / DISCHARGE CURVE</span>
+    </div>
+    <div class="demo-body">
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Resistance R (kΩ)</span>
+          <input type="range" id="rcR" min="1" max="100" value="10" oninput="rcDemo()">
+          <span class="ctrl-val" id="rcRv">10 kΩ</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Capacitance C (µF)</span>
+          <input type="range" id="rcC" min="1" max="100" value="10" oninput="rcDemo()">
+          <span class="ctrl-val" id="rcCv">10 µF</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Supply Voltage (V)</span>
+          <input type="range" id="rcVs" min="1" max="24" value="12" oninput="rcDemo()">
+          <span class="ctrl-val" id="rcVsv">12 V</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Mode</span>
+          <select id="rcMode" onchange="rcDemo()" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:0.8rem;margin-top:4px;">
+            <option value="charge">Charging</option>
+            <option value="discharge">Discharging</option>
+          </select>
+        </div>
+      </div>
+      <div class="result-row">
+        <div class="result-box purple"><span class="r-label">τ = RC</span><span class="r-val" id="rcTau">100 ms</span></div>
+        <div class="result-box green"><span class="r-label">At 1τ (63.2%)</span><span class="r-val" id="rcAt1">7.58 V</span></div>
+        <div class="result-box cyan"><span class="r-label">5τ (full)</span><span class="r-val" id="rcAt5">500 ms</span></div>
+      </div>
+      <canvas id="rcCanvas" height="220" style="margin-top:0.8rem;"></canvas>
+    </div>
+  </div>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — RC Circuit Response</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── RC Charging and Discharging Curves ───────────────────────────</span>
+R  = <span class="num">10e3</span>;    <span class="cm">% 10 kΩ</span>
+C  = <span class="num">10e-6</span>;   <span class="cm">% 10 µF</span>
+Vs = <span class="num">12</span>;      <span class="cm">% Supply voltage</span>
+V0 = <span class="num">0</span>;      <span class="cm">% initial capacitor voltage</span>
+
+tau = R * C;  <span class="cm">% time constant in seconds</span>
+t   = <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">5</span>*tau, <span class="num">500</span>);
+
+<span class="cm">% Charging equation: V_C(t) = Vs * (1 - e^(-t/τ))</span>
+V_charge    = Vs * (<span class="num">1</span> - <span class="fn">exp</span>(-t / tau));
+
+<span class="cm">% Discharging from Vs: V_C(t) = Vs * e^(-t/τ)</span>
+V_discharge = Vs * <span class="fn">exp</span>(-t / tau);
+
+<span class="cm">% Capacitor current during charging: i = (Vs/R) * e^(-t/τ)</span>
+I_charge = (Vs / R) * <span class="fn">exp</span>(-t / tau);
+
+<span class="fn">figure</span>(<span class="num">1</span>); <span class="fn">clf</span>;
+<span class="fn">subplot</span>(<span class="num">2</span>,<span class="num">1</span>,<span class="num">1</span>);
+<span class="fn">plot</span>(t*<span class="num">1000</span>, V_charge,    <span class="str">'g-'</span>, <span class="str">'LineWidth'</span>,<span class="num">2</span>); <span class="kw">hold on</span>;
+<span class="fn">plot</span>(t*<span class="num">1000</span>, V_discharge, <span class="str">'r--'</span>,<span class="str">'LineWidth'</span>,<span class="num">2</span>);
+<span class="fn">xline</span>(tau*<span class="num">1000</span>, <span class="str">'--y'</span>);  <span class="cm">% mark τ</span>
+<span class="fn">xlabel</span>(<span class="str">'Time (ms)'</span>); <span class="fn">ylabel</span>(<span class="str">'Voltage (V)'</span>);
+<span class="fn">legend</span>(<span class="str">'Charging'</span>,<span class="str">'Discharging'</span>,<span class="str">'\tau'</span>); <span class="fn">grid on</span>;
+<span class="fn">title</span>(<span class="fn">sprintf</span>(<span class="str">'RC Circuit  τ = %.1f ms'</span>, tau*<span class="num">1000</span>));
+
+<span class="fn">subplot</span>(<span class="num">2</span>,<span class="num">1</span>,<span class="num">2</span>);
+<span class="fn">plot</span>(t*<span class="num">1000</span>, I_charge*<span class="num">1000</span>, <span class="str">'c-'</span>,<span class="str">'LineWidth'</span>,<span class="num">2</span>);
+<span class="fn">xlabel</span>(<span class="str">'Time (ms)'</span>); <span class="fn">ylabel</span>(<span class="str">'Current (mA)'</span>);
+<span class="fn">title</span>(<span class="str">'Charging Current'</span>); <span class="fn">grid on</span>;</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 6: INDUCTORS & RL CIRCUITS         -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s6" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <h2>Inductors &amp; RL Circuits</h2>
+  </div>
+
+  <p>An inductor stores energy in a magnetic field. It opposes changes in current (dual to a capacitor opposing changes in voltage). A coil of wire is the simplest inductor — its inductance depends on turns, geometry, and core material.</p>
+
+  <div class="formula-row">
+    <div class="formula" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Inductor Voltage</span>V = L × dI/dt
+    </div>
+    <div class="formula amber" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Energy Stored</span>E = ½ L I²
+    </div>
+    <div class="formula cyan" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">RL Time Constant</span>τ = L / R
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Key difference from RC:</strong> For an RL circuit, τ = L/R (not L×R). A larger resistance actually makes τ smaller — current ramps up faster because R provides a tighter constraint.
+  </div>
+
+  <!-- RL Demo -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — RL CIRCUIT CURRENT RISE</span>
+    </div>
+    <div class="demo-body">
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Inductance L (mH)</span>
+          <input type="range" id="rlL" min="1" max="500" value="100" oninput="rlDemo()">
+          <span class="ctrl-val" id="rlLv">100 mH</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Resistance R (Ω)</span>
+          <input type="range" id="rlR" min="1" max="500" value="50" oninput="rlDemo()">
+          <span class="ctrl-val" id="rlRv">50 Ω</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Supply Voltage (V)</span>
+          <input type="range" id="rlVs" min="1" max="24" value="12" oninput="rlDemo()">
+          <span class="ctrl-val" id="rlVsv">12 V</span>
+        </div>
+      </div>
+      <div class="result-row">
+        <div class="result-box purple"><span class="r-label">τ = L/R</span><span class="r-val" id="rlTau">2.0 ms</span></div>
+        <div class="result-box green"><span class="r-label">I_final (Vs/R)</span><span class="r-val" id="rlIf">240 mA</span></div>
+        <div class="result-box cyan"><span class="r-label">At 1τ (63.2%)</span><span class="r-val" id="rlAt1">152 mA</span></div>
+      </div>
+      <canvas id="rlCanvas" height="200" style="margin-top:0.8rem;"></canvas>
+    </div>
+  </div>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — RL Circuit Response</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── RL Circuit — Current Rise and Fall ───────────────────────────</span>
+L  = <span class="num">100e-3</span>;   <span class="cm">% 100 mH</span>
+R  = <span class="num">50</span>;       <span class="cm">% 50 Ω</span>
+Vs = <span class="num">12</span>;       <span class="cm">% volts</span>
+
+tau   = L / R;           <span class="cm">% time constant</span>
+I_inf = Vs / R;          <span class="cm">% steady-state current</span>
+t     = <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">5</span>*tau, <span class="num">500</span>);
+
+<span class="cm">% Current rise: I(t) = I_inf * (1 - e^(-t/τ))</span>
+I_rise = I_inf * (<span class="num">1</span> - <span class="fn">exp</span>(-t / tau));
+
+<span class="cm">% Voltage across inductor: V_L = Vs * e^(-t/τ)</span>
+V_L = Vs * <span class="fn">exp</span>(-t / tau);
+
+<span class="cm">% Voltage across resistor: V_R = Vs * (1 - e^(-t/τ))</span>
+V_R = Vs * (<span class="num">1</span> - <span class="fn">exp</span>(-t / tau));
+
+<span class="fn">figure</span>(<span class="num">1</span>); <span class="fn">clf</span>;
+<span class="fn">subplot</span>(<span class="num">2</span>,<span class="num">1</span>,<span class="num">1</span>);
+<span class="fn">plot</span>(t*<span class="num">1000</span>, I_rise*<span class="num">1000</span>, <span class="str">'g-'</span>, <span class="str">'LineWidth'</span>,<span class="num">2</span>);
+<span class="fn">xlabel</span>(<span class="str">'Time (ms)'</span>); <span class="fn">ylabel</span>(<span class="str">'Current (mA)'</span>);
+<span class="fn">title</span>(<span class="fn">sprintf</span>(<span class="str">'RL Circuit — τ = %.3f ms'</span>, tau*<span class="num">1000</span>)); <span class="fn">grid on</span>;
+
+<span class="fn">subplot</span>(<span class="num">2</span>,<span class="num">1</span>,<span class="num">2</span>);
+<span class="fn">plot</span>(t*<span class="num">1000</span>, V_L, <span class="str">'m-'</span>, <span class="str">'LineWidth'</span>,<span class="num">2</span>); <span class="kw">hold on</span>;
+<span class="fn">plot</span>(t*<span class="num">1000</span>, V_R, <span class="str">'c--'</span>,<span class="str">'LineWidth'</span>,<span class="num">2</span>);
+<span class="fn">legend</span>(<span class="str">'V_L'</span>, <span class="str">'V_R'</span>); <span class="fn">grid on</span>;
+<span class="fn">xlabel</span>(<span class="str">'Time (ms)'</span>); <span class="fn">ylabel</span>(<span class="str">'Voltage (V)'</span>);</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 7: AC SIGNALS                      -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s7" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <h2>AC Signals &amp; Impedance</h2>
+  </div>
+
+  <p>Alternating Current (AC) oscillates sinusoidally in time. Instead of resistance, AC circuits use <strong>impedance</strong> Z (complex-valued), which combines resistance with <strong>reactance</strong> — the frequency-dependent opposition from capacitors and inductors.</p>
+
+  <div class="formula-row">
+    <div class="formula" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">AC Voltage</span>v(t) = Vpk · sin(2πft + φ)
+    </div>
+    <div class="formula amber" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">RMS Voltage (sine)</span>Vrms = Vpk / √2
+    </div>
+    <div class="formula cyan" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Capacitive Reactance</span>Xc = 1 / (2πfC)
+    </div>
+    <div class="formula purple" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Inductive Reactance</span>XL = 2πfL
+    </div>
+  </div>
+
+  <table class="qty-table">
+    <thead><tr><th>Element</th><th>Impedance Z</th><th>Behaviour at low f</th><th>Behaviour at high f</th></tr></thead>
+    <tbody>
+      <tr><td>Resistor R</td><td><span class="qty-symbol">R</span> (real, constant)</td><td>Same</td><td>Same</td></tr>
+      <tr><td>Capacitor C</td><td><span class="qty-symbol">1 / (j·2πfC)</span></td><td>Open circuit (blocks DC)</td><td>Short circuit</td></tr>
+      <tr><td>Inductor L</td><td><span class="qty-symbol">j·2πfL</span></td><td>Short circuit (wire)</td><td>Open circuit</td></tr>
+    </tbody>
+  </table>
+
+  <!-- AC Waveform Visualizer -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — AC WAVEFORM + PHASE</span>
+    </div>
+    <div class="demo-body">
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Frequency (Hz)</span>
+          <input type="range" id="acF" min="1" max="20" value="3" step="0.5" oninput="acDemo()">
+          <span class="ctrl-val" id="acFv">3 Hz</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Peak Voltage (V)</span>
+          <input type="range" id="acVpk" min="1" max="20" value="10" step="0.5" oninput="acDemo()">
+          <span class="ctrl-val" id="acVpkv">10 V</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Phase Shift (°)</span>
+          <input type="range" id="acPhi" min="-180" max="180" value="45" oninput="acDemo()">
+          <span class="ctrl-val" id="acPhiv">+45°</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Show 2nd Signal</span>
+          <select id="acSig2" onchange="acDemo()" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:0.8rem;margin-top:4px;">
+            <option value="none">None</option>
+            <option value="cos">Cosine</option>
+            <option value="square">Square Wave</option>
+            <option value="triangle">Triangle</option>
+          </select>
+        </div>
+      </div>
+      <div class="result-row">
+        <div class="result-box green"><span class="r-label">Vrms</span><span class="r-val" id="acVrms">7.07 V</span></div>
+        <div class="result-box amber"><span class="r-label">Period T</span><span class="r-val" id="acT">333 ms</span></div>
+        <div class="result-box cyan"><span class="r-label">ω (rad/s)</span><span class="r-val" id="acW">18.8</span></div>
+      </div>
+      <canvas id="acCanvas" height="220" style="margin-top:0.8rem;"></canvas>
+    </div>
+  </div>
+
+  <!-- RC Filter -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — RC LOW-PASS FILTER (BODE PLOT)</span>
+    </div>
+    <div class="demo-body">
+      <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:1rem;">An RC low-pass filter passes low frequencies and attenuates high ones. The cutoff frequency is f_c = 1/(2πRC) where gain = −3 dB.</p>
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">R (kΩ)</span>
+          <input type="range" id="lpR" min="1" max="100" value="10" oninput="lpfDemo()">
+          <span class="ctrl-val" id="lpRv">10 kΩ</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">C (nF)</span>
+          <input type="range" id="lpC" min="1" max="1000" value="100" oninput="lpfDemo()">
+          <span class="ctrl-val" id="lpCv">100 nF</span>
+        </div>
+      </div>
+      <div class="result-row">
+        <div class="result-box cyan"><span class="r-label">Cutoff Freq</span><span class="r-val" id="lpFc">159 Hz</span></div>
+        <div class="result-box purple"><span class="r-label">At 10×fc (−20dB)</span><span class="r-val" id="lpAt10">-20 dB</span></div>
+      </div>
+      <canvas id="lpfCanvas" height="220" style="margin-top:0.8rem;"></canvas>
+    </div>
+  </div>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — AC Signal & Frequency Response</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── AC Analysis & RC Low-Pass Filter ─────────────────────────────</span>
+<span class="cm">%% Generate a sine wave</span>
+f    = <span class="num">60</span>;     Vpk = <span class="num">170</span>;   <span class="cm">% 60 Hz mains, 170 Vpk (≈120 Vrms)</span>
+Vrms = Vpk / <span class="fn">sqrt</span>(<span class="num">2</span>);
+t    = <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">3</span>/<span class="num">60</span>, <span class="num">1000</span>);   <span class="cm">% 3 cycles</span>
+v    = Vpk * <span class="fn">sin</span>(<span class="num">2</span>*pi*f*t);
+
+<span class="fn">printf</span>(<span class="str">"60 Hz: Vpk=%.0fV  Vrms=%.1fV  T=%.2fms\n"</span>,Vpk,Vrms,<span class="num">1</span>/f*<span class="num">1000</span>);
+
+<span class="cm">%% RC Low-Pass Filter Bode Plot</span>
+R  = <span class="num">10e3</span>;  C = <span class="num">100e-9</span>;
+fc = <span class="num">1</span> / (<span class="num">2</span>*pi*R*C);            <span class="cm">% cutoff frequency</span>
+f_sweep = <span class="fn">logspace</span>(<span class="fn">log10</span>(<span class="num">10</span>), <span class="fn">log10</span>(<span class="num">1e6</span>), <span class="num">500</span>);
+
+<span class="cm">% Transfer function H(jω) = 1 / (1 + jωRC)</span>
+H = <span class="num">1</span> ./ (<span class="num">1</span> + <span class="num">1j</span>*<span class="num">2</span>*pi*f_sweep*R*C);
+gain_dB = <span class="num">20</span>*<span class="fn">log10</span>(<span class="fn">abs</span>(H));
+phase_deg = <span class="fn">angle</span>(H) * <span class="num">180</span>/pi;
+
+<span class="fn">figure</span>(<span class="num">2</span>); <span class="fn">clf</span>;
+<span class="fn">subplot</span>(<span class="num">2</span>,<span class="num">1</span>,<span class="num">1</span>);
+<span class="fn">semilogx</span>(f_sweep, gain_dB, <span class="str">'g-'</span>, <span class="str">'LineWidth'</span>,<span class="num">2</span>); <span class="kw">hold on</span>;
+<span class="fn">xline</span>(fc,<span class="str">'--y'</span>); <span class="fn">yline</span>(-<span class="num">3</span>,<span class="str">'--r'</span>);
+<span class="fn">xlabel</span>(<span class="str">'Frequency (Hz)'</span>); <span class="fn">ylabel</span>(<span class="str">'Gain (dB)'</span>);
+<span class="fn">title</span>(<span class="fn">sprintf</span>(<span class="str">'RC Low-Pass  fc=%.0f Hz'</span>,fc)); <span class="fn">grid on</span>;
+
+<span class="fn">subplot</span>(<span class="num">2</span>,<span class="num">1</span>,<span class="num">2</span>);
+<span class="fn">semilogx</span>(f_sweep, phase_deg, <span class="str">'m-'</span>, <span class="str">'LineWidth'</span>,<span class="num">2</span>);
+<span class="fn">xlabel</span>(<span class="str">'Frequency (Hz)'</span>); <span class="fn">ylabel</span>(<span class="str">'Phase (°)'</span>);
+<span class="fn">title</span>(<span class="str">'Phase Response'</span>); <span class="fn">grid on</span>;</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 8: POWER                           -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s8" class="fade-in">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <h2>Electrical Power</h2>
+  </div>
+
+  <p>Power is the rate of energy transfer. In electrical circuits, power can be <em>dissipated</em> (resistors → heat), <em>stored</em> (capacitors, inductors), or <em>delivered</em> (to a load).</p>
+
+  <div class="formula-row">
+    <div class="formula" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Instantaneous Power</span>P = V × I
+    </div>
+    <div class="formula amber" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Using Ohm's Law</span>P = I²R = V²/R
+    </div>
+    <div class="formula cyan" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">AC Real Power</span>P = Vrms × Irms × cosφ
+    </div>
+    <div class="formula purple" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <span class="formula-label">Energy (Joules)</span>E = P × t
+    </div>
+  </div>
+
+  <table class="qty-table">
+    <thead><tr><th>Quantity</th><th>Symbol</th><th>Unit</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>Real Power</td><td><span class="qty-symbol">P</span></td><td><span class="qty-unit">Watt (W)</span></td><td>Actual power dissipated/consumed (cosφ component)</td></tr>
+      <tr><td>Reactive Power</td><td><span class="qty-symbol">Q</span></td><td><span class="qty-unit">VAR</span></td><td>Power stored and returned by L & C (sinφ component)</td></tr>
+      <tr><td>Apparent Power</td><td><span class="qty-symbol">S</span></td><td><span class="qty-unit">VA</span></td><td>S = V × I = √(P² + Q²)</td></tr>
+      <tr><td>Power Factor</td><td><span class="qty-symbol">PF</span></td><td><span class="qty-unit">0–1</span></td><td>PF = P/S = cosφ. PF=1 is ideal (pure resistive)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Power Demo -->
+  <div class="demo-panel fade-in">
+    <div class="demo-header">
+      <div class="demo-dot g"></div><div class="demo-dot a"></div><div class="demo-dot r"></div>
+      <span class="demo-title">INTERACTIVE — POWER CALCULATOR & DISSIPATION</span>
+    </div>
+    <div class="demo-body">
+      <div class="ctrl-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Voltage (V)</span>
+          <input type="range" id="pwV" min="1" max="240" value="12" oninput="powerDemo()">
+          <span class="ctrl-val" id="pwVv">12 V</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Current (A)</span>
+          <input type="range" id="pwI" min="0.01" max="20" value="2" step="0.01" oninput="powerDemo()">
+          <span class="ctrl-val" id="pwIv">2.00 A</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Power Factor (AC)</span>
+          <input type="range" id="pwPF" min="0.1" max="1" value="1" step="0.01" oninput="powerDemo()">
+          <span class="ctrl-val" id="pwPFv">1.00</span>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Time (hours)</span>
+          <input type="range" id="pwT" min="0.1" max="24" value="8" step="0.1" oninput="powerDemo()">
+          <span class="ctrl-val" id="pwTv">8.0 h</span>
+        </div>
+      </div>
+      <div class="result-row">
+        <div class="result-box green"><span class="r-label">Real Power P</span><span class="r-val" id="pwP">24.0 W</span></div>
+        <div class="result-box amber"><span class="r-label">Apparent Power S</span><span class="r-val" id="pwS">24.0 VA</span></div>
+        <div class="result-box cyan"><span class="r-label">Energy (Wh)</span><span class="r-val" id="pwE">192.0 Wh</span></div>
+        <div class="result-box purple"><span class="r-label">Resistance R</span><span class="r-val" id="pwR">6.0 Ω</span></div>
+      </div>
+      <canvas id="pwCanvas" height="200" style="margin-top:0.8rem;"></canvas>
+    </div>
+  </div>
+
+  <div class="code-block fade-in">
+    <div class="code-header"><span class="code-lang">// GNU Octave — Power Analysis & Power Triangle</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="cm">% ── Power in DC and AC Circuits ───────────────────────────────────</span>
+
+<span class="cm">%% DC Power</span>
+V_dc = <span class="num">12</span>;  I_dc = <span class="num">2</span>;  R_dc = V_dc / I_dc;
+P_dc = V_dc * I_dc;
+<span class="fn">printf</span>(<span class="str">"DC:  P = %.1f W  (= I²R = %.1f W = V²/R = %.1f W)\n"</span>, ...
+       P_dc, I_dc^<span class="num">2</span>*R_dc, V_dc^<span class="num">2</span>/R_dc);
+
+<span class="cm">%% AC Power with power factor</span>
+Vrms = <span class="num">120</span>;  Irms = <span class="num">5</span>;  phi = <span class="num">30</span>;  <span class="cm">% degrees lag</span>
+PF = <span class="fn">cos</span>(phi * pi/<span class="num">180</span>);
+
+P_real     = Vrms * Irms * PF;        <span class="cm">% Real power (W)</span>
+Q_reactive = Vrms * Irms * <span class="fn">sin</span>(phi*pi/<span class="num">180</span>); <span class="cm">% Reactive (VAR)</span>
+S_apparent = Vrms * Irms;             <span class="cm">% Apparent (VA)</span>
+
+<span class="fn">printf</span>(<span class="str">"\n=== AC Power (120 Vrms, 5 A, φ=30°) ===\n"</span>);
+<span class="fn">printf</span>(<span class="str">"Power Factor:    PF = %.3f\n"</span>, PF);
+<span class="fn">printf</span>(<span class="str">"Real Power:      P  = %.1f W\n"</span>,  P_real);
+<span class="fn">printf</span>(<span class="str">"Reactive Power:  Q  = %.1f VAR\n"</span>,Q_reactive);
+<span class="fn">printf</span>(<span class="str">"Apparent Power:  S  = %.1f VA\n"</span>, S_apparent);
+<span class="fn">printf</span>(<span class="str">"Check: sqrt(P²+Q²) = %.1f VA\n"</span>, <span class="fn">sqrt</span>(P_real^<span class="num">2</span>+Q_reactive^<span class="num">2</span>));
+
+<span class="cm">%% Power in a resistor over time</span>
+R = <span class="num">100</span>;  I_sweep = <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">1</span>, <span class="num">200</span>);  <span class="cm">% 0 to 1 A</span>
+P_sweep = I_sweep.<span class="op">^</span><span class="num">2</span> * R;             <span class="cm">% P = I²R</span>
+
+<span class="fn">figure</span>(<span class="num">1</span>); <span class="fn">clf</span>;
+<span class="fn">plot</span>(I_sweep*<span class="num">1000</span>, P_sweep, <span class="str">'g-'</span>, <span class="str">'LineWidth'</span>, <span class="num">2</span>);
+<span class="fn">xlabel</span>(<span class="str">'Current (mA)'</span>); <span class="fn">ylabel</span>(<span class="str">'Power (W)'</span>);
+<span class="fn">title</span>(<span class="str">'P = I²R — Quadratic Relationship'</span>); <span class="fn">grid on</span>;</pre>
+  </div>
+
+  <hr class="divider">
+  <div class="callout tip">
+    <strong>Quick Reference — Common Component Values:</strong><br>
+    Resistors (E24): 10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82 Ω (×10ⁿ)<br>
+    Capacitors: 100 pF, 1 nF, 10 nF, 100 nF (0.1 µF), 1 µF, 10 µF, 100 µF<br>
+    Inductors: 1 µH – 10 mH common in RF; 100 mH – 10 H in power supplies
+  </div>
+
+</section>
+
+</main>
+
+<footer>
+  ⚡ CIRCUIT FUNDAMENTALS — INTERACTIVE REFERENCE &nbsp;|&nbsp; GNU OCTAVE COMPATIBLE &nbsp;|&nbsp; 2025
+</footer>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script>
+// ── UTILITY ────────────────────────────────────────────────────────
+function fmt(v, dec=2) {
+  if (Math.abs(v) >= 1e6)  return (v/1e6).toFixed(dec) + ' M';
+  if (Math.abs(v) >= 1e3)  return (v/1e3).toFixed(dec) + ' k';
+  if (Math.abs(v) >= 1)    return v.toFixed(dec);
+  if (Math.abs(v) >= 1e-3) return (v*1e3).toFixed(dec) + ' m';
+  if (Math.abs(v) >= 1e-6) return (v*1e6).toFixed(dec) + ' µ';
+  return (v*1e9).toFixed(dec) + ' n';
+}
+function fmtHz(v) {
+  if (v >= 1e6) return (v/1e6).toFixed(2)+' MHz';
+  if (v >= 1e3) return (v/1e3).toFixed(2)+' kHz';
+  return v.toFixed(1)+' Hz';
+}
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'COPIED!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+function switchTab(btn, id) {
+  const wrap = btn.closest('.demo-body');
+  wrap.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  wrap.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  wrap.querySelector('#'+id).classList.add('active');
+}
+
+// ── CANVAS HELPERS ──────────────────────────────────────────────────
+function resizeCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, w: rect.width, h: rect.height };
+}
+function drawGrid(ctx, w, h, xTicks=8, yTicks=5) {
+  ctx.strokeStyle = 'rgba(0,80,40,0.4)';
+  ctx.lineWidth = 0.5;
+  for (let i=0;i<=xTicks;i++) {
+    const x = w*i/xTicks;
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+  }
+  for (let i=0;i<=yTicks;i++) {
+    const y = h*i/yTicks;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+}
+
+// ── 1. WATER ANALOGY ANIMATION ────────────────────────────────────
+const waterCanvas = document.getElementById('waterCanvas');
+let waterAnimId;
+function waterAnim() {
+  const P = parseFloat(document.getElementById('wPressure').value);
+  const W = parseFloat(document.getElementById('wWidth').value);
+  const R = (10/W).toFixed(2);
+  const I = (P/R).toFixed(2);
+  document.getElementById('wPressureVal').textContent = P.toFixed(1)+' V';
+  document.getElementById('wWidthVal').textContent    = W.toFixed(1)+' → R='+R+' Ω';
+  document.getElementById('wCurrent').textContent     = I+' A';
+  document.getElementById('wResist').textContent      = R+' Ω';
+
+  const { ctx, w, h } = resizeCanvas(waterCanvas);
+  ctx.clearRect(0,0,w,h);
+
+  // pipe walls
+  const pipeY = h*0.35, pipeH = Math.min(40, 8+W*3);
+  ctx.fillStyle = 'rgba(0,40,20,0.8)';
+  ctx.strokeStyle = '#1e3040';
+  ctx.lineWidth=1.5;
+  // pipe outline
+  ctx.beginPath();
+  ctx.rect(40, pipeY - pipeH/2 - 8, w-80, pipeH+16);
+  ctx.fillStyle='rgba(0,30,20,0.7)'; ctx.fill();
+  ctx.strokeStyle='#1a3a28'; ctx.stroke();
+
+  // water flow
+  ctx.beginPath();
+  ctx.rect(42, pipeY - pipeH/2, w-84, pipeH);
+  const speed = P/10;
+  const grad = ctx.createLinearGradient(0, pipeY, 0, pipeY+pipeH);
+  grad.addColorStop(0, `rgba(0,${80+P*15},${40+P*8},0.9)`);
+  grad.addColorStop(1, `rgba(0,${40+P*10},${20+P*5},0.9)`);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // flow arrows
+  const t = Date.now()/1000;
+  for (let ax=0; ax<5; ax++) {
+    const xx = ((ax/5 + speed*t*0.1) % 1) * (w-100) + 50;
+    ctx.fillStyle = `rgba(0,230,118,${0.4+P*0.05})`;
+    ctx.font = `${10+P*0.5}px Share Tech Mono`;
+    ctx.fillText('→', xx, pipeY + pipeH/2 + 4);
+  }
+
+  // Battery symbol on left
+  ctx.strokeStyle='#00e676'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(20,pipeY-pipeH/2-8); ctx.lineTo(20,pipeY+pipeH/2+8); ctx.stroke();
+  ctx.font='11px Share Tech Mono'; ctx.fillStyle='#00e676';
+  ctx.fillText(`${P.toFixed(0)}V`, 2, pipeY+4);
+
+  waterAnimId = requestAnimationFrame(waterAnim);
+}
+document.getElementById('wPressure').addEventListener('input', ()=>{});
+document.getElementById('wWidth').addEventListener('input', ()=>{});
+waterAnim();
+
+// ── 2. OHM'S LAW DEMO ────────────────────────────────────────────
+let ohmLastChanged = 'R';
+function ohmCalc(changed) {
+  ohmLastChanged = changed;
+  let V = parseFloat(document.getElementById('oV').value);
+  let I = parseFloat(document.getElementById('oI').value);
+  let R = parseFloat(document.getElementById('oR').value);
+  if (changed === 'V') { I = V/R; document.getElementById('oI').value = Math.min(10,Math.max(0.01,I)); }
+  else if (changed === 'I') { R = V/I; document.getElementById('oR').value = Math.min(1000,Math.max(0.1,R)); }
+  else { I = V/R; document.getElementById('oI').value = Math.min(10,Math.max(0.01,I)); }
+  V = parseFloat(document.getElementById('oV').value);
+  I = parseFloat(document.getElementById('oI').value);
+  R = parseFloat(document.getElementById('oR').value);
+  document.getElementById('oVval').textContent = V.toFixed(1)+' V';
+  document.getElementById('oIval').textContent = I.toFixed(3)+' A';
+  document.getElementById('oRval').textContent = R.toFixed(1)+' Ω';
+  document.getElementById('oVm').style.width = (V/100*100)+'%';
+  document.getElementById('oIm').style.width = (I/10*100)+'%';
+  document.getElementById('oRm').style.width = (R/1000*100)+'%';
+  drawOhm();
+}
+function drawOhm() {
+  const canvas = document.getElementById('ohmCanvas');
+  const { ctx, w, h } = resizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  drawGrid(ctx,w,h);
+  const V = parseFloat(document.getElementById('oV').value);
+  const R = parseFloat(document.getElementById('oR').value);
+  // multiple resistance lines
+  const rLines = [R/4, R/2, R, R*2, R*4];
+  const colors = ['rgba(100,200,100,0.3)','rgba(100,200,100,0.5)','#00e676','rgba(100,200,100,0.5)','rgba(100,200,100,0.3)'];
+  const pad=40;
+  for (let ri=0; ri<rLines.length; ri++) {
+    const slope = 1/rLines[ri];
+    ctx.beginPath(); ctx.strokeStyle=colors[ri]; ctx.lineWidth = ri===2 ? 2.5 : 1;
+    for (let px=0; px<=w-pad*2; px++) {
+      const v = px/(w-pad*2)*100;
+      const i = v*slope;
+      const py = h-pad - (i/1)*(h-pad*2);
+      if (px===0) ctx.moveTo(px+pad, py); else ctx.lineTo(px+pad, py);
+    }
+    ctx.stroke();
+  }
+  // current operating point
+  const Iop = V/R;
+  const px = pad + (V/100)*(w-pad*2);
+  const py = h-pad - (Iop/1)*(h-pad*2);
+  ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2);
+  ctx.fillStyle='#00e676'; ctx.shadowColor='#00e676'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  ctx.fillStyle='#fff'; ctx.font='11px Share Tech Mono';
+  ctx.fillText(`(${V.toFixed(0)}V, ${Iop.toFixed(2)}A)`, px+10, py-6);
+  // axes
+  ctx.fillStyle='#3a6a50'; ctx.font='10px Share Tech Mono';
+  ctx.fillText('V →', w-35, h-6);
+  ctx.save(); ctx.translate(12, h/2); ctx.rotate(-Math.PI/2); ctx.fillText('I →', 0, 0); ctx.restore();
+  // labels
+  for (let i=0;i<=4;i++) {
+    const vv = i*25; const xx = pad + (vv/100)*(w-pad*2);
+    ctx.fillStyle='#3a6a50'; ctx.fillText(vv, xx-6, h-4);
+  }
+}
+ohmCalc('V');
+
+// ── 3. SERIES/PARALLEL CALC ──────────────────────────────────────
+function makeResults(boxes) {
+  return boxes.map(b =>
+    `<div class="result-box ${b.cls||''}"><span class="r-label">${b.lbl}</span><span class="r-val">${b.val}</span></div>`
+  ).join('');
+}
+function seriesCalc() {
+  const R1=+document.getElementById('sr1').value, R2=+document.getElementById('sr2').value,
+        R3=+document.getElementById('sr3').value, V=+document.getElementById('sV').value;
+  document.getElementById('sr1v').textContent=R1+' Ω';
+  document.getElementById('sr2v').textContent=R2+' Ω';
+  document.getElementById('sr3v').textContent=R3+' Ω';
+  document.getElementById('sVv').textContent=V+' V';
+  const Rt=R1+R2+R3, I=V/Rt;
+  document.getElementById('seriesResult').innerHTML=makeResults([
+    {lbl:'R_total',val:Rt.toFixed(1)+' Ω',cls:''},
+    {lbl:'Current I',val:(I*1000).toFixed(2)+' mA',cls:'cyan'},
+    {lbl:'V_R1',val:(I*R1).toFixed(2)+' V',cls:'green'},
+    {lbl:'V_R2',val:(I*R2).toFixed(2)+' V',cls:'amber'},
+    {lbl:'V_R3',val:(I*R3).toFixed(2)+' V',cls:'purple'},
+  ]);
+}
+function parallelCalc() {
+  const R1=+document.getElementById('pr1').value, R2=+document.getElementById('pr2').value,
+        R3=+document.getElementById('pr3').value, V=+document.getElementById('pV').value;
+  document.getElementById('pr1v').textContent=R1+' Ω';
+  document.getElementById('pr2v').textContent=R2+' Ω';
+  document.getElementById('pr3v').textContent=R3+' Ω';
+  document.getElementById('pVv').textContent=V+' V';
+  const Rt=1/(1/R1+1/R2+1/R3);
+  document.getElementById('parallelResult').innerHTML=makeResults([
+    {lbl:'R_total',val:Rt.toFixed(2)+' Ω',cls:''},
+    {lbl:'I_total',val:((V/Rt)*1000).toFixed(2)+' mA',cls:'cyan'},
+    {lbl:'I_R1',val:((V/R1)*1000).toFixed(2)+' mA',cls:'green'},
+    {lbl:'I_R2',val:((V/R2)*1000).toFixed(2)+' mA',cls:'amber'},
+    {lbl:'I_R3',val:((V/R3)*1000).toFixed(2)+' mA',cls:'purple'},
+  ]);
+}
+function dividerCalc() {
+  const Vin=+document.getElementById('dVin').value, R1=+document.getElementById('dr1').value, R2=+document.getElementById('dr2').value;
+  document.getElementById('dVinv').textContent=Vin+' V';
+  document.getElementById('dr1v').textContent=R1+' Ω';
+  document.getElementById('dr2v').textContent=R2+' Ω';
+  const Vout=Vin*R2/(R1+R2);
+  document.getElementById('dividerResult').innerHTML=makeResults([
+    {lbl:'Vout',val:Vout.toFixed(3)+' V',cls:'green'},
+    {lbl:'Ratio',val:((R2/(R1+R2))*100).toFixed(1)+'%',cls:'amber'},
+    {lbl:'Current',val:((Vin/(R1+R2))*1e6).toFixed(1)+' µA',cls:'cyan'},
+  ]);
+}
+seriesCalc(); parallelCalc(); dividerCalc();
+
+// ── 4. KCL DEMO ──────────────────────────────────────────────────
+function kclDemo() {
+  const I1=+document.getElementById('ki1').value;
+  const I2=+document.getElementById('ki2').value;
+  document.getElementById('ki1v').textContent=I1+' mA';
+  document.getElementById('ki2v').textContent=I2+' mA';
+  const canvas=document.getElementById('kclCanvas');
+  const {ctx,w,h}=resizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  drawGrid(ctx,w,h,8,4);
+  const cx=w/2, cy=h/2;
+  const I3=I1+I2;
+  // draw node
+  ctx.beginPath(); ctx.arc(cx,cy,10,0,Math.PI*2);
+  ctx.fillStyle='#00e676'; ctx.shadowColor='#00e676'; ctx.shadowBlur=18; ctx.fill(); ctx.shadowBlur=0;
+  // Arrow helper
+  function arrow(x1,y1,x2,y2,col,label,val) {
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/len,uy=dy/len;
+    ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=2.5;
+    ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    // arrowhead
+    ctx.beginPath(); ctx.fillStyle=col;
+    const hx=x2-ux*10, hy=y2-uy*10;
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(hx-uy*5,hy+ux*5);
+    ctx.lineTo(hx+uy*5,hy-ux*5);
+    ctx.closePath(); ctx.fill();
+    ctx.font='bold 12px Share Tech Mono'; ctx.fillStyle=col;
+    ctx.fillText(`${label} = ${val} mA`, (x1+x2)/2-10, (y1+y2)/2-10);
+  }
+  // I1 coming from top-left
+  arrow(cx-w*0.3, cy-h*0.3, cx-14,cy-14,'#00e5ff','I1',I1);
+  // I2 coming from top-right
+  arrow(cx+w*0.3, cy-h*0.3, cx+14,cy-14,'#b388ff','I2',I2);
+  // I3 leaving downward
+  arrow(cx,cy+14, cx, cy+h*0.38,'#ffa726','I3 out',I3);
+  // KCL label
+  ctx.fillStyle='#3a6a50'; ctx.font='11px Share Tech Mono';
+  ctx.fillText(`KCL: ${I1}+${I2} = ${I3} mA ✓`, 10, h-10);
+}
+kclDemo();
+
+// ── 5. RC DEMO ────────────────────────────────────────────────────
+function rcDemo() {
+  const R=+document.getElementById('rcR').value*1e3;
+  const C=+document.getElementById('rcC').value*1e-6;
+  const Vs=+document.getElementById('rcVs').value;
+  const mode=document.getElementById('rcMode').value;
+  document.getElementById('rcRv').textContent=document.getElementById('rcR').value+' kΩ';
+  document.getElementById('rcCv').textContent=document.getElementById('rcC').value+' µF';
+  document.getElementById('rcVsv').textContent=Vs+' V';
+  const tau=R*C;
+  document.getElementById('rcTau').textContent=tau>=1?(tau.toFixed(2)+'s'):(tau*1000).toFixed(1)+' ms';
+  const v1 = mode==='charge' ? Vs*(1-Math.exp(-1)) : Vs*Math.exp(-1);
+  document.getElementById('rcAt1').textContent=v1.toFixed(2)+' V';
+  document.getElementById('rcAt5').textContent=tau>=1?((5*tau).toFixed(2)+'s'):((5*tau*1000).toFixed(1)+' ms');
+
+  const canvas=document.getElementById('rcCanvas');
+  const {ctx,w,h}=resizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  drawGrid(ctx,w,h);
+  const pad=38;
+  // axes
+  ctx.strokeStyle='#1e3040'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,h-pad); ctx.lineTo(w-pad,h-pad); ctx.stroke();
+  // tau marker
+  const tauX = pad + (1/5)*(w-2*pad);
+  ctx.setLineDash([4,4]); ctx.strokeStyle='#ffa72660'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(tauX,pad); ctx.lineTo(tauX,h-pad); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ffa726'; ctx.font='10px Share Tech Mono'; ctx.fillText('τ',tauX-4,pad+12);
+  // curve
+  ctx.beginPath(); ctx.strokeStyle='#00e676'; ctx.lineWidth=2.5;
+  for (let px=0; px<=w-2*pad; px++) {
+    const t_norm = px/(w-2*pad)*5;
+    const Vc = mode==='charge' ? Vs*(1-Math.exp(-t_norm)) : Vs*Math.exp(-t_norm);
+    const py = h-pad - (Vc/Vs)*(h-2*pad);
+    if (px===0) ctx.moveTo(px+pad, py); else ctx.lineTo(px+pad, py);
+  }
+  ctx.shadowColor='#00e676'; ctx.shadowBlur=6; ctx.stroke(); ctx.shadowBlur=0;
+  // voltage axis labels
+  ctx.fillStyle='#3a6a50'; ctx.font='10px Share Tech Mono';
+  for (let i=0;i<=4;i++) {
+    const vv=i*Vs/4;
+    const py=h-pad-(i/4)*(h-2*pad);
+    ctx.fillText(vv.toFixed(0)+'V', 2, py+4);
+  }
+  ctx.fillText('0', pad+2, h-pad+12);
+  ctx.fillText('5τ', w-pad-12, h-pad+12);
+  ctx.fillStyle='#00e676'; ctx.font='11px Share Tech Mono';
+  const label = mode==='charge' ? 'V(t) = Vs·(1−e^(−t/τ))' : 'V(t) = Vs·e^(−t/τ)';
+  ctx.fillText(label, pad+10, pad+20);
+}
+rcDemo();
+
+// ── 6. RL DEMO ────────────────────────────────────────────────────
+function rlDemo() {
+  const L=+document.getElementById('rlL').value*1e-3;
+  const R=+document.getElementById('rlR').value;
+  const Vs=+document.getElementById('rlVs').value;
+  document.getElementById('rlLv').textContent=document.getElementById('rlL').value+' mH';
+  document.getElementById('rlRv').textContent=R+' Ω';
+  document.getElementById('rlVsv').textContent=Vs+' V';
+  const tau=L/R, Iinf=Vs/R;
+  document.getElementById('rlTau').textContent=(tau*1000).toFixed(2)+' ms';
+  document.getElementById('rlIf').textContent=(Iinf*1000).toFixed(0)+' mA';
+  document.getElementById('rlAt1').textContent=((Iinf*(1-Math.exp(-1)))*1000).toFixed(1)+' mA';
+
+  const canvas=document.getElementById('rlCanvas');
+  const {ctx,w,h}=resizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  drawGrid(ctx,w,h);
+  const pad=38;
+  ctx.strokeStyle='#1e3040'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,h-pad); ctx.lineTo(w-pad,h-pad); ctx.stroke();
+  // tau line
+  const tauX=pad+(1/5)*(w-2*pad);
+  ctx.setLineDash([4,4]); ctx.strokeStyle='#b388ff60'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(tauX,pad); ctx.lineTo(tauX,h-pad); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#b388ff'; ctx.font='10px Share Tech Mono'; ctx.fillText('τ',tauX-4,pad+12);
+  // I_inf dashed line
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(255,167,38,0.4)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad+6); ctx.lineTo(w-pad,pad+6); ctx.stroke();
+  ctx.setLineDash([]);
+  // curve
+  ctx.beginPath(); ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2.5;
+  for (let px=0; px<=w-2*pad; px++) {
+    const t_norm=px/(w-2*pad)*5;
+    const I=Iinf*(1-Math.exp(-t_norm));
+    const py=h-pad-(I/Iinf)*(h-2*pad);
+    if (px===0) ctx.moveTo(px+pad,py); else ctx.lineTo(px+pad,py);
+  }
+  ctx.shadowColor='#00e5ff'; ctx.shadowBlur=6; ctx.stroke(); ctx.shadowBlur=0;
+  ctx.fillStyle='#3a6a50'; ctx.font='10px Share Tech Mono';
+  for (let i=0;i<=4;i++) {
+    const Iv=i*Iinf/4*1000;
+    const py=h-pad-(i/4)*(h-2*pad);
+    ctx.fillText(Iv.toFixed(0)+'mA', 2, py+4);
+  }
+  ctx.fillStyle='#00e5ff'; ctx.font='11px Share Tech Mono';
+  ctx.fillText('I(t) = I_inf·(1−e^(−t/τ))', pad+10, pad+20);
+}
+rlDemo();
+
+// ── 7. AC WAVEFORM DEMO ──────────────────────────────────────────
+let acAnimId;
+function acDemo() {
+  const f=+document.getElementById('acF').value;
+  const Vpk=+document.getElementById('acVpk').value;
+  const phi=+document.getElementById('acPhi').value*Math.PI/180;
+  const sig2=document.getElementById('acSig2').value;
+  document.getElementById('acFv').textContent=f+' Hz';
+  document.getElementById('acVpkv').textContent=Vpk+' V';
+  document.getElementById('acPhiv').textContent=(document.getElementById('acPhi').value>0?'+':'')+document.getElementById('acPhi').value+'°';
+  document.getElementById('acVrms').textContent=(Vpk/Math.sqrt(2)).toFixed(2)+' V';
+  document.getElementById('acT').textContent=((1/f)*1000).toFixed(1)+' ms';
+  document.getElementById('acW').textContent=(2*Math.PI*f).toFixed(1);
+  cancelAnimationFrame(acAnimId);
+  drawAC(f,Vpk,phi,sig2);
+}
+function drawAC(f,Vpk,phi,sig2) {
+  const canvas=document.getElementById('acCanvas');
+  const {ctx,w,h}=resizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  drawGrid(ctx,w,h,8,6);
+  const pad=30, midY=h/2;
+  // axes
+  ctx.strokeStyle='#1e3040'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,h-pad); ctx.lineTo(w-pad,h-pad); ctx.stroke();
+  ctx.beginPath(); ctx.setLineDash([2,4]); ctx.strokeStyle='#1e3040';
+  ctx.moveTo(pad,midY); ctx.lineTo(w-pad,midY); ctx.stroke(); ctx.setLineDash([]);
+  const T=3; // show 3 cycles
+  // secondary signal
+  if (sig2!=='none') {
+    ctx.beginPath(); ctx.strokeStyle='rgba(0,229,255,0.6)'; ctx.lineWidth=1.5;
+    for (let px=0;px<=w-2*pad;px++) {
+      const t=px/(w-2*pad)*T/f;
+      let v;
+      if (sig2==='cos') v=Vpk*Math.cos(2*Math.PI*f*t);
+      else if (sig2==='square') v=Vpk*Math.sign(Math.sin(2*Math.PI*f*t));
+      else { const p=(t%(1/f))*f; v=Vpk*(p<0.5?4*p-1:3-4*p); }
+      const py=midY-(v/Vpk)*(h/2-pad);
+      if (px===0) ctx.moveTo(px+pad,py); else ctx.lineTo(px+pad,py);
+    }
+    ctx.stroke();
+  }
+  // primary sine
+  ctx.beginPath(); ctx.strokeStyle='#00e676'; ctx.lineWidth=2.5;
+  ctx.shadowColor='#00e676'; ctx.shadowBlur=6;
+  for (let px=0;px<=w-2*pad;px++) {
+    const t=px/(w-2*pad)*T/f;
+    const v=Vpk*Math.sin(2*Math.PI*f*t+phi);
+    const py=midY-(v/Vpk)*(h/2-pad);
+    if (px===0) ctx.moveTo(px+pad,py); else ctx.lineTo(px+pad,py);
+  }
+  ctx.stroke(); ctx.shadowBlur=0;
+  // amplitude labels
+  ctx.fillStyle='#3a6a50'; ctx.font='10px Share Tech Mono';
+  ctx.fillText('+'+Vpk+'V', 2, midY-(h/2-pad)+12);
+  ctx.fillText('-'+Vpk+'V', 2, midY+(h/2-pad)-2);
+  ctx.fillText('0V', 2, midY+4);
+  ctx.fillStyle='#00e676'; ctx.font='11px Share Tech Mono';
+  ctx.fillText(`v(t) = ${Vpk}·sin(2π·${f}t + ${Math.round(phi*180/Math.PI)}°)`, pad+8, pad+16);
+}
+acDemo();
+
+// ── 8. LOW-PASS FILTER BODE PLOT ────────────────────────────────
+function lpfDemo() {
+  const R=+document.getElementById('lpR').value*1e3;
+  const C=+document.getElementById('lpC').value*1e-9;
+  document.getElementById('lpRv').textContent=document.getElementById('lpR').value+' kΩ';
+  document.getElementById('lpCv').textContent=document.getElementById('lpC').value+' nF';
+  const fc=1/(2*Math.PI*R*C);
+  document.getElementById('lpFc').textContent=fmtHz(fc);
+  document.getElementById('lpAt10').textContent='-20 dB';
+  const canvas=document.getElementById('lpfCanvas');
+  const {ctx,w,h}=resizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  const pad=44;
+  drawGrid(ctx,w,h,8,5);
+  // frequency range: 0.01fc to 100fc (log scale)
+  const fmin=fc*0.01, fmax=fc*100;
+  // -3dB line
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(255,82,82,0.5)'; ctx.lineWidth=1;
+  const y3=pad+(-(-3)/60)*(h-2*pad);
+  const dB_range=60;
+  const dB_top=6, dB_bot=-60;
+  const dBtoY=dB => pad + ((dB_top-dB)/dB_range)*(h-2*pad);
+  ctx.beginPath(); ctx.moveTo(pad,dBtoY(-3)); ctx.lineTo(w-pad,dBtoY(-3)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff5252'; ctx.font='10px Share Tech Mono'; ctx.fillText('-3dB',w-pad+2,dBtoY(-3)+4);
+  // fc vertical
+  const fcX=pad+Math.log10(fc/fmin)/Math.log10(fmax/fmin)*(w-2*pad);
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(255,167,38,0.5)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(fcX,pad); ctx.lineTo(fcX,h-pad); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ffa726'; ctx.font='10px Share Tech Mono'; ctx.fillText('fc',fcX-8,pad+12);
+  // gain curve
+  ctx.beginPath(); ctx.strokeStyle='#00e676'; ctx.lineWidth=2.5;
+  ctx.shadowColor='#00e676'; ctx.shadowBlur=6;
+  for (let px=0;px<=w-2*pad;px++) {
+    const ratio=Math.pow(10, px/(w-2*pad)*Math.log10(fmax/fmin));
+    const f=fmin*ratio;
+    const H=1/Math.sqrt(1+(f/fc)**2);
+    const dB=20*Math.log10(H);
+    const py=dBtoY(dB);
+    if (px===0) ctx.moveTo(px+pad,py); else ctx.lineTo(px+pad,py);
+  }
+  ctx.stroke(); ctx.shadowBlur=0;
+  // phase curve (secondary)
+  ctx.beginPath(); ctx.strokeStyle='rgba(179,136,255,0.7)'; ctx.lineWidth=1.5;
+  for (let px=0;px<=w-2*pad;px++) {
+    const ratio=Math.pow(10, px/(w-2*pad)*Math.log10(fmax/fmin));
+    const f=fmin*ratio;
+    const phase=-Math.atan(f/fc)*180/Math.PI;
+    const py=dBtoY(phase);
+    if (px===0) ctx.moveTo(px+pad,py); else ctx.lineTo(px+pad,py);
+  }
+  ctx.stroke();
+  // y-axis labels
+  ctx.fillStyle='#3a6a50'; ctx.font='10px Share Tech Mono';
+  const dBmarks=[0,-10,-20,-40,-60];
+  dBmarks.forEach(d => { ctx.fillText(d+'dB', 0, dBtoY(d)+4); });
+  // x-axis
+  ctx.fillText('f →', w-25, h-pad+14);
+  ctx.fillStyle='#00e676'; ctx.font='10px Share Tech Mono';
+  ctx.fillText('— Gain (dB)', pad+8, pad+16);
+  ctx.fillStyle='#b388ff';
+  ctx.fillText('— Phase (°)', pad+8, pad+30);
+}
+lpfDemo();
+
+// ── 9. POWER DEMO ────────────────────────────────────────────────
+function powerDemo() {
+  const V=+document.getElementById('pwV').value;
+  const I=+document.getElementById('pwI').value;
+  const PF=+document.getElementById('pwPF').value;
+  const Th=+document.getElementById('pwT').value;
+  document.getElementById('pwVv').textContent=V+' V';
+  document.getElementById('pwIv').textContent=I.toFixed(2)+' A';
+  document.getElementById('pwPFv').textContent=PF.toFixed(2);
+  document.getElementById('pwTv').textContent=Th.toFixed(1)+' h';
+  const P=V*I*PF, S=V*I, E=P*Th, R=V/I;
+  document.getElementById('pwP').textContent=P.toFixed(1)+' W';
+  document.getElementById('pwS').textContent=S.toFixed(1)+' VA';
+  document.getElementById('pwE').textContent=E.toFixed(1)+' Wh';
+  document.getElementById('pwR').textContent=R.toFixed(1)+' Ω';
+  drawPowerTriangle(P, S*Math.sqrt(1-PF*PF), S);
+}
+function drawPowerTriangle(P, Q, S) {
+  const canvas=document.getElementById('pwCanvas');
+  const {ctx,w,h}=resizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  drawGrid(ctx,w,h,8,4);
+  const cx=w*0.15, cy=h*0.75;
+  const scale=Math.min((w*0.65)/S, (h*0.6)/Math.max(Q,10));
+  const Px=cx+P*scale, Qy=cy-Q*scale;
+  // P arrow (horizontal)
+  ctx.beginPath(); ctx.strokeStyle='#00e676'; ctx.lineWidth=2.5;
+  ctx.moveTo(cx,cy); ctx.lineTo(Px,cy); ctx.stroke();
+  ctx.beginPath(); ctx.fillStyle='#00e676';
+  ctx.moveTo(Px+6,cy); ctx.lineTo(Px-4,cy-5); ctx.lineTo(Px-4,cy+5); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#00e676'; ctx.font='12px Share Tech Mono';
+  ctx.fillText(`P=${P.toFixed(0)}W`, cx+(Px-cx)/2-20, cy+16);
+  // Q arrow (vertical)
+  if (Q > 1) {
+    ctx.beginPath(); ctx.strokeStyle='#b388ff'; ctx.lineWidth=2.5;
+    ctx.moveTo(Px,cy); ctx.lineTo(Px,Qy); ctx.stroke();
+    ctx.beginPath(); ctx.fillStyle='#b388ff';
+    ctx.moveTo(Px,Qy-6); ctx.lineTo(Px-5,Qy+4); ctx.lineTo(Px+5,Qy+4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#b388ff'; ctx.font='12px Share Tech Mono';
+    ctx.fillText(`Q=${Q.toFixed(0)}VAR`, Px+8, cy-(cy-Qy)/2);
+  }
+  // S arrow (hypotenuse)
+  ctx.beginPath(); ctx.strokeStyle='#ffa726'; ctx.lineWidth=2.5;
+  ctx.moveTo(cx,cy); ctx.lineTo(Px,Qy); ctx.stroke();
+  const angle=Math.atan2(-(Qy-cy),Px-cx)*180/Math.PI;
+  ctx.fillStyle='#ffa726'; ctx.font='12px Share Tech Mono';
+  ctx.fillText(`S=${S.toFixed(0)}VA`, cx+(Px-cx)/2-30, cy-(cy-Qy)/2-8);
+  // power factor
+  ctx.fillStyle='#00e5ff'; ctx.font='13px Share Tech Mono';
+  ctx.fillText(`PF = P/S = ${(P/S).toFixed(2)}`, cx, h-12);
+  // angle arc
+  if (Q > 1) {
+    ctx.beginPath(); ctx.strokeStyle='rgba(0,229,255,0.5)'; ctx.lineWidth=1.5;
+    ctx.arc(cx,cy,40,0,-Math.atan2(-(Qy-cy),Px-cx),true);
+    ctx.stroke();
+    ctx.fillStyle='rgba(0,229,255,0.8)'; ctx.font='10px Share Tech Mono';
+    ctx.fillText('φ', cx+28, cy-12);
+  }
+}
+powerDemo();
+
+// ── SCROLL FADE-IN ────────────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// ── RESPONSIVE RESIZE ─────────────────────────────────────────────
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    ohmCalc('V'); rcDemo(); rlDemo(); acDemo(); lpfDemo(); powerDemo(); kclDemo();
+  }, 200);
+});
+</script>
+</body>
+</html>

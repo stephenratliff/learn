@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Structures — CS Deep Dive</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;1,300&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0e0f11;
+  --bg2:       #151619;
+  --bg3:       #1c1e22;
+  --surface:   #222428;
+  --border:    #2e3138;
+  --border2:   #3d4149;
+  --amber:     #f0a500;
+  --amber-dim: #7a5200;
+  --amber-glow:#fff0c0;
+  --teal:      #2dd4bf;
+  --teal-dim:  #134e4a;
+  --coral:     #f87171;
+  --coral-dim: #4c1d1d;
+  --violet:    #a78bfa;
+  --violet-dim:#2e1e63;
+  --green:     #4ade80;
+  --green-dim: #14532d;
+  --sky:       #38bdf8;
+  --sky-dim:   #0c3556;
+  --text:      #e8e6df;
+  --text2:     #9a9690;
+  --text3:     #5c5a56;
+  --mono:      'IBM Plex Mono', monospace;
+  --serif:     'Playfair Display', Georgia, serif;
+  --sans:      'DM Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ─────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── NAV ───────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(14,15,17,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 52px;
+  display: flex; align-items: center; gap: 0.25rem;
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--amber);
+  letter-spacing: 0.1em;
+  margin-right: 1.5rem;
+  white-space: nowrap;
+}
+nav a {
+  font-family: var(--mono);
+  font-size: 0.67rem;
+  letter-spacing: 0.06em;
+  color: var(--text3);
+  text-decoration: none;
+  padding: 0.3rem 0.55rem;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+nav a:hover { color: var(--amber); background: rgba(240,165,0,0.08); }
+
+/* ── COVER ─────────────────────────── */
+.cover {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 6rem 3rem 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.cover-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(240,165,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240,165,0,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 100%, black 30%, transparent 100%);
+}
+
+.cover-glow {
+  position: absolute;
+  bottom: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, rgba(240,165,0,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cover-chip {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--amber);
+  border: 1px solid var(--amber-dim);
+  background: rgba(240,165,0,0.05);
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.6s ease both;
+}
+
+.cover-title {
+  font-family: var(--serif);
+  font-size: clamp(3.5rem, 9vw, 7.5rem);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 1rem;
+  animation: fadeUp 0.7s 0.1s ease both;
+}
+.cover-title span {
+  color: var(--amber);
+  font-style: italic;
+}
+
+.cover-desc {
+  font-family: var(--sans);
+  font-size: 1rem;
+  color: var(--text2);
+  max-width: 520px;
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+  animation: fadeUp 0.7s 0.2s ease both;
+}
+
+.cover-stats {
+  display: flex; gap: 2.5rem; flex-wrap: wrap;
+  animation: fadeUp 0.7s 0.3s ease both;
+}
+.stat {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.stat-num {
+  font-family: var(--mono);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--amber);
+  line-height: 1;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── LAYOUT ────────────────────────── */
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+}
+
+/* ── SECTION ───────────────────────── */
+.section { margin-bottom: 7rem; }
+
+.section-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  color: var(--amber);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  animation: fadeUp 0.5s ease forwards;
+}
+
+.section-title {
+  font-family: var(--serif);
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title .accent { color: var(--amber); font-style: italic; }
+
+h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2.5rem 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+h4 {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--teal);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 1.8rem 0 0.5rem;
+}
+
+p { margin-bottom: 1rem; font-size: 0.97rem; color: var(--text2); }
+strong { color: var(--text); font-weight: 500; }
+em { color: var(--amber); font-style: italic; }
+
+/* ── CODE ──────────────────────────── */
+pre {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.65;
+  padding: 1.25rem 1.5rem;
+  border-radius: 0 4px 4px 0;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  position: relative;
+}
+
+pre::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0.5rem; right: 0.75rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  background: rgba(240,165,0,0.08);
+  color: var(--amber);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  border: 1px solid rgba(240,165,0,0.15);
+}
+pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+.kw   { color: #c084fc; }
+.fn   { color: #60a5fa; }
+.str  { color: #86efac; }
+.num  { color: #fbbf24; }
+.cmt  { color: #4b5563; font-style: italic; }
+.type { color: #f0abfc; }
+.op   { color: #fb923c; }
+
+/* ── DIAGRAM ───────────────────────── */
+.diagram {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.75rem 2rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.diagram-title {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── SVG DIAGRAMS ──────────────────── */
+svg text { font-family: var(--mono); }
+
+/* ── CARDS ─────────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  position: relative;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.card-top {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.card-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.card-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.card h4 {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 0.4rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.card p { font-size: 0.82rem; margin: 0; color: var(--text3); line-height: 1.55; }
+
+/* ── COMPLEXITY TABLE ──────────────── */
+.table-wrap { overflow-x: auto; margin: 1.5rem 0; border-radius: 6px; border: 1px solid var(--border); }
+
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.85rem;
+}
+thead th {
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+  vertical-align: middle;
+  font-size: 0.83rem;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+.op-fast { color: var(--green);  font-family: var(--mono); font-size: 0.78rem; font-weight: 600; }
+.op-med  { color: var(--amber);  font-family: var(--mono); font-size: 0.78rem; font-weight: 600; }
+.op-slow { color: var(--coral);  font-family: var(--mono); font-size: 0.78rem; font-weight: 600; }
+
+/* ── CALLOUT ───────────────────────── */
+.callout {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+  border-radius: 0 6px 6px 0;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+.callout.warn { border-left-color: var(--amber); }
+.callout.note { border-left-color: var(--violet); }
+
+.callout-head {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+.callout.warn .callout-head { color: var(--amber); }
+.callout.note .callout-head { color: var(--violet); }
+.callout p { margin: 0; font-size: 0.88rem; }
+
+/* ── PULL QUOTE ────────────────────── */
+.pull {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-style: italic;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 0;
+  margin: 2rem 0;
+  line-height: 1.5;
+}
+
+/* ── DIVIDER ───────────────────────── */
+.divider {
+  display: flex; align-items: center; gap: 1rem;
+  color: var(--text3); font-family: var(--mono);
+  font-size: 0.68rem; letter-spacing: 0.12em;
+  margin: 4rem 0;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--border);
+}
+
+/* ── LIST ──────────────────────────── */
+ul, ol { padding-left: 1.4rem; margin: 0.75rem 0 1rem; }
+li { margin-bottom: 0.4rem; font-size: 0.9rem; color: var(--text2); }
+li::marker { color: var(--amber); }
+
+/* ── STEPS ─────────────────────────── */
+.steps { list-style: none; padding: 0; counter-reset: step; }
+.steps li {
+  counter-increment: step;
+  display: flex; gap: 1rem; align-items: flex-start;
+  margin-bottom: 0.75rem; font-size: 0.9rem;
+}
+.steps li::before {
+  content: counter(step, decimal-leading-zero);
+  font-family: var(--mono); font-size: 0.68rem; font-weight: 600;
+  background: var(--amber); color: var(--bg);
+  min-width: 1.8rem; height: 1.5rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 2px; margin-top: 0.25rem; flex-shrink: 0;
+}
+
+/* ── TWO COL ───────────────────────── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  align-items: start;
+}
+@media (max-width: 680px) {
+  .two-col { grid-template-columns: 1fr; }
+  nav a { display: none; }
+  .cover { padding: 5rem 1.5rem 3rem; }
+  .page { padding: 3rem 1.25rem; }
+}
+
+/* ── VIZ NODES ─────────────────────── */
+.node-row {
+  display: flex; align-items: center; gap: 0;
+  margin: 1rem 0; flex-wrap: wrap;
+}
+.node {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  padding: 0.5rem 0.9rem;
+  color: var(--text);
+  position: relative;
+  min-width: 52px; text-align: center;
+  transition: all 0.2s;
+}
+.node.head { border-color: var(--amber); color: var(--amber); }
+.node.highlight { border-color: var(--teal); color: var(--teal); background: rgba(45,212,191,0.05); }
+.node.null { color: var(--text3); border-style: dashed; }
+
+.arrow {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  color: var(--text3);
+  padding: 0 0.1rem;
+}
+
+/* ── TREE VIZ ──────────────────────── */
+.tree-svg { width: 100%; max-width: 540px; display: block; margin: 0 auto; }
+
+/* ── FOOTER ────────────────────────── */
+footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 2.5rem 2rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+}
+footer span { color: var(--amber); }
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══════════════════════════ -->
+<nav>
+  <span class="nav-logo">DS·101</span>
+  <a href="#arrays">Arrays</a>
+  <a href="#linked-lists">Linked Lists</a>
+  <a href="#stacks-queues">Stacks/Queues</a>
+  <a href="#hash-tables">Hash Tables</a>
+  <a href="#trees">Trees</a>
+  <a href="#heaps">Heaps</a>
+  <a href="#graphs">Graphs</a>
+  <a href="#tries">Tries</a>
+  <a href="#comparison">Comparison</a>
+</nav>
+
+<!-- ══ COVER ════════════════════════ -->
+<div class="cover">
+  <div class="cover-grid"></div>
+  <div class="cover-glow"></div>
+  <div class="cover-chip">CS · 101 &nbsp;·&nbsp; Data Structures · 2025</div>
+  <h1 class="cover-title">Data<br><span>Structures</span></h1>
+  <p class="cover-desc">A comprehensive deep-dive into every fundamental data structure — how they work internally, when to use them, and how to reason about their performance.</p>
+  <div class="cover-stats">
+    <div class="stat"><span class="stat-num">09</span><span class="stat-label">Structures</span></div>
+    <div class="stat"><span class="stat-num">30+</span><span class="stat-label">Code Examples</span></div>
+    <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Complexity Tables</span></div>
+  </div>
+</div>
+
+<!-- ══ MAIN CONTENT ════════════════ -->
+<main class="page">
+
+<!-- ───────── INTRO ───────────────── -->
+<section class="section">
+  <div class="section-eyebrow">Introduction</div>
+  <h2 class="section-title">What is a <span class="accent">Data Structure?</span></h2>
+  <p>A data structure is a specialized format for organizing, processing, retrieving, and storing data in a computer's memory so that it can be accessed and modified efficiently. Choosing the right data structure for a problem is often more impactful than the choice of algorithm — and the two are deeply intertwined.</p>
+  <p>Every data structure encodes two things: <strong>how data is laid out in memory</strong> and <strong>what operations it supports efficiently</strong>. Understanding both dimensions is what separates engineers who know syntax from engineers who write systems that scale.</p>
+
+  <div class="pull">"Bad programmers worry about the code. Good programmers worry about data structures and their relationships." — Linus Torvalds</div>
+
+  <h3>The Four Core Operations</h3>
+  <p>Every data structure is evaluated on how efficiently it supports these fundamental operations:</p>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--teal)"></div><span class="card-label">Access</span></div>
+      <h4>Read a specific element</h4>
+      <p>Retrieve the value at a known position or key. Arrays excel here at O(1); linked lists struggle at O(n).</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--amber)"></div><span class="card-label">Search</span></div>
+      <h4>Find an element by value</h4>
+      <p>Locate an element without knowing its index. Hash tables achieve O(1); unsorted arrays require O(n).</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--violet)"></div><span class="card-label">Insertion</span></div>
+      <h4>Add a new element</h4>
+      <p>Where and how quickly you can insert matters enormously. Linked lists insert in O(1); arrays may need to shift.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--coral)"></div><span class="card-label">Deletion</span></div>
+      <h4>Remove an element</h4>
+      <p>Removing without leaving gaps or breaking structure. Arrays shrink slowly; linked lists snip in O(1) with a pointer.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider">§ 01</div>
+
+<!-- ───────── ARRAYS ──────────────── -->
+<section class="section" id="arrays">
+  <div class="section-eyebrow">Structure 01</div>
+  <h2 class="section-title">Arrays & <span class="accent">Dynamic Arrays</span></h2>
+
+  <p>An array is the most fundamental data structure: a contiguous block of memory holding elements of the same type. Because elements are stored side-by-side, you can compute the memory address of any element directly from its index in O(1) time — this is the defining property of arrays.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Static Array — contiguous memory layout</div>
+    <svg viewBox="0 0 640 80" class="tree-svg" style="max-width:640px; height:80px">
+      <!-- memory addresses -->
+      <text x="20"  y="15" font-size="9" fill="#5c5a56">0x1000</text>
+      <text x="100" y="15" font-size="9" fill="#5c5a56">0x1004</text>
+      <text x="180" y="15" font-size="9" fill="#5c5a56">0x1008</text>
+      <text x="260" y="15" font-size="9" fill="#5c5a56">0x100C</text>
+      <text x="340" y="15" font-size="9" fill="#5c5a56">0x1010</text>
+      <text x="420" y="15" font-size="9" fill="#5c5a56">0x1014</text>
+      <!-- cells -->
+      <rect x="10"  y="22" width="74" height="38" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <rect x="90"  y="22" width="74" height="38" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <rect x="170" y="22" width="74" height="38" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <rect x="250" y="22" width="74" height="38" fill="#222428" stroke="#f0a500" stroke-width="1.5"/>
+      <rect x="330" y="22" width="74" height="38" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <rect x="410" y="22" width="74" height="38" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <!-- values -->
+      <text x="47"  y="46" font-size="14" fill="#e8e6df" text-anchor="middle" font-family="monospace">12</text>
+      <text x="127" y="46" font-size="14" fill="#e8e6df" text-anchor="middle" font-family="monospace">34</text>
+      <text x="207" y="46" font-size="14" fill="#e8e6df" text-anchor="middle" font-family="monospace">7</text>
+      <text x="287" y="46" font-size="14" fill="#f0a500" text-anchor="middle" font-family="monospace" font-weight="600">99</text>
+      <text x="367" y="46" font-size="14" fill="#e8e6df" text-anchor="middle" font-family="monospace">56</text>
+      <text x="447" y="46" font-size="14" fill="#e8e6df" text-anchor="middle" font-family="monospace">21</text>
+      <!-- indices -->
+      <text x="47"  y="72" font-size="9" fill="#9a9690" text-anchor="middle">[0]</text>
+      <text x="127" y="72" font-size="9" fill="#9a9690" text-anchor="middle">[1]</text>
+      <text x="207" y="72" font-size="9" fill="#9a9690" text-anchor="middle">[2]</text>
+      <text x="287" y="72" font-size="9" fill="#f0a500" text-anchor="middle" font-weight="600">[3] ←</text>
+      <text x="367" y="72" font-size="9" fill="#9a9690" text-anchor="middle">[4]</text>
+      <text x="447" y="72" font-size="9" fill="#9a9690" text-anchor="middle">[5]</text>
+    </svg>
+  </div>
+
+  <h3>How Array Access Works in O(1)</h3>
+  <p>The O(1) access time comes from simple arithmetic. If the array starts at memory address <code>base</code> and each element takes <code>size</code> bytes, then the address of element at index <code>i</code> is exactly <code>base + i × size</code>. This computation takes constant time regardless of the array's length — the CPU fetches it in a single memory operation.</p>
+
+  <pre data-lang="Python"><code><span class="cmt"># Static array address calculation</span>
+<span class="cmt"># base = 0x1000, element_size = 4 bytes (int32)</span>
+address(i) = 0x1000 + i * 4
+
+<span class="cmt"># arr[3] → 0x1000 + 3 * 4 = 0x100C  → O(1)</span>
+<span class="cmt"># This is why arr[3] and arr[9999] cost the same!</span>
+
+<span class="kw">int</span>[] arr = {12, 34, 7, 99, 56, 21}
+value = arr[3]   <span class="cmt"># → 99, one instruction</span></code></pre>
+
+  <h3>Dynamic Arrays — Amortized Growth</h3>
+  <p>Static arrays have a fixed size. Dynamic arrays (Python <code>list</code>, Java <code>ArrayList</code>, C++ <code>vector</code>) automatically resize by allocating a new block of memory — typically twice the current size — when capacity is exceeded. This <strong>doubling strategy</strong> gives amortized O(1) appends: most appends are O(1), and the rare O(n) reallocation is spread across all the previous O(1) appends.</p>
+
+  <pre data-lang="Python"><code><span class="cmt"># Dynamic array growth pattern</span>
+<span class="cmt"># size:     1 → 2 → 4 → 8 → 16 → 32 …</span>
+<span class="cmt"># copies:   1   2   4   8   16   32 …</span>
+<span class="cmt"># Total copies for n inserts ≤ 2n → amortized O(1)</span>
+
+<span class="kw">class</span> <span class="type">DynamicArray</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.data     = [<span class="kw">None</span>] * 1   <span class="cmt"># raw capacity</span>
+        self.size     = 0
+        self.capacity = 1
+
+    <span class="kw">def</span> <span class="fn">append</span>(self, val):
+        <span class="kw">if</span> self.size == self.capacity:
+            self.<span class="fn">_resize</span>(self.capacity * 2)  <span class="cmt"># double!</span>
+        self.data[self.size] = val
+        self.size += 1
+
+    <span class="kw">def</span> <span class="fn">_resize</span>(self, new_cap):
+        new_data = [<span class="kw">None</span>] * new_cap
+        <span class="kw">for</span> i <span class="kw">in</span> range(self.size):
+            new_data[i] = self.data[i]
+        self.data, self.capacity = new_data, new_cap</code></pre>
+
+  <h3>Complexity Summary</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Operation</th><th>Static Array</th><th>Dynamic Array</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Access by index</td><td class="op-fast">O(1)</td><td class="op-fast">O(1)</td><td>Direct address computation</td></tr>
+        <tr><td>Search (unsorted)</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>Must scan all elements</td></tr>
+        <tr><td>Search (sorted)</td><td class="op-med">O(log n)</td><td class="op-med">O(log n)</td><td>Binary search</td></tr>
+        <tr><td>Insert at end</td><td class="op-slow">O(n)</td><td class="op-fast">O(1)*</td><td>*amortized; O(n) on resize</td></tr>
+        <tr><td>Insert at index</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>Must shift elements right</td></tr>
+        <tr><td>Delete at end</td><td class="op-fast">O(1)</td><td class="op-fast">O(1)</td><td>Just decrement size</td></tr>
+        <tr><td>Delete at index</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>Must shift elements left</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-head">Cache Locality</div>
+    <p>Arrays are the most cache-friendly structure. Because elements are contiguous, the CPU pre-fetches adjacent elements into L1/L2 cache automatically. Iterating over an array is often <strong>10–100× faster</strong> than iterating over a linked list of the same size, even though both are O(n) — cache misses are that expensive.</p>
+  </div>
+</section>
+
+<div class="divider">§ 02</div>
+
+<!-- ───────── LINKED LISTS ─────────── -->
+<section class="section" id="linked-lists">
+  <div class="section-eyebrow">Structure 02</div>
+  <h2 class="section-title">Linked <span class="accent">Lists</span></h2>
+
+  <p>A linked list stores elements in <strong>nodes</strong> — each node holds a value and a pointer (reference) to the next node. Unlike arrays, nodes can live anywhere in memory; they are connected by pointers, not physical proximity. This makes insertion and deletion anywhere in the list O(1) given a pointer to the location, at the cost of O(1) random access.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Singly Linked List — nodes connected by next pointers</div>
+    <div class="node-row" style="margin:0.75rem 0; align-items:center;">
+      <span style="font-family:var(--mono);font-size:0.7rem;color:var(--amber);margin-right:0.5rem;">HEAD</span>
+      <div class="node head">[val: 10 | next →]</div>
+      <span class="arrow">──▶</span>
+      <div class="node">[val: 25 | next →]</div>
+      <span class="arrow">──▶</span>
+      <div class="node highlight">[val: 47 | next →]</div>
+      <span class="arrow">──▶</span>
+      <div class="node">[val: 83 | next →]</div>
+      <span class="arrow">──▶</span>
+      <div class="node null">[null]</div>
+    </div>
+  </div>
+
+  <h3>Singly Linked List</h3>
+  <p>Each node has a value and a single <code>next</code> pointer. Traversal is one-directional. Prepending is O(1); appending requires traversal to the tail (O(n)) unless a tail pointer is maintained.</p>
+
+  <pre data-lang="Python"><code><span class="kw">class</span> <span class="type">Node</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, val):
+        self.val  = val
+        self.next = <span class="kw">None</span>
+
+<span class="kw">class</span> <span class="type">LinkedList</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.head = <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">prepend</span>(self, val):   <span class="cmt"># O(1)</span>
+        node = <span class="type">Node</span>(val)
+        node.next = self.head
+        self.head = node
+
+    <span class="kw">def</span> <span class="fn">delete</span>(self, val):    <span class="cmt"># O(n) search + O(1) deletion</span>
+        prev, cur = <span class="kw">None</span>, self.head
+        <span class="kw">while</span> cur:
+            <span class="kw">if</span> cur.val == val:
+                <span class="kw">if</span> prev: prev.next = cur.next
+                <span class="kw">else</span>:    self.head = cur.next
+                <span class="kw">return</span>
+            prev, cur = cur, cur.next</code></pre>
+
+  <h3>Doubly Linked List</h3>
+  <p>Each node carries both a <code>next</code> and a <code>prev</code> pointer, enabling backward traversal. This doubles memory usage per node but allows O(1) deletion when you already have a reference to the node (no need to find its predecessor).</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Doubly Linked List — bidirectional pointers</div>
+    <div class="node-row" style="flex-direction:column; gap:0.3rem;">
+      <div style="display:flex;align-items:center;gap:0.2rem;font-family:var(--mono);font-size:0.75rem;">
+        <span style="color:var(--amber)">HEAD</span>
+        <span style="color:var(--text3)"> ←→ </span>
+        <div class="node" style="padding:0.4rem 0.7rem">[←|10|→]</div>
+        <span style="color:var(--text3)"> ⟺ </span>
+        <div class="node" style="padding:0.4rem 0.7rem">[←|25|→]</div>
+        <span style="color:var(--text3)"> ⟺ </span>
+        <div class="node" style="padding:0.4rem 0.7rem">[←|47|→]</div>
+        <span style="color:var(--text3)"> ⟺ </span>
+        <div class="node" style="padding:0.4rem 0.7rem">[←|83|→]</div>
+        <span style="color:var(--text3)"> ←→ </span>
+        <span style="color:var(--amber)">TAIL</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>Key Applications</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--amber)"></div><span class="card-label">LRU Cache</span></div>
+      <h4>Doubly linked list + hash map</h4>
+      <p>The most-used cache eviction policy. Hash map for O(1) lookup; doubly linked list for O(1) move-to-front and evict-from-back.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--teal)"></div><span class="card-label">OS Internals</span></div>
+      <h4>Process & file management</h4>
+      <p>Linux's kernel represents process lists, inode chains, and memory regions as doubly linked lists for O(1) insertion/removal.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--violet)"></div><span class="card-label">Undo/Redo</span></div>
+      <h4>Editor history</h4>
+      <p>A doubly linked list of commands enables O(1) undo (go to prev) and redo (go to next) in text editors and image tools.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--coral)"></div><span class="card-label">Circular List</span></div>
+      <h4>Round-robin scheduling</h4>
+      <p>Tail node points back to head. Used in OS schedulers to cycle through processes, and in multiplayer game turn management.</p>
+    </div>
+  </div>
+
+  <h3>Complexity Summary</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Operation</th><th>Singly LL</th><th>Doubly LL</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Access by index</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>Must traverse from head</td></tr>
+        <tr><td>Search</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>Linear scan</td></tr>
+        <tr><td>Prepend (at head)</td><td class="op-fast">O(1)</td><td class="op-fast">O(1)</td><td>Just update head pointer</td></tr>
+        <tr><td>Append (at tail)</td><td class="op-fast">O(1)*</td><td class="op-fast">O(1)</td><td>*O(1) if tail pointer kept</td></tr>
+        <tr><td>Insert at position</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>O(n) to find; O(1) to link</td></tr>
+        <tr><td>Delete with reference</td><td class="op-slow">O(n)</td><td class="op-fast">O(1)</td><td>Doubly LL: prev pointer known</td></tr>
+        <tr><td>Delete by value</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>Must search first</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider">§ 03</div>
+
+<!-- ───────── STACKS & QUEUES ─────── -->
+<section class="section" id="stacks-queues">
+  <div class="section-eyebrow">Structure 03</div>
+  <h2 class="section-title">Stacks, Queues, <span class="accent">& Deques</span></h2>
+
+  <p>Stacks and queues are <strong>abstract data types</strong> — they define behavior (which end you insert and remove from) rather than a specific memory layout. They can be implemented with arrays or linked lists; the choice of implementation affects constants but not the O(1) asymptotic complexity of their core operations.</p>
+
+  <div class="two-col">
+    <div class="diagram">
+      <div class="diagram-title">Stack — LIFO (Last In, First Out)</div>
+      <svg viewBox="0 0 200 220" style="width:100%;max-width:200px;display:block;margin:0 auto;">
+        <rect x="40" y="160" width="120" height="40" fill="#222428" stroke="#f0a500" stroke-width="1.5" rx="2"/>
+        <text x="100" y="184" font-size="12" fill="#f0a500" text-anchor="middle" font-family="monospace">42</text>
+        <text x="20" y="184" font-size="9" fill="#f0a500" font-family="monospace">← TOP</text>
+        <rect x="40" y="115" width="120" height="40" fill="#1c1e22" stroke="#3d4149" stroke-width="1" rx="2"/>
+        <text x="100" y="139" font-size="12" fill="#9a9690" text-anchor="middle" font-family="monospace">17</text>
+        <rect x="40" y="70" width="120" height="40" fill="#1c1e22" stroke="#3d4149" stroke-width="1" rx="2"/>
+        <text x="100" y="94" font-size="12" fill="#9a9690" text-anchor="middle" font-family="monospace">85</text>
+        <rect x="40" y="25" width="120" height="40" fill="#1c1e22" stroke="#3d4149" stroke-width="1" rx="2"/>
+        <text x="100" y="49" font-size="12" fill="#9a9690" text-anchor="middle" font-family="monospace">31</text>
+        <text x="100" y="210" font-size="9" fill="#5c5a56" text-anchor="middle" font-family="monospace">PUSH ↑  POP ↑</text>
+      </svg>
+    </div>
+    <div class="diagram">
+      <div class="diagram-title">Queue — FIFO (First In, First Out)</div>
+      <svg viewBox="0 0 260 80" style="width:100%;max-width:280px;display:block;margin:0 auto;">
+        <text x="10" y="30" font-size="9" fill="#2dd4bf" font-family="monospace">FRONT</text>
+        <rect x="55" y="18" width="48" height="32" fill="#222428" stroke="#2dd4bf" stroke-width="1.5" rx="2"/>
+        <text x="79" y="38" font-size="12" fill="#2dd4bf" text-anchor="middle" font-family="monospace">10</text>
+        <rect x="108" y="18" width="48" height="32" fill="#1c1e22" stroke="#3d4149" stroke-width="1" rx="2"/>
+        <text x="132" y="38" font-size="12" fill="#9a9690" text-anchor="middle" font-family="monospace">25</text>
+        <rect x="161" y="18" width="48" height="32" fill="#1c1e22" stroke="#3d4149" stroke-width="1" rx="2"/>
+        <text x="185" y="38" font-size="12" fill="#9a9690" text-anchor="middle" font-family="monospace">47</text>
+        <rect x="214" y="18" width="48" height="32" fill="#1c1e22" stroke="#3d4149" stroke-width="1" rx="2"/>
+        <text x="238" y="38" font-size="12" fill="#9a9690" text-anchor="middle" font-family="monospace">83</text>
+        <text x="10" y="65" font-size="9" fill="#9a9690" font-family="monospace">← DEQUEUE</text>
+        <text x="175" y="65" font-size="9" fill="#9a9690" font-family="monospace">ENQUEUE →</text>
+      </svg>
+    </div>
+  </div>
+
+  <h3>Stack — LIFO</h3>
+  <p>A stack supports exactly two primary operations: <strong>push</strong> (add to top) and <strong>pop</strong> (remove from top). Its LIFO order makes it the perfect model for any problem that requires "last action first undone" — including the actual call stack your programming language uses for function calls and recursion.</p>
+
+  <pre data-lang="Python"><code><span class="cmt"># Stack applications</span>
+
+<span class="cmt"># 1. Balanced parentheses checker</span>
+<span class="kw">def</span> <span class="fn">is_balanced</span>(s):
+    stack, pairs = [], {<span class="str">')'</span>: <span class="str">'('</span>, <span class="str">']'</span>: <span class="str">'['</span>, <span class="str">'}'</span>: <span class="str">'{'</span>}
+    <span class="kw">for</span> ch <span class="kw">in</span> s:
+        <span class="kw">if</span> ch <span class="kw">in</span> <span class="str">'([{'</span>:     stack.append(ch)
+        <span class="kw">elif</span> ch <span class="kw">in</span> pairs:
+            <span class="kw">if not</span> stack <span class="kw">or</span> stack[-1] != pairs[ch]:
+                <span class="kw">return False</span>
+            stack.pop()
+    <span class="kw">return not</span> stack
+
+<span class="cmt"># 2. Evaluate reverse Polish notation: "2 3 4 * +"</span>
+<span class="kw">def</span> <span class="fn">eval_rpn</span>(tokens):
+    stack = []
+    <span class="kw">for</span> t <span class="kw">in</span> tokens:
+        <span class="kw">if</span> t <span class="kw">in</span> <span class="str">'+-*/'</span>:
+            b, a = stack.pop(), stack.pop()
+            stack.append(<span class="fn">int</span>(<span class="fn">eval</span>(<span class="fn">f</span><span class="str">"{a}{t}{b}"</span>)))
+        <span class="kw">else</span>:
+            stack.append(<span class="fn">int</span>(t))
+    <span class="kw">return</span> stack[0]   <span class="cmt"># → 14</span></code></pre>
+
+  <h3>Queue — FIFO</h3>
+  <p>A queue supports <strong>enqueue</strong> (add to back) and <strong>dequeue</strong> (remove from front). It models real-world waiting lines. Implemented naively with an array, dequeue requires O(n) shifting — this is why the standard approach is a <strong>circular buffer</strong> (both enqueue and dequeue O(1)) or a doubly linked list.</p>
+
+  <pre data-lang="Python"><code><span class="kw">from</span> collections <span class="kw">import</span> deque
+
+<span class="cmt"># Python's deque: O(1) append and popleft</span>
+q = deque()
+q.append(<span class="num">1</span>)     <span class="cmt"># enqueue → [1]</span>
+q.append(<span class="num">2</span>)     <span class="cmt"># enqueue → [1, 2]</span>
+q.append(<span class="num">3</span>)     <span class="cmt"># enqueue → [1, 2, 3]</span>
+q.popleft()     <span class="cmt"># dequeue → 1, queue is [2, 3]</span>
+
+<span class="cmt"># Queue powers BFS (Breadth-First Search)</span>
+<span class="kw">def</span> <span class="fn">bfs</span>(graph, start):
+    visited, queue = {start}, deque([start])
+    <span class="kw">while</span> queue:
+        node = queue.popleft()
+        <span class="kw">for</span> nbr <span class="kw">in</span> graph[node]:
+            <span class="kw">if</span> nbr <span class="kw">not in</span> visited:
+                visited.add(nbr)
+                queue.append(nbr)</code></pre>
+
+  <h3>Priority Queue</h3>
+  <p>A priority queue dequeues the highest-priority element first, not the oldest. Under the hood it is almost always implemented as a <strong>heap</strong> (covered in section 06). It powers Dijkstra's shortest-path algorithm, A* search, hospital triage systems, and OS process schedulers.</p>
+
+  <pre data-lang="Python"><code><span class="kw">import</span> heapq
+
+<span class="cmt"># Python heapq: min-heap (negate for max-heap)</span>
+tasks = []
+heapq.heappush(tasks, (3, <span class="str">"low priority"</span>))
+heapq.heappush(tasks, (1, <span class="str">"urgent"</span>))
+heapq.heappush(tasks, (2, <span class="str">"medium"</span>))
+
+heapq.heappop(tasks)  <span class="cmt"># → (1, "urgent")  ← smallest first</span>
+heapq.heappop(tasks)  <span class="cmt"># → (2, "medium")</span></code></pre>
+</section>
+
+<div class="divider">§ 04</div>
+
+<!-- ───────── HASH TABLES ─────────── -->
+<section class="section" id="hash-tables">
+  <div class="section-eyebrow">Structure 04</div>
+  <h2 class="section-title">Hash <span class="accent">Tables</span></h2>
+
+  <p>A hash table (hash map) maps keys to values in average O(1) time for get, set, and delete. It is the backbone of Python dictionaries, JavaScript objects, Java's <code>HashMap</code>, and Redis. The magic is a <strong>hash function</strong> that deterministically maps any key to an index in an underlying array.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Hash Table — keys mapped to buckets via hash function</div>
+    <svg viewBox="0 0 580 180" style="width:100%;max-width:580px;height:180px">
+      <!-- Keys -->
+      <text x="10" y="30"  font-size="10" fill="#9a9690" font-family="monospace">"apple"</text>
+      <text x="10" y="70"  font-size="10" fill="#9a9690" font-family="monospace">"banana"</text>
+      <text x="10" y="110" font-size="10" fill="#9a9690" font-family="monospace">"cherry"</text>
+      <text x="10" y="150" font-size="10" fill="#9a9690" font-family="monospace">"date"</text>
+      <!-- Hash function box -->
+      <rect x="100" y="50" width="100" height="80" fill="#222428" stroke="#f0a500" stroke-width="1.5" rx="4"/>
+      <text x="150" y="87" font-size="10" fill="#f0a500" text-anchor="middle" font-family="monospace" font-weight="600">hash()</text>
+      <text x="150" y="103" font-size="9" fill="#9a9690" text-anchor="middle" font-family="monospace">% size</text>
+      <!-- Arrows in -->
+      <line x1="75" y1="28"  x2="100" y2="70"  stroke="#3d4149" stroke-width="1"/>
+      <line x1="75" y1="68"  x2="100" y2="80"  stroke="#3d4149" stroke-width="1"/>
+      <line x1="75" y1="108" x2="100" y2="100" stroke="#3d4149" stroke-width="1"/>
+      <line x1="65" y1="148" x2="100" y2="110" stroke="#3d4149" stroke-width="1"/>
+      <!-- Array buckets -->
+      <text x="240" y="15" font-size="9" fill="#5c5a56" font-family="monospace">index</text>
+      <text x="300" y="15" font-size="9" fill="#5c5a56" font-family="monospace">value</text>
+      <rect x="230" y="20" width="40" height="28" fill="#1c1e22" stroke="#3d4149" stroke-width="0.5"/>
+      <text x="250" y="38" font-size="9" fill="#5c5a56" text-anchor="middle" font-family="monospace">0</text>
+      <rect x="270" y="20" width="110" height="28" fill="#1c1e22" stroke="#3d4149" stroke-width="0.5"/>
+      <text x="325" y="38" font-size="9" fill="#9a9690" text-anchor="middle" font-family="monospace">—</text>
+
+      <rect x="230" y="48" width="40" height="28" fill="#1c1e22" stroke="#3d4149" stroke-width="0.5"/>
+      <text x="250" y="66" font-size="9" fill="#5c5a56" text-anchor="middle" font-family="monospace">1</text>
+      <rect x="270" y="48" width="110" height="28" fill="#222428" stroke="#2dd4bf" stroke-width="1"/>
+      <text x="325" y="66" font-size="9" fill="#2dd4bf" text-anchor="middle" font-family="monospace">apple → 5</text>
+
+      <rect x="230" y="76" width="40" height="28" fill="#1c1e22" stroke="#3d4149" stroke-width="0.5"/>
+      <text x="250" y="94" font-size="9" fill="#5c5a56" text-anchor="middle" font-family="monospace">2</text>
+      <rect x="270" y="76" width="110" height="28" fill="#222428" stroke="#a78bfa" stroke-width="1"/>
+      <text x="325" y="94" font-size="9" fill="#a78bfa" text-anchor="middle" font-family="monospace">cherry → 8</text>
+
+      <rect x="230" y="104" width="40" height="28" fill="#1c1e22" stroke="#3d4149" stroke-width="0.5"/>
+      <text x="250" y="122" font-size="9" fill="#5c5a56" text-anchor="middle" font-family="monospace">3</text>
+      <rect x="270" y="104" width="110" height="28" fill="#1c1e22" stroke="#3d4149" stroke-width="0.5"/>
+      <text x="325" y="122" font-size="9" fill="#9a9690" text-anchor="middle" font-family="monospace">—</text>
+
+      <rect x="230" y="132" width="40" height="28" fill="#1c1e22" stroke="#3d4149" stroke-width="0.5"/>
+      <text x="250" y="150" font-size="9" fill="#5c5a56" text-anchor="middle" font-family="monospace">4</text>
+      <rect x="270" y="132" width="110" height="28" fill="#222428" stroke="#f0a500" stroke-width="1"/>
+      <text x="325" y="150" font-size="9" fill="#f0a500" text-anchor="middle" font-family="monospace">banana → 2</text>
+
+      <!-- Arrows out -->
+      <line x1="200" y1="82" x2="230" y2="62"  stroke="#2dd4bf" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="200" y1="82" x2="230" y2="90"  stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="200" y1="82" x2="230" y2="146" stroke="#f0a500" stroke-width="1" stroke-dasharray="3,2"/>
+    </svg>
+  </div>
+
+  <h3>The Hash Function</h3>
+  <p>A hash function maps a key of arbitrary type and size to a fixed-range integer. A good hash function distributes keys <em>uniformly</em> across all buckets to minimize collisions. For strings, a common approach is to treat each character as a digit in a large base:</p>
+
+  <pre data-lang="Python"><code><span class="cmt"># Polynomial rolling hash (used in many languages)</span>
+<span class="kw">def</span> <span class="fn">hash_string</span>(key, table_size):
+    h, base, mod = 0, 31, 10**9 + 9
+    <span class="kw">for</span> ch <span class="kw">in</span> key:
+        h = (h * base + <span class="fn">ord</span>(ch)) % mod
+    <span class="kw">return</span> h % table_size
+
+<span class="cmt"># hash("apple", 10) → some index in [0,9]</span>
+<span class="cmt"># Good hash: uniform, deterministic, fast</span>
+<span class="cmt"># Bad hash: always returns 0  (all collisions!)</span></code></pre>
+
+  <h3>Collision Resolution</h3>
+  <p>Two keys can hash to the same bucket — this is a <strong>collision</strong>. There are two major strategies:</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--amber)"></div><span class="card-label">Separate Chaining</span></div>
+      <h4>Each bucket holds a list</h4>
+      <p>Colliding entries form a linked list at that bucket. Used by Java's HashMap. Worst case: all keys hash to one bucket → O(n). Average: O(1) with a good hash function.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--teal)"></div><span class="card-label">Open Addressing</span></div>
+      <h4>Probe for an empty slot</h4>
+      <p>On collision, search for the next open slot using linear probing, quadratic probing, or double hashing. All data stays in the array — better cache performance but needs careful load factor management.</p>
+    </div>
+  </div>
+
+  <h3>Load Factor & Rehashing</h3>
+  <p>The <strong>load factor</strong> α = (number of entries) / (table size) governs performance. When α exceeds a threshold (typically 0.7–0.75), the table is <em>rehashed</em>: a new table of roughly twice the size is allocated and all entries are re-inserted. Like dynamic arrays, this is amortized O(1) per insert.</p>
+
+  <pre data-lang="Python"><code><span class="cmt"># Python dict internals (simplified)</span>
+<span class="cmt"># Load factor threshold: ~0.67</span>
+<span class="cmt"># Probing: compact hash tables (since Python 3.6)</span>
+
+d = {}
+d[<span class="str">"key"</span>] = <span class="num">42</span>         <span class="cmt"># hash("key") % size → slot</span>
+d[<span class="str">"key"</span>]              <span class="cmt"># → 42   O(1) average</span>
+<span class="str">"key"</span> <span class="kw">in</span> d           <span class="cmt"># → True  O(1) average</span>
+<span class="kw">del</span> d[<span class="str">"key"</span>]          <span class="cmt"># O(1) average</span>
+
+<span class="cmt"># Classic interview: word frequency count</span>
+freq = {}
+<span class="kw">for</span> word <span class="kw">in</span> words:
+    freq[word] = freq.get(word, <span class="num">0</span>) + <span class="num">1</span></code></pre>
+
+  <h3>Complexity Summary</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Operation</th><th>Average</th><th>Worst Case</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>Search / Get</td><td class="op-fast">O(1)</td><td class="op-slow">O(n)</td><td>Worst: all keys collide</td></tr>
+        <tr><td>Insert</td><td class="op-fast">O(1)*</td><td class="op-slow">O(n)</td><td>*amortized; O(n) on rehash</td></tr>
+        <tr><td>Delete</td><td class="op-fast">O(1)</td><td class="op-slow">O(n)</td><td>Same conditions as search</td></tr>
+        <tr><td>Iterate all entries</td><td class="op-slow">O(n)</td><td class="op-slow">O(n)</td><td>Must visit all buckets</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider">§ 05</div>
+
+<!-- ───────── TREES ───────────────── -->
+<section class="section" id="trees">
+  <div class="section-eyebrow">Structure 05</div>
+  <h2 class="section-title">Trees & <span class="accent">BSTs</span></h2>
+
+  <p>A tree is a hierarchical data structure: a collection of nodes where each node has at most one parent and any number of children. The topmost node is the <strong>root</strong>; nodes with no children are <strong>leaves</strong>. Trees are ubiquitous — file systems, HTML DOMs, compiler ASTs, decision trees in ML, and database indexes all use them.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Binary Search Tree — left &lt; parent &lt; right</div>
+    <svg viewBox="0 0 440 240" class="tree-svg" style="height:240px">
+      <!-- Level 0 -->
+      <circle cx="220" cy="30" r="22" fill="#222428" stroke="#f0a500" stroke-width="2"/>
+      <text x="220" y="35" font-size="13" fill="#f0a500" text-anchor="middle" font-family="monospace" font-weight="600">50</text>
+      <!-- Level 1 -->
+      <circle cx="120" cy="100" r="20" fill="#222428" stroke="#3d4149" stroke-width="1.5"/>
+      <text x="120" y="105" font-size="12" fill="#e8e6df" text-anchor="middle" font-family="monospace">25</text>
+      <circle cx="320" cy="100" r="20" fill="#222428" stroke="#3d4149" stroke-width="1.5"/>
+      <text x="320" y="105" font-size="12" fill="#e8e6df" text-anchor="middle" font-family="monospace">75</text>
+      <!-- Level 2 -->
+      <circle cx="65"  cy="170" r="18" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="65"  y="175" font-size="11" fill="#9a9690" text-anchor="middle" font-family="monospace">12</text>
+      <circle cx="175" cy="170" r="18" fill="#222428" stroke="#2dd4bf" stroke-width="1.5"/>
+      <text x="175" y="175" font-size="11" fill="#2dd4bf" text-anchor="middle" font-family="monospace">37</text>
+      <circle cx="265" cy="170" r="18" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="265" y="175" font-size="11" fill="#9a9690" text-anchor="middle" font-family="monospace">60</text>
+      <circle cx="375" cy="170" r="18" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="375" y="175" font-size="11" fill="#9a9690" text-anchor="middle" font-family="monospace">90</text>
+      <!-- Level 3 -->
+      <circle cx="145" cy="225" r="15" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="145" y="229" font-size="10" fill="#9a9690" text-anchor="middle" font-family="monospace">30</text>
+      <circle cx="205" cy="225" r="15" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="205" y="229" font-size="10" fill="#9a9690" text-anchor="middle" font-family="monospace">45</text>
+      <!-- Edges -->
+      <line x1="201" y1="45" x2="138" y2="82" stroke="#3d4149" stroke-width="1.5"/>
+      <line x1="239" y1="45" x2="302" y2="82" stroke="#3d4149" stroke-width="1.5"/>
+      <line x1="103" y1="115" x2="80"  y2="153" stroke="#3d4149" stroke-width="1"/>
+      <line x1="137" y1="115" x2="160" y2="153" stroke="#2dd4bf" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <line x1="305" y1="115" x2="280" y2="153" stroke="#3d4149" stroke-width="1"/>
+      <line x1="335" y1="115" x2="360" y2="153" stroke="#3d4149" stroke-width="1"/>
+      <line x1="162" y1="185" x2="153" y2="212" stroke="#3d4149" stroke-width="1"/>
+      <line x1="188" y1="185" x2="197" y2="212" stroke="#3d4149" stroke-width="1"/>
+      <!-- Labels -->
+      <text x="170" y="135" font-size="8" fill="#2dd4bf" font-family="monospace">search(37)</text>
+    </svg>
+  </div>
+
+  <h3>Binary Search Trees (BST)</h3>
+  <p>A BST is a binary tree where every node's left subtree contains only values smaller than the node, and the right subtree only larger values. This property enables binary search on a dynamic dataset: at each node, you eliminate half the remaining tree.</p>
+
+  <pre data-lang="Python"><code><span class="kw">class</span> <span class="type">BST</span>:
+    <span class="kw">class</span> <span class="type">Node</span>:
+        <span class="kw">def</span> <span class="fn">__init__</span>(self, val):
+            self.val   = val
+            self.left  = self.right = <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">insert</span>(self, root, val):   <span class="cmt"># O(log n) avg, O(n) worst</span>
+        <span class="kw">if not</span> root: <span class="kw">return</span> self.<span class="type">Node</span>(val)
+        <span class="kw">if</span>   val < root.val: root.left  = self.<span class="fn">insert</span>(root.left,  val)
+        <span class="kw">elif</span> val > root.val: root.right = self.<span class="fn">insert</span>(root.right, val)
+        <span class="kw">return</span> root
+
+    <span class="kw">def</span> <span class="fn">search</span>(self, root, val):   <span class="cmt"># O(log n) avg</span>
+        <span class="kw">if not</span> root <span class="kw">or</span> root.val == val: <span class="kw">return</span> root
+        <span class="kw">if</span> val < root.val: <span class="kw">return</span> self.<span class="fn">search</span>(root.left,  val)
+        <span class="kw">else</span>:              <span class="kw">return</span> self.<span class="fn">search</span>(root.right, val)
+
+    <span class="kw">def</span> <span class="fn">inorder</span>(self, root):       <span class="cmt"># O(n) — yields sorted order!</span>
+        <span class="kw">if</span> root:
+            <span class="kw">yield from</span> self.<span class="fn">inorder</span>(root.left)
+            <span class="kw">yield</span> root.val
+            <span class="kw">yield from</span> self.<span class="fn">inorder</span>(root.right)</code></pre>
+
+  <div class="callout warn">
+    <div class="callout-head">The Degenerate BST Problem</div>
+    <p>Inserting sorted data into a naive BST creates a degenerate tree — essentially a linked list — where all operations degrade to O(n). The fix: <strong>self-balancing trees</strong> that automatically rebalance on insert/delete to maintain O(log n) height.</p>
+  </div>
+
+  <h3>Self-Balancing Trees</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--amber)"></div><span class="card-label">AVL Tree</span></div>
+      <h4>Height difference ≤ 1</h4>
+      <p>Maintains balance factor (height_left - height_right) ∈ {-1, 0, 1}. Uses rotations on insert/delete. Stricter balance than Red-Black; faster lookups but slower writes.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--coral)"></div><span class="card-label">Red-Black Tree</span></div>
+      <h4>Color-based balance</h4>
+      <p>Nodes are colored red or black; 5 invariants keep height ≤ 2 log n. Used in C++ STL (map/set), Java TreeMap, and Linux's process scheduler. Fewer rotations than AVL.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--teal)"></div><span class="card-label">B-Tree / B+ Tree</span></div>
+      <h4>Multi-way branching</h4>
+      <p>Nodes hold many keys, with branching factor in the hundreds. Minimizes disk reads by keeping tree height ≤ 3-4 even for billions of records. Used in every major database index and filesystem (NTFS, ext4).</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--violet)"></div><span class="card-label">Treap</span></div>
+      <h4>BST + heap randomization</h4>
+      <p>Each node has a random priority; the tree is heap-ordered by priority. Provides expected O(log n) for all operations with a simple implementation — popular in competitive programming.</p>
+    </div>
+  </div>
+
+  <h3>Tree Traversals</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Traversal</th><th>Order</th><th>Use Case</th></tr></thead>
+      <tbody>
+        <tr><td><strong>In-order</strong></td><td>Left → Root → Right</td><td>BST: yields sorted output. Expression trees: infix notation.</td></tr>
+        <tr><td><strong>Pre-order</strong></td><td>Root → Left → Right</td><td>Copy/serialize a tree. Build expression trees from prefix notation.</td></tr>
+        <tr><td><strong>Post-order</strong></td><td>Left → Right → Root</td><td>Delete a tree (children before parent). Evaluate expression trees.</td></tr>
+        <tr><td><strong>Level-order (BFS)</strong></td><td>Layer by layer</td><td>Find shortest path in unweighted tree. Serialize/deserialize binary trees.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider">§ 06</div>
+
+<!-- ───────── HEAPS ───────────────── -->
+<section class="section" id="heaps">
+  <div class="section-eyebrow">Structure 06</div>
+  <h2 class="section-title">Heaps & <span class="accent">Priority Queues</span></h2>
+
+  <p>A heap is a <strong>complete binary tree</strong> (all levels fully filled except possibly the last, filled left to right) satisfying the <em>heap property</em>: in a max-heap, every parent is ≥ its children; in a min-heap, every parent is ≤ its children. This guarantee makes the root always the maximum (or minimum) element, accessible in O(1).</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Max-Heap stored as array (parent at i, children at 2i+1 and 2i+2)</div>
+    <svg viewBox="0 0 500 200" style="width:100%;max-width:500px;height:200px">
+      <!-- Tree nodes -->
+      <circle cx="250" cy="28" r="22" fill="#222428" stroke="#f0a500" stroke-width="2"/>
+      <text x="250" y="33" font-size="13" fill="#f0a500" text-anchor="middle" font-family="monospace" font-weight="600">90</text>
+      <circle cx="150" cy="90" r="20" fill="#222428" stroke="#3d4149" stroke-width="1.5"/>
+      <text x="150" y="95" font-size="12" fill="#e8e6df" text-anchor="middle" font-family="monospace">75</text>
+      <circle cx="350" cy="90" r="20" fill="#222428" stroke="#3d4149" stroke-width="1.5"/>
+      <text x="350" y="95" font-size="12" fill="#e8e6df" text-anchor="middle" font-family="monospace">60</text>
+      <circle cx="90"  cy="155" r="18" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="90"  y="160" font-size="11" fill="#9a9690" text-anchor="middle" font-family="monospace">50</text>
+      <circle cx="200" cy="155" r="18" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="200" y="160" font-size="11" fill="#9a9690" text-anchor="middle" font-family="monospace">40</text>
+      <circle cx="300" cy="155" r="18" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="300" y="160" font-size="11" fill="#9a9690" text-anchor="middle" font-family="monospace">30</text>
+      <circle cx="400" cy="155" r="18" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="400" y="160" font-size="11" fill="#9a9690" text-anchor="middle" font-family="monospace">20</text>
+      <!-- Edges -->
+      <line x1="232" y1="43" x2="167" y2="72" stroke="#3d4149" stroke-width="1.5"/>
+      <line x1="268" y1="43" x2="333" y2="72" stroke="#3d4149" stroke-width="1.5"/>
+      <line x1="133" y1="105" x2="105" y2="139" stroke="#3d4149" stroke-width="1"/>
+      <line x1="167" y1="105" x2="185" y2="139" stroke="#3d4149" stroke-width="1"/>
+      <line x1="333" y1="105" x2="315" y2="139" stroke="#3d4149" stroke-width="1"/>
+      <line x1="367" y1="105" x2="384" y2="139" stroke="#3d4149" stroke-width="1"/>
+      <!-- Array representation -->
+      <text x="20" y="195" font-size="8" fill="#5c5a56" font-family="monospace">Array: [90, 75, 60, 50, 40, 30, 20]  ← stored left-to-right, level by level</text>
+    </svg>
+  </div>
+
+  <h3>Heap Operations</h3>
+  <p>The heap stores a complete binary tree in an array — no pointers needed. For a node at index <code>i</code>, its left child is at <code>2i + 1</code>, right child at <code>2i + 2</code>, and parent at <code>⌊(i-1)/2⌋</code>. This layout is incredibly cache-friendly.</p>
+
+  <pre data-lang="Python"><code><span class="kw">class</span> <span class="type">MaxHeap</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self): self.h = []
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, val):               <span class="cmt"># O(log n)</span>
+        self.h.append(val)
+        self.<span class="fn">_sift_up</span>(<span class="fn">len</span>(self.h) - 1)
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):                     <span class="cmt"># O(log n)</span>
+        self.h[0] = self.h[-1]         <span class="cmt"># put last at root</span>
+        self.h.pop()
+        self.<span class="fn">_sift_down</span>(0)
+        <span class="kw">return</span> self.h[0]              <span class="cmt"># before sift, save it</span>
+
+    <span class="kw">def</span> <span class="fn">_sift_up</span>(self, i):
+        parent = (i - 1) // 2
+        <span class="kw">while</span> i > 0 <span class="kw">and</span> self.h[i] > self.h[parent]:
+            self.h[i], self.h[parent] = self.h[parent], self.h[i]
+            i, parent = parent, (parent - 1) // 2
+
+    <span class="cmt"># Heapify: convert arbitrary array to heap in O(n)</span>
+    <span class="kw">def</span> <span class="fn">heapify</span>(self, arr):
+        self.h = arr[:]
+        <span class="kw">for</span> i <span class="kw">in</span> range(<span class="fn">len</span>(arr)//2, -1, -1):
+            self.<span class="fn">_sift_down</span>(i)          <span class="cmt"># O(n) total</span></code></pre>
+
+  <h3>Heap Sort</h3>
+  <p>Heap sort uses the heap to sort in O(n log n) time with O(1) extra space — better space than merge sort, guaranteed O(n log n) unlike quick sort. It works by heapifying the array (O(n)), then repeatedly extracting the max and placing it at the end of the array.</p>
+
+  <h3>Key Applications</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--amber)"></div><span class="card-label">Dijkstra's Algorithm</span></div>
+      <h4>Always expand nearest node</h4>
+      <p>A min-heap on (distance, node) ensures O((V+E) log V) time — the heap pop gives the unvisited node with minimum tentative distance.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--teal)"></div><span class="card-label">Median Maintenance</span></div>
+      <h4>Two-heap trick</h4>
+      <p>Keep a max-heap for the lower half and min-heap for the upper half. Median is always one of the two roots. O(log n) insert, O(1) median query.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--violet)"></div><span class="card-label">K-th Largest/Smallest</span></div>
+      <h4>Fixed-size heap</h4>
+      <p>Maintain a min-heap of size k. After processing all n elements, the root is the k-th largest. O(n log k) time — crucial for streaming data.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider">§ 07</div>
+
+<!-- ───────── GRAPHS ──────────────── -->
+<section class="section" id="graphs">
+  <div class="section-eyebrow">Structure 07</div>
+  <h2 class="section-title">Graphs — <span class="accent">The Universal Model</span></h2>
+
+  <p>A graph G = (V, E) is a set of vertices (nodes) V connected by edges E. Almost any relationship can be modeled as a graph: web pages and hyperlinks, people and friendships, cities and roads, dependencies between tasks, states in a finite automaton. Graphs are the most general and expressive data structure.</p>
+
+  <h3>Graph Representations</h3>
+  <p>The choice of representation affects the efficiency of every graph algorithm you run:</p>
+
+  <div class="two-col">
+    <div>
+      <h4>Adjacency List</h4>
+      <p>Each vertex stores a list of its neighbors. Space: O(V + E). Efficient for sparse graphs (few edges). Standard representation for most graph algorithms.</p>
+      <pre data-lang="Python" style="margin-top:0.5rem"><code><span class="cmt"># Space: O(V + E)</span>
+graph = {
+  <span class="str">'A'</span>: [<span class="str">'B'</span>, <span class="str">'C'</span>],
+  <span class="str">'B'</span>: [<span class="str">'D'</span>],
+  <span class="str">'C'</span>: [<span class="str">'B'</span>, <span class="str">'D'</span>],
+  <span class="str">'D'</span>: []
+}
+<span class="cmt"># Check if A→B: O(degree(A))</span>
+<span class="cmt"># Iterate A's neighbors: O(degree(A))</span></code></pre>
+    </div>
+    <div>
+      <h4>Adjacency Matrix</h4>
+      <p>An n×n boolean matrix where <code>matrix[i][j] = 1</code> means edge i→j. Space: O(V²). Efficient edge lookup O(1) but wastes space for sparse graphs.</p>
+      <pre data-lang="Python" style="margin-top:0.5rem"><code><span class="cmt"># Space: O(V²)  4×4 for 4 vertices</span>
+matrix = [
+  [<span class="num">0</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">0</span>],  <span class="cmt"># A→B, A→C</span>
+  [<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>],  <span class="cmt"># B→D</span>
+  [<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>],  <span class="cmt"># C→B, C→D</span>
+  [<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],  <span class="cmt"># D: no edges</span>
+]
+<span class="cmt"># Check if A→B: O(1) → matrix[0][1]</span></code></pre>
+    </div>
+  </div>
+
+  <h3>Types of Graphs</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--amber)"></div><span class="card-label">Directed (Digraph)</span></div>
+      <h4>Edges have direction A→B</h4>
+      <p>A→B ≠ B→A. Models: web links, dependencies (build systems, imports), citation networks, Twitter follows.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--teal)"></div><span class="card-label">Undirected</span></div>
+      <h4>Edges are symmetric A—B</h4>
+      <p>If A connects to B, B connects to A. Models: Facebook friendships, road networks (two-way), collaboration graphs.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--violet)"></div><span class="card-label">Weighted</span></div>
+      <h4>Edges carry a cost</h4>
+      <p>Edge weights represent distances, latencies, capacities, or costs. Used with Dijkstra, Bellman-Ford, MST algorithms, and network flow.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--coral)"></div><span class="card-label">DAG</span></div>
+      <h4>Directed Acyclic Graph</h4>
+      <p>No directed cycles. Enables topological sort — the foundation of build systems, spreadsheet evaluation, course scheduling, and compiler pipelines.</p>
+    </div>
+  </div>
+
+  <h3>Union-Find (Disjoint Set)</h3>
+  <p>A specialized structure for tracking connected components. Supports two operations: <strong>find</strong> (which component does this element belong to?) and <strong>union</strong> (merge two components). With path compression and union by rank, both operations run in near O(1) amortized (inverse Ackermann time — effectively constant).</p>
+
+  <pre data-lang="Python"><code><span class="kw">class</span> <span class="type">UnionFind</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, n):
+        self.parent = <span class="fn">list</span>(<span class="fn">range</span>(n))  <span class="cmt"># parent[i] = i initially</span>
+        self.rank   = [0] * n
+
+    <span class="kw">def</span> <span class="fn">find</span>(self, x):                 <span class="cmt"># O(α(n)) ≈ O(1)</span>
+        <span class="kw">if</span> self.parent[x] != x:
+            self.parent[x] = self.<span class="fn">find</span>(self.parent[x])  <span class="cmt"># path compress</span>
+        <span class="kw">return</span> self.parent[x]
+
+    <span class="kw">def</span> <span class="fn">union</span>(self, x, y):             <span class="cmt"># O(α(n)) ≈ O(1)</span>
+        rx, ry = self.<span class="fn">find</span>(x), self.<span class="fn">find</span>(y)
+        <span class="kw">if</span> rx == ry: <span class="kw">return False</span>     <span class="cmt"># already connected</span>
+        <span class="kw">if</span> self.rank[rx] < self.rank[ry]: rx, ry = ry, rx
+        self.parent[ry] = rx           <span class="cmt"># union by rank</span>
+        <span class="kw">if</span> self.rank[rx] == self.rank[ry]: self.rank[rx] += 1
+        <span class="kw">return True</span>
+
+<span class="cmt"># Used in Kruskal's MST: union edges greedily if no cycle forms</span></code></pre>
+</section>
+
+<div class="divider">§ 08</div>
+
+<!-- ───────── TRIES ───────────────── -->
+<section class="section" id="tries">
+  <div class="section-eyebrow">Structure 08</div>
+  <h2 class="section-title">Tries — <span class="accent">Prefix Trees</span></h2>
+
+  <p>A trie (pronounced "try", from re<em>trie</em>val) is a tree where each node represents a character, and paths from root to nodes spell out strings. It is the ideal structure for any problem involving string prefixes: autocomplete, spell checking, IP routing tables, and word games.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Trie storing: "car", "cat", "care", "card", "bat"</div>
+    <svg viewBox="0 0 460 220" style="width:100%;max-width:460px;height:220px">
+      <!-- Root -->
+      <circle cx="230" cy="20" r="15" fill="#222428" stroke="#5c5a56" stroke-width="1"/>
+      <text x="230" y="25" font-size="9" fill="#5c5a56" text-anchor="middle" font-family="monospace">root</text>
+      <!-- Level 1: b, c -->
+      <circle cx="100" cy="75" r="15" fill="#222428" stroke="#3d4149" stroke-width="1.5"/>
+      <text x="100" y="80" font-size="12" fill="#e8e6df" text-anchor="middle" font-family="monospace">b</text>
+      <circle cx="300" cy="75" r="15" fill="#222428" stroke="#f0a500" stroke-width="1.5"/>
+      <text x="300" y="80" font-size="12" fill="#f0a500" text-anchor="middle" font-family="monospace">c</text>
+      <!-- Level 2 -->
+      <circle cx="100" cy="135" r="15" fill="#222428" stroke="#3d4149" stroke-width="1.5"/>
+      <text x="100" y="140" font-size="12" fill="#e8e6df" text-anchor="middle" font-family="monospace">a</text>
+      <circle cx="300" cy="135" r="15" fill="#222428" stroke="#f0a500" stroke-width="1.5"/>
+      <text x="300" y="140" font-size="12" fill="#f0a500" text-anchor="middle" font-family="monospace">a</text>
+      <!-- Level 3 -->
+      <circle cx="100" cy="190" r="14" fill="#222428" stroke="#2dd4bf" stroke-width="1.5"/>
+      <text x="100" y="195" font-size="11" fill="#2dd4bf" text-anchor="middle" font-family="monospace">t</text>
+      <text x="100" y="208" font-size="7" fill="#2dd4bf" text-anchor="middle" font-family="monospace">✓bat</text>
+      <circle cx="230" cy="190" r="14" fill="#222428" stroke="#2dd4bf" stroke-width="1.5"/>
+      <text x="230" y="195" font-size="11" fill="#2dd4bf" text-anchor="middle" font-family="monospace">r</text>
+      <circle cx="360" cy="190" r="14" fill="#222428" stroke="#2dd4bf" stroke-width="1.5"/>
+      <text x="360" y="195" font-size="11" fill="#2dd4bf" text-anchor="middle" font-family="monospace">t</text>
+      <text x="360" y="208" font-size="7" fill="#2dd4bf" text-anchor="middle" font-family="monospace">✓cat</text>
+      <!-- Level 4 for "car", "care", "card" -->
+      <circle cx="195" cy="220" r="12" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="195" y="224" font-size="9" fill="#9a9690" text-anchor="middle" font-family="monospace" style="font-size:7px">✓car</text>
+      <circle cx="265" cy="220" r="12" fill="#1c1e22" stroke="#3d4149" stroke-width="1"/>
+      <text x="265" y="224" font-size="9" fill="#9a9690" text-anchor="middle" font-family="monospace" style="font-size:7px">e/d</text>
+      <!-- Edges -->
+      <line x1="216" y1="33" x2="111" y2="62" stroke="#3d4149" stroke-width="1"/>
+      <line x1="238" y1="34" x2="293" y2="62" stroke="#f0a500" stroke-width="1.5"/>
+      <line x1="100" y1="90" x2="100" y2="122" stroke="#3d4149" stroke-width="1"/>
+      <line x1="300" y1="90" x2="300" y2="122" stroke="#f0a500" stroke-width="1"/>
+      <line x1="100" y1="150" x2="100" y2="178" stroke="#2dd4bf" stroke-width="1"/>
+      <line x1="290" y1="148" x2="238" y2="178" stroke="#2dd4bf" stroke-width="1"/>
+      <line x1="310" y1="148" x2="353" y2="178" stroke="#2dd4bf" stroke-width="1"/>
+      <line x1="222" y1="202" x2="200" y2="210" stroke="#3d4149" stroke-width="1"/>
+      <line x1="237" y1="203" x2="258" y2="210" stroke="#3d4149" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <h3>Trie Operations</h3>
+  <p>Every operation on a trie takes O(m) time where m is the length of the string — completely independent of how many strings are stored. This is the key advantage over hash tables for prefix operations.</p>
+
+  <pre data-lang="Python"><code><span class="kw">class</span> <span class="type">TrieNode</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.children  = {}          <span class="cmt"># char → TrieNode</span>
+        self.is_end    = False       <span class="cmt"># marks end of a word</span>
+
+<span class="kw">class</span> <span class="type">Trie</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self): self.root = <span class="type">TrieNode</span>()
+
+    <span class="kw">def</span> <span class="fn">insert</span>(self, word):     <span class="cmt"># O(m)</span>
+        node = self.root
+        <span class="kw">for</span> ch <span class="kw">in</span> word:
+            node = node.children.setdefault(ch, <span class="type">TrieNode</span>())
+        node.is_end = True
+
+    <span class="kw">def</span> <span class="fn">search</span>(self, word):     <span class="cmt"># O(m)</span>
+        node = self.root
+        <span class="kw">for</span> ch <span class="kw">in</span> word:
+            <span class="kw">if</span> ch <span class="kw">not in</span> node.children: <span class="kw">return False</span>
+            node = node.children[ch]
+        <span class="kw">return</span> node.is_end
+
+    <span class="kw">def</span> <span class="fn">starts_with</span>(self, prefix):   <span class="cmt"># O(m) — key advantage!</span>
+        node = self.root
+        <span class="kw">for</span> ch <span class="kw">in</span> prefix:
+            <span class="kw">if</span> ch <span class="kw">not in</span> node.children: <span class="kw">return False</span>
+            node = node.children[ch]
+        <span class="kw">return True</span>
+
+    <span class="kw">def</span> <span class="fn">autocomplete</span>(self, prefix):  <span class="cmt"># O(m + output)</span>
+        node = self.root
+        <span class="kw">for</span> ch <span class="kw">in</span> prefix:
+            <span class="kw">if</span> ch <span class="kw">not in</span> node.children: <span class="kw">return</span> []
+            node = node.children[ch]
+        results = []
+        self.<span class="fn">_dfs</span>(node, prefix, results)
+        <span class="kw">return</span> results
+
+    <span class="kw">def</span> <span class="fn">_dfs</span>(self, node, cur, results):
+        <span class="kw">if</span> node.is_end: results.append(cur)
+        <span class="kw">for</span> ch, child <span class="kw">in</span> node.children.items():
+            self.<span class="fn">_dfs</span>(child, cur + ch, results)</code></pre>
+
+  <div class="callout note">
+    <div class="callout-head">Trie vs Hash Table for String Problems</div>
+    <p>Hash tables offer O(1) average exact lookup. Tries offer O(m) lookup plus O(m) prefix search and O(m + output) autocomplete — operations that hash tables cannot support efficiently. For a dictionary of 1 million words, "find all words starting with 'pre'" takes O(6 + output) with a trie versus O(1,000,000) with a hash table scan.</p>
+  </div>
+</section>
+
+<div class="divider">§ 09</div>
+
+<!-- ───────── COMPARISON ─────────── -->
+<section class="section" id="comparison">
+  <div class="section-eyebrow">Reference</div>
+  <h2 class="section-title">Master <span class="accent">Comparison Table</span></h2>
+
+  <p>Use this table to quickly identify the right data structure for a given operation requirement. Green = efficient, amber = acceptable, red = poor choice.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Structure</th>
+          <th>Access</th>
+          <th>Search</th>
+          <th>Insert</th>
+          <th>Delete</th>
+          <th>Space</th>
+          <th>Best For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Array</strong></td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-slow">O(n)</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">Index access, iteration, caching</td>
+        </tr>
+        <tr>
+          <td><strong>Dynamic Array</strong></td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-fast">O(1)*</td>
+          <td class="op-slow">O(n)</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">Append-heavy, general purpose</td>
+        </tr>
+        <tr>
+          <td><strong>Singly Linked List</strong></td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-slow">O(n)</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">Prepend/stream-style inserts</td>
+        </tr>
+        <tr>
+          <td><strong>Doubly Linked List</strong></td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-fast">O(1)**</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">LRU cache, undo/redo, OS lists</td>
+        </tr>
+        <tr>
+          <td><strong>Stack</strong></td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-fast">O(1)</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">Parsing, DFS, call stack, undo</td>
+        </tr>
+        <tr>
+          <td><strong>Queue</strong></td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-fast">O(1)</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">BFS, scheduling, rate limiting</td>
+        </tr>
+        <tr>
+          <td><strong>Hash Table</strong></td>
+          <td class="op-fast">O(1)†</td>
+          <td class="op-fast">O(1)†</td>
+          <td class="op-fast">O(1)*†</td>
+          <td class="op-fast">O(1)†</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">Key-value lookup, frequency count</td>
+        </tr>
+        <tr>
+          <td><strong>BST (balanced)</strong></td>
+          <td class="op-med">O(log n)</td>
+          <td class="op-med">O(log n)</td>
+          <td class="op-med">O(log n)</td>
+          <td class="op-med">O(log n)</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">Ordered data, range queries</td>
+        </tr>
+        <tr>
+          <td><strong>Heap</strong></td>
+          <td class="op-fast">O(1)†</td>
+          <td class="op-slow">O(n)</td>
+          <td class="op-med">O(log n)</td>
+          <td class="op-med">O(log n)</td>
+          <td>O(n)</td>
+          <td style="font-size:0.78rem">Priority queue, k-th element</td>
+        </tr>
+        <tr>
+          <td><strong>Graph (adj. list)</strong></td>
+          <td>—</td>
+          <td class="op-slow">O(V+E)</td>
+          <td class="op-fast">O(1)</td>
+          <td class="op-med">O(E)</td>
+          <td>O(V+E)</td>
+          <td style="font-size:0.78rem">Relationships, networks, paths</td>
+        </tr>
+        <tr>
+          <td><strong>Trie</strong></td>
+          <td class="op-fast">O(m)</td>
+          <td class="op-fast">O(m)</td>
+          <td class="op-fast">O(m)</td>
+          <td class="op-fast">O(m)</td>
+          <td>O(n·m)</td>
+          <td style="font-size:0.78rem">Autocomplete, prefix search, IP routing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.78rem;color:var(--text3);margin-top:0.5rem;">* Amortized &nbsp;&nbsp; ** Given node reference &nbsp;&nbsp; † Average case &nbsp;&nbsp; m = string length</p>
+
+  <h3>Decision Guide</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--amber)"></div><span class="card-label">Need O(1) random access?</span></div>
+      <h4>→ Use an Array</h4>
+      <p>Nothing beats arrays for index-based access. If you also need dynamic resizing, use a dynamic array (Python list, Java ArrayList).</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--teal)"></div><span class="card-label">Need O(1) key-value lookup?</span></div>
+      <h4>→ Use a Hash Table</h4>
+      <p>Hash tables are the default for any "does X exist" or "what's the count of X" problem. The workhorse of coding interviews.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--violet)"></div><span class="card-label">Need ordered iteration + fast search?</span></div>
+      <h4>→ Use a Balanced BST</h4>
+      <p>When you need sorted order, range queries, floor/ceiling operations — use a BST (Java TreeMap, C++ map, Python sortedcontainers).</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--coral)"></div><span class="card-label">Need to repeatedly find the min/max?</span></div>
+      <h4>→ Use a Heap</h4>
+      <p>Whenever you have a sliding window of "best" elements, scheduling by priority, or shortest-path expansion — a heap is the answer.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--green)"></div><span class="card-label">Need prefix matching or autocomplete?</span></div>
+      <h4>→ Use a Trie</h4>
+      <p>Tries were built for this. Any problem where the query is a string prefix — autocomplete, IP longest prefix match, word games — reach for a trie.</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-dot" style="background:var(--sky)"></div><span class="card-label">Modeling relationships or paths?</span></div>
+      <h4>→ Use a Graph</h4>
+      <p>Networks, dependencies, social connections, maps, state machines — if your data has non-hierarchical relationships, it's a graph problem.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>Data Structures</span> — Computer Science Fundamentals Guide &nbsp;·&nbsp; 9 Structures &nbsp;·&nbsp; 2025
+</footer>
+
+<script>
+// Animate section eyebrows on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.animation = 'fadeUp 0.5s ease forwards';
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.section-eyebrow').forEach(el => {
+  observer.observe(el);
+});
+
+// Active nav link highlighting
+const sections = document.querySelectorAll('section[id]');
+const navLinks  = document.querySelectorAll('nav a');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--amber)' : '';
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

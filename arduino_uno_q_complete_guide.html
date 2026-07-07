@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Arduino UNO Q — Complete Programming Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ════════════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════════════ */
+:root {
+  --bg:        #07090f;
+  --bg2:       #0c1020;
+  --bg3:       #111828;
+  --bg4:       #161e30;
+  --cyan:      #00d4ff;
+  --cyan2:     #0090b8;
+  --cyan-faint:#001e30;
+  --violet:    #7b61ff;
+  --violet2:   #5040cc;
+  --amber:     #ffb340;
+  --green:     #2af598;
+  --red:       #ff4560;
+  --text:      #c8d8f0;
+  --text-dim:  #506078;
+  --border:    #1a2440;
+  --border2:   #243060;
+  --mono:      'JetBrains Mono', monospace;
+  --body:      'DM Sans', sans-serif;
+  --display:   'Syne', sans-serif;
+  --r:         8px;
+  --glowC:     0 0 22px rgba(0,212,255,.28);
+  --glowV:     0 0 22px rgba(123,97,255,.28);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--cyan2);border-radius:3px}
+
+/* ════════ GRAIN TEXTURE ════════ */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9000;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.022;
+}
+
+/* ════════ NAV ════════ */
+nav{
+  position:sticky;top:0;z-index:500;
+  background:rgba(7,9,15,.9);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:stretch;
+}
+.nav-logo{
+  font-family:var(--display);font-weight:800;font-size:.85rem;
+  color:#fff;letter-spacing:.04em;
+  display:flex;align-items:center;gap:.7rem;
+  padding:.9rem 2rem;border-right:1px solid var(--border);
+  white-space:nowrap;
+}
+.nav-logo .badge{
+  background:var(--cyan);color:#07090f;
+  font-size:.6rem;font-family:var(--mono);padding:.15rem .5rem;border-radius:4px;letter-spacing:.1em;
+}
+.nav-tabs{display:flex;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.07em;
+  color:var(--text-dim);text-decoration:none;white-space:nowrap;
+  padding:.9rem 1.3rem;border-right:1px solid var(--border);
+  transition:color .2s,background .2s;display:flex;align-items:center;gap:.4rem;
+}
+.nav-tab:hover{color:var(--cyan);background:rgba(0,212,255,.04)}
+.nav-tab.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
+.nav-tab .dot{width:6px;height:6px;border-radius:50%}
+.dot-c{background:var(--cyan)}
+.dot-v{background:var(--violet)}
+.dot-a{background:var(--amber)}
+.dot-g{background:var(--green)}
+
+/* ════════ PROGRESS ════════ */
+.prog-outer{position:sticky;top:48px;z-index:490;height:3px;background:var(--bg3)}
+.prog-inner{height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .12s;box-shadow:0 0 8px var(--cyan)}
+
+/* ════════ HERO ════════ */
+.hero{
+  min-height:88vh;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;
+  padding:5rem 3rem 4rem;gap:3rem;position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;top:-200px;right:-200px;
+  width:750px;height:750px;
+  background:radial-gradient(circle,rgba(0,212,255,.055) 0%,transparent 65%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  font-family:var(--mono);font-size:.72rem;color:var(--cyan);letter-spacing:.25em;
+  text-transform:uppercase;margin-bottom:1.1rem;
+  display:flex;align-items:center;gap:.6rem;
+  opacity:0;animation:up .6s .1s forwards;
+}
+.hero-eyebrow::before{content:'';width:22px;height:1px;background:var(--cyan)}
+h1{
+  font-family:var(--display);font-weight:800;
+  font-size:clamp(2.5rem,5.5vw,4.2rem);line-height:1.04;color:#fff;
+  opacity:0;animation:up .7s .25s forwards;
+}
+h1 em{font-style:normal;color:var(--cyan);text-shadow:var(--glowC)}
+.hero-sub{
+  max-width:540px;margin-top:1.4rem;color:var(--text-dim);font-size:1rem;
+  opacity:0;animation:up .7s .4s forwards;
+}
+.pill-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.6rem;opacity:0;animation:up .6s .55s forwards}
+.pill{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.07em;
+  padding:.28rem .8rem;border-radius:99px;border:1px solid var(--border2);color:var(--text-dim);
+}
+.pill.c{border-color:rgba(0,212,255,.4);color:var(--cyan);background:rgba(0,212,255,.05)}
+.pill.v{border-color:rgba(123,97,255,.4);color:var(--violet);background:rgba(123,97,255,.05)}
+.pill.a{border-color:rgba(255,179,64,.35);color:var(--amber);background:rgba(255,179,64,.05)}
+.pill.g{border-color:rgba(42,245,152,.35);color:var(--green);background:rgba(42,245,152,.05)}
+.cta-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:2.2rem;opacity:0;animation:up .6s .7s forwards}
+.btn{font-family:var(--mono);font-size:.78rem;letter-spacing:.07em;padding:.75rem 1.9rem;border-radius:var(--r);text-decoration:none;cursor:pointer;transition:all .22s;border:none}
+.btn-p{background:var(--cyan);color:#07090f;box-shadow:var(--glowC)}
+.btn-p:hover{background:transparent;color:var(--cyan);border:1px solid var(--cyan)}
+.btn-s{background:transparent;color:var(--text);border:1px solid var(--border2)}
+.btn-s:hover{border-color:var(--cyan);color:var(--cyan)}
+.hero-vis{opacity:0;animation:up .8s .5s forwards;display:flex;justify-content:center;align-items:center}
+
+/* ════════ WRAPPER ════════ */
+.wrap{max-width:980px;margin:0 auto;padding:0 2rem 6rem}
+
+/* ════════ PART DIVIDERS ════════ */
+.part-header{
+  position:relative;
+  background:linear-gradient(90deg,var(--bg2),var(--bg));
+  border:1px solid var(--border);border-radius:12px;
+  padding:2.5rem 2.5rem 2rem;
+  margin:5rem 0 2.5rem;
+  overflow:hidden;
+}
+.part-header::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--accent,linear-gradient(90deg,var(--cyan),var(--violet)));
+}
+.part-header .part-n{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.2em;margin-bottom:.5rem}
+.part-header h2{margin:0;font-size:clamp(1.5rem,3vw,2rem)}
+.part-header p{color:var(--text-dim);font-size:.95rem;margin:.6rem 0 0}
+
+/* ════════ SECTION TITLES ════════ */
+.sec-label{font-family:var(--mono);font-size:.68rem;color:var(--cyan2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:.45rem}
+h2{font-family:var(--display);font-weight:800;font-size:clamp(1.4rem,2.8vw,2rem);color:#fff;line-height:1.15;margin-bottom:1.1rem}
+h3{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--cyan);margin:2rem 0 .65rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'▸';font-size:.7rem;color:var(--cyan2)}
+h4{font-family:var(--mono);font-size:.85rem;color:var(--amber);margin:1.3rem 0 .4rem;letter-spacing:.05em}
+p{color:var(--text);margin-bottom:.9rem}
+strong{color:#fff}
+code{font-family:var(--mono);font-size:.82em;background:var(--bg4);border:1px solid var(--border2);padding:.1em .4em;border-radius:4px;color:var(--cyan)}
+hr.d{border:none;border-top:1px solid var(--border);margin:3.5rem 0}
+ul,ol{padding-left:1.5rem;color:var(--text);margin-bottom:.9rem}
+li{margin-bottom:.35rem}
+
+/* ════════ CODE BLOCKS ════════ */
+.cb{background:#040810;border:1px solid var(--border);border-radius:var(--r);margin:1.2rem 0;overflow:hidden}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg3);border-bottom:1px solid var(--border)}
+.cb-lang{font-family:var(--mono);font-size:.67rem;color:var(--cyan2);letter-spacing:.1em}
+.cb-file{font-family:var(--mono);font-size:.67rem;color:var(--text-dim)}
+.dots{display:flex;gap:.4rem}
+.dots span{width:10px;height:10px;border-radius:50%}
+.dots span:nth-child(1){background:#ff5f56}
+.dots span:nth-child(2){background:#ffbd2e}
+.dots span:nth-child(3){background:#27c93f}
+.cb pre{padding:1.3rem 1.5rem;font-family:var(--mono);font-size:.8rem;line-height:1.72;overflow-x:auto;color:var(--text)}
+/* syntax */
+.kw {color:#89ddff}     /* keywords */
+.fn {color:#82aaff}     /* functions */
+.str{color:#c3e88d}     /* strings */
+.cm {color:#3a506a;font-style:italic} /* comments */
+.num{color:var(--amber)} /* numbers */
+.cls{color:#ffcb6b}     /* class */
+.var{color:#f07178}     /* variables */
+.op {color:var(--cyan2)} /* operators */
+.inc{color:#c792ea}     /* includes/import */
+.dec{color:#ffcb6b}     /* decorator */
+.typ{color:#a6e22e}     /* types */
+
+/* ════════ CALLOUT BOXES ════════ */
+.box{display:flex;gap:1rem;padding:1.1rem 1.3rem;border-radius:var(--r);margin:1.3rem 0;border-left:3px solid}
+.box.tip {background:rgba(0,212,255,.05);border-color:var(--cyan)}
+.box.warn{background:rgba(255,179,64,.05);border-color:var(--amber)}
+.box.info{background:rgba(123,97,255,.06);border-color:var(--violet)}
+.box.go  {background:rgba(42,245,152,.05);border-color:var(--green)}
+.box.danger{background:rgba(255,69,96,.05);border-color:var(--red)}
+.box-icon{font-size:1.1rem;flex-shrink:0;margin-top:.15rem}
+.box p{margin:0;font-size:.9rem}
+
+/* ════════ TABLES ════════ */
+.tw{overflow-x:auto;margin:1.2rem 0}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.78rem}
+th{background:var(--bg3);color:var(--cyan);padding:.6rem 1rem;text-align:left;letter-spacing:.06em;border:1px solid var(--border)}
+td{padding:.5rem 1rem;border:1px solid var(--border);color:var(--text);vertical-align:top}
+tr:hover td{background:var(--cyan-faint)}
+
+/* ════════ CARDS ════════ */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin:1.5rem 0}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.7rem;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.card:hover{transform:translateY(-2px);border-color:var(--border2)}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-top,linear-gradient(90deg,var(--cyan),transparent))}
+.card.violet::after{background:linear-gradient(90deg,var(--violet),transparent)}
+.card.amber::after{background:linear-gradient(90deg,var(--amber),transparent)}
+.card.green::after{background:linear-gradient(90deg,var(--green),transparent)}
+.card-label{font-family:var(--mono);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.4rem;color:var(--cyan)}
+.card.violet .card-label{color:var(--violet)}
+.card-title{font-family:var(--display);font-weight:700;font-size:1rem;color:#fff;margin-bottom:.5rem}
+.card-specs{list-style:none;padding:0;font-family:var(--mono);font-size:.73rem;color:var(--text-dim)}
+.card-specs li{padding:.28rem 0;border-bottom:1px solid var(--border)}
+.card-specs li:last-child{border:none}
+.card-specs li span{color:#fff}
+
+/* ════════ STEP CARDS ════════ */
+.steps{display:flex;flex-direction:column;gap:1.4rem;margin-top:1.5rem}
+.step{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.7rem 2rem;position:relative}
+.step::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.step-n{font-family:var(--mono);font-size:.63rem;letter-spacing:.2em;color:var(--cyan2);margin-bottom:.3rem}
+.step-t{font-family:var(--display);font-weight:700;font-size:1rem;color:#fff;margin-bottom:.7rem}
+
+/* ════════ SYNTAX REF GRID ════════ */
+.syn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;margin:1.5rem 0}
+.syn-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.3rem}
+.syn-title{font-family:var(--mono);font-size:.75rem;color:var(--amber);letter-spacing:.07em;margin-bottom:.5rem}
+.syn-item pre{font-family:var(--mono);font-size:.75rem;color:var(--text);line-height:1.6;margin:0;overflow-x:auto}
+
+/* ════════ COMPARISON STRIP ════════ */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0}
+.compare-col-head{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;padding:.4rem .8rem;border-radius:4px;margin-bottom:.5rem;display:inline-block}
+.cpp-head{background:rgba(0,212,255,.1);color:var(--cyan)}
+.py-head{background:rgba(255,179,64,.1);color:var(--amber)}
+
+/* ════════ REVEAL ════════ */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+/* ════════ KEYFRAMES ════════ */
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ════════ FOOTER ════════ */
+footer{border-top:1px solid var(--border);padding:2.5rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.7rem;color:var(--text-dim)}
+footer em{color:var(--cyan);font-style:normal}
+
+/* ════════ RESPONSIVE ════════ */
+@media(max-width:820px){
+  .hero{grid-template-columns:1fr;min-height:auto;padding:4rem 1.5rem 3rem}
+  .hero-vis{display:none}
+  .cards{grid-template-columns:1fr}
+  .compare{grid-template-columns:1fr}
+  .wrap{padding:0 1.2rem 4rem}
+  nav .nav-logo{padding:.9rem 1.2rem}
+  footer{flex-direction:column;gap:.5rem;padding:2rem 1.5rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     NAV
+════════════════════════════════════ -->
+<nav>
+  <div class="nav-logo">
+    Arduino UNO Q <span class="badge">GUIDE</span>
+  </div>
+  <div class="nav-tabs">
+    <a class="nav-tab" href="#hardware"><span class="dot dot-c"></span>The Board</a>
+    <a class="nav-tab" href="#cpp-intro"><span class="dot dot-c"></span>C++ Language</a>
+    <a class="nav-tab" href="#cpp-hello">C++ Hello World</a>
+    <a class="nav-tab" href="#cpp-program">C++ Starter Program</a>
+    <a class="nav-tab" href="#py-intro"><span class="dot dot-a"></span>Python Language</a>
+    <a class="nav-tab" href="#py-hello">Python Hello World</a>
+    <a class="nav-tab" href="#py-program">Python Starter Program</a>
+    <a class="nav-tab" href="#sketches"><span class="dot dot-v"></span>Sketches</a>
+    <a class="nav-tab" href="#bridge">Bridge</a>
+    <a class="nav-tab" href="#hardware-code"><span class="dot dot-g"></span>Hardware</a>
+  </div>
+</nav>
+<div class="prog-outer"><div class="prog-inner" id="prog"></div></div>
+
+<!-- ════════════════════════════════════
+     HERO
+════════════════════════════════════ -->
+<section class="hero">
+  <div>
+    <p class="hero-eyebrow">Complete Beginner's Guide · 2025</p>
+    <h1>Arduino <em>UNO Q</em><br/>Programming</h1>
+    <p class="hero-sub">
+      A full guide to C++, Python, Arduino Sketches, and hardware control
+      on the UNO Q — the board that packs a Debian Linux computer
+      <em>and</em> a real-time microcontroller into one UNO-sized package.
+    </p>
+    <div class="pill-row">
+      <span class="pill c">C++ Sketches (MCU)</span>
+      <span class="pill a">Python (MPU · Linux)</span>
+      <span class="pill v">Arduino Bridge</span>
+      <span class="pill g">GPIO / Sensors</span>
+      <span class="pill">Beginner Friendly</span>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-p" href="#hardware">Start: The Board</a>
+      <a class="btn btn-s" href="#sketches">Jump to Sketches</a>
+    </div>
+  </div>
+  <div class="hero-vis">
+    <!-- Board overview SVG -->
+    <svg viewBox="0 0 340 420" width="310" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">
+      <rect x="14" y="20" width="312" height="388" rx="14" fill="#0b1828" stroke="#1a3050" stroke-width="1.5"/>
+      <!-- top pin strip -->
+      <rect x="50" y="12" width="200" height="14" rx="3" fill="#111f30" stroke="#1a3050" stroke-width="1"/>
+      <g fill="#1e3448">
+        <rect x="58"  y="14" width="6" height="9" rx="1"/>
+        <rect x="70"  y="14" width="6" height="9" rx="1"/>
+        <rect x="82"  y="14" width="6" height="9" rx="1"/>
+        <rect x="94"  y="14" width="6" height="9" rx="1"/>
+        <rect x="106" y="14" width="6" height="9" rx="1"/>
+        <rect x="118" y="14" width="6" height="9" rx="1"/>
+        <rect x="130" y="14" width="6" height="9" rx="1"/>
+        <rect x="142" y="14" width="6" height="9" rx="1"/>
+        <rect x="154" y="14" width="6" height="9" rx="1"/>
+        <rect x="166" y="14" width="6" height="9" rx="1"/>
+        <rect x="178" y="14" width="6" height="9" rx="1"/>
+        <rect x="190" y="14" width="6" height="9" rx="1"/>
+        <rect x="202" y="14" width="6" height="9" rx="1"/>
+        <rect x="214" y="14" width="6" height="9" rx="1"/>
+        <rect x="226" y="14" width="6" height="9" rx="1"/>
+        <rect x="238" y="14" width="6" height="9" rx="1"/>
+      </g>
+      <!-- Qualcomm SoC -->
+      <rect x="30" y="48" width="155" height="110" rx="5" fill="#090f1c" stroke="#00d4ff" stroke-width="1.2"/>
+      <text x="107" y="88"  fill="#00d4ff" font-size="9.5" text-anchor="middle" font-weight="bold">Qualcomm Dragonwing™</text>
+      <text x="107" y="103" fill="#00d4ff" font-size="8.5" text-anchor="middle">QRB2210 MPU</text>
+      <text x="107" y="120" fill="#3a6080" font-size="7.5" text-anchor="middle">Quad-Core ARM Cortex-A53</text>
+      <text x="107" y="133" fill="#3a6080" font-size="7.5" text-anchor="middle">2.0 GHz · Debian Linux</text>
+      <text x="107" y="146" fill="#3a6080" font-size="7.5" text-anchor="middle">Adreno GPU · Wi-Fi 5</text>
+      <!-- STM32 MCU -->
+      <rect x="30" y="175" width="115" height="90" rx="5" fill="#090c1a" stroke="#7b61ff" stroke-width="1.2"/>
+      <text x="87" y="205" fill="#7b61ff" font-size="9.5" text-anchor="middle" font-weight="bold">STM32U585 MCU</text>
+      <text x="87" y="221" fill="#3a4080" font-size="7.5" text-anchor="middle">ARM Cortex-M33</text>
+      <text x="87" y="235" fill="#3a4080" font-size="7.5" text-anchor="middle">Zephyr + Arduino Core</text>
+      <text x="87" y="249" fill="#3a4080" font-size="7.5" text-anchor="middle">12-bit ADC · GPIO</text>
+      <!-- Bridge arrow -->
+      <path d="M87 175 L87 158" stroke="#c792ea" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#a1)"/>
+      <text x="97" y="168" fill="#c792ea" font-size="7">Bridge</text>
+      <!-- RAM -->
+      <rect x="194" y="48" width="120" height="42" rx="4" fill="#090f1c" stroke="#1a3050" stroke-width="1"/>
+      <text x="254" y="68"  fill="#8892a0" font-size="8" text-anchor="middle">LPDDR4X RAM</text>
+      <text x="254" y="81"  fill="#3a6080" font-size="7" text-anchor="middle">2 GB or 4 GB</text>
+      <!-- eMMC -->
+      <rect x="194" y="98" width="120" height="42" rx="4" fill="#090f1c" stroke="#1a3050" stroke-width="1"/>
+      <text x="254" y="118" fill="#8892a0" font-size="8" text-anchor="middle">eMMC Storage</text>
+      <text x="254" y="131" fill="#3a6080" font-size="7" text-anchor="middle">16 GB or 32 GB</text>
+      <!-- WiFi -->
+      <rect x="194" y="148" width="120" height="42" rx="4" fill="#090f1c" stroke="#1a3050" stroke-width="1"/>
+      <text x="254" y="168" fill="#8892a0" font-size="8" text-anchor="middle">Wi-Fi 5 + BT 5.1</text>
+      <text x="254" y="181" fill="#3a6080" font-size="7" text-anchor="middle">Dual-band 2.4/5 GHz</text>
+      <!-- LED Matrix -->
+      <rect x="30" y="280" width="130" height="40" rx="4" fill="#090f1c" stroke="#1a3050" stroke-width="1"/>
+      <text x="95" y="300" fill="#8892a0" font-size="8" text-anchor="middle">8×13 LED Matrix</text>
+      <text x="95" y="312" fill="#3a6080" font-size="7" text-anchor="middle">+ 4 RGB LEDs</text>
+      <!-- USB-C -->
+      <rect x="30" y="385" width="55" height="18" rx="3" fill="#111f30" stroke="#00d4ff" stroke-width="1"/>
+      <text x="57" y="397" fill="#00d4ff" font-size="7" text-anchor="middle">USB-C</text>
+      <!-- Qwiic -->
+      <rect x="100" y="385" width="55" height="18" rx="3" fill="#111f30" stroke="#ffb340" stroke-width="1"/>
+      <text x="127" y="397" fill="#ffb340" font-size="7" text-anchor="middle">Qwiic</text>
+      <!-- Power LED animated -->
+      <circle cx="295" cy="56" r="6" fill="#2af598" opacity=".85">
+        <animate attributeName="opacity" values=".85;.2;.85" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="295" y="74" fill="#3a6080" font-size="6.5" text-anchor="middle">PWR</text>
+      <!-- bottom pins -->
+      <rect x="50" y="396" width="180" height="14" rx="3" fill="#111f30" stroke="#1a3050" stroke-width="1"/>
+      <g fill="#1e3448">
+        <rect x="58" y="398" width="6" height="9" rx="1"/>
+        <rect x="70" y="398" width="6" height="9" rx="1"/>
+        <rect x="82" y="398" width="6" height="9" rx="1"/>
+        <rect x="94" y="398" width="6" height="9" rx="1"/>
+        <rect x="106" y="398" width="6" height="9" rx="1"/>
+        <rect x="118" y="398" width="6" height="9" rx="1"/>
+        <rect x="130" y="398" width="6" height="9" rx="1"/>
+        <rect x="142" y="398" width="6" height="9" rx="1"/>
+        <rect x="154" y="398" width="6" height="9" rx="1"/>
+        <rect x="166" y="398" width="6" height="9" rx="1"/>
+      </g>
+      <!-- Modulino area -->
+      <rect x="194" y="198" width="120" height="70" rx="4" fill="#090f1c" stroke="#1a3050" stroke-width="1"/>
+      <text x="254" y="220" fill="#8892a0" font-size="8" text-anchor="middle">Modulino / Qwiic</text>
+      <text x="254" y="233" fill="#3a6080" font-size="7" text-anchor="middle">I²C Snap-on Nodes</text>
+      <text x="254" y="246" fill="#3a6080" font-size="7" text-anchor="middle">Button·Pixel·Distance</text>
+      <text x="254" y="259" fill="#3a6080" font-size="7" text-anchor="middle">Knob·Thermo·Buzzer</text>
+      <defs>
+        <marker id="a1" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+          <path d="M0,0 L0,5 L5,2.5z" fill="#c792ea"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════ MAIN CONTENT ════════ -->
+<div class="wrap">
+
+<!-- ╔══════════════════════════════════
+     PART 0: THE BOARD
+══════════════════════════════════════╗ -->
+<div id="hardware" class="part-header reveal">
+  <p class="part-n">PART 0</p>
+  <h2>Understanding the Arduino UNO Q</h2>
+  <p>Before writing a single line of code, you need to understand what you are actually programming.</p>
+</div>
+
+<section class="reveal">
+  <p class="sec-label">// The Dual-Brain Architecture</p>
+  <p>
+    The UNO Q is not one computer — it is <strong>two processors on a single board</strong>, permanently connected
+    by a high-speed internal bridge. This is the most important concept on the entire board.
+    Every programming decision you make will start with the question: <strong>which brain does this belong on?</strong>
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <p class="card-label">Brain #1 — The Computer</p>
+      <p class="card-title">Qualcomm QRB2210 MPU</p>
+      <ul class="card-specs">
+        <li>Architecture <span>Quad-Core ARM Cortex-A53</span></li>
+        <li>Clock <span>2.0 GHz</span></li>
+        <li>OS <span>Debian Linux (full)</span></li>
+        <li>RAM <span>2 GB or 4 GB LPDDR4X</span></li>
+        <li>Storage <span>16 GB or 32 GB eMMC</span></li>
+        <li>GPU <span>Adreno (AI / ML)</span></li>
+        <li>Network <span>Wi-Fi 5 · Bluetooth 5.1</span></li>
+        <li>Language <span>Python, any Linux app</span></li>
+        <li>Controls <span>LED Matrix · Wi-Fi · Camera</span></li>
+      </ul>
+    </div>
+    <div class="card violet">
+      <p class="card-label" style="color:var(--violet)">Brain #2 — The Controller</p>
+      <p class="card-title">STMicroelectronics STM32U585 MCU</p>
+      <ul class="card-specs">
+        <li>Architecture <span>ARM Cortex-M33</span></li>
+        <li>OS <span>Zephyr RTOS + Arduino Core</span></li>
+        <li>Digital Pins <span>D0–D13 (5 V logic)</span></li>
+        <li>Analog Pins <span>A0–A5 (12-bit ADC, 0–5 V)</span></li>
+        <li>PWM <span>D3, D5, D6, D9, D10, D11 (~)</span></li>
+        <li>I²C <span>SDA (A4) / SCL (A5)</span></li>
+        <li>SPI <span>D10–D13</span></li>
+        <li>UART <span>D0 (RX) / D1 (TX)</span></li>
+        <li>Language <span>C++ (Arduino Sketches)</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box tip">
+    <span class="box-icon">💡</span>
+    <p>
+      <strong>Golden Rule:</strong> The GPIO headers (D0–D13, A0–A5) are wired to the STM32 MCU.
+      You can only control them from C++. Python on the MPU side must ask the MCU for sensor data
+      via the Bridge library. Wi-Fi, the LED matrix, and AI all live on the Python/MPU side.
+    </p>
+  </div>
+
+  <h3>The Three Development Modes</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Mode</th><th>IDE / Tool</th><th>Programs Which Brain</th><th>Language</th></tr></thead>
+      <tbody>
+        <tr><td><strong>App Lab</strong> (recommended)</td><td>Arduino App Lab</td><td>Both MPU + MCU together</td><td>Python + C++</td></tr>
+        <tr><td>Classic Arduino IDE</td><td>Arduino IDE 2.x via USB</td><td>MCU only</td><td>C++</td></tr>
+        <tr><td>Headless Linux</td><td>SSH / VS Code / terminal</td><td>MPU only</td><td>Python, any</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>UNO Q vs Classic Arduino Uno — Key Differences</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Feature</th><th>Classic Arduino Uno (R3)</th><th>Arduino UNO Q</th></tr></thead>
+      <tbody>
+        <tr><td>Processor</td><td>ATmega328P · 8-bit · 16 MHz</td><td>STM32U585 (MCU) + QRB2210 (MPU)</td></tr>
+        <tr><td>Operating System</td><td>None (bare metal)</td><td>Zephyr (MCU) + Debian Linux (MPU)</td></tr>
+        <tr><td>RAM</td><td>2 KB SRAM</td><td>2–4 GB LPDDR4X</td></tr>
+        <tr><td>Language on pins</td><td>C++</td><td>C++ (pins always go through MCU)</td></tr>
+        <tr><td>High-level language</td><td>N/A</td><td>Python 3 on Debian</td></tr>
+        <tr><td>ADC Resolution</td><td>10-bit (0–1023)</td><td>12-bit (0–4095) — call analogReadResolution(12)</td></tr>
+        <tr><td>Wi-Fi / BT</td><td>No (Uno R3)</td><td>Yes — Wi-Fi 5 + BT 5.1</td></tr>
+        <tr><td>Sketch serial baud</td><td>Typically 9600</td><td>Use 115200 — STM32 is faster</td></tr>
+        <tr><td>LED Matrix</td><td>No</td><td>8×13 LEDs + 4 RGB LEDs (MPU side)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="d"/>
+
+<!-- ╔══════════════════════════════════
+     PART 1: C++ LANGUAGE
+══════════════════════════════════════╗ -->
+<div id="cpp-intro" class="part-header reveal" style="--accent:linear-gradient(90deg,var(--cyan),var(--cyan-faint))">
+  <p class="part-n">PART 1 — C++ Language</p>
+  <h2>C++ for the Arduino UNO Q MCU</h2>
+  <p>C++ is the language of Arduino sketches. It runs on the STM32U585 microcontroller — the real-time brain that controls all the physical pins.</p>
+</div>
+
+<section id="cpp-syntax" class="reveal">
+  <p class="sec-label">// 1.1 — C++ Language Outline</p>
+  <h2>The C++ Language — Complete Overview</h2>
+  <p>
+    C++ is a <strong>compiled, statically typed, imperative language</strong>. Every variable has a fixed type
+    declared at compile time. You write code → the compiler translates it to machine code → the MCU runs
+    that machine code directly. There is no interpreter, no garbage collector, and no operating system
+    catching your mistakes. What you write is exactly what the chip executes.
+  </p>
+  <p>
+    Arduino sketches are a thin wrapper around C++. The IDE adds two mandatory functions —
+    <code>setup()</code> and <code>loop()</code> — and links in the Arduino standard library automatically.
+    Everything else is standard C++.
+  </p>
+
+  <h3>1. Program Structure</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — overall sketch structure</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// ─── 1. Include headers (libraries you want to use) ───────────────────</span>
+<span class="inc">#include &lt;Wire.h&gt;</span>        <span class="cm">// import the I²C library</span>
+<span class="inc">#include &lt;Bridge.h&gt;</span>      <span class="cm">// import the Arduino Bridge library</span>
+
+<span class="cm">// ─── 2. Constants and global variables ───────────────────────────────</span>
+<span class="kw">const int</span> <span class="var">LED_PIN</span> = <span class="num">13</span>;   <span class="cm">// const = value never changes</span>
+<span class="kw">int</span> <span class="var">counter</span> = <span class="num">0</span>;          <span class="cm">// global: accessible anywhere in the file</span>
+
+<span class="cm">// ─── 3. setup() — runs ONCE at power-on ──────────────────────────────</span>
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="var">LED_PIN</span>, OUTPUT);
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);
+}
+
+<span class="cm">// ─── 4. loop() — runs FOREVER until power-off ────────────────────────</span>
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="fn">digitalWrite</span>(<span class="var">LED_PIN</span>, HIGH);
+  <span class="fn">delay</span>(<span class="num">500</span>);
+  <span class="fn">digitalWrite</span>(<span class="var">LED_PIN</span>, LOW);
+  <span class="fn">delay</span>(<span class="num">500</span>);
+}
+
+<span class="cm">// ─── 5. Your own functions (below loop is fine) ──────────────────────</span>
+<span class="kw">void</span> <span class="fn">myFunction</span>(<span class="kw">int</span> <span class="var">x</span>) {
+  <span class="cm">// function body</span>
+}</pre>
+  </div>
+
+  <h3>2. Data Types</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Type</th><th>Size</th><th>Range / Use</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>bool</code></td><td>1 byte</td><td>true or false</td><td><code>bool on = true;</code></td></tr>
+        <tr><td><code>byte</code></td><td>1 byte</td><td>0 – 255 unsigned</td><td><code>byte b = 200;</code></td></tr>
+        <tr><td><code>int</code></td><td>2 bytes</td><td>–32,768 – 32,767</td><td><code>int count = 0;</code></td></tr>
+        <tr><td><code>unsigned int</code></td><td>2 bytes</td><td>0 – 65,535</td><td><code>unsigned int u = 50000;</code></td></tr>
+        <tr><td><code>long</code></td><td>4 bytes</td><td>–2,147,483,648 – 2,147,483,647</td><td><code>long t = millis();</code></td></tr>
+        <tr><td><code>unsigned long</code></td><td>4 bytes</td><td>0 – 4,294,967,295</td><td><code>unsigned long ms = millis();</code></td></tr>
+        <tr><td><code>float</code></td><td>4 bytes</td><td>Decimal numbers ≈ 6–7 sig. digits</td><td><code>float v = 3.14;</code></td></tr>
+        <tr><td><code>double</code></td><td>4 bytes</td><td>Same as float on most Arduinos</td><td><code>double d = 2.71828;</code></td></tr>
+        <tr><td><code>char</code></td><td>1 byte</td><td>Single ASCII character</td><td><code>char c = 'A';</code></td></tr>
+        <tr><td><code>String</code></td><td>Variable</td><td>Text (Arduino class)</td><td><code>String s = "Hello";</code></td></tr>
+        <tr><td><code>void</code></td><td>—</td><td>No value (function returns nothing)</td><td><code>void setup() {}</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3. Variables — Declaration and Scope</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — variables</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// Declare: type  name  =  value;</span>
+<span class="kw">int</span> <span class="var">x</span> = <span class="num">10</span>;
+<span class="kw">float</span> <span class="var">temperature</span> = <span class="num">23.5</span>;
+<span class="cls">String</span> <span class="var">name</span> = <span class="str">"UNO Q"</span>;
+<span class="kw">bool</span> <span class="var">ledOn</span> = <span class="kw">false</span>;
+
+<span class="cm">// const — value cannot be changed after declaration</span>
+<span class="kw">const int</span> <span class="var">MAX_VAL</span> = <span class="num">4095</span>;  <span class="cm">// convention: UPPER_CASE for constants</span>
+
+<span class="cm">// Scope: variables declared outside functions are GLOBAL</span>
+<span class="kw">int</span> <span class="var">globalCounter</span> = <span class="num">0</span>;   <span class="cm">// accessible in setup(), loop(), everywhere</span>
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">int</span> <span class="var">localVar</span> = <span class="num">5</span>;       <span class="cm">// LOCAL — only exists inside this function</span>
+  <span class="var">globalCounter</span>++;         <span class="cm">// ++ means add 1 (increment)</span>
+}                            <span class="cm">// localVar is destroyed when loop() ends</span></pre>
+  </div>
+
+  <h3>4. Operators</h3>
+  <div class="syn-grid">
+    <div class="syn-item">
+      <p class="syn-title">Arithmetic</p>
+      <pre>x + y    <span class="cm">// add</span>
+x - y    <span class="cm">// subtract</span>
+x * y    <span class="cm">// multiply</span>
+x / y    <span class="cm">// divide</span>
+x % y    <span class="cm">// modulo (remainder)</span>
+x++      <span class="cm">// increment (x = x+1)</span>
+x--      <span class="cm">// decrement (x = x-1)</span></pre>
+    </div>
+    <div class="syn-item">
+      <p class="syn-title">Comparison (returns bool)</p>
+      <pre>x == y   <span class="cm">// equal (two equals!)</span>
+x != y   <span class="cm">// not equal</span>
+x &gt;  y   <span class="cm">// greater than</span>
+x &lt;  y   <span class="cm">// less than</span>
+x &gt;= y   <span class="cm">// greater or equal</span>
+x &lt;= y   <span class="cm">// less or equal</span></pre>
+    </div>
+    <div class="syn-item">
+      <p class="syn-title">Logical</p>
+      <pre>a &amp;&amp; b   <span class="cm">// AND — both true</span>
+a || b   <span class="cm">// OR  — either true</span>
+!a       <span class="cm">// NOT — flip boolean</span></pre>
+    </div>
+    <div class="syn-item">
+      <p class="syn-title">Assignment</p>
+      <pre>x = 5    <span class="cm">// assign</span>
+x += 3   <span class="cm">// x = x + 3</span>
+x -= 1   <span class="cm">// x = x - 1</span>
+x *= 2   <span class="cm">// x = x * 2</span>
+x /= 4   <span class="cm">// x = x / 4</span></pre>
+    </div>
+  </div>
+
+  <h3>5. Control Flow — if / else / else if</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — conditionals</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">int</span> <span class="var">val</span> = <span class="fn">analogRead</span>(A0);   <span class="cm">// read sensor: 0-4095</span>
+
+<span class="kw">if</span> (<span class="var">val</span> <span class="op">&gt;</span> <span class="num">3000</span>) {
+  <span class="cm">// runs when val is greater than 3000</span>
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"HIGH"</span>);
+} <span class="kw">else if</span> (<span class="var">val</span> <span class="op">&gt;</span> <span class="num">1500</span>) {
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"MEDIUM"</span>);
+} <span class="kw">else</span> {
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"LOW"</span>);
+}</pre>
+  </div>
+
+  <h3>6. Loops — for, while, do-while</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — loops</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// FOR loop — use when you know the count</span>
+<span class="cm">//   for (start; keep-going-while; step-each-iteration)</span>
+<span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <span class="op">&lt;</span> <span class="num">10</span>; <span class="var">i</span>++) {
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">i</span>);   <span class="cm">// prints 0 through 9</span>
+}
+
+<span class="cm">// WHILE loop — use when you don't know the count in advance</span>
+<span class="kw">int</span> <span class="var">n</span> = <span class="num">0</span>;
+<span class="kw">while</span> (<span class="var">n</span> <span class="op">&lt;</span> <span class="num">5</span>) {
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">n</span>);
+  <span class="var">n</span>++;
+}
+
+<span class="cm">// DO-WHILE — executes at least once, then checks condition</span>
+<span class="kw">do</span> {
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"runs once"</span>);
+} <span class="kw">while</span> (<span class="kw">false</span>);
+
+<span class="cm">// break — exit loop immediately</span>
+<span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <span class="op">&lt;</span> <span class="num">100</span>; <span class="var">i</span>++) {
+  <span class="kw">if</span> (<span class="var">i</span> == <span class="num">5</span>) <span class="kw">break</span>;    <span class="cm">// stops at i=5</span>
+}</pre>
+  </div>
+
+  <h3>7. Functions — Defining and Calling</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — functions</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// Syntax:  returnType  functionName( type param1, type param2 ) { body }</span>
+
+<span class="cm">// A function that returns nothing (void) and takes no parameters</span>
+<span class="kw">void</span> <span class="fn">blinkLED</span>() {
+  <span class="fn">digitalWrite</span>(<span class="num">13</span>, HIGH);
+  <span class="fn">delay</span>(<span class="num">250</span>);
+  <span class="fn">digitalWrite</span>(<span class="num">13</span>, LOW);
+  <span class="fn">delay</span>(<span class="num">250</span>);
+}
+
+<span class="cm">// A function that takes parameters and returns a value</span>
+<span class="kw">float</span> <span class="fn">adcToVolts</span>(<span class="kw">int</span> <span class="var">rawADC</span>) {
+  <span class="kw">return</span> <span class="var">rawADC</span> <span class="op">*</span> (<span class="num">5.0</span> <span class="op">/</span> <span class="num">4095.0</span>);  <span class="cm">// 12-bit UNO Q</span>
+}
+
+<span class="cm">// A function with a default parameter value</span>
+<span class="kw">void</span> <span class="fn">flashTimes</span>(<span class="kw">int</span> <span class="var">pin</span>, <span class="kw">int</span> <span class="var">times</span> = <span class="num">3</span>) {   <span class="cm">// default: 3 flashes</span>
+  <span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <span class="op">&lt;</span> <span class="var">times</span>; <span class="var">i</span>++) {
+    <span class="fn">digitalWrite</span>(<span class="var">pin</span>, HIGH); <span class="fn">delay</span>(<span class="num">100</span>);
+    <span class="fn">digitalWrite</span>(<span class="var">pin</span>, LOW);  <span class="fn">delay</span>(<span class="num">100</span>);
+  }
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="fn">blinkLED</span>();              <span class="cm">// call — no arguments</span>
+  <span class="kw">float</span> <span class="var">v</span> = <span class="fn">adcToVolts</span>(<span class="fn">analogRead</span>(A0));  <span class="cm">// call — captures return</span>
+  <span class="fn">flashTimes</span>(<span class="num">13</span>);          <span class="cm">// uses default times=3</span>
+  <span class="fn">flashTimes</span>(<span class="num">13</span>, <span class="num">5</span>);       <span class="cm">// overrides: flashes 5 times</span>
+}</pre>
+  </div>
+
+  <h3>8. Arrays</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — arrays</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// Declare:  type  name[size]  =  { values };</span>
+<span class="kw">int</span> <span class="var">pins</span>[<span class="num">4</span>]  = {<span class="num">9</span>, <span class="num">10</span>, <span class="num">11</span>, <span class="num">13</span>};   <span class="cm">// 4 LED pins</span>
+<span class="kw">float</span> <span class="var">temps</span>[<span class="num">3</span>] = {<span class="num">22.1</span>, <span class="num">23.5</span>, <span class="num">21.8</span>};
+
+<span class="cm">// Access by index (starts at 0!)</span>
+<span class="fn">digitalWrite</span>(<span class="var">pins</span>[<span class="num">0</span>], HIGH);   <span class="cm">// uses pin 9</span>
+<span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">temps</span>[<span class="num">2</span>]);      <span class="cm">// prints 21.8</span>
+
+<span class="cm">// Loop through all elements</span>
+<span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <span class="op">&lt;</span> <span class="num">4</span>; <span class="var">i</span>++) {
+  <span class="fn">pinMode</span>(<span class="var">pins</span>[<span class="var">i</span>], OUTPUT);    <span class="cm">// set all 4 pins as output</span>
+}</pre>
+  </div>
+
+  <h3>9. Switch Statement</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — switch</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">char</span> <span class="var">cmd</span> = <span class="str">'H'</span>;   <span class="cm">// pretend this came from Serial</span>
+
+<span class="kw">switch</span> (<span class="var">cmd</span>) {
+  <span class="kw">case</span> <span class="str">'H'</span>:
+    <span class="fn">digitalWrite</span>(<span class="num">13</span>, HIGH);
+    <span class="kw">break</span>;                       <span class="cm">// MUST break or it falls through!</span>
+  <span class="kw">case</span> <span class="str">'L'</span>:
+    <span class="fn">digitalWrite</span>(<span class="num">13</span>, LOW);
+    <span class="kw">break</span>;
+  <span class="kw">default</span>:                       <span class="cm">// runs if no case matches</span>
+    <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"Unknown command"</span>);
+}</pre>
+  </div>
+
+  <h3>10. Key Arduino Standard Library Functions</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Function</th><th>What It Does</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>pinMode(pin, mode)</code></td><td>Set pin as INPUT or OUTPUT</td><td><code>pinMode(13, OUTPUT);</code></td></tr>
+        <tr><td><code>digitalWrite(pin, val)</code></td><td>Write HIGH (5V) or LOW (0V) to a digital pin</td><td><code>digitalWrite(13, HIGH);</code></td></tr>
+        <tr><td><code>digitalRead(pin)</code></td><td>Read digital pin state (HIGH or LOW)</td><td><code>int s = digitalRead(2);</code></td></tr>
+        <tr><td><code>analogRead(pin)</code></td><td>Read analog voltage → 0–4095 (12-bit on UNO Q)</td><td><code>int v = analogRead(A0);</code></td></tr>
+        <tr><td><code>analogWrite(pin, val)</code></td><td>PWM output 0–255 on ~ pins</td><td><code>analogWrite(9, 128);</code></td></tr>
+        <tr><td><code>analogReadResolution(n)</code></td><td>Set ADC bits: 10 or 12 (UNO Q supports 12)</td><td><code>analogReadResolution(12);</code></td></tr>
+        <tr><td><code>delay(ms)</code></td><td>Pause sketch for ms milliseconds (blocks everything)</td><td><code>delay(1000);</code></td></tr>
+        <tr><td><code>millis()</code></td><td>Milliseconds since power-on (non-blocking timing)</td><td><code>unsigned long t = millis();</code></td></tr>
+        <tr><td><code>map(val,fL,fH,tL,tH)</code></td><td>Remap value from one range to another</td><td><code>map(raw,0,4095,0,255)</code></td></tr>
+        <tr><td><code>constrain(val,lo,hi)</code></td><td>Clamp value within a range</td><td><code>constrain(val,0,255)</code></td></tr>
+        <tr><td><code>Serial.begin(baud)</code></td><td>Start serial communication at baud rate</td><td><code>Serial.begin(115200);</code></td></tr>
+        <tr><td><code>Serial.print(val)</code></td><td>Print a value (no newline)</td><td><code>Serial.print(temperature);</code></td></tr>
+        <tr><td><code>Serial.println(val)</code></td><td>Print a value with newline</td><td><code>Serial.println("done");</code></td></tr>
+        <tr><td><code>Serial.available()</code></td><td>Bytes waiting in receive buffer</td><td><code>if(Serial.available()>0){}</code></td></tr>
+        <tr><td><code>Serial.read()</code></td><td>Read one byte from serial</td><td><code>char c = Serial.read();</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- C++ Hello World -->
+<section id="cpp-hello" class="reveal" style="margin-top:3rem">
+  <p class="sec-label">// 1.2 — Hello World</p>
+  <h2>C++ Hello World for UNO Q</h2>
+  <p>On a microcontroller there is no screen to print to — the "Hello World" is either a blinking LED or a message sent over the Serial port that you read in the IDE's Serial Monitor.</p>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++</span><span class="cb-file">hello_world.ino</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">/*
+ * hello_world.ino — C++ Hello World for Arduino UNO Q
+ * This sketch sends "Hello, UNO Q!" over the serial port
+ * AND blinks the built-in LED on D13.
+ *
+ * Upload with: App Lab or Arduino IDE 2 → Upload button
+ * View output: App Lab Console or Arduino IDE → Serial Monitor (115200)
+ */</span>
+
+<span class="kw">const int</span> <span class="var">LED</span> = <span class="num">13</span>;     <span class="cm">// D13 is wired to the built-in LED on the STM32 MCU</span>
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="var">LED</span>, OUTPUT);      <span class="cm">// configure D13 as an output</span>
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);      <span class="cm">// open serial at 115200 baud (use this on UNO Q)</span>
+
+  <span class="cm">// Print the greeting — visible in Serial Monitor</span>
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"Hello, UNO Q!"</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"C++ sketch is running on the STM32U585 MCU."</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="fn">digitalWrite</span>(<span class="var">LED</span>, HIGH);    <span class="cm">// LED on</span>
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"LED is ON"</span>);
+  <span class="fn">delay</span>(<span class="num">1000</span>);                <span class="cm">// wait 1 second</span>
+
+  <span class="fn">digitalWrite</span>(<span class="var">LED</span>, LOW);     <span class="cm">// LED off</span>
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"LED is OFF"</span>);
+  <span class="fn">delay</span>(<span class="num">1000</span>);
+}
+<span class="cm">// Expected Serial Monitor output:
+//   Hello, UNO Q!
+//   C++ sketch is running on the STM32U585 MCU.
+//   LED is ON
+//   LED is OFF
+//   LED is ON   ← repeats forever</span></pre>
+  </div>
+  <div class="box tip"><span class="box-icon">💡</span><p><strong>How to see the output:</strong> In App Lab, open the Console panel. In Arduino IDE, click Tools → Serial Monitor, set baud to 115200.</p></div>
+</section>
+
+<!-- C++ COMPREHENSIVE BEGINNER PROGRAM -->
+<section id="cpp-program" class="reveal" style="margin-top:3rem">
+  <p class="sec-label">// 1.3 — Comprehensive Beginner Program</p>
+  <h2>C++ Starter Program — Covers the Full Language</h2>
+  <p>
+    This single sketch intentionally exercises every major C++ and Arduino concept:
+    variables, constants, arrays, functions, loops, conditionals, switch, Serial, analog read,
+    PWM, non-blocking timing with <code>millis()</code>, and the 12-bit ADC unique to the UNO Q.
+    Read the comments — every line is explained.
+  </p>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — complete beginner sketch</span><span class="cb-file">uno_q_starter.ino</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">/*
+ * uno_q_starter.ino
+ * ─────────────────────────────────────────────────────────────────────
+ * Comprehensive beginner program for the Arduino UNO Q (STM32U585 MCU).
+ * Covers: constants, variables, arrays, loops, functions, if/else,
+ *         switch, Serial, analogRead (12-bit), analogWrite (PWM),
+ *         non-blocking timing with millis().
+ *
+ * Hardware needed:
+ *   • Arduino UNO Q (built-in LED on D13 is enough)
+ *   • OPTIONAL: potentiometer on A0 (centre pin → A0, outers → 5V + GND)
+ *   • OPTIONAL: LED + 220Ω resistor on D9 (PWM output)
+ * ─────────────────────────────────────────────────────────────────────
+ */</span>
+
+<span class="cm">// ══════════════════════════════════════════════════════════════════════
+// SECTION 1: CONSTANTS — values that never change
+// ══════════════════════════════════════════════════════════════════════</span>
+<span class="kw">const int</span>   <span class="var">LED_PIN</span>    = <span class="num">13</span>;   <span class="cm">// built-in LED (digital output)</span>
+<span class="kw">const int</span>   <span class="var">PWM_PIN</span>    = <span class="num">9</span>;    <span class="cm">// external LED with 220Ω resistor (PWM ~)</span>
+<span class="kw">const int</span>   <span class="var">SENSOR_PIN</span> = A0;   <span class="cm">// potentiometer analog input</span>
+<span class="kw">const int</span>   <span class="var">ADC_MAX</span>    = <span class="num">4095</span>; <span class="cm">// 12-bit ADC max (UNO Q STM32 feature!)</span>
+<span class="kw">const float</span> <span class="var">V_REF</span>      = <span class="num">5.0</span>;  <span class="cm">// reference voltage in volts</span>
+<span class="kw">const long</span>  <span class="var">BLINK_MS</span>   = <span class="num">500</span>;  <span class="cm">// blink interval in milliseconds</span>
+
+<span class="cm">// ══════════════════════════════════════════════════════════════════════
+// SECTION 2: GLOBAL VARIABLES — track state across loop() calls
+// ══════════════════════════════════════════════════════════════════════</span>
+<span class="kw">unsigned long</span> <span class="var">lastBlink</span>  = <span class="num">0</span>;    <span class="cm">// timestamp of last blink (millis)</span>
+<span class="kw">bool</span>          <span class="var">ledState</span>   = <span class="kw">false</span>;<span class="cm">// current LED state</span>
+<span class="kw">int</span>           <span class="var">loopCount</span> = <span class="num">0</span>;    <span class="cm">// counts how many times loop() has run</span>
+
+<span class="cm">// ARRAY — store the last 5 sensor readings</span>
+<span class="kw">int</span> <span class="var">readings</span>[<span class="num">5</span>]  = {<span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>};
+<span class="kw">int</span> <span class="var">readIndex</span>   = <span class="num">0</span>;             <span class="cm">// which slot to write next</span>
+
+<span class="cm">// ══════════════════════════════════════════════════════════════════════
+// SECTION 3: FUNCTION DECLARATIONS (prototypes)
+//   C++ needs to know a function exists before it is called.
+//   Declaring them here at the top solves that.
+// ══════════════════════════════════════════════════════════════════════</span>
+<span class="kw">float</span>  <span class="fn">adcToVolts</span>(<span class="kw">int</span> <span class="var">raw</span>);
+<span class="kw">int</span>    <span class="fn">averageReadings</span>();
+<span class="kw">void</span>   <span class="fn">printSensorReport</span>(<span class="kw">int</span> <span class="var">raw</span>, <span class="kw">float</span> <span class="var">volts</span>);
+<span class="cls">String</span> <span class="fn">voltageLevel</span>(<span class="kw">float</span> <span class="var">v</span>);
+
+<span class="cm">// ══════════════════════════════════════════════════════════════════════
+// SECTION 4: setup() — runs ONCE at power-on or reset
+// ══════════════════════════════════════════════════════════════════════</span>
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="cm">// 4a. Configure pin directions</span>
+  <span class="fn">pinMode</span>(<span class="var">LED_PIN</span>, OUTPUT);
+  <span class="fn">pinMode</span>(<span class="var">PWM_PIN</span>, OUTPUT);
+  <span class="cm">// SENSOR_PIN (A0) is analog — no pinMode needed for analog read</span>
+
+  <span class="cm">// 4b. Tell the STM32 to use its 12-bit ADC (UNO Q feature)</span>
+  <span class="fn">analogReadResolution</span>(<span class="num">12</span>);   <span class="cm">// range is now 0–4095 instead of 0–1023</span>
+
+  <span class="cm">// 4c. Open serial communication at 115200 baud</span>
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);
+  <span class="fn">delay</span>(<span class="num">200</span>);                  <span class="cm">// small delay so Serial is stable</span>
+
+  <span class="cm">// 4d. Print a banner to the Serial Monitor</span>
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"╔══════════════════════════╗"</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"║  Arduino UNO Q Starter   ║"</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"╚══════════════════════════╝"</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"STM32U585 MCU running at 115200 baud."</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"ADC resolution set to 12-bit (0-4095)."</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"Send 'H' to turn LED on, 'L' to turn it off."</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>();
+
+  <span class="cm">// 4e. Short startup flash — 3 quick blinks</span>
+  <span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <span class="op">&lt;</span> <span class="num">3</span>; <span class="var">i</span>++) {     <span class="cm">// FOR loop: repeat 3 times</span>
+    <span class="fn">digitalWrite</span>(<span class="var">LED_PIN</span>, HIGH);
+    <span class="fn">delay</span>(<span class="num">80</span>);
+    <span class="fn">digitalWrite</span>(<span class="var">LED_PIN</span>, LOW);
+    <span class="fn">delay</span>(<span class="num">80</span>);
+  }
+}
+
+<span class="cm">// ══════════════════════════════════════════════════════════════════════
+// SECTION 5: loop() — runs forever, over and over
+// ══════════════════════════════════════════════════════════════════════</span>
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="var">loopCount</span>++;
+
+  <span class="cm">// ── 5a. NON-BLOCKING BLINK using millis() ────────────────────────
+  //    millis() returns milliseconds since startup (never resets to 0).
+  //    We compare the DIFFERENCE to BLINK_MS — this way we don't
+  //    freeze the whole sketch with delay() while the LED blinks.</span>
+  <span class="kw">unsigned long</span> <span class="var">now</span> = <span class="fn">millis</span>();
+  <span class="kw">if</span> (<span class="var">now</span> <span class="op">-</span> <span class="var">lastBlink</span> <span class="op">&gt;=</span> <span class="var">BLINK_MS</span>) {
+    <span class="var">lastBlink</span> = <span class="var">now</span>;             <span class="cm">// save when we last blinked</span>
+    <span class="var">ledState</span> = <span class="op">!</span><span class="var">ledState</span>;         <span class="cm">// toggle: if true→false, false→true</span>
+    <span class="fn">digitalWrite</span>(<span class="var">LED_PIN</span>, <span class="var">ledState</span> ? HIGH : LOW);  <span class="cm">// ternary operator</span>
+  }
+
+  <span class="cm">// ── 5b. ANALOG SENSOR READ ───────────────────────────────────────</span>
+  <span class="kw">int</span>   <span class="var">raw</span>   = <span class="fn">analogRead</span>(<span class="var">SENSOR_PIN</span>);   <span class="cm">// 0–4095 (12-bit)</span>
+  <span class="kw">float</span> <span class="var">volts</span> = <span class="fn">adcToVolts</span>(<span class="var">raw</span>);           <span class="cm">// call our function</span>
+
+  <span class="cm">// ── 5c. STORE IN CIRCULAR BUFFER (array with rolling index) ─────</span>
+  <span class="var">readings</span>[<span class="var">readIndex</span>] = <span class="var">raw</span>;
+  <span class="var">readIndex</span> = (<span class="var">readIndex</span> + <span class="num">1</span>) <span class="op">%</span> <span class="num">5</span>;       <span class="cm">// % keeps index 0–4</span>
+
+  <span class="cm">// ── 5d. PWM — map sensor to LED brightness ───────────────────────
+  //    map() rescales raw (0–4095) to PWM range (0–255)</span>
+  <span class="kw">int</span> <span class="var">brightness</span> = <span class="fn">map</span>(<span class="var">raw</span>, <span class="num">0</span>, <span class="var">ADC_MAX</span>, <span class="num">0</span>, <span class="num">255</span>);
+  <span class="fn">analogWrite</span>(<span class="var">PWM_PIN</span>, <span class="var">brightness</span>);
+
+  <span class="cm">// ── 5e. SERIAL COMMAND RECEIVE — check for incoming bytes ────────</span>
+  <span class="kw">if</span> (<span class="fn">Serial</span>.<span class="fn">available</span>() <span class="op">&gt;</span> <span class="num">0</span>) {
+    <span class="kw">char</span> <span class="var">cmd</span> = (<span class="kw">char</span>) <span class="fn">Serial</span>.<span class="fn">read</span>();
+    <span class="kw">switch</span> (<span class="var">cmd</span>) {              <span class="cm">// SWITCH statement</span>
+      <span class="kw">case</span> <span class="str">'H'</span>:
+        <span class="fn">digitalWrite</span>(<span class="var">LED_PIN</span>, HIGH);
+        <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"CMD: LED forced ON"</span>);
+        <span class="kw">break</span>;
+      <span class="kw">case</span> <span class="str">'L'</span>:
+        <span class="fn">digitalWrite</span>(<span class="var">LED_PIN</span>, LOW);
+        <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"CMD: LED forced OFF"</span>);
+        <span class="kw">break</span>;
+      <span class="kw">case</span> <span class="str">'R'</span>:
+        <span class="fn">printSensorReport</span>(<span class="var">raw</span>, <span class="var">volts</span>);  <span class="cm">// print full report</span>
+        <span class="kw">break</span>;
+      <span class="kw">default</span>:
+        <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Unknown command: "</span>);
+        <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">cmd</span>);
+    }
+  }
+
+  <span class="cm">// ── 5f. PRINT REPORT every 100 loops ─────────────────────────────</span>
+  <span class="kw">if</span> (<span class="var">loopCount</span> <span class="op">%</span> <span class="num">100</span> == <span class="num">0</span>) {         <span class="cm">// modulo: every 100th loop</span>
+    <span class="fn">printSensorReport</span>(<span class="var">raw</span>, <span class="var">volts</span>);
+  }
+
+  <span class="fn">delay</span>(<span class="num">10</span>);   <span class="cm">// short delay to avoid flooding Serial</span>
+}
+
+<span class="cm">// ══════════════════════════════════════════════════════════════════════
+// SECTION 6: CUSTOM FUNCTIONS
+// ══════════════════════════════════════════════════════════════════════</span>
+
+<span class="cm">// Convert a 12-bit ADC reading to volts (0.0 to 5.0)
+// Parameter: raw — the integer from analogRead()
+// Returns:   float voltage</span>
+<span class="kw">float</span> <span class="fn">adcToVolts</span>(<span class="kw">int</span> <span class="var">raw</span>) {
+  <span class="kw">return</span> (<span class="kw">float</span>) <span class="var">raw</span> <span class="op">*</span> (<span class="var">V_REF</span> <span class="op">/</span> (<span class="kw">float</span>) <span class="var">ADC_MAX</span>);
+  <span class="cm">// (float) is a cast — forces integer division to become decimal</span>
+}
+
+<span class="cm">// Calculate the average of the last 5 readings
+// No parameters.  Returns: int average value</span>
+<span class="kw">int</span> <span class="fn">averageReadings</span>() {
+  <span class="kw">int</span> <span class="var">sum</span> = <span class="num">0</span>;
+  <span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <span class="op">&lt;</span> <span class="num">5</span>; <span class="var">i</span>++) {   <span class="cm">// loop over array</span>
+    <span class="var">sum</span> += <span class="var">readings</span>[<span class="var">i</span>];
+  }
+  <span class="kw">return</span> <span class="var">sum</span> <span class="op">/</span> <span class="num">5</span>;                  <span class="cm">// integer division is fine for average</span>
+}
+
+<span class="cm">// Classify voltage level as a descriptive string
+// Parameter: v — float voltage
+// Returns:   String label</span>
+<span class="cls">String</span> <span class="fn">voltageLevel</span>(<span class="kw">float</span> <span class="var">v</span>) {
+  <span class="kw">if</span>      (<span class="var">v</span> <span class="op">&gt;</span> <span class="num">4.0</span>) <span class="kw">return</span> <span class="str">"HIGH"</span>;
+  <span class="kw">else if</span> (<span class="var">v</span> <span class="op">&gt;</span> <span class="num">2.0</span>) <span class="kw">return</span> <span class="str">"MEDIUM"</span>;
+  <span class="kw">else</span>               <span class="kw">return</span> <span class="str">"LOW"</span>;
+}
+
+<span class="cm">// Print a formatted sensor report to Serial Monitor
+// Parameters: raw — ADC integer,  volts — float voltage</span>
+<span class="kw">void</span> <span class="fn">printSensorReport</span>(<span class="kw">int</span> <span class="var">raw</span>, <span class="kw">float</span> <span class="var">volts</span>) {
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"── Sensor Report ──"</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>  (<span class="str">"  Raw ADC (12-bit): "</span>); <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">raw</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>  (<span class="str">"  Voltage:         "</span>); <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="var">volts</span>, <span class="num">3</span>); <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">" V"</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>  (<span class="str">"  Level:           "</span>); <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="fn">voltageLevel</span>(<span class="var">volts</span>));
+  <span class="fn">Serial</span>.<span class="fn">print</span>  (<span class="str">"  5-reading avg:   "</span>); <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="fn">averageReadings</span>());
+  <span class="fn">Serial</span>.<span class="fn">print</span>  (<span class="str">"  PWM brightness:  "</span>); <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="fn">map</span>(<span class="var">raw</span>,<span class="num">0</span>,<span class="num">4095</span>,<span class="num">0</span>,<span class="num">255</span>));
+  <span class="fn">Serial</span>.<span class="fn">print</span>  (<span class="str">"  Loop count:      "</span>); <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">loopCount</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>();
+}</pre>
+  </div>
+  <div class="box go">
+    <span class="box-icon">✅</span>
+    <p><strong>What this teaches:</strong> constants, variables, arrays, <code>for</code> loops, <code>if/else if/else</code>, <code>switch</code>, function parameters, return values, non-blocking timing with <code>millis()</code>, ADC read + conversion, PWM output, serial input, and the <code>map()</code> / modulo operators — all in one runnable sketch.</p>
+  </div>
+</section>
+
+<hr class="d"/>
+
+<!-- ╔══════════════════════════════════
+     PART 2: PYTHON LANGUAGE
+══════════════════════════════════════╗ -->
+<div id="py-intro" class="part-header reveal" style="--accent:linear-gradient(90deg,var(--amber),rgba(255,179,64,.05))">
+  <p class="part-n">PART 2 — Python Language</p>
+  <h2>Python for the Arduino UNO Q MPU</h2>
+  <p>Python runs on the Qualcomm MPU under Debian Linux. It handles networking, AI, the LED matrix, and communicates with the C++ sketch via the Bridge library.</p>
+</div>
+
+<section id="py-syntax" class="reveal">
+  <p class="sec-label">// 2.1 — Python Language Outline</p>
+  <h2>The Python Language — Complete Overview</h2>
+  <p>
+    Python is an <strong>interpreted, dynamically typed, high-level language</strong>. You do not declare
+    variable types — Python infers them at runtime. There is no compiler step: you run your
+    <code>.py</code> file and it executes line by line. Python emphasises readability — indentation
+    is <em>not optional</em>, it is the syntax for defining blocks.
+  </p>
+
+  <div class="box warn">
+    <span class="box-icon">⚠</span>
+    <p><strong>Python vs C++ on the UNO Q:</strong> Python runs on the MPU (the Linux side). It <em>cannot</em> call <code>analogRead()</code> directly because the GPIO pins are wired to the MCU. All GPIO pin access from Python goes through the Bridge library.</p>
+  </div>
+
+  <h3>1. Program Structure — No setup() or loop()</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — overall structure</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm"># ─── 1. Imports (like #include in C++) ───────────────────────────────</span>
+<span class="kw">import</span> time
+<span class="kw">import</span> math
+<span class="kw">from</span> arduinoio <span class="kw">import</span> Bridge, LEDMatrix  <span class="cm"># from a module, import specific things</span>
+
+<span class="cm"># ─── 2. Constants / configuration ────────────────────────────────────</span>
+<span class="var">BLINK_DELAY</span> = <span class="num">0.5</span>   <span class="cm"># Python convention: UPPER_CASE for constants</span>
+
+<span class="cm"># ─── 3. Functions — defined with def ─────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">greet</span>(name):
+    <span class="fn">print</span>(<span class="str">f"Hello, {name}!"</span>)
+
+<span class="cm"># ─── 4. Main code block ───────────────────────────────────────────────</span>
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:     <span class="cm"># runs only when this file is executed directly</span>
+    <span class="fn">greet</span>(<span class="str">"UNO Q"</span>)
+
+    <span class="kw">while</span> <span class="kw">True</span>:                <span class="cm"># Python's equivalent of Arduino's loop()</span>
+        <span class="fn">print</span>(<span class="str">"Running..."</span>)
+        time.<span class="fn">sleep</span>(<span class="num">1</span>)          <span class="cm"># sleep in SECONDS (not ms like Arduino)</span></pre>
+  </div>
+
+  <h3>2. Variables and Types — Dynamic Typing</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — variables — no type declaration needed</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm"># No type keyword — Python infers the type from the value</span>
+x       = <span class="num">10</span>            <span class="cm"># int</span>
+y       = <span class="num">3.14</span>          <span class="cm"># float</span>
+name    = <span class="str">"Arduino"</span>     <span class="cm"># str</span>
+active  = <span class="kw">True</span>          <span class="cm"># bool — capital T/F in Python!</span>
+nothing = <span class="kw">None</span>          <span class="cm"># like null in other languages</span>
+
+<span class="cm"># You can check the type:</span>
+<span class="fn">print</span>(<span class="fn">type</span>(x))          <span class="cm"># &lt;class 'int'&gt;</span>
+
+<span class="cm"># Multiple assignment on one line:</span>
+a, b, c = <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>
+
+<span class="cm"># f-strings — embed variables inside strings (like String.format)</span>
+voltage = <span class="num">3.7</span>
+<span class="fn">print</span>(<span class="str">f"Voltage is {voltage:.2f} V"</span>)  <span class="cm"># :.2f = 2 decimal places → 3.70 V</span></pre>
+  </div>
+
+  <h3>3. Collections — Lists, Tuples, Dictionaries</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — collections</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm"># LIST — ordered, mutable (changeable), like an array</span>
+pins  = [<span class="num">9</span>, <span class="num">10</span>, <span class="num">11</span>, <span class="num">13</span>]
+pins.<span class="fn">append</span>(<span class="num">6</span>)          <span class="cm"># add item → [9, 10, 11, 13, 6]</span>
+<span class="fn">print</span>(pins[<span class="num">0</span>])           <span class="cm"># 9 — index starts at 0</span>
+<span class="fn">print</span>(pins[-<span class="num">1</span>])          <span class="cm"># 6 — negative index = from the end</span>
+<span class="fn">print</span>(pins[<span class="num">1</span>:<span class="num">3</span>])         <span class="cm"># [10, 11] — slicing</span>
+
+<span class="cm"># TUPLE — ordered, IMMUTABLE (cannot change after creation)</span>
+coords = (<span class="num">10.5</span>, <span class="num">20.3</span>)    <span class="cm"># use () instead of []</span>
+x, y   = coords          <span class="cm"># unpack into variables</span>
+
+<span class="cm"># DICTIONARY — key : value pairs (like a lookup table)</span>
+sensor = {
+    <span class="str">"name"</span>    : <span class="str">"temperature"</span>,
+    <span class="str">"pin"</span>     : <span class="str">"A0"</span>,
+    <span class="str">"voltage"</span> : <span class="num">3.3</span>,
+    <span class="str">"active"</span>  : <span class="kw">True</span>
+}
+<span class="fn">print</span>(sensor[<span class="str">"name"</span>])    <span class="cm"># temperature</span>
+sensor[<span class="str">"voltage"</span>] = <span class="num">3.5</span> <span class="cm"># update a value</span></pre>
+  </div>
+
+  <h3>4. Operators</h3>
+  <div class="syn-grid">
+    <div class="syn-item">
+      <p class="syn-title">Arithmetic</p>
+      <pre>x + y      <span class="cm"># add</span>
+x - y      <span class="cm"># subtract</span>
+x * y      <span class="cm"># multiply</span>
+x / y      <span class="cm"># divide (always float)</span>
+x // y     <span class="cm"># integer divide (floor)</span>
+x % y      <span class="cm"># modulo (remainder)</span>
+x ** y     <span class="cm"># power (x to the y)</span></pre>
+    </div>
+    <div class="syn-item">
+      <p class="syn-title">Comparison</p>
+      <pre>x == y     <span class="cm"># equal</span>
+x != y     <span class="cm"># not equal</span>
+x &gt;  y     <span class="cm"># greater</span>
+x &lt;  y     <span class="cm"># less</span>
+x &gt;= y     <span class="cm"># greater or equal</span>
+x &lt;= y     <span class="cm"># less or equal</span>
+x is y     <span class="cm"># same object identity</span></pre>
+    </div>
+    <div class="syn-item">
+      <p class="syn-title">Logical</p>
+      <pre>a <span class="kw">and</span> b    <span class="cm"># both true</span>
+a <span class="kw">or</span>  b    <span class="cm"># either true</span>
+<span class="kw">not</span> a      <span class="cm"># flip boolean</span></pre>
+    </div>
+    <div class="syn-item">
+      <p class="syn-title">Membership / Augment</p>
+      <pre>x <span class="kw">in</span> pins  <span class="cm"># is x in the list?</span>
+x += <span class="num">1</span>     <span class="cm"># x = x + 1</span>
+x -= <span class="num">1</span>     <span class="cm"># x = x - 1</span>
+x *= <span class="num">2</span>     <span class="cm"># x = x * 2</span></pre>
+    </div>
+  </div>
+
+  <h3>5. Control Flow</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — if / elif / else</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm"># Note: Python uses elif (not else if), and INDENTATION defines blocks</span>
+voltage = <span class="num">3.7</span>
+
+<span class="kw">if</span> voltage > <span class="num">4.0</span>:
+    <span class="fn">print</span>(<span class="str">"HIGH"</span>)
+<span class="kw">elif</span> voltage > <span class="num">2.0</span>:
+    <span class="fn">print</span>(<span class="str">"MEDIUM"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"LOW"</span>)
+
+<span class="cm"># Ternary (one-liner if/else)</span>
+level = <span class="str">"HIGH"</span> <span class="kw">if</span> voltage > <span class="num">4.0</span> <span class="kw">else</span> <span class="str">"LOW"</span></pre>
+  </div>
+
+  <h3>6. Loops</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — loops</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm"># FOR loop — iterate over a range or a collection</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):          <span class="cm"># i = 0, 1, 2, 3, 4</span>
+    <span class="fn">print</span>(i)
+
+<span class="kw">for</span> pin <span class="kw">in</span> [<span class="num">9</span>, <span class="num">10</span>, <span class="num">11</span>, <span class="num">13</span>]:   <span class="cm"># iterate over a list</span>
+    <span class="fn">print</span>(<span class="str">f"Setting pin {pin}"</span>)
+
+<span class="kw">for</span> i, pin <span class="kw">in</span> <span class="fn">enumerate</span>([<span class="num">9</span>,<span class="num">10</span>,<span class="num">11</span>]):  <span class="cm"># get index and value</span>
+    <span class="fn">print</span>(<span class="str">f"Pin #{i}: {pin}"</span>)
+
+<span class="cm"># WHILE loop — like Arduino's loop() when condition is True</span>
+count = <span class="num">0</span>
+<span class="kw">while</span> count < <span class="num">10</span>:
+    <span class="fn">print</span>(count)
+    count += <span class="num">1</span>
+
+<span class="cm"># break and continue</span>
+<span class="kw">for</span> n <span class="kw">in</span> <span class="fn">range</span>(<span class="num">100</span>):
+    <span class="kw">if</span> n == <span class="num">5</span>: <span class="kw">break</span>      <span class="cm"># exit loop</span>
+    <span class="kw">if</span> n % <span class="num">2</span> == <span class="num">0</span>: <span class="kw">continue</span>  <span class="cm"># skip even numbers</span>
+    <span class="fn">print</span>(n)</pre>
+  </div>
+
+  <h3>7. Functions</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — functions</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm"># Basic function</span>
+<span class="kw">def</span> <span class="fn">greet</span>(name):
+    <span class="fn">print</span>(<span class="str">f"Hello, {name}!"</span>)
+
+<span class="cm"># Function with return value</span>
+<span class="kw">def</span> <span class="fn">adc_to_volts</span>(raw, vref=<span class="num">5.0</span>, resolution=<span class="num">4095</span>):
+    <span class="cm">"""Convert 12-bit ADC to volts. (Docstring documents the function)"""</span>
+    <span class="kw">return</span> raw * (vref / resolution)
+
+<span class="cm"># Call the function</span>
+v = <span class="fn">adc_to_volts</span>(<span class="num">2048</span>)       <span class="cm"># uses defaults: 5.0V ref, 12-bit</span>
+<span class="fn">print</span>(<span class="str">f"{v:.3f} V"</span>)             <span class="cm"># 2.502 V</span>
+
+<span class="cm"># *args — accept any number of positional arguments</span>
+<span class="kw">def</span> <span class="fn">sum_all</span>(*numbers):
+    <span class="kw">return</span> <span class="fn">sum</span>(numbers)
+
+<span class="cm"># **kwargs — accept any number of keyword arguments</span>
+<span class="kw">def</span> <span class="fn">print_info</span>(**data):
+    <span class="kw">for</span> key, val <span class="kw">in</span> data.<span class="fn">items</span>():
+        <span class="fn">print</span>(<span class="str">f"  {key}: {val}"</span>)
+
+<span class="fn">print_info</span>(board=<span class="str">"UNO Q"</span>, pins=<span class="num">14</span>, voltage=<span class="num">5.0</span>)</pre>
+  </div>
+
+  <h3>8. Classes and Objects</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — classes</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">class</span> <span class="cls">Sensor</span>:
+    <span class="cm">"""Represents a sensor connected to the Arduino UNO Q via Bridge."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name, pin):    <span class="cm"># __init__ is the constructor</span>
+        self.name     = name          <span class="cm"># self. = instance variable</span>
+        self.pin      = pin
+        self.readings = []
+
+    <span class="kw">def</span> <span class="fn">add_reading</span>(self, value):
+        self.readings.<span class="fn">append</span>(value)
+
+    <span class="kw">def</span> <span class="fn">average</span>(self):
+        <span class="kw">if</span> <span class="kw">not</span> self.readings:
+            <span class="kw">return</span> <span class="num">0</span>
+        <span class="kw">return</span> <span class="fn">sum</span>(self.readings) / <span class="fn">len</span>(self.readings)
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(self):               <span class="cm"># how to print the object</span>
+        <span class="kw">return</span> <span class="str">f"Sensor({self.name}, pin={self.pin})"</span>
+
+<span class="cm"># Create instances</span>
+temp_sensor = <span class="cls">Sensor</span>(<span class="str">"temperature"</span>, <span class="str">"A0"</span>)
+temp_sensor.<span class="fn">add_reading</span>(<span class="num">23.5</span>)
+temp_sensor.<span class="fn">add_reading</span>(<span class="num">24.1</span>)
+<span class="fn">print</span>(temp_sensor.<span class="fn">average</span>())     <span class="cm"># 23.8</span></pre>
+  </div>
+
+  <h3>9. Exception Handling</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — try / except</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">try</span>:
+    value = <span class="fn">float</span>(bridge.<span class="fn">call</span>(<span class="str">"sensor"</span>).<span class="fn">strip</span>())
+<span class="kw">except</span> <span class="cls">ValueError</span>:
+    <span class="fn">print</span>(<span class="str">"Bridge returned non-numeric data"</span>)
+    value = <span class="num">0.0</span>
+<span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="str">f"Unexpected error: {e}"</span>)
+<span class="kw">finally</span>:                       <span class="cm"># always runs, even if error occurred</span>
+    <span class="fn">print</span>(<span class="str">"Sensor read attempted."</span>)</pre>
+  </div>
+
+  <h3>10. Key Python Built-in Functions</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Function</th><th>Does</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>print()</code></td><td>Output to console</td><td><code>print(f"v = {v:.2f}")</code></td></tr>
+        <tr><td><code>input()</code></td><td>Read a line from user</td><td><code>cmd = input(">> ")</code></td></tr>
+        <tr><td><code>int(), float(), str()</code></td><td>Convert types</td><td><code>v = float("3.7")</code></td></tr>
+        <tr><td><code>len()</code></td><td>Length of a collection</td><td><code>len([1,2,3])</code> → 3</td></tr>
+        <tr><td><code>range(n)</code></td><td>Sequence 0 to n-1</td><td><code>for i in range(5):</code></td></tr>
+        <tr><td><code>enumerate()</code></td><td>Index + value iterator</td><td><code>for i, v in enumerate(list):</code></td></tr>
+        <tr><td><code>sum(), min(), max()</code></td><td>Math on iterables</td><td><code>sum([1,2,3])</code> → 6</td></tr>
+        <tr><td><code>sorted()</code></td><td>Return sorted list</td><td><code>sorted([3,1,2])</code> → [1,2,3]</td></tr>
+        <tr><td><code>open()</code></td><td>Open a file</td><td><code>with open("log.csv","a") as f:</code></td></tr>
+        <tr><td><code>time.sleep(s)</code></td><td>Pause n seconds (float ok)</td><td><code>time.sleep(0.5)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Python Hello World -->
+<section id="py-hello" class="reveal" style="margin-top:3rem">
+  <p class="sec-label">// 2.2 — Hello World</p>
+  <h2>Python Hello World for UNO Q</h2>
+  <p>Python's Hello World on the UNO Q prints to the App Lab console (on the MPU/Linux side) and scrolls text on the 8×13 LED matrix.</p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python</span><span class="cb-file">app/hello_world.py</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">"""
+hello_world.py — Python Hello World for Arduino UNO Q
+Runs on the Qualcomm MPU (Debian Linux side).
+Prints to the console AND scrolls text on the 8x13 LED matrix.
+"""</span>
+<span class="kw">import</span> time
+<span class="kw">from</span> arduinoio <span class="kw">import</span> LEDMatrix  <span class="cm"># pre-installed on UNO Q Debian</span>
+
+<span class="cm"># Create the LED matrix controller</span>
+matrix = <span class="cls">LEDMatrix</span>()
+
+<span class="cm"># Print to the console (App Lab / SSH terminal)</span>
+<span class="fn">print</span>(<span class="str">"Hello, UNO Q!"</span>)
+<span class="fn">print</span>(<span class="str">"Python is running on the Qualcomm QRB2210 MPU."</span>)
+<span class="fn">print</span>(<span class="str">"Debian Linux — full Python 3 environment."</span>)
+
+<span class="cm"># Show a greeting on the onboard LED matrix</span>
+matrix.<span class="fn">print_text</span>(<span class="str">"HELLO"</span>)   <span class="cm"># scrolls the text across the 8x13 matrix</span>
+time.<span class="fn">sleep</span>(<span class="num">3</span>)
+matrix.<span class="fn">clear</span>()
+
+<span class="cm"># A simple loop (like Arduino's loop() function)</span>
+counter = <span class="num">0</span>
+<span class="kw">while</span> <span class="kw">True</span>:
+    counter += <span class="num">1</span>
+    <span class="fn">print</span>(<span class="str">f"Loop #{counter} — Hello from Python on UNO Q MPU"</span>)
+    time.<span class="fn">sleep</span>(<span class="num">1</span>)
+<span class="cm"># Expected output:
+#   Hello, UNO Q!
+#   Python is running on the Qualcomm QRB2210 MPU.
+#   Debian Linux — full Python 3 environment.
+#   Loop #1 — Hello from Python on UNO Q MPU
+#   Loop #2 — ...repeats every second</span></pre>
+  </div>
+</section>
+
+<!-- Python COMPREHENSIVE PROGRAM -->
+<section id="py-program" class="reveal" style="margin-top:3rem">
+  <p class="sec-label">// 2.3 — Comprehensive Beginner Program</p>
+  <h2>Python Starter Program — Covers the Full Language</h2>
+  <p>
+    This program exercises every major Python concept — variables, collections, functions, classes,
+    loops, conditionals, exceptions, file I/O, the LED matrix, and Bridge communication — in a
+    real UNO Q context.
+  </p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — complete beginner program</span><span class="cb-file">app/uno_q_starter.py</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">"""
+uno_q_starter.py
+────────────────────────────────────────────────────────────────────
+Comprehensive beginner Python program for the Arduino UNO Q MPU.
+Covers: variables, f-strings, lists, dicts, functions, classes,
+        for/while loops, if/elif/else, exceptions, file I/O,
+        the LEDMatrix API, and Bridge communication with the MCU sketch.
+────────────────────────────────────────────────────────────────────
+"""</span>
+
+<span class="cm"># ══════════════════════════════════════════════════════════════════════
+# SECTION 1: IMPORTS
+# ══════════════════════════════════════════════════════════════════════</span>
+<span class="kw">import</span> time
+<span class="kw">import</span> math
+<span class="kw">import</span> csv
+<span class="kw">from</span>   datetime  <span class="kw">import</span> datetime
+<span class="kw">from</span>   arduinoio <span class="kw">import</span> Bridge, LEDMatrix
+
+<span class="cm"># ══════════════════════════════════════════════════════════════════════
+# SECTION 2: CONSTANTS
+# ══════════════════════════════════════════════════════════════════════</span>
+<span class="var">POLL_INTERVAL</span> = <span class="num">0.5</span>       <span class="cm"># seconds between sensor polls</span>
+<span class="var">LOG_FILE</span>      = <span class="str">"/home/arduino/sensor_log.csv"</span>
+<span class="var">MAX_READINGS</span>  = <span class="num">100</span>       <span class="cm"># max readings to keep in memory</span>
+<span class="var">ALERT_VOLTAGE</span> = <span class="num">4.0</span>       <span class="cm"># volts — trigger LED matrix alert above this</span>
+
+<span class="cm"># ══════════════════════════════════════════════════════════════════════
+# SECTION 3: UTILITY FUNCTIONS
+# ══════════════════════════════════════════════════════════════════════</span>
+
+<span class="kw">def</span> <span class="fn">adc_to_volts</span>(raw, vref=<span class="num">5.0</span>, resolution=<span class="num">4095</span>):
+    <span class="cm">"""Convert 12-bit ADC integer (0-4095) to voltage (0.0-5.0 V)."""</span>
+    <span class="kw">return</span> raw * (vref / resolution)
+
+
+<span class="kw">def</span> <span class="fn">voltage_level</span>(v):
+    <span class="cm">"""Classify a voltage into a human-readable level."""</span>
+    <span class="kw">if</span>   v > <span class="num">4.0</span>: <span class="kw">return</span> <span class="str">"HIGH"</span>
+    <span class="kw">elif</span> v > <span class="num">2.0</span>: <span class="kw">return</span> <span class="str">"MEDIUM"</span>
+    <span class="kw">else</span>:         <span class="kw">return</span> <span class="str">"LOW"</span>
+
+
+<span class="kw">def</span> <span class="fn">running_average</span>(data):
+    <span class="cm">"""Return the mean of a list of numbers. Handles empty list."""</span>
+    <span class="kw">if</span> <span class="kw">not</span> data:
+        <span class="kw">return</span> <span class="num">0.0</span>
+    <span class="kw">return</span> <span class="fn">sum</span>(data) / <span class="fn">len</span>(data)
+
+
+<span class="kw">def</span> <span class="fn">log_reading</span>(timestamp, raw, voltage):
+    <span class="cm">"""Append one sensor reading to the CSV log file."""</span>
+    <span class="kw">try</span>:
+        <span class="kw">with</span> <span class="fn">open</span>(<span class="var">LOG_FILE</span>, <span class="str">"a"</span>, newline=<span class="str">""</span>) <span class="kw">as</span> f:  <span class="cm"># "a" = append mode</span>
+            writer = csv.<span class="fn">writer</span>(f)
+            writer.<span class="fn">writerow</span>([timestamp, raw, <span class="str">f"{voltage:.3f}"</span>])
+    <span class="kw">except</span> <span class="cls">IOError</span> <span class="kw">as</span> e:
+        <span class="fn">print</span>(<span class="str">f"  [WARNING] Could not write log: {e}"</span>)
+
+
+<span class="kw">def</span> <span class="fn">print_banner</span>():
+    <span class="cm">"""Print a startup banner using a list of strings and a for loop."""</span>
+    lines = [
+        <span class="str">"╔══════════════════════════════╗"</span>,
+        <span class="str">"║   UNO Q Python Starter App   ║"</span>,
+        <span class="str">"║   MPU: Qualcomm QRB2210      ║"</span>,
+        <span class="str">"╚══════════════════════════════╝"</span>
+    ]
+    <span class="kw">for</span> line <span class="kw">in</span> lines:    <span class="cm"># for loop iterating over a list</span>
+        <span class="fn">print</span>(line)
+
+
+<span class="cm"># ══════════════════════════════════════════════════════════════════════
+# SECTION 4: SENSOR CLASS
+# ══════════════════════════════════════════════════════════════════════</span>
+
+<span class="kw">class</span> <span class="cls">AnalogSensor</span>:
+    <span class="cm">"""
+    Represents an analog sensor read from the MCU via the Bridge.
+    Stores history and computes statistics.
+    """</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name: str, bridge_cmd: str):
+        self.name       = name
+        self.bridge_cmd = bridge_cmd   <span class="cm"># the command string to call via Bridge</span>
+        self.history    = []           <span class="cm"># list of raw readings</span>
+        self.alert_count = <span class="num">0</span>
+
+    <span class="kw">def</span> <span class="fn">poll</span>(self, bridge) -> <span class="fn">float</span>:
+        <span class="cm">"""Ask the MCU for the latest reading via Bridge. Returns voltage."""</span>
+        <span class="kw">try</span>:
+            raw    = <span class="fn">int</span>(bridge.<span class="fn">call</span>(self.bridge_cmd).<span class="fn">strip</span>())
+            volts  = <span class="fn">adc_to_volts</span>(raw)
+            self.history.<span class="fn">append</span>(volts)
+            <span class="kw">if</span> <span class="fn">len</span>(self.history) > <span class="var">MAX_READINGS</span>:
+                self.history.<span class="fn">pop</span>(<span class="num">0</span>)   <span class="cm"># keep the list bounded</span>
+            <span class="kw">return</span> volts
+        <span class="kw">except</span> (<span class="cls">ValueError</span>, <span class="cls">Exception</span>) <span class="kw">as</span> e:
+            <span class="fn">print</span>(<span class="str">f"  [{self.name}] Bridge error: {e}"</span>)
+            <span class="kw">return</span> <span class="num">0.0</span>
+
+    <span class="kw">def</span> <span class="fn">average</span>(self) -> <span class="fn">float</span>:
+        <span class="kw">return</span> <span class="fn">running_average</span>(self.history)
+
+    <span class="kw">def</span> <span class="fn">summary</span>(self) -> <span class="fn">dict</span>:
+        <span class="cm">"""Return a dictionary summary of sensor stats."""</span>
+        last = self.history[-<span class="num">1</span>] <span class="kw">if</span> self.history <span class="kw">else</span> <span class="num">0.0</span>
+        <span class="kw">return</span> {
+            <span class="str">"name"</span>    : self.name,
+            <span class="str">"last_v"</span>  : <span class="fn">round</span>(last, <span class="num">3</span>),
+            <span class="str">"avg_v"</span>   : <span class="fn">round</span>(self.<span class="fn">average</span>(), <span class="num">3</span>),
+            <span class="str">"min_v"</span>   : <span class="fn">round</span>(<span class="fn">min</span>(self.history), <span class="num">3</span>) <span class="kw">if</span> self.history <span class="kw">else</span> <span class="num">0</span>,
+            <span class="str">"max_v"</span>   : <span class="fn">round</span>(<span class="fn">max</span>(self.history), <span class="num">3</span>) <span class="kw">if</span> self.history <span class="kw">else</span> <span class="num">0</span>,
+            <span class="str">"samples"</span> : <span class="fn">len</span>(self.history),
+            <span class="str">"level"</span>   : <span class="fn">voltage_level</span>(last)
+        }
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(self):
+        <span class="kw">return</span> <span class="str">f"AnalogSensor('{self.name}', cmd='{self.bridge_cmd}')"</span>
+
+
+<span class="cm"># ══════════════════════════════════════════════════════════════════════
+# SECTION 5: LED MATRIX DISPLAY HELPERS
+# ══════════════════════════════════════════════════════════════════════</span>
+
+<span class="kw">def</span> <span class="fn">matrix_bargraph</span>(matrix, level: <span class="fn">float</span>):
+    <span class="cm">"""
+    Draw a horizontal bar on the 8x13 LED matrix to show level (0.0-1.0).
+    level = 0.0 → no LEDs lit, 1.0 → all 13 columns lit.
+    Uses a 2D list (list of lists) and nested loops.
+    """</span>
+    cols_to_light = <span class="fn">int</span>(level * <span class="num">13</span>)        <span class="cm"># 0-13</span>
+    cols_to_light = <span class="fn">max</span>(<span class="num">0</span>, <span class="fn">min</span>(<span class="num">13</span>, cols_to_light))  <span class="cm"># clamp</span>
+
+    <span class="cm"># Build an 8-row x 13-col grid as a list of lists</span>
+    grid = []
+    <span class="kw">for</span> row <span class="kw">in</span> <span class="fn">range</span>(<span class="num">8</span>):                  <span class="cm"># 8 rows</span>
+        row_data = []
+        <span class="kw">for</span> col <span class="kw">in</span> <span class="fn">range</span>(<span class="num">13</span>):              <span class="cm"># 13 columns</span>
+            <span class="cm"># Light middle 3 rows (rows 2,3,4) for a thick bar</span>
+            lit = (col < cols_to_light) <span class="kw">and</span> (<span class="num">2</span> <= row <= <span class="num">5</span>)
+            row_data.<span class="fn">append</span>(<span class="num">1</span> <span class="kw">if</span> lit <span class="kw">else</span> <span class="num">0</span>)
+        grid.<span class="fn">append</span>(row_data)
+
+    matrix.<span class="fn">set_pattern</span>(grid)
+
+
+<span class="cm"># ══════════════════════════════════════════════════════════════════════
+# SECTION 6: MAIN ENTRY POINT
+# ══════════════════════════════════════════════════════════════════════</span>
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="fn">print_banner</span>()
+
+    <span class="cm"># 6a. Initialise hardware connections</span>
+    bridge = <span class="cls">Bridge</span>()
+    bridge.<span class="fn">begin</span>()                        <span class="cm"># connect to STM32 MCU</span>
+    matrix = <span class="cls">LEDMatrix</span>()
+
+    <span class="cm"># 6b. Create sensor objects</span>
+    sensor_a0 = <span class="cls">AnalogSensor</span>(<span class="str">"Potentiometer"</span>, <span class="str">"sensor_a0"</span>)
+    sensors   = [sensor_a0]               <span class="cm"># a list — add more sensors here</span>
+
+    <span class="cm"># 6c. Show startup animation on matrix</span>
+    matrix.<span class="fn">print_text</span>(<span class="str">"READY"</span>)
+    time.<span class="fn">sleep</span>(<span class="num">2</span>)
+    matrix.<span class="fn">clear</span>()
+
+    <span class="fn">print</span>(<span class="str">"\nPolling sensors. Press Ctrl+C to stop.\n"</span>)
+
+    <span class="cm"># 6d. MAIN LOOP — runs like Arduino's loop()</span>
+    loop_count = <span class="num">0</span>
+    <span class="kw">try</span>:
+        <span class="kw">while</span> <span class="kw">True</span>:
+            loop_count += <span class="num">1</span>
+            now = datetime.<span class="fn">now</span>().<span class="fn">strftime</span>(<span class="str">"%H:%M:%S"</span>)
+
+            <span class="cm"># Poll all sensors</span>
+            <span class="kw">for</span> s <span class="kw">in</span> sensors:              <span class="cm"># iterate over sensor list</span>
+                voltage = s.<span class="fn">poll</span>(bridge)
+
+                <span class="cm"># Update LED matrix bar graph</span>
+                <span class="fn">matrix_bargraph</span>(matrix, voltage / <span class="num">5.0</span>)  <span class="cm"># normalise 0-5V→0-1</span>
+
+                <span class="cm"># Check alert threshold</span>
+                <span class="kw">if</span> voltage > <span class="var">ALERT_VOLTAGE</span>:
+                    s.alert_count += <span class="num">1</span>
+                    <span class="fn">print</span>(<span class="str">f"  ⚡ ALERT [{now}] {s.name}: {voltage:.3f}V"</span>)
+                    matrix.<span class="fn">print_text</span>(<span class="str">"HIGH"</span>)
+                    bridge.<span class="fn">call</span>(<span class="str">"alert"</span>, <span class="str">"1"</span>)   <span class="cm"># tell MCU to flash LED</span>
+
+                <span class="cm"># Log to CSV</span>
+                <span class="fn">log_reading</span>(now, <span class="fn">int</span>(voltage/<span class="num">5.0</span>*<span class="num">4095</span>), voltage)
+
+            <span class="cm"># Print a summary every 20 loops — shows dict iteration</span>
+            <span class="kw">if</span> loop_count % <span class="num">20</span> == <span class="num">0</span>:
+                <span class="fn">print</span>(<span class="str">f"\n── Summary at loop #{loop_count} ──"</span>)
+                <span class="kw">for</span> s <span class="kw">in</span> sensors:
+                    info = s.<span class="fn">summary</span>()          <span class="cm"># returns a dict</span>
+                    <span class="kw">for</span> key, val <span class="kw">in</span> info.<span class="fn">items</span>():   <span class="cm"># iterate dict items</span>
+                        <span class="fn">print</span>(<span class="str">f"  {key:10}: {val}"</span>)
+                <span class="fn">print</span>()
+
+            time.<span class="fn">sleep</span>(<span class="var">POLL_INTERVAL</span>)
+
+    <span class="kw">except</span> <span class="cls">KeyboardInterrupt</span>:           <span class="cm"># Ctrl+C graceful shutdown</span>
+        <span class="fn">print</span>(<span class="str">"\n\n── Shutting down gracefully ──"</span>)
+        bridge.<span class="fn">call</span>(<span class="str">"alert"</span>, <span class="str">"0"</span>)       <span class="cm"># turn off alert LED</span>
+        matrix.<span class="fn">clear</span>()
+        <span class="fn">print</span>(<span class="str">f"Ran {loop_count} loops. Log saved to {LOG_FILE}"</span>)
+
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    <span class="fn">main</span>()</pre>
+  </div>
+  <div class="box go">
+    <span class="box-icon">✅</span>
+    <p><strong>What this teaches:</strong> imports, constants, functions with docstrings, classes, constructors, instance variables, methods, lists, dictionaries, <code>for</code> + <code>while</code> loops, <code>if/elif/else</code>, exception handling (<code>try/except/finally</code>), file I/O (<code>with open()</code>), the <code>arduinoio</code> Bridge API, the LED matrix API, and the main-guard pattern — all in one runnable program.</p>
+  </div>
+</section>
+
+<hr class="d"/>
+
+<!-- ╔══════════════════════════════════
+     PART 3: SKETCHES
+══════════════════════════════════════╗ -->
+<div id="sketches" class="part-header reveal" style="--accent:linear-gradient(90deg,var(--violet),rgba(123,97,255,.05))">
+  <p class="part-n">PART 3 — Arduino Sketches</p>
+  <h2>What Is a Sketch?</h2>
+  <p>A sketch is the name Arduino uses for a program. On the UNO Q, sketches are C++ programs that run on the STM32U585 MCU — the real-time controller brain.</p>
+</div>
+
+<section id="sketch-details" class="reveal">
+  <p>
+    The word "sketch" comes from Arduino's philosophy of rapid, easy prototyping — like sketching an idea quickly.
+    But behind the scenes, a sketch is a real C++ program. The Arduino IDE adds two special functions
+    — <code>setup()</code> and <code>loop()</code> — which every sketch must define.
+  </p>
+
+  <div class="box info">
+    <span class="box-icon">ℹ</span>
+    <p>
+      <strong>Compilation process:</strong> When you press Upload in App Lab or Arduino IDE, the IDE calls the
+      Arduino C++ compiler (arm-none-eabi-g++), which translates your sketch into STM32 machine code.
+      That binary is then flashed to the MCU's flash memory over USB. The MCU stores it even when powered off
+      and runs it every time it powers on.
+    </p>
+  </div>
+
+  <h3>The Upload Flow</h3>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:1.2rem 0;overflow:hidden">
+    <svg viewBox="0 0 760 100" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">
+      <defs><marker id="ar" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3z" fill="#00d4ff"/></marker></defs>
+      <rect x="10"  y="20" width="140" height="60" rx="5" fill="#0c101c" stroke="#00d4ff" stroke-width="1.3"/>
+      <text x="80"  y="48" fill="#00d4ff" font-size="9.5" text-anchor="middle">Your .ino File</text>
+      <text x="80"  y="62" fill="#3a6080" font-size="8"   text-anchor="middle">C++ source code</text>
+      <line x1="150" y1="50" x2="200" y2="50" stroke="#00d4ff" stroke-width="1.3" marker-end="url(#ar)"/>
+      <rect x="200" y="20" width="140" height="60" rx="5" fill="#0c101c" stroke="#7b61ff" stroke-width="1.3"/>
+      <text x="270" y="48" fill="#7b61ff" font-size="9.5" text-anchor="middle">arm-none-eabi</text>
+      <text x="270" y="62" fill="#3a4080" font-size="8"   text-anchor="middle">C++ Compiler</text>
+      <line x1="340" y1="50" x2="390" y2="50" stroke="#00d4ff" stroke-width="1.3" marker-end="url(#ar)"/>
+      <rect x="390" y="20" width="140" height="60" rx="5" fill="#0c101c" stroke="#ffb340" stroke-width="1.3"/>
+      <text x="460" y="48" fill="#ffb340" font-size="9.5" text-anchor="middle">Machine Code</text>
+      <text x="460" y="62" fill="#4a3a20" font-size="8"   text-anchor="middle">ARM binary .bin</text>
+      <line x1="530" y1="50" x2="580" y2="50" stroke="#00d4ff" stroke-width="1.3" marker-end="url(#ar)"/>
+      <rect x="580" y="20" width="170" height="60" rx="5" fill="#0c101c" stroke="#2af598" stroke-width="1.3"/>
+      <text x="665" y="48" fill="#2af598" font-size="9.5" text-anchor="middle">STM32U585 Flash</text>
+      <text x="665" y="62" fill="#1a4030" font-size="8"   text-anchor="middle">Runs on power-on</text>
+    </svg>
+  </div>
+
+  <h3>Sketch 1 — LED Blink with Non-Blocking Timing</h3>
+  <p>The <code>millis()</code>-based approach is the professional way to blink — <code>delay()</code> stops everything including Bridge communication.</p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — non-blocking blink</span><span class="cb-file">sketch/blink_nonblocking.ino</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">const int</span> <span class="var">LED</span>         = <span class="num">13</span>;
+<span class="kw">const long</span> <span class="var">INTERVAL</span>   = <span class="num">500</span>;    <span class="cm">// milliseconds</span>
+
+<span class="kw">unsigned long</span> <span class="var">prevMs</span>  = <span class="num">0</span>;
+<span class="kw">bool</span>          <span class="var">state</span>   = <span class="kw">false</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="var">LED</span>, OUTPUT);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">unsigned long</span> <span class="var">now</span> = <span class="fn">millis</span>();
+  <span class="kw">if</span> (<span class="var">now</span> - <span class="var">prevMs</span> >= <span class="var">INTERVAL</span>) {
+    <span class="var">prevMs</span> = <span class="var">now</span>;
+    <span class="var">state</span>  = !<span class="var">state</span>;
+    <span class="fn">digitalWrite</span>(<span class="var">LED</span>, <span class="var">state</span>);
+  }
+  <span class="cm">// Other code here runs freely — not blocked by the blink timing</span>
+}</pre>
+  </div>
+
+  <h3>Sketch 2 — Read a Button with Debounce</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — button debounce</span><span class="cb-file">sketch/button_debounce.ino</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// Button on D2 (wire button between D2 and GND — use INPUT_PULLUP)
+// Debounce: ignore state changes shorter than 50 ms (bounce noise)</span>
+<span class="kw">const int</span> <span class="var">BTN</span>   = <span class="num">2</span>;
+<span class="kw">const int</span> <span class="var">LED</span>   = <span class="num">13</span>;
+<span class="kw">const int</span> <span class="var">DEBOUNCE_MS</span> = <span class="num">50</span>;
+
+<span class="kw">int</span>  <span class="var">lastBtnState</span>  = HIGH;
+<span class="kw">int</span>  <span class="var">btnState</span>      = HIGH;
+<span class="kw">bool</span> <span class="var">ledOn</span>         = <span class="kw">false</span>;
+<span class="kw">unsigned long</span> <span class="var">lastDebounce</span> = <span class="num">0</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="var">BTN</span>, INPUT_PULLUP);   <span class="cm">// internal pull-up → reads HIGH when not pressed</span>
+  <span class="fn">pinMode</span>(<span class="var">LED</span>, OUTPUT);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">int</span> <span class="var">reading</span> = <span class="fn">digitalRead</span>(<span class="var">BTN</span>);
+
+  <span class="kw">if</span> (<span class="var">reading</span> != <span class="var">lastBtnState</span>) {   <span class="cm">// state changed → restart debounce timer</span>
+    <span class="var">lastDebounce</span> = <span class="fn">millis</span>();
+  }
+
+  <span class="kw">if</span> ((<span class="fn">millis</span>() - <span class="var">lastDebounce</span>) > <span class="var">DEBOUNCE_MS</span>) {
+    <span class="kw">if</span> (<span class="var">reading</span> != <span class="var">btnState</span>) {
+      <span class="var">btnState</span> = <span class="var">reading</span>;
+      <span class="kw">if</span> (<span class="var">btnState</span> == LOW) {      <span class="cm">// LOW = button pressed (INPUT_PULLUP)</span>
+        <span class="var">ledOn</span> = !<span class="var">ledOn</span>;          <span class="cm">// toggle LED on each press</span>
+        <span class="fn">digitalWrite</span>(<span class="var">LED</span>, <span class="var">ledOn</span>);
+      }
+    }
+  }
+  <span class="var">lastBtnState</span> = <span class="var">reading</span>;
+}</pre>
+  </div>
+
+  <h3>Sketch 3 — I²C Sensor with Wire Library</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — I²C with Wire.h</span><span class="cb-file">sketch/i2c_sensor.ino</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="inc">#include &lt;Wire.h&gt;</span>         <span class="cm">// I²C library — SDA=A4, SCL=A5</span>
+
+<span class="kw">const int</span> <span class="var">SENSOR_ADDR</span> = <span class="num">0x48</span>;  <span class="cm">// I²C address (hexadecimal)</span>
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Wire</span>.<span class="fn">begin</span>();                  <span class="cm">// start I²C as master</span>
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="fn">Wire</span>.<span class="fn">beginTransmission</span>(<span class="var">SENSOR_ADDR</span>);
+  <span class="fn">Wire</span>.<span class="fn">write</span>(<span class="num">0x00</span>);             <span class="cm">// request register 0 (temperature)</span>
+  <span class="fn">Wire</span>.<span class="fn">endTransmission</span>();
+
+  <span class="fn">Wire</span>.<span class="fn">requestFrom</span>(<span class="var">SENSOR_ADDR</span>, <span class="num">2</span>);  <span class="cm">// read 2 bytes</span>
+  <span class="kw">if</span> (<span class="fn">Wire</span>.<span class="fn">available</span>() >= <span class="num">2</span>) {
+    <span class="kw">int</span> <span class="var">msb</span>  = <span class="fn">Wire</span>.<span class="fn">read</span>();
+    <span class="kw">int</span> <span class="var">lsb</span>  = <span class="fn">Wire</span>.<span class="fn">read</span>();
+    <span class="kw">int</span> <span class="var">raw</span>  = (<span class="var">msb</span> &lt;&lt; <span class="num">8</span>) | <span class="var">lsb</span>;  <span class="cm">// combine bytes with bit shift</span>
+    <span class="kw">float</span> <span class="var">temp</span> = <span class="var">raw</span> <span class="op">*</span> <span class="num">0.0625</span>;      <span class="cm">// sensor-specific formula</span>
+    <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Temp: "</span>);
+    <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="var">temp</span>, <span class="num">2</span>);
+    <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">" °C"</span>);
+  }
+  <span class="fn">delay</span>(<span class="num">1000</span>);
+}</pre>
+  </div>
+</section>
+
+<hr class="d"/>
+
+<!-- ╔══════════════════════════════════
+     PART 4: BRIDGE
+══════════════════════════════════════╗ -->
+<div id="bridge" class="part-header reveal" style="--accent:linear-gradient(90deg,#c792ea,rgba(199,146,234,.05))">
+  <p class="part-n">PART 4 — The Bridge Library</p>
+  <h2>Connecting Python and C++ on the UNO Q</h2>
+  <p>The Bridge is the most powerful and unique feature of the UNO Q. It lets Python (MPU) call functions defined in the C++ sketch (MCU) — and vice versa — over a high-speed internal bus.</p>
+</div>
+
+<section id="bridge-details" class="reveal">
+
+  <h3>Why the Bridge Exists</h3>
+  <p>
+    Python on the MPU cannot call <code>analogRead()</code> — that function is part of the Arduino core
+    running on the STM32 MCU chip. The Bridge creates a named function registry: the C++ sketch registers
+    handlers by name, and Python calls them by name. The internal bus handles the data transfer.
+  </p>
+
+  <!-- Flow diagram -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:1.2rem 0;overflow:hidden">
+    <svg viewBox="0 0 760 130" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">
+      <defs>
+        <marker id="ac" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#00d4ff"/></marker>
+        <marker id="av" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#7b61ff"/></marker>
+        <marker id="ap" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#c792ea"/></marker>
+      </defs>
+      <rect x="10"  y="30" width="175" height="70" rx="5" fill="#0c101c" stroke="#00d4ff" stroke-width="1.3"/>
+      <text x="97"  y="62" fill="#00d4ff" font-size="10" text-anchor="middle" font-weight="bold">Python (MPU)</text>
+      <text x="97"  y="78" fill="#3a6080" font-size="8.5" text-anchor="middle">bridge.call("sensor")</text>
+      <text x="97"  y="91" fill="#3a6080" font-size="7.5" text-anchor="middle">Qualcomm Linux</text>
+      <rect x="293" y="20" width="174" height="90" rx="5" fill="#0a0e1a" stroke="#c792ea" stroke-width="1.3" stroke-dasharray="5 3"/>
+      <text x="380" y="52" fill="#c792ea" font-size="10" text-anchor="middle" font-weight="bold">Bridge Bus (RPC)</text>
+      <text x="380" y="68" fill="#4a3a60" font-size="8.5" text-anchor="middle">high-speed internal link</text>
+      <text x="380" y="82" fill="#4a3a60" font-size="8.5" text-anchor="middle">named function calls</text>
+      <rect x="575" y="30" width="175" height="70" rx="5" fill="#0c0c1a" stroke="#7b61ff" stroke-width="1.3"/>
+      <text x="662" y="62" fill="#7b61ff" font-size="10" text-anchor="middle" font-weight="bold">C++ Sketch (MCU)</text>
+      <text x="662" y="78" fill="#3a4080" font-size="8.5" text-anchor="middle">addHandler("sensor", fn)</text>
+      <text x="662" y="91" fill="#3a4080" font-size="7.5" text-anchor="middle">STM32 Zephyr</text>
+      <line x1="185" y1="60" x2="291" y2="60" stroke="#00d4ff" stroke-width="1.3" marker-end="url(#ac)"/>
+      <text x="238" y="52" fill="#00d4ff" font-size="8" text-anchor="middle">call</text>
+      <line x1="467" y1="55" x2="573" y2="55" stroke="#c792ea" stroke-width="1.3" marker-end="url(#ap)"/>
+      <line x1="573" y1="72" x2="467" y2="72" stroke="#7b61ff" stroke-width="1.3" marker-end="url(#av)"/>
+      <text x="520" y="50" fill="#c792ea" font-size="7.5" text-anchor="middle">request</text>
+      <text x="520" y="82" fill="#7b61ff" font-size="7.5" text-anchor="middle">response</text>
+    </svg>
+  </div>
+
+  <h3>Complete Bridge Project — Sensor + LED Control</h3>
+  <p>This is a <strong>two-file project</strong> — one file per brain. They work together as a single system.</p>
+
+  <div class="compare">
+    <div>
+      <span class="compare-col-head cpp-head">MCU Side — C++ Sketch</span>
+      <div class="cb" style="margin-top:.5rem">
+        <div class="cb-head"><span class="cb-lang">C++</span><span class="cb-file">sketch/sketch.ino</span><div class="dots"><span></span><span></span><span></span></div></div>
+        <pre><span class="inc">#include &lt;Bridge.h&gt;</span>
+
+<span class="kw">const int</span> <span class="var">LED</span>    = <span class="num">13</span>;
+<span class="kw">const int</span> <span class="var">SENSOR</span> = A0;
+
+<span class="cm">// Handler: Python calls "sensor_a0"
+// Reads A0 and sends raw value back.</span>
+<span class="kw">void</span> <span class="fn">h_sensor</span>(<span class="cls">BridgeClient</span>&amp; <span class="var">c</span>) {
+  <span class="fn">analogReadResolution</span>(<span class="num">12</span>);
+  <span class="kw">int</span> <span class="var">raw</span> = <span class="fn">analogRead</span>(<span class="var">SENSOR</span>);
+  <span class="var">c</span>.<span class="fn">println</span>(<span class="var">raw</span>);   <span class="cm">// send to Python</span>
+}
+
+<span class="cm">// Handler: Python calls "alert"
+// Reads "1" or "0" → flash or clear.</span>
+<span class="kw">void</span> <span class="fn">h_alert</span>(<span class="cls">BridgeClient</span>&amp; <span class="var">c</span>) {
+  <span class="cls">String</span> <span class="var">v</span> = <span class="var">c</span>.<span class="fn">readStringUntil</span>(<span class="str">'\n'</span>).<span class="fn">trim</span>();
+  <span class="fn">digitalWrite</span>(<span class="var">LED</span>, (<span class="var">v</span> == <span class="str">"1"</span>) ? HIGH : LOW);
+  <span class="var">c</span>.<span class="fn">println</span>(<span class="str">"OK"</span>);
+}
+
+<span class="cls">BridgeServer</span> <span class="var">server</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Bridge</span>.<span class="fn">begin</span>();
+  <span class="fn">pinMode</span>(<span class="var">LED</span>, OUTPUT);
+  <span class="var">server</span>.<span class="fn">begin</span>();
+  <span class="var">server</span>.<span class="fn">addHandler</span>(<span class="str">"sensor_a0"</span>, h_sensor);
+  <span class="var">server</span>.<span class="fn">addHandler</span>(<span class="str">"alert"</span>,    h_alert);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="cm">// MUST be in loop() to keep Bridge alive</span>
+  <span class="var">server</span>.<span class="fn">process</span>();
+}</pre>
+      </div>
+    </div>
+    <div>
+      <span class="compare-col-head py-head">MPU Side — Python App</span>
+      <div class="cb" style="margin-top:.5rem">
+        <div class="cb-head"><span class="cb-lang">Python</span><span class="cb-file">app/main.py</span><div class="dots"><span></span><span></span><span></span></div></div>
+        <pre><span class="kw">from</span> arduinoio <span class="kw">import</span> Bridge, LEDMatrix
+<span class="kw">import</span> time
+
+bridge = <span class="cls">Bridge</span>()
+bridge.<span class="fn">begin</span>()
+matrix = <span class="cls">LEDMatrix</span>()
+
+<span class="fn">print</span>(<span class="str">"Bridge connected. Polling A0..."</span>)
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="cm"># Call the MCU handler "sensor_a0"</span>
+    raw_str = bridge.<span class="fn">call</span>(<span class="str">"sensor_a0"</span>)
+    raw     = <span class="fn">int</span>(raw_str.<span class="fn">strip</span>())
+    volts   = raw * (<span class="num">5.0</span> / <span class="num">4095</span>)
+
+    <span class="fn">print</span>(<span class="str">f"A0: {raw:4d} raw | {volts:.3f} V"</span>)
+
+    <span class="cm"># Show voltage on LED matrix</span>
+    matrix.<span class="fn">print_text</span>(<span class="str">f"{volts:.1f}V"</span>)
+
+    <span class="cm"># If voltage high → turn on alert LED via Bridge</span>
+    <span class="kw">if</span> volts > <span class="num">4.0</span>:
+        bridge.<span class="fn">call</span>(<span class="str">"alert"</span>, <span class="str">"1"</span>)
+    <span class="kw">else</span>:
+        bridge.<span class="fn">call</span>(<span class="str">"alert"</span>, <span class="str">"0"</span>)
+
+    time.<span class="fn">sleep</span>(<span class="num">0.5</span>)
+</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="d"/>
+
+<!-- ╔══════════════════════════════════
+     PART 5: HARDWARE ENGAGEMENT
+══════════════════════════════════════╗ -->
+<div id="hardware-code" class="part-header reveal" style="--accent:linear-gradient(90deg,var(--green),rgba(42,245,152,.05))">
+  <p class="part-n">PART 5 — Engaging the Hardware</p>
+  <h2>Controlling Real-World Electronics</h2>
+  <p>This section shows how code turns into electricity and how electricity turns into sensor data in code.</p>
+</div>
+
+<section id="hw-gpio" class="reveal">
+
+  <h3>Digital Output — Turning Things ON and OFF</h3>
+  <p>
+    A digital output pin outputs either <strong>5 V (HIGH)</strong> or <strong>0 V (LOW)</strong>.
+    This controls LEDs, relays, buzzers, and transistors. Always add a current-limiting resistor
+    (220Ω–1kΩ) in series with an LED.
+  </p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Circuit Element</th><th>Connect To</th><th>Code</th></tr></thead>
+      <tbody>
+        <tr><td>LED anode (+)</td><td>D13 via 220Ω resistor</td><td><code>digitalWrite(13, HIGH);</code></td></tr>
+        <tr><td>LED cathode (−)</td><td>GND</td><td><code>digitalWrite(13, LOW);</code></td></tr>
+        <tr><td>Buzzer +</td><td>D8 via 100Ω resistor</td><td><code>digitalWrite(8, HIGH);</code></td></tr>
+        <tr><td>Relay signal</td><td>D7 via transistor</td><td><code>digitalWrite(7, HIGH);</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Digital Input — Reading Buttons and Switches</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — digital input patterns</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// Pattern 1: External pull-down (button → 5V, resistor → GND)
+//   → reads LOW when open, HIGH when pressed</span>
+<span class="fn">pinMode</span>(<span class="num">2</span>, INPUT);
+<span class="kw">int</span> <span class="var">s</span> = <span class="fn">digitalRead</span>(<span class="num">2</span>);    <span class="cm">// HIGH = pressed</span>
+
+<span class="cm">// Pattern 2: Internal pull-up (button → GND, no resistor needed!)
+//   → reads HIGH when open, LOW when pressed</span>
+<span class="fn">pinMode</span>(<span class="num">2</span>, INPUT_PULLUP);   <span class="cm">// enables STM32's internal 40kΩ pull-up</span>
+<span class="kw">int</span> <span class="var">s</span> = <span class="fn">digitalRead</span>(<span class="num">2</span>);    <span class="cm">// LOW = pressed (counter-intuitive but simpler wiring)</span>
+
+<span class="cm">// Pattern 3: External interrupt — reacts INSTANTLY without polling loop()</span>
+<span class="kw">void</span> <span class="fn">onButtonPress</span>() {
+  <span class="cm">// This function runs immediately on button press</span>
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"Button pressed!"</span>);
+}
+<span class="fn">attachInterrupt</span>(<span class="fn">digitalPinToInterrupt</span>(<span class="num">2</span>), onButtonPress, FALLING);</pre>
+  </div>
+
+  <h3>Analog Input — Reading Sensors (A0–A5)</h3>
+  <p>
+    Analog pins accept a voltage between 0 V and 5 V and convert it to a number.
+    On the UNO Q's STM32U585, you can choose 10-bit (0–1023) or 12-bit (0–4095) resolution.
+    <strong>Always call <code>analogReadResolution(12)</code> in setup() on the UNO Q.</strong>
+  </p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — analog read + conversions</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">analogReadResolution</span>(<span class="num">12</span>);   <span class="cm">// set STM32 to 12-bit mode</span>
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">int</span>   <span class="var">raw</span>    = <span class="fn">analogRead</span>(A0);             <span class="cm">// 0–4095</span>
+  <span class="kw">float</span> <span class="var">volts</span>  = <span class="var">raw</span> * (<span class="num">5.0</span> / <span class="num">4095.0</span>);        <span class="cm">// convert to volts</span>
+  <span class="kw">int</span>   <span class="var">mapped</span> = <span class="fn">map</span>(<span class="var">raw</span>, <span class="num">0</span>, <span class="num">4095</span>, <span class="num">0</span>, <span class="num">100</span>);  <span class="cm">// convert to percentage</span>
+
+  <span class="cm">// Practical sensor formulas (depends on sensor datasheet):</span>
+  <span class="cm">// NTC thermistor: requires Steinhart-Hart equation</span>
+  <span class="cm">// LM35 temp sensor: volts × 100 = °C  (e.g., 0.25V → 25°C)</span>
+  <span class="cm">// LDR (light): raw → brighter = higher raw value</span>
+
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Raw="</span>); <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="var">raw</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">" V="</span>);  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="var">volts</span>, <span class="num">3</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">" %="</span>);  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">mapped</span>);
+  <span class="fn">delay</span>(<span class="num">100</span>);
+}</pre>
+  </div>
+
+  <h3>PWM Output — Analog-Like Control</h3>
+  <p>
+    PWM (Pulse Width Modulation) rapidly switches a pin ON and OFF at high frequency.
+    The ratio of ON time to OFF time (the <em>duty cycle</em>) creates an apparent analog voltage.
+    Use it to dim LEDs, control motor speed, and drive servos.
+  </p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — PWM patterns</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="cm">// analogWrite() only works on PWM-capable pins: D3, D5, D6, D9, D10, D11</span>
+
+<span class="cm">// Dim LED connected to D9 to 50% brightness</span>
+<span class="fn">analogWrite</span>(<span class="num">9</span>, <span class="num">128</span>);         <span class="cm">// 128/255 ≈ 50% duty cycle</span>
+<span class="fn">analogWrite</span>(<span class="num">9</span>, <span class="num">0</span>);           <span class="cm">// fully off</span>
+<span class="fn">analogWrite</span>(<span class="num">9</span>, <span class="num">255</span>);         <span class="cm">// fully on</span>
+
+<span class="cm">// Fade in: map potentiometer (0-4095) to brightness (0-255)</span>
+<span class="kw">int</span> <span class="var">brightness</span> = <span class="fn">map</span>(<span class="fn">analogRead</span>(A0), <span class="num">0</span>, <span class="num">4095</span>, <span class="num">0</span>, <span class="num">255</span>);
+<span class="fn">analogWrite</span>(<span class="num">9</span>, <span class="var">brightness</span>);
+
+<span class="cm">// Control a servo (90° sweep). Servo signal pin → D9</span>
+<span class="cm">// PWM period for servo: 1ms (0°) to 2ms (180°) every 20ms</span>
+<span class="cm">// Use the Servo.h library for proper servo control:</span>
+<span class="inc">#include &lt;Servo.h&gt;</span>
+<span class="cls">Servo</span> <span class="var">myServo</span>;
+<span class="kw">void</span> <span class="fn">setup</span>() { <span class="var">myServo</span>.<span class="fn">attach</span>(<span class="num">9</span>); }
+<span class="kw">void</span> <span class="fn">loop</span>()  { <span class="var">myServo</span>.<span class="fn">write</span>(<span class="num">90</span>); } <span class="cm">// 0° to 180°</span></pre>
+  </div>
+
+  <h3>Serial Communication — Talking to Python / PC</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">C++ — serial send and receive</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);
+  <span class="kw">while</span> (!<span class="fn">Serial</span>);              <span class="cm">// wait for Serial Monitor to connect</span>
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="cm">// SEND — print formatted data</span>
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"SENSOR:"</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="fn">analogRead</span>(A0));  <span class="cm">// e.g. "SENSOR:2048"</span>
+
+  <span class="cm">// RECEIVE — read one character</span>
+  <span class="kw">if</span> (<span class="fn">Serial</span>.<span class="fn">available</span>() > <span class="num">0</span>) {
+    <span class="cls">String</span> <span class="var">msg</span> = <span class="fn">Serial</span>.<span class="fn">readStringUntil</span>(<span class="str">'\n'</span>);  <span class="cm">// read until newline</span>
+    <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Received: "</span>);
+    <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">msg</span>);
+  }
+  <span class="fn">delay</span>(<span class="num">200</span>);
+}</pre>
+  </div>
+
+  <h3>The UNO Q LED Matrix — Python Side</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">Python — LED matrix patterns</span><span class="cb-file">app/matrix_demo.py</span><div class="dots"><span></span><span></span><span></span></div></div>
+    <pre><span class="kw">from</span> arduinoio <span class="kw">import</span> LEDMatrix
+<span class="kw">import</span> time
+
+matrix = <span class="cls">LEDMatrix</span>()
+
+<span class="cm"># 1. Scroll text across the 8×13 matrix</span>
+matrix.<span class="fn">print_text</span>(<span class="str">"Hello!"</span>)
+time.<span class="fn">sleep</span>(<span class="num">3</span>)
+
+<span class="cm"># 2. Light a single pixel at row 0, column 0</span>
+matrix.<span class="fn">clear</span>()
+matrix.<span class="fn">set_pixel</span>(<span class="num">0</span>, <span class="num">0</span>, <span class="kw">True</span>)
+time.<span class="fn">sleep</span>(<span class="num">1</span>)
+
+<span class="cm"># 3. Draw a pattern using a 2D list (8 rows × 13 cols)
+#    1 = lit,  0 = dark</span>
+<span class="var">smiley</span> = [
+    [<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],   <span class="cm"># eyes</span>
+    [<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],
+    [<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>],   <span class="cm"># mouth corners</span>
+    [<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],  <span class="cm"># mouth</span>
+    [<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],
+    [<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],
+    [<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],
+    [<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],
+]
+matrix.<span class="fn">set_pattern</span>(<span class="var">smiley</span>)
+time.<span class="fn">sleep</span>(<span class="num">3</span>)
+
+<span class="cm"># 4. Animated loop — scroll a column of lights left to right</span>
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="kw">for</span> col <span class="kw">in</span> <span class="fn">range</span>(<span class="num">13</span>):            <span class="cm"># for each of the 13 columns</span>
+        matrix.<span class="fn">clear</span>()
+        <span class="kw">for</span> row <span class="kw">in</span> <span class="fn">range</span>(<span class="num">8</span>):          <span class="cm"># light all 8 LEDs in that column</span>
+            matrix.<span class="fn">set_pixel</span>(row, col, <span class="kw">True</span>)
+        time.<span class="fn">sleep</span>(<span class="num">0.05</span>)             <span class="cm"># 50ms per column</span></pre>
+  </div>
+
+  <h3>Common Hardware Mistakes to Avoid</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Mistake</th><th>Symptom</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>Connecting LED directly to pin without resistor</td><td>Pin damaged or dim LED</td><td>Always use 220Ω–1kΩ in series</td></tr>
+        <tr><td>Forgetting <code>analogReadResolution(12)</code></td><td>Sensor values top out at 1023</td><td>Call it in <code>setup()</code></td></tr>
+        <tr><td>Using <code>delay()</code> with Bridge active</td><td>Python calls time out</td><td>Use <code>millis()</code> non-blocking timing</td></tr>
+        <tr><td>Calling <code>analogRead()</code> from Python</td><td>AttributeError — function not found</td><td>Call it from C++ sketch; Bridge the result</td></tr>
+        <tr><td>Wire connected to wrong pin numbering</td><td>No response</td><td>D-pins are digital; A-pins are on the lower header</td></tr>
+        <tr><td>Forgetting <code>server.process()</code> in loop()</td><td>Bridge calls never answered</td><td>Put it as first line in <code>loop()</code></td></tr>
+        <tr><td>5V logic into a 3.3V sensor</td><td>Sensor damaged</td><td>Check sensor datasheet; use level-shifter if needed</td></tr>
+        <tr><td>Expecting Wi-Fi from C++ sketch</td><td>Sketch compiles but can't connect</td><td>All Wi-Fi code goes in Python on the MPU side</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="d"/>
+
+<!-- ╔══════════════════════════════════
+     QUICK REFERENCE CHEAT SHEET
+══════════════════════════════════════╗ -->
+<section class="reveal">
+  <p class="sec-label">// Quick Reference</p>
+  <h2>C++ vs Python — Side-by-Side Syntax</h2>
+
+  <div class="compare">
+    <div>
+      <span class="compare-col-head cpp-head">C++ (MCU Sketch)</span>
+      <div class="cb" style="margin-top:.5rem">
+        <div class="cb-head"><span class="cb-lang">C++ syntax cheatsheet</span><div class="dots"><span></span><span></span><span></span></div></div>
+        <pre><span class="cm">// Comments like this</span>
+<span class="kw">int</span> x = <span class="num">10</span>;          <span class="cm">// typed variable</span>
+<span class="kw">const int</span> Y = <span class="num">5</span>;      <span class="cm">// constant</span>
+
+<span class="kw">if</span> (x > <span class="num">5</span>) {         <span class="cm">// condition in ()</span>
+  <span class="cm">// body in { }</span>
+} <span class="kw">else if</span> (x == <span class="num">3</span>) {
+} <span class="kw">else</span> {}
+
+<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>;i<<span class="num">5</span>;i++){ }
+<span class="kw">while</span>(condition){ }
+
+<span class="kw">void</span> <span class="fn">myFn</span>(<span class="kw">int</span> param){ }
+<span class="kw">int</span>  <span class="fn">add</span>(<span class="kw">int</span> a,<span class="kw">int</span> b){
+  <span class="kw">return</span> a+b;
+}
+
+<span class="cls">String</span> s = <span class="str">"hello"</span>;   <span class="cm">// string</span>
+<span class="kw">int</span> arr[<span class="num">3</span>]={<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>};  <span class="cm">// array</span>
+arr[<span class="num">0</span>];               <span class="cm">// index</span>
+<span class="fn">Serial</span>.<span class="fn">println</span>(x);    <span class="cm">// print</span>
+<span class="fn">delay</span>(<span class="num">1000</span>);          <span class="cm">// wait ms</span></pre>
+      </div>
+    </div>
+    <div>
+      <span class="compare-col-head py-head">Python (MPU App)</span>
+      <div class="cb" style="margin-top:.5rem">
+        <div class="cb-head"><span class="cb-lang">Python syntax cheatsheet</span><div class="dots"><span></span><span></span><span></span></div></div>
+        <pre><span class="cm"># Comments like this</span>
+x = <span class="num">10</span>               <span class="cm"># no type keyword</span>
+Y = <span class="num">5</span>                <span class="cm"># UPPER = convention</span>
+
+<span class="kw">if</span> x > <span class="num">5</span>:             <span class="cm"># no parens needed</span>
+    pass               <span class="cm"># body INDENTED</span>
+<span class="kw">elif</span> x == <span class="num">3</span>:
+    pass
+<span class="kw">else</span>:
+    pass
+
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>): pass
+<span class="kw">while</span> condition: pass
+
+<span class="kw">def</span> <span class="fn">my_fn</span>(param): pass
+<span class="kw">def</span> <span class="fn">add</span>(a, b):
+    <span class="kw">return</span> a + b
+
+s = <span class="str">"hello"</span>           <span class="cm"># string</span>
+arr = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]       <span class="cm"># list</span>
+arr[<span class="num">0</span>]                <span class="cm"># index</span>
+<span class="fn">print</span>(x)              <span class="cm"># print</span>
+time.<span class="fn">sleep</span>(<span class="num">1</span>)         <span class="cm"># wait s</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<!-- ════════ FOOTER ════════ -->
+<footer>
+  <em>Arduino UNO Q Complete Guide</em> — C++ · Python · Sketches · Bridge · Hardware
+  <span style="color:var(--text-dim)">Qualcomm QRB2210 MPU · STM32U585 MCU · 2025</span>
+</footer>
+
+<!-- ════════ SCRIPTS ════════ -->
+<script>
+// Progress bar
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  if (h > 0) prog.style.width = Math.round(window.scrollY / h * 100) + '%';
+});
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Active nav tab highlight
+const tabs = document.querySelectorAll('.nav-tab');
+const sections = Array.from(document.querySelectorAll('section[id], div[id].part-header'));
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  tabs.forEach(t => {
+    t.classList.toggle('active', t.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enable mod_status — Apache on macOS M4</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Unbounded:wght@300;600;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0e0b06;
+    --surface:   #141009;
+    --card:      #1a1409;
+    --border:    #2e2310;
+    --border2:   #3d3018;
+    --amber:     #e8a020;
+    --amber-dim: #9b6a10;
+    --amber-pal: #f5c060;
+    --amber-glow:#ffdb88;
+    --red:       #e05020;
+    --green:     #50c060;
+    --blue:      #4090d0;
+    --text:      #d4900c;
+    --muted:     #8a6010;
+    --faint:     #503a08;
+    --scan-line: rgba(0,0,0,0.18);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* CRT scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      var(--scan-line) 0px,
+      var(--scan-line) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.35;
+  }
+
+  /* Phosphor glow vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 998;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 32px 100px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    margin-bottom: 52px;
+    animation: boot 0.8s steps(1) both;
+  }
+
+  .sys-bar {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+
+  .sys-bar span { margin-right: 18px; }
+  .sys-bar .live::before { content: '◉ '; color: var(--green); animation: blink 1.6s step-end infinite; }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--amber-glow);
+    text-shadow: 0 0 24px rgba(232,160,32,0.4), 0 0 48px rgba(232,160,32,0.15);
+    margin-bottom: 14px;
+  }
+
+  h1 .sub {
+    display: block;
+    font-weight: 300;
+    font-size: 0.55em;
+    color: var(--amber-dim);
+    letter-spacing: 0.06em;
+    text-shadow: none;
+    margin-top: 6px;
+  }
+
+  .prompt-line {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 16px;
+  }
+
+  .prompt-line::before { content: '$ '; color: var(--amber); }
+
+  /* ── WHAT IS mod_status ── */
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 48px;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+
+  .intro-cell {
+    background: var(--card);
+    padding: 20px 22px;
+  }
+
+  .intro-cell-label {
+    font-size: 10px;
+    color: var(--amber-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .intro-cell p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .intro-cell .url {
+    color: var(--amber-pal);
+    font-size: 14px;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    margin-bottom: 52px;
+    animation: fadeUp 0.45s ease both;
+  }
+
+  section:nth-child(1){ animation-delay:0.1s }
+  section:nth-child(2){ animation-delay:0.15s }
+  section:nth-child(3){ animation-delay:0.2s }
+  section:nth-child(4){ animation-delay:0.25s }
+  section:nth-child(5){ animation-delay:0.3s }
+
+  .sec-head {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 22px;
+    position: relative;
+  }
+
+  .sec-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--amber);
+    padding: 4px 10px;
+    letter-spacing: 0.06em;
+    clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%);
+    padding-right: 18px;
+    flex-shrink: 0;
+  }
+
+  .sec-title-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: -2px;
+  }
+
+  h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--amber-pal);
+    letter-spacing: 0.02em;
+  }
+
+  .sec-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border2), transparent);
+  }
+
+  h3 {
+    font-size: 11px;
+    color: var(--amber-dim);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin: 26px 0 10px;
+  }
+
+  h3::before { content: '// '; color: var(--faint); }
+
+  p {
+    color: var(--muted);
+    font-size: 13.5px;
+    margin-bottom: 12px;
+    line-height: 1.8;
+  }
+
+  p code, li code {
+    color: var(--amber-pal);
+    background: rgba(232,160,32,0.08);
+    border: 1px solid rgba(232,160,32,0.18);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 12.5px;
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: #080603;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 12px 0;
+    box-shadow: 0 0 20px rgba(232,160,32,0.04) inset, 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  .cb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cb-label {
+    font-size: 10px;
+    color: var(--amber-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cb-label::before { content: '>_'; color: var(--amber); font-size: 12px; }
+
+  .copy-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--faint);
+    background: transparent;
+    border: 1px solid var(--border2);
+    padding: 3px 9px;
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--amber); border-color: var(--amber); }
+
+  pre {
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    line-height: 1.9;
+  }
+
+  /* syntax colors */
+  .cmd  { color: #e8c840; }
+  .flag { color: #88c4f0; }
+  .path { color: #f0a030; }
+  .cm   { color: #4a3808; font-style: italic; }
+  .kw   { color: #e06060; }
+  .val  { color: #80d080; }
+  .t    { color: #b07820; }
+  .url  { color: #60c0e8; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    display: flex;
+    gap: 12px;
+    padding: 13px 16px;
+    border-radius: 3px;
+    margin: 12px 0;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .ci { flex-shrink:0; font-size:16px; }
+  .callout p { color:inherit; margin:0; font-size:13px; }
+
+  .callout.warn {
+    background: rgba(224,80,32,0.07);
+    border: 1px solid rgba(224,80,32,0.25);
+    color: #c07040;
+  }
+
+  .callout.info {
+    background: rgba(64,144,208,0.07);
+    border: 1px solid rgba(64,144,208,0.22);
+    color: #5898c0;
+  }
+
+  .callout.ok {
+    background: rgba(80,192,96,0.07);
+    border: 1px solid rgba(80,192,96,0.22);
+    color: #50a060;
+  }
+
+  .callout.tip {
+    background: rgba(232,160,32,0.06);
+    border: 1px solid rgba(232,160,32,0.2);
+    color: var(--amber-dim);
+  }
+
+  /* ── STATUS OUTPUT MOCKUP ── */
+  .status-mockup {
+    background: #040302;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  .sm-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 7px 14px;
+    font-size: 10px;
+    color: var(--amber-dim);
+    letter-spacing: 0.1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sm-body {
+    padding: 16px 18px;
+    font-size: 12px;
+    line-height: 1.85;
+  }
+
+  .sm-h  { color: var(--amber-pal); font-size: 13px; margin-bottom: 6px; }
+  .sm-row{ color: var(--muted); }
+  .sm-k  { color: var(--amber-dim); min-width: 200px; display: inline-block; }
+  .sm-v  { color: var(--amber); }
+  .sm-sep{ border:none; border-top:1px solid var(--border); margin: 10px 0; }
+
+  .scoreboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+
+  .sc-cell {
+    background: var(--card);
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .sc-val { font-size: 18px; color: var(--amber-pal); display: block; font-family: 'Unbounded', monospace; font-weight: 600; }
+  .sc-lbl { font-size: 10px; color: var(--faint); letter-spacing: 0.1em; margin-top: 2px; }
+
+  /* ── TABLE ── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0;
+    border: 1px solid var(--border);
+  }
+
+  .ref-table th {
+    background: var(--card);
+    color: var(--amber-dim);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 9px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border2);
+    font-weight: 400;
+  }
+
+  .ref-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+
+  .ref-table tr:last-child td { border-bottom: none; }
+  .ref-table tr:hover td { background: rgba(232,160,32,0.03); }
+
+  /* ── STEP FLOW ── */
+  .step-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+    border-left: 2px solid var(--border2);
+    padding-left: 24px;
+    position: relative;
+  }
+
+  .step-item {
+    position: relative;
+    padding-bottom: 24px;
+  }
+
+  .step-item::before {
+    content: '';
+    position: absolute;
+    left: -29px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    background: var(--amber);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(232,160,32,0.5);
+  }
+
+  .step-item:last-child { padding-bottom: 0; }
+
+  .step-item-title {
+    font-size: 12px;
+    color: var(--amber-pal);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  /* ── LISTS ── */
+  ul, ol {
+    padding-left: 20px;
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.9;
+    margin-bottom: 12px;
+  }
+
+  ul li::marker { color: var(--amber); content: '▸ '; }
+  ol li::marker { color: var(--amber); font-size: 12px; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes boot {
+    from { opacity: 0; filter: brightness(3); }
+    to   { opacity: 1; filter: brightness(1); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .intro-grid { grid-template-columns: 1fr; }
+    .wrapper { padding: 32px 16px 80px; }
+    .scoreboard { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="sys-bar">
+      <span class="live">APACHE/2.4</span>
+      <span>MACOS M4</span>
+      <span>MOD_STATUS</span>
+      <span>PORT 80 / 8080</span>
+    </div>
+    <h1>
+      Enable mod_status
+      <span class="sub">Apache · MacBook Air M4 · Built-in &amp; Homebrew</span>
+    </h1>
+    <div class="prompt-line">sudo apachectl graceful &amp;&amp; open http://localhost/server-status</div>
+  </header>
+
+  <!-- What is mod_status -->
+  <div class="intro-grid">
+    <div class="intro-cell">
+      <div class="intro-cell-label">What is mod_status?</div>
+      <p>A built-in Apache module that exposes a real-time dashboard of server activity — worker threads, requests/sec, CPU load, uptime, and per-connection details. Essential for monitoring and tuning.</p>
+    </div>
+    <div class="intro-cell">
+      <div class="intro-cell-label">Default URL after setup</div>
+      <span class="url">http://localhost/server-status</span>
+      <span class="url" style="opacity:0.5; font-size:12px;">http://localhost/server-status?auto (plain text)</span>
+      <span class="url" style="opacity:0.5; font-size:12px;">http://localhost/server-status?refresh=5 (auto-refresh)</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1 — Built-in macOS Apache -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <div class="sec-title-wrap">
+        <h2>Built-in macOS Apache (/etc/apache2)</h2>
+        <div class="sec-line"></div>
+      </div>
+    </div>
+
+    <p>The built-in Apache config lives at <code>/etc/apache2/httpd.conf</code>. All edits require <code>sudo</code>. Follow these steps exactly — each one must be done before restarting.</p>
+
+    <div class="callout tip">
+      <span class="ci">💡</span>
+      <p>Back up your config first: <code>sudo cp /etc/apache2/httpd.conf /etc/apache2/httpd.conf.bak</code></p>
+    </div>
+
+    <h3>Step 1 — Uncomment the LoadModule Line</h3>
+    <p>Open <code>httpd.conf</code> and find the <code>mod_status</code> line. Remove the leading <code>#</code> to enable it.</p>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal — open config</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">sudo nano</span> <span class="path">/etc/apache2/httpd.conf</span></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">httpd.conf — find and uncomment this line</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># BEFORE (commented out — module disabled):</span>
+#LoadModule status_module libexec/apache2/mod_status.so
+
+<span class="cm"># AFTER (remove the # — module enabled):</span>
+<span class="kw">LoadModule</span> <span class="val">status_module</span> libexec/apache2/mod_status.so</pre>
+    </div>
+
+    <div class="callout info">
+      <span class="ci">ℹ️</span>
+      <p>In nano: use <strong>Ctrl+W</strong> to search for <code>mod_status</code>, then delete the <code>#</code> at the start of the matching <code>LoadModule</code> line. Press <strong>Ctrl+O</strong> to save, <strong>Ctrl+X</strong> to exit.</p>
+    </div>
+
+    <h3>Step 2 — Add the &lt;Location&gt; Block</h3>
+    <p>Scroll to the bottom of <code>httpd.conf</code> and add this block. It defines the <code>/server-status</code> URL and restricts access to <code>localhost</code> only — critical for security.</p>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">httpd.conf — add at the bottom</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># ── mod_status configuration ──────────────────────────</span>
+<span class="kw">&lt;Location</span> <span class="val">"/server-status"</span><span class="kw">&gt;</span>
+    <span class="kw">SetHandler</span>  server-status
+
+    <span class="cm"># Restrict to localhost ONLY — never expose on public IP</span>
+    <span class="kw">Require</span>     local
+
+    <span class="cm"># Alternative syntax if "Require local" doesn't work:</span>
+    <span class="cm"># Require ip 127.0.0.1 ::1</span>
+<span class="kw">&lt;/Location&gt;</span>
+
+<span class="cm"># Enable extended status (per-request details)</span>
+<span class="kw">ExtendedStatus</span> <span class="val">On</span></pre>
+    </div>
+
+    <h3>Step 3 — Test Config &amp; Restart</h3>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Check for syntax errors first</span>
+<span class="cmd">sudo apachectl</span> configtest
+<span class="cm"># Must say "Syntax OK" before continuing</span>
+
+<span class="cm"># Graceful restart (applies changes, no dropped connections)</span>
+<span class="cmd">sudo apachectl</span> graceful</pre>
+    </div>
+
+    <h3>Step 4 — Verify in Browser</h3>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal — open in browser</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">open</span> <span class="url">http://localhost/server-status</span></pre>
+    </div>
+
+    <div class="callout ok">
+      <span class="ci">✅</span>
+      <p>You should see the Apache Status page with server version, uptime, request counters, and a worker scoreboard. If you get a 403 or 404, see the Troubleshooting section below.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 2 — Homebrew Apache -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <div class="sec-title-wrap">
+        <h2>Homebrew Apache (/opt/homebrew/etc/httpd)</h2>
+        <div class="sec-line"></div>
+      </div>
+    </div>
+
+    <p>If you installed Apache via Homebrew (<code>brew install httpd</code>), the config is at a different path and runs on port <code>8080</code> by default. The steps are the same — only paths and ports differ.</p>
+
+    <h3>Step 1 — Open Homebrew httpd.conf</h3>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">nano</span> <span class="path">/opt/homebrew/etc/httpd/httpd.conf</span>
+<span class="cm"># No sudo needed for Homebrew config</span></pre>
+    </div>
+
+    <h3>Step 2 — Uncomment the LoadModule Line</h3>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">httpd.conf (Homebrew) — uncomment</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># BEFORE:</span>
+#LoadModule status_module lib/httpd/modules/mod_status.so
+
+<span class="cm"># AFTER (remove the #):</span>
+<span class="kw">LoadModule</span> <span class="val">status_module</span> lib/httpd/modules/mod_status.so</pre>
+    </div>
+
+    <h3>Step 3 — Add the &lt;Location&gt; Block</h3>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">httpd.conf (Homebrew) — add at bottom</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># ── mod_status configuration ──────────────────────────</span>
+<span class="kw">&lt;Location</span> <span class="val">"/server-status"</span><span class="kw">&gt;</span>
+    <span class="kw">SetHandler</span>  server-status
+    <span class="kw">Require</span>     local
+<span class="kw">&lt;/Location&gt;</span>
+
+<span class="kw">ExtendedStatus</span> <span class="val">On</span></pre>
+    </div>
+
+    <h3>Step 4 — Test &amp; Restart</h3>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">/opt/homebrew/bin/apachectl</span> configtest
+<span class="cmd">brew services restart</span> httpd</pre>
+    </div>
+
+    <h3>Step 5 — Verify (note port 8080)</h3>
+
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cmd">open</span> <span class="url">http://localhost:8080/server-status</span></pre>
+    </div>
+  </section>
+
+  <!-- SECTION 3 — What the status page shows -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <div class="sec-title-wrap">
+        <h2>Reading the server-status Page</h2>
+        <div class="sec-line"></div>
+      </div>
+    </div>
+
+    <p>Here's what the key fields on the status page mean:</p>
+
+    <div class="status-mockup">
+      <div class="sm-bar">
+        <span>Apache Status — localhost/server-status</span>
+        <span style="color:var(--green)">● LIVE</span>
+      </div>
+      <div class="sm-body">
+        <div class="sm-h">Apache Server Status for localhost</div>
+        <hr class="sm-sep">
+        <div class="sm-row"><span class="sm-k">Server Version:</span> <span class="sm-v">Apache/2.4.x (macOS)</span></div>
+        <div class="sm-row"><span class="sm-k">Server MPM:</span> <span class="sm-v">prefork / event</span></div>
+        <div class="sm-row"><span class="sm-k">Uptime:</span> <span class="sm-v">2 hours 14 minutes</span></div>
+        <div class="sm-row"><span class="sm-k">Total Accesses:</span> <span class="sm-v">1,482</span></div>
+        <div class="sm-row"><span class="sm-k">CPU Usage:</span> <span class="sm-v">u0.14 s0.03 cu0 cs0 — .00237% CPU load</span></div>
+        <div class="sm-row"><span class="sm-k">Requests/sec:</span> <span class="sm-v">0.184</span></div>
+        <div class="sm-row"><span class="sm-k">Bytes/sec:</span> <span class="sm-v">1.22 kB/s</span></div>
+        <hr class="sm-sep">
+        <div class="sm-h" style="font-size:11px; margin-bottom:8px;">Worker Scoreboard</div>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="sc-cell"><span class="sc-val">_</span><div class="sc-lbl">Waiting</div></div>
+      <div class="sc-cell"><span class="sc-val">W</span><div class="sc-lbl">Sending</div></div>
+      <div class="sc-cell"><span class="sc-val">R</span><div class="sc-lbl">Reading</div></div>
+      <div class="sc-cell"><span class="sc-val">K</span><div class="sc-lbl">Keepalive</div></div>
+      <div class="sc-cell"><span class="sc-val">C</span><div class="sc-lbl">Closing</div></div>
+      <div class="sc-cell"><span class="sc-val">L</span><div class="sc-lbl">Logging</div></div>
+      <div class="sc-cell"><span class="sc-val">G</span><div class="sc-lbl">Graceful</div></div>
+      <div class="sc-cell"><span class="sc-val">I</span><div class="sc-lbl">Idle cleanup</div></div>
+      <div class="sc-cell"><span class="sc-val">.</span><div class="sc-lbl">Open slot</div></div>
+    </div>
+
+    <h3>Useful URL Parameters</h3>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>URL</th><th>What It Does</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/server-status</code></td><td>Full HTML status page</td></tr>
+        <tr><td><code>/server-status?auto</code></td><td>Machine-readable plain text output (great for scripts)</td></tr>
+        <tr><td><code>/server-status?refresh=5</code></td><td>Auto-refresh the page every 5 seconds</td></tr>
+        <tr><td><code>/server-status?notable</code></td><td>HTML page without the per-worker table (faster to load)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SECTION 4 — Security -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <div class="sec-title-wrap">
+        <h2>Security — Lock It Down</h2>
+        <div class="sec-line"></div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="ci">⚠️</span>
+      <p><strong>Never expose /server-status on a public IP.</strong> The status page reveals your server internals, active request paths, and client IPs. Always restrict access to localhost or a trusted IP range.</p>
+    </div>
+
+    <h3>Restrict to localhost only (recommended)</h3>
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">httpd.conf — safest option</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="kw">&lt;Location</span> <span class="val">"/server-status"</span><span class="kw">&gt;</span>
+    <span class="kw">SetHandler</span> server-status
+    <span class="kw">Require</span>    local
+    <span class="cm"># "Require local" = 127.0.0.1 and ::1 only</span>
+<span class="kw">&lt;/Location&gt;</span></pre>
+    </div>
+
+    <h3>Allow your whole local network (e.g. for team use)</h3>
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">httpd.conf — local network range</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="kw">&lt;Location</span> <span class="val">"/server-status"</span><span class="kw">&gt;</span>
+    <span class="kw">SetHandler</span> server-status
+    <span class="kw">Require</span>    ip 127.0.0.1 ::1 192.168.1.0/24
+    <span class="cm"># Replace 192.168.1.0/24 with your actual LAN subnet</span>
+<span class="kw">&lt;/Location&gt;</span></pre>
+    </div>
+
+    <h3>Find your local subnet</h3>
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Your local IP (replace en0 with en1 for Ethernet if needed)</span>
+<span class="cmd">ipconfig</span> getifaddr en0</pre>
+    </div>
+  </section>
+
+  <!-- SECTION 5 — Troubleshooting -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <div class="sec-title-wrap">
+        <h2>Troubleshooting</h2>
+        <div class="sec-line"></div>
+      </div>
+    </div>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Problem</th><th>Cause &amp; Fix</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>403 Forbidden</code></td>
+          <td>Access control too strict. Make sure <code>Require local</code> is inside the <code>&lt;Location&gt;</code> block and you're accessing from <code>localhost</code> or <code>127.0.0.1</code>.</td>
+        </tr>
+        <tr>
+          <td><code>404 Not Found</code></td>
+          <td>The <code>&lt;Location&gt;</code> block is missing or misspelled in <code>httpd.conf</code>. Double-check the block was saved and Apache was restarted.</td>
+        </tr>
+        <tr>
+          <td><code>500 Internal Server Error</code></td>
+          <td>The <code>LoadModule</code> line is still commented out. Run <code>httpd -M | grep status</code> to confirm the module loaded.</td>
+        </tr>
+        <tr>
+          <td>No scoreboard / limited info</td>
+          <td><code>ExtendedStatus On</code> is missing. Add it outside any <code>&lt;Location&gt;</code> block in <code>httpd.conf</code>.</td>
+        </tr>
+        <tr>
+          <td><code>Syntax Error on restart</code></td>
+          <td>Run <code>sudo apachectl configtest</code> and read the output. It will name the exact line number of the error.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Confirm the Module Loaded</h3>
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal — verify module is active</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Built-in Apache:</span>
+<span class="cmd">httpd</span> <span class="flag">-M</span> | grep status
+<span class="cm"># Expected: status_module (shared)</span>
+
+<span class="cm"># Homebrew Apache:</span>
+<span class="cmd">/opt/homebrew/bin/httpd</span> <span class="flag">-M</span> | grep status</pre>
+    </div>
+
+    <h3>Check Error Log for Details</h3>
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="cm"># Built-in Apache error log:</span>
+<span class="cmd">tail</span> <span class="flag">-f</span> <span class="path">/private/var/log/apache2/error_log</span>
+
+<span class="cm"># Homebrew Apache error log:</span>
+<span class="cmd">tail</span> <span class="flag">-f</span> <span class="path">/opt/homebrew/var/log/httpd/error_log</span></pre>
+    </div>
+
+    <h3>Quick Reference — Path Differences</h3>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Item</th><th>Built-in macOS</th><th>Homebrew</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Config file</td><td><code>/etc/apache2/httpd.conf</code></td><td><code>/opt/homebrew/etc/httpd/httpd.conf</code></td></tr>
+        <tr><td>Module path</td><td><code>libexec/apache2/mod_status.so</code></td><td><code>lib/httpd/modules/mod_status.so</code></td></tr>
+        <tr><td>Default port</td><td><code>80</code></td><td><code>8080</code></td></tr>
+        <tr><td>Error log</td><td><code>/private/var/log/apache2/error_log</code></td><td><code>/opt/homebrew/var/log/httpd/error_log</code></td></tr>
+        <tr><td>Restart command</td><td><code>sudo apachectl graceful</code></td><td><code>brew services restart httpd</code></td></tr>
+        <tr><td>Status URL</td><td><code>http://localhost/server-status</code></td><td><code>http://localhost:8080/server-status</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <span>mod_status · Apache 2.4 · macOS M4</span>
+    <span>May 2026</span>
+    <span>Generated with Claude</span>
+  </footer>
+
+</div>
+<script>
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'COPIED';
+      btn.style.color = '#50c060';
+      btn.style.borderColor = '#50c060';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 1800);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Perl GUI Programming — A Practical Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #0d0f14;
+    --surface:  #141720;
+    --border:   #252a36;
+    --accent1:  #e8c547;   /* amber gold */
+    --accent2:  #5be0a8;   /* mint green */
+    --accent3:  #e06060;   /* soft red */
+    --text:     #d8dde8;
+    --muted:    #6b7280;
+    --heading:  #f2f5ff;
+    --code-bg:  #10121a;
+    --tag-blue: #3b7dd8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.75;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent1); border-radius: 3px; }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    padding: 80px 40px 70px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #0d0f14 0%, #111520 60%, #161d2a 100%);
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg,   transparent, transparent 39px, var(--border) 40px),
+      repeating-linear-gradient(90deg,  transparent, transparent 39px, var(--border) 40px);
+    opacity: 0.35;
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 26px;
+    opacity: 0;
+    animation: fadeUp .6s .1s forwards;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 800;
+    color: var(--heading);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    animation: fadeUp .7s .25s forwards;
+  }
+  .hero h1 span { color: var(--accent1); }
+  .hero-sub {
+    margin-top: 20px;
+    max-width: 600px;
+    font-size: 1.05rem;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeUp .7s .4s forwards;
+  }
+  .hero-pills {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 32px;
+    opacity: 0;
+    animation: fadeUp .7s .55s forwards;
+  }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 100px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .pill.gold  { border-color: var(--accent1); color: var(--accent1); }
+  .pill.green { border-color: var(--accent2); color: var(--accent2); }
+  .pill.red   { border-color: var(--accent3); color: var(--accent3); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+    gap: 0;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    padding: 50px 20px 40px 0;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+  .sidebar h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .nav-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .nav-list a {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 5px 10px 5px 14px;
+    border-left: 2px solid transparent;
+    border-radius: 0 4px 4px 0;
+    transition: all .2s;
+  }
+  .nav-list a:hover, .nav-list a.active {
+    color: var(--accent1);
+    border-left-color: var(--accent1);
+    background: rgba(232,197,71,.06);
+  }
+  .nav-section { margin-top: 20px; }
+
+  /* ── MAIN CONTENT ── */
+  .main { padding: 50px 0 100px 48px; }
+
+  /* ── SECTION HEADERS ── */
+  .section { margin-bottom: 72px; }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.95rem;
+    font-weight: 800;
+    color: var(--heading);
+    line-height: 1.15;
+    margin-bottom: 22px;
+  }
+  .section h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--heading);
+    margin: 34px 0 10px;
+  }
+  .section p { margin-bottom: 16px; color: var(--text); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 0 72px;
+  }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent1);
+    border-radius: 6px;
+    padding: 22px 24px;
+    overflow-x: auto;
+    margin: 20px 0 24px;
+    position: relative;
+  }
+  pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px; right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  pre code { color: var(--text); }
+
+  /* Syntax colouring (manual spans) */
+  .kw  { color: #c792ea; }   /* keyword */
+  .fn  { color: #82aaff; }   /* function/method */
+  .str { color: #c3e88d; }   /* string */
+  .num { color: #f78c6c; }   /* number */
+  .cm  { color: #546e7a; font-style: italic; } /* comment */
+  .var { color: var(--accent2); }  /* variable */
+  .mod { color: var(--accent1); }  /* module/package */
+  .op  { color: #89ddff; }   /* operator/punctuation */
+
+  /* inline code */
+  p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--accent2);
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 22px 0;
+    border-left: 4px solid;
+    font-size: .93rem;
+  }
+  .callout-info  { background: rgba(91,224,168,.06); border-color: var(--accent2); }
+  .callout-warn  { background: rgba(232,197,71,.06); border-color: var(--accent1); }
+  .callout-tip   { background: rgba(59,125,216,.06); border-color: var(--tag-blue); }
+  .callout strong { font-family: 'Syne', sans-serif; font-weight: 700; }
+  .callout-info  strong { color: var(--accent2); }
+  .callout-warn  strong { color: var(--accent1); }
+  .callout-tip   strong { color: #82aaff; }
+
+  /* ── TOOLKIT CARDS ── */
+  .toolkit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .tk-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 18px;
+    transition: border-color .2s, transform .2s;
+  }
+  .tk-card:hover { border-color: var(--accent1); transform: translateY(-2px); }
+  .tk-card .tk-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: 4px;
+  }
+  .tk-card .tk-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-bottom: 10px;
+  }
+  .badge-popular { background: rgba(232,197,71,.15); color: var(--accent1); }
+  .badge-modern  { background: rgba(91,224,168,.15); color: var(--accent2); }
+  .badge-native  { background: rgba(59,125,216,.15); color: #82aaff; }
+  .tk-card p { font-size: .85rem; color: var(--muted); }
+
+  /* ── STEP LIST ── */
+  ol.steps { padding-left: 0; list-style: none; counter-reset: step; }
+  ol.steps li {
+    counter-increment: step;
+    padding: 14px 0 14px 56px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  ol.steps li:last-child { border-bottom: none; }
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 12px;
+    width: 34px; height: 34px;
+    background: var(--surface);
+    border: 1px solid var(--accent1);
+    border-radius: 50%;
+    color: var(--accent1);
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── WIDGET TABLE ── */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: .9rem; }
+  th {
+    font-family: 'Syne', sans-serif;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  td code { font-size: 12px; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  footer a { color: var(--accent1); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 760px) {
+    .wrapper { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 36px 0 60px; }
+    .hero { padding: 54px 20px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════ HERO ════════════════════════════════ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Perl · GUI Programming · Practical Guide</div>
+    <h1>Build GUIs with<br/><span>Perl</span></h1>
+    <p class="hero-sub">A comprehensive walkthrough of the most popular Perl GUI toolkits — from classic Tk to modern Wx — with real, runnable code examples.</p>
+    <div class="hero-pills">
+      <span class="pill gold">Tk / Tkx</span>
+      <span class="pill green">Wx (wxWidgets)</span>
+      <span class="pill">Prima</span>
+      <span class="pill">Gtk3</span>
+      <span class="pill red">Win32::GUI</span>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════ BODY ════════════════════════════════ -->
+<div class="wrapper">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <h3>Contents</h3>
+    <ul class="nav-list">
+      <li class="nav-section"><a href="#intro">Introduction</a></li>
+      <li><a href="#toolkits">Choosing a Toolkit</a></li>
+      <li><a href="#install">Installation</a></li>
+      <li><a href="#tk-basics">Tk Basics</a></li>
+      <li><a href="#tk-widgets">Tk Widgets</a></li>
+      <li><a href="#tk-layout">Tk Layout Managers</a></li>
+      <li><a href="#tk-events">Events &amp; Callbacks</a></li>
+      <li><a href="#tk-app">Full Tk App</a></li>
+      <li><a href="#wx">Wx (wxWidgets)</a></li>
+      <li><a href="#wx-app">Full Wx App</a></li>
+      <li><a href="#tips">Best Practices</a></li>
+      <li><a href="#resources">Resources</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Introduction ── -->
+    <section class="section" id="intro">
+      <div class="section-label">01 — Overview</div>
+      <h2>Why Build a GUI in Perl?</h2>
+      <p>Perl has been a powerhouse scripting language for decades. While it's best known for text processing and system automation, its CPAN ecosystem ships robust bindings to virtually every major GUI framework — letting you wrap your existing Perl logic in a native-feeling desktop window without rewriting a single line of business logic.</p>
+      <p>This guide focuses on <strong>Tk</strong> (the most beginner-friendly option) and <strong>Wx</strong> (wxWidgets, for production-grade native-look apps), with brief notes on <strong>Prima</strong>, <strong>Gtk3</strong>, and the Windows-only <strong>Win32::GUI</strong>.</p>
+      <div class="callout callout-info">
+        <strong>Note:</strong> All examples assume Perl 5.20+ and CPAN access. Code was tested on Linux (Debian/Ubuntu) and Windows 10 with Strawberry Perl.
+      </div>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Toolkits ── -->
+    <section class="section" id="toolkits">
+      <div class="section-label">02 — Options</div>
+      <h2>Choosing a Toolkit</h2>
+      <p>Each toolkit has different trade-offs. Pick based on your target platform, desired look-and-feel, and how much C-level complexity you are comfortable setting up.</p>
+
+      <div class="toolkit-grid">
+        <div class="tk-card">
+          <div class="tk-name">Perl/Tk</div>
+          <span class="tk-badge badge-popular">Most Popular</span>
+          <p>Classic, cross-platform Tcl/Tk binding. Simple API, excellent docs, slightly dated look.</p>
+        </div>
+        <div class="tk-card">
+          <div class="tk-name">Wx</div>
+          <span class="tk-badge badge-modern">Modern</span>
+          <p>Wraps wxWidgets. Native controls on every OS. Best choice for professional apps.</p>
+        </div>
+        <div class="tk-card">
+          <div class="tk-name">Prima</div>
+          <span class="tk-badge badge-native">Pure Perl</span>
+          <p>A fully Perl-native GUI toolkit. No external C library required. Great for simple tools.</p>
+        </div>
+        <div class="tk-card">
+          <div class="tk-name">Gtk3</div>
+          <span class="tk-badge badge-modern">GTK+</span>
+          <p>Perl bindings to GTK 3. Best on Linux/GNOME. Rich widget set.</p>
+        </div>
+        <div class="tk-card">
+          <div class="tk-name">Win32::GUI</div>
+          <span class="tk-badge badge-native">Windows Only</span>
+          <p>Direct Win32 API wrapper. Tiny overhead. Windows-only.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <strong>Recommendation:</strong> Start with <strong>Perl/Tk</strong>. Its API is the simplest to learn and its documentation is extensive. Migrate to <strong>Wx</strong> when you need a polished, production-ready look.
+      </div>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Installation ── -->
+    <section class="section" id="install">
+      <div class="section-label">03 — Setup</div>
+      <h2>Installation</h2>
+
+      <h3>Perl/Tk</h3>
+      <pre data-lang="bash"><code><span class="cm"># Linux (Debian/Ubuntu)</span>
+sudo apt-get install perl-tk
+
+<span class="cm"># or via CPAN</span>
+cpan Tk
+
+<span class="cm"># Strawberry Perl on Windows</span>
+cpan Tk</code></pre>
+
+      <h3>Wx (wxWidgets)</h3>
+      <pre data-lang="bash"><code><span class="cm"># Linux — install system wxWidgets first</span>
+sudo apt-get install libwxgtk3.2-dev
+cpan Wx
+
+<span class="cm"># Windows with Strawberry Perl</span>
+cpan Wx</code></pre>
+
+      <h3>Prima</h3>
+      <pre data-lang="bash"><code>cpan Prima</code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> Use <code>cpanm</code> (App::cpanminus) instead of bare <code>cpan</code> — it handles dependencies automatically: <code>cpanm Tk</code>.
+      </div>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Tk Basics ── -->
+    <section class="section" id="tk-basics">
+      <div class="section-label">04 — Perl/Tk</div>
+      <h2>Tk Basics — Hello World</h2>
+      <p>Every Tk program follows a three-step pattern: <strong>create</strong> the main window, <strong>add</strong> widgets, and <strong>enter</strong> the event loop.</p>
+
+      <pre data-lang="perl"><code><span class="cm">#!/usr/bin/perl</span>
+<span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use</span> <span class="mod">Tk</span><span class="op">;</span>               <span class="cm"># import the Tk module</span>
+
+<span class="cm"># 1. Create the main (root) window</span>
+<span class="kw">my</span> <span class="var">$mw</span> <span class="op">=</span> <span class="mod">MainWindow</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">();</span>
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">title</span><span class="op">(</span><span class="str">"Hello, Perl/Tk!"</span><span class="op">);</span>
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">geometry</span><span class="op">(</span><span class="str">"300x120"</span><span class="op">);</span>   <span class="cm"># width x height in pixels</span>
+
+<span class="cm"># 2. Add a Label widget</span>
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">Label</span><span class="op">(</span>
+    <span class="op">-</span>text <span class="op">=&gt;</span> <span class="str">"Hello, World!"</span><span class="op">,</span>
+    <span class="op">-</span>font <span class="op">=&gt;</span> <span class="str">"Arial 18 bold"</span><span class="op">,</span>
+<span class="op">)-&gt;</span><span class="fn">pack</span><span class="op">();</span>
+
+<span class="cm"># 3. Enter the event loop (never returns until window closes)</span>
+<span class="mod">MainLoop</span><span class="op">();</span></code></pre>
+
+      <p>Save as <code>hello.pl</code> and run with <code>perl hello.pl</code>. A window should appear with centred text.</p>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Tk Widgets ── -->
+    <section class="section" id="tk-widgets">
+      <div class="section-label">05 — Perl/Tk</div>
+      <h2>Common Tk Widgets</h2>
+      <p>Tk ships with everything you need for everyday GUIs. Below is a cheat-sheet of the widgets you'll use most often.</p>
+
+      <table>
+        <thead>
+          <tr><th>Widget</th><th>Method</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Label</strong></td><td><code>$mw-&gt;Label(-text =&gt; "…")</code></td><td>Static text or image display</td></tr>
+          <tr><td><strong>Button</strong></td><td><code>$mw-&gt;Button(-text =&gt; "Click", -command =&gt; \&amp;cb)</code></td><td>Clickable button</td></tr>
+          <tr><td><strong>Entry</strong></td><td><code>$mw-&gt;Entry(-textvariable =&gt; \$var)</code></td><td>Single-line text input</td></tr>
+          <tr><td><strong>Text</strong></td><td><code>$mw-&gt;Text(-width =&gt; 40, -height =&gt; 10)</code></td><td>Multi-line text editor</td></tr>
+          <tr><td><strong>Checkbutton</strong></td><td><code>$mw-&gt;Checkbutton(-variable =&gt; \$flag)</code></td><td>Boolean checkbox</td></tr>
+          <tr><td><strong>Radiobutton</strong></td><td><code>$mw-&gt;Radiobutton(-variable =&gt; \$v, -value =&gt; 1)</code></td><td>Mutually exclusive option</td></tr>
+          <tr><td><strong>Listbox</strong></td><td><code>$mw-&gt;Listbox(-selectmode =&gt; 'single')</code></td><td>Scrollable item list</td></tr>
+          <tr><td><strong>Scrollbar</strong></td><td><code>$mw-&gt;Scrollbar(-orient =&gt; 'v')</code></td><td>Scroll other widgets</td></tr>
+          <tr><td><strong>Frame</strong></td><td><code>$mw-&gt;Frame(-relief =&gt; 'groove')</code></td><td>Container for grouping widgets</td></tr>
+          <tr><td><strong>Canvas</strong></td><td><code>$mw-&gt;Canvas(-width =&gt; 400, -height =&gt; 300)</code></td><td>2D drawing surface</td></tr>
+          <tr><td><strong>Menu / Menubutton</strong></td><td><code>$mw-&gt;Menu</code></td><td>Drop-down menus</td></tr>
+          <tr><td><strong>Scale</strong></td><td><code>$mw-&gt;Scale(-from =&gt; 0, -to =&gt; 100)</code></td><td>Slider / range control</td></tr>
+          <tr><td><strong>Optionmenu</strong></td><td><code>$mw-&gt;Optionmenu(-options =&gt; [...])</code></td><td>Drop-down select</td></tr>
+          <tr><td><strong>BrowseEntry</strong></td><td><code>$mw-&gt;BrowseEntry</code></td><td>Combo-box (Entry + list)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Layout ── -->
+    <section class="section" id="tk-layout">
+      <div class="section-label">06 — Perl/Tk</div>
+      <h2>Layout Managers</h2>
+      <p>Tk provides three geometry managers. You must use only one per container (mixing them causes errors).</p>
+
+      <h3>pack — flow-based (simplest)</h3>
+      <pre data-lang="perl"><code><span class="var">$btn1</span><span class="op">-&gt;</span><span class="fn">pack</span><span class="op">(</span><span class="op">-</span>side <span class="op">=&gt;</span> <span class="str">'left'</span><span class="op">,</span>  <span class="op">-</span>padx <span class="op">=&gt;</span> <span class="num">5</span><span class="op">,</span> <span class="op">-</span>pady <span class="op">=&gt;</span> <span class="num">5</span><span class="op">);</span>
+<span class="var">$btn2</span><span class="op">-&gt;</span><span class="fn">pack</span><span class="op">(</span><span class="op">-</span>side <span class="op">=&gt;</span> <span class="str">'right'</span><span class="op">,</span> <span class="op">-</span>padx <span class="op">=&gt;</span> <span class="num">5</span><span class="op">);</span>
+<span class="var">$label</span><span class="op">-&gt;</span><span class="fn">pack</span><span class="op">(</span><span class="op">-</span>side <span class="op">=&gt;</span> <span class="str">'top'</span><span class="op">,</span>  <span class="op">-</span>fill <span class="op">=&gt;</span> <span class="str">'x'</span><span class="op">,</span> <span class="op">-</span>expand <span class="op">=&gt;</span> <span class="num">1</span><span class="op">);</span>
+<span class="cm"># -fill: 'x', 'y', 'both', 'none'   -expand: 1 to grow with window</span></code></pre>
+
+      <h3>grid — table-based (most flexible)</h3>
+      <pre data-lang="perl"><code><span class="var">$label</span><span class="op">-&gt;</span><span class="fn">grid</span><span class="op">(</span><span class="op">-</span>row <span class="op">=&gt;</span> <span class="num">0</span><span class="op">,</span> <span class="op">-</span>column <span class="op">=&gt;</span> <span class="num">0</span><span class="op">,</span> <span class="op">-</span>sticky <span class="op">=&gt;</span> <span class="str">'w'</span><span class="op">);</span>
+<span class="var">$entry</span><span class="op">-&gt;</span><span class="fn">grid</span><span class="op">(</span><span class="op">-</span>row <span class="op">=&gt;</span> <span class="num">0</span><span class="op">,</span> <span class="op">-</span>column <span class="op">=&gt;</span> <span class="num">1</span><span class="op">,</span> <span class="op">-</span>sticky <span class="op">=&gt;</span> <span class="str">'ew'</span><span class="op">);</span>
+<span class="var">$btn</span><span class="op">-&gt;</span>  <span class="fn">grid</span><span class="op">(</span><span class="op">-</span>row <span class="op">=&gt;</span> <span class="num">1</span><span class="op">,</span> <span class="op">-</span>column <span class="op">=&gt;</span> <span class="num">0</span><span class="op">,</span> <span class="op">-</span>columnspan <span class="op">=&gt;</span> <span class="num">2</span><span class="op">);</span>
+<span class="cm"># -sticky: compass points 'n','s','e','w','nw','nsew' etc.</span></code></pre>
+
+      <h3>place — absolute positioning</h3>
+      <pre data-lang="perl"><code><span class="var">$widget</span><span class="op">-&gt;</span><span class="fn">place</span><span class="op">(</span><span class="op">-</span>x <span class="op">=&gt;</span> <span class="num">50</span><span class="op">,</span> <span class="op">-</span>y <span class="op">=&gt;</span> <span class="num">80</span><span class="op">,</span> <span class="op">-</span>width <span class="op">=&gt;</span> <span class="num">120</span><span class="op">,</span> <span class="op">-</span>height <span class="op">=&gt;</span> <span class="num">30</span><span class="op">);</span>
+<span class="cm"># Use sparingly — breaks on window resize</span></code></pre>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Events ── -->
+    <section class="section" id="tk-events">
+      <div class="section-label">07 — Perl/Tk</div>
+      <h2>Events &amp; Callbacks</h2>
+      <p>User interaction is handled through callbacks (code references or anonymous subs) attached to widgets.</p>
+
+      <h3>Button callback</h3>
+      <pre data-lang="perl"><code><span class="kw">sub</span> <span class="fn">greet</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Hello!\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">Button</span><span class="op">(</span>
+    <span class="op">-</span>text    <span class="op">=&gt;</span> <span class="str">"Say Hello"</span><span class="op">,</span>
+    <span class="op">-</span>command <span class="op">=&gt;</span> \<span class="op">&amp;</span><span class="fn">greet</span><span class="op">,</span>   <span class="cm"># pass a code reference</span>
+<span class="op">)-&gt;</span><span class="fn">pack</span><span class="op">();</span>
+
+<span class="cm"># Or use an anonymous sub with closures over $mw</span>
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">Button</span><span class="op">(</span>
+    <span class="op">-</span>text    <span class="op">=&gt;</span> <span class="str">"Quit"</span><span class="op">,</span>
+    <span class="op">-</span>command <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">destroy</span><span class="op">()</span> <span class="op">},</span>
+<span class="op">)-&gt;</span><span class="fn">pack</span><span class="op">();</span></code></pre>
+
+      <h3>Binding arbitrary events</h3>
+      <pre data-lang="perl"><code><span class="cm"># Keyboard binding — Ctrl+Q quits</span>
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">bind</span><span class="op">(</span><span class="str">'&lt;Control-q&gt;'</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">destroy</span><span class="op">()</span> <span class="op">});</span>
+
+<span class="cm"># Mouse hover on a canvas</span>
+<span class="var">$canvas</span><span class="op">-&gt;</span><span class="fn">bind</span><span class="op">(</span><span class="str">'&lt;Enter&gt;'</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="fn">print</span> <span class="str">"Mouse entered!\n"</span> <span class="op">});</span>
+
+<span class="cm"># &lt;Button-1&gt; = left click  &lt;Button-3&gt; = right click</span>
+<span class="var">$widget</span><span class="op">-&gt;</span><span class="fn">bind</span><span class="op">(</span><span class="str">'&lt;Button-1&gt;'</span> <span class="op">=&gt;</span> \<span class="op">&amp;</span><span class="fn">on_click</span><span class="op">);</span>
+
+<span class="cm"># Reading the event object</span>
+<span class="var">$widget</span><span class="op">-&gt;</span><span class="fn">bind</span><span class="op">(</span><span class="str">'&lt;Motion&gt;'</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$ev</span> <span class="op">=</span> <span class="var">$widget</span><span class="op">-&gt;</span><span class="fn">XEvent</span><span class="op">();</span>
+    <span class="fn">printf</span> <span class="str">"x=%d y=%d\n"</span><span class="op">,</span> <span class="var">$ev</span><span class="op">-&gt;</span><span class="fn">x</span><span class="op">,</span> <span class="var">$ev</span><span class="op">-&gt;</span><span class="fn">y</span><span class="op">;</span>
+<span class="op">});</span></code></pre>
+
+      <h3>Reading widget values</h3>
+      <pre data-lang="perl"><code><span class="kw">my</span> <span class="var">$name</span> <span class="op">=</span> <span class="str">""</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$entry</span> <span class="op">=</span> <span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">Entry</span><span class="op">(</span><span class="op">-</span>textvariable <span class="op">=&gt;</span> \<span class="var">$name</span><span class="op">)-&gt;</span><span class="fn">pack</span><span class="op">();</span>
+
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">Button</span><span class="op">(</span>
+    <span class="op">-</span>text    <span class="op">=&gt;</span> <span class="str">"Greet"</span><span class="op">,</span>
+    <span class="op">-</span>command <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span>
+        <span class="fn">print</span> <span class="str">"Hello, <span class="var">$name</span>!\n"</span><span class="op">;</span>  <span class="cm"># $name updates automatically</span>
+    <span class="op">},</span>
+<span class="op">)-&gt;</span><span class="fn">pack</span><span class="op">();</span></code></pre>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Full Tk App ── -->
+    <section class="section" id="tk-app">
+      <div class="section-label">08 — Perl/Tk</div>
+      <h2>Full Tk Application — Unit Converter</h2>
+      <p>This example puts everything together: a Frame layout, Entry inputs, Labels, a drop-down via <code>Optionmenu</code>, and a button callback that processes the conversion.</p>
+
+      <pre data-lang="perl"><code><span class="cm">#!/usr/bin/perl</span>
+<span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use</span> <span class="mod">Tk</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$mw</span> <span class="op">=</span> <span class="mod">MainWindow</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">();</span>
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">title</span><span class="op">(</span><span class="str">"Unit Converter"</span><span class="op">);</span>
+<span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">resizable</span><span class="op">(</span><span class="num">0</span><span class="op">,</span> <span class="num">0</span><span class="op">);</span>   <span class="cm"># lock width, height</span>
+
+<span class="cm"># ── State variables ──────────────────────────────────────</span>
+<span class="kw">my</span> <span class="var">$input_val</span>  <span class="op">=</span> <span class="str">""</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$result_var</span> <span class="op">=</span> <span class="str">""</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$mode</span>       <span class="op">=</span> <span class="str">"Km → Miles"</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">%conversions</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="str">"Km → Miles"</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">*</span> <span class="num">0.621371</span> <span class="op">},</span>
+    <span class="str">"Miles → Km"</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">*</span> <span class="num">1.60934</span>  <span class="op">},</span>
+    <span class="str">"°C → °F"</span>     <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">*</span> <span class="num">9</span><span class="op">/</span><span class="num">5</span> <span class="op">+</span> <span class="num">32</span> <span class="op">},</span>
+    <span class="str">"°F → °C"</span>     <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="op">(</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">-</span> <span class="num">32</span><span class="op">)</span> <span class="op">*</span> <span class="num">5</span><span class="op">/</span><span class="num">9</span> <span class="op">},</span>
+    <span class="str">"Kg → Lbs"</span>    <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">*</span> <span class="num">2.20462</span>  <span class="op">},</span>
+    <span class="str">"Lbs → Kg"</span>    <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">*</span> <span class="num">0.453592</span> <span class="op">},</span>
+<span class="op">);</span>
+
+<span class="cm"># ── Callback ──────────────────────────────────────────────</span>
+<span class="kw">sub</span> <span class="fn">convert</span> <span class="op">{</span>
+    <span class="kw">unless</span> <span class="op">(</span><span class="var">$input_val</span> <span class="op">=~</span> <span class="op">/</span><span class="str">^\d+(\.\d+)?$</span><span class="op">/</span><span class="op">)</span> <span class="op">{</span>
+        <span class="var">$result_var</span> <span class="op">=</span> <span class="str">"Invalid input"</span><span class="op">;</span>
+        <span class="kw">return</span><span class="op">;</span>
+    <span class="op">}</span>
+    <span class="kw">my</span> <span class="var">$fn</span>     <span class="op">=</span> <span class="var">$conversions</span><span class="op">{</span><span class="var">$mode</span><span class="op">}</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$result</span> <span class="op">=</span> <span class="var">$fn</span><span class="op">-&gt;(</span><span class="var">$input_val</span><span class="op">);</span>
+    <span class="var">$result_var</span> <span class="op">=</span> <span class="fn">sprintf</span><span class="op">(</span><span class="str">"%.4f"</span><span class="op">,</span> <span class="var">$result</span><span class="op">);</span>
+<span class="op">}</span>
+
+<span class="cm"># ── UI ────────────────────────────────────────────────────</span>
+<span class="kw">my</span> <span class="var">$top</span> <span class="op">=</span> <span class="var">$mw</span><span class="op">-&gt;</span><span class="fn">Frame</span><span class="op">(-</span>padx <span class="op">=&gt;</span> <span class="num">20</span><span class="op">,</span> <span class="op">-</span>pady <span class="op">=&gt;</span> <span class="num">16</span><span class="op">)-&gt;</span><span class="fn">pack</span><span class="op">(-</span>fill <span class="op">=&gt;</span> <span class="str">'x'</span><span class="op">);</span>
+
+<span class="var">$top</span><span class="op">-&gt;</span><span class="fn">Label</span><span class="op">(-</span>text <span class="op">=&gt;</span> <span class="str">"Value:"</span><span class="op">)-&gt;</span><span class="fn">grid</span><span class="op">(-</span>row<span class="op">=&gt;</span><span class="num">0</span><span class="op">,-</span>column<span class="op">=&gt;</span><span class="num">0</span><span class="op">,-</span>sticky<span class="op">=&gt;</span><span class="str">'w'</span><span class="op">);</span>
+<span class="var">$top</span><span class="op">-&gt;</span><span class="fn">Entry</span><span class="op">(-</span>textvariable <span class="op">=&gt;</span> \<span class="var">$input_val</span><span class="op">,</span> <span class="op">-</span>width <span class="op">=&gt;</span> <span class="num">18</span><span class="op">)</span>
+    <span class="op">-&gt;</span><span class="fn">grid</span><span class="op">(-</span>row<span class="op">=&gt;</span><span class="num">0</span><span class="op">,-</span>column<span class="op">=&gt;</span><span class="num">1</span><span class="op">,-</span>sticky<span class="op">=&gt;</span><span class="str">'ew'</span><span class="op">,-</span>padx<span class="op">=&gt;</span><span class="num">8</span><span class="op">);</span>
+
+<span class="var">$top</span><span class="op">-&gt;</span><span class="fn">Label</span><span class="op">(-</span>text <span class="op">=&gt;</span> <span class="str">"Mode:"</span><span class="op">)-&gt;</span><span class="fn">grid</span><span class="op">(-</span>row<span class="op">=&gt;</span><span class="num">1</span><span class="op">,-</span>column<span class="op">=&gt;</span><span class="num">0</span><span class="op">,-</span>sticky<span class="op">=&gt;</span><span class="str">'w'</span><span class="op">,-</span>pady<span class="op">=&gt;</span><span class="num">6</span><span class="op">);</span>
+<span class="var">$top</span><span class="op">-&gt;</span><span class="fn">Optionmenu</span><span class="op">(</span>
+    <span class="op">-</span>variable <span class="op">=&gt;</span> \<span class="var">$mode</span><span class="op">,</span>
+    <span class="op">-</span>options  <span class="op">=&gt;</span> <span class="op">[</span><span class="fn">sort</span> <span class="fn">keys</span> <span class="var">%conversions</span><span class="op">]</span><span class="op">,</span>
+<span class="op">)-&gt;</span><span class="fn">grid</span><span class="op">(-</span>row<span class="op">=&gt;</span><span class="num">1</span><span class="op">,-</span>column<span class="op">=&gt;</span><span class="num">1</span><span class="op">,-</span>sticky<span class="op">=&gt;</span><span class="str">'ew'</span><span class="op">,-</span>padx<span class="op">=&gt;</span><span class="num">8</span><span class="op">);</span>
+
+<span class="var">$top</span><span class="op">-&gt;</span><span class="fn">Button</span><span class="op">(</span>
+    <span class="op">-</span>text    <span class="op">=&gt;</span> <span class="str">"Convert"</span><span class="op">,</span>
+    <span class="op">-</span>command <span class="op">=&gt;</span> \<span class="op">&amp;</span><span class="fn">convert</span><span class="op">,</span>
+    <span class="op">-</span>bg      <span class="op">=&gt;</span> <span class="str">'#4a90d9'</span><span class="op">,</span>
+    <span class="op">-</span>fg      <span class="op">=&gt;</span> <span class="str">'white'</span><span class="op">,</span>
+<span class="op">)-&gt;</span><span class="fn">grid</span><span class="op">(-</span>row<span class="op">=&gt;</span><span class="num">2</span><span class="op">,-</span>column<span class="op">=&gt;</span><span class="num">0</span><span class="op">,-</span>columnspan<span class="op">=&gt;</span><span class="num">2</span><span class="op">,-</span>pady<span class="op">=&gt;</span><span class="num">10</span><span class="op">);</span>
+
+<span class="var">$top</span><span class="op">-&gt;</span><span class="fn">Label</span><span class="op">(</span>
+    <span class="op">-</span>text     <span class="op">=&gt;</span> <span class="str">"Result:"</span><span class="op">,</span>
+    <span class="op">-</span>font     <span class="op">=&gt;</span> <span class="str">"Arial 12"</span><span class="op">,</span>
+<span class="op">)-&gt;</span><span class="fn">grid</span><span class="op">(-</span>row<span class="op">=&gt;</span><span class="num">3</span><span class="op">,-</span>column<span class="op">=&gt;</span><span class="num">0</span><span class="op">,-</span>sticky<span class="op">=&gt;</span><span class="str">'w'</span><span class="op">);</span>
+
+<span class="var">$top</span><span class="op">-&gt;</span><span class="fn">Label</span><span class="op">(</span>
+    <span class="op">-</span>textvariable <span class="op">=&gt;</span> \<span class="var">$result_var</span><span class="op">,</span>
+    <span class="op">-</span>font         <span class="op">=&gt;</span> <span class="str">"Arial 14 bold"</span><span class="op">,</span>
+    <span class="op">-</span>fg           <span class="op">=&gt;</span> <span class="str">'#2a7a40'</span><span class="op">,</span>
+<span class="op">)-&gt;</span><span class="fn">grid</span><span class="op">(-</span>row<span class="op">=&gt;</span><span class="num">3</span><span class="op">,-</span>column<span class="op">=&gt;</span><span class="num">1</span><span class="op">,-</span>sticky<span class="op">=&gt;</span><span class="str">'w'</span><span class="op">);</span>
+
+<span class="mod">MainLoop</span><span class="op">();</span></code></pre>
+
+      <div class="callout callout-info">
+        <strong>Key pattern:</strong> Use scalar variables tied to widgets via <code>-textvariable =&gt; \$var</code>. Tk automatically syncs the display whenever Perl changes the variable — no manual refresh required.
+      </div>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Wx ── -->
+    <section class="section" id="wx">
+      <div class="section-label">09 — Wx (wxWidgets)</div>
+      <h2>Wx — Native Look &amp; Feel</h2>
+      <p>The <code>Wx</code> module wraps the cross-platform wxWidgets C++ library. Controls look and behave identically to native OS widgets — menus, dialogs, and buttons all match the OS theme.</p>
+
+      <h3>Structure of a Wx program</h3>
+      <p>Wx uses an object-oriented design with three mandatory classes: <strong>App</strong>, <strong>Frame</strong>, and <strong>Panel</strong>. Events use an <strong>EVT_*</strong> macro system.</p>
+
+      <pre data-lang="perl"><code><span class="cm">#!/usr/bin/perl</span>
+<span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use</span> <span class="mod">Wx</span> <span class="kw">qw</span><span class="op">(</span>:everything<span class="op">);</span>
+
+<span class="cm"># ── App class ────────────────────────────────────────────</span>
+<span class="kw">package</span> <span class="mod">MyApp</span><span class="op">;</span>
+<span class="kw">use parent</span> <span class="op">-</span>norequire<span class="op">,</span> <span class="str">'Wx::App'</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">OnInit</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$frame</span> <span class="op">=</span> <span class="mod">MyFrame</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">();</span>
+    <span class="var">$frame</span><span class="op">-&gt;</span><span class="fn">Show</span><span class="op">(</span><span class="num">1</span><span class="op">);</span>
+    <span class="kw">return</span> <span class="num">1</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># ── Frame class ──────────────────────────────────────────</span>
+<span class="kw">package</span> <span class="mod">MyFrame</span><span class="op">;</span>
+<span class="kw">use parent</span> <span class="op">-</span>norequire<span class="op">,</span> <span class="str">'Wx::Frame'</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="var">$class</span><span class="op">-&gt;</span><span class="fn">SUPER::new</span><span class="op">(</span>
+        <span class="kw">undef</span><span class="op">,</span>           <span class="cm"># parent (undef = top-level)</span>
+        <span class="op">-</span><span class="num">1</span><span class="op">,</span>              <span class="cm"># id  (-1 = auto)</span>
+        <span class="str">"Wx Hello"</span><span class="op">,</span>      <span class="cm"># title</span>
+        wxDefaultPosition<span class="op">,</span>
+        <span class="op">[</span><span class="num">400</span><span class="op">,</span> <span class="num">200</span><span class="op">],</span>       <span class="cm"># size [w, h]</span>
+    <span class="op">);</span>
+
+    <span class="kw">my</span> <span class="var">$panel</span>  <span class="op">=</span> <span class="mod">Wx::Panel</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="op">-</span><span class="num">1</span><span class="op">);</span>
+    <span class="kw">my</span> <span class="var">$button</span> <span class="op">=</span> <span class="mod">Wx::Button</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="var">$panel</span><span class="op">,</span> <span class="op">-</span><span class="num">1</span><span class="op">,</span> <span class="str">"Click Me"</span><span class="op">,</span>
+                              wxDefaultPosition<span class="op">,</span> wxDefaultSize<span class="op">);</span>
+
+    <span class="cm"># Connect the button's click event to a method</span>
+    <span class="mod">Wx::Event::EVT_BUTTON</span><span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="var">$button</span><span class="op">,</span> \<span class="op">&amp;</span><span class="fn">OnButton</span><span class="op">);</span>
+
+    <span class="kw">return</span> <span class="var">$self</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">OnButton</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="var">$event</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="mod">Wx::MessageBox</span><span class="op">(</span><span class="str">"You clicked the button!"</span><span class="op">,</span> <span class="str">"Hello"</span><span class="op">,</span>
+                   wxOK <span class="op">|</span> wxICON_INFORMATION<span class="op">,</span> <span class="var">$self</span><span class="op">);</span>
+<span class="op">}</span>
+
+<span class="cm"># ── Main ─────────────────────────────────────────────────</span>
+<span class="kw">package</span> <span class="mod">main</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$app</span> <span class="op">=</span> <span class="mod">MyApp</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">();</span>
+<span class="var">$app</span><span class="op">-&gt;</span><span class="fn">MainLoop</span><span class="op">();</span></code></pre>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Full Wx App ── -->
+    <section class="section" id="wx-app">
+      <div class="section-label">10 — Wx</div>
+      <h2>Full Wx App — Text Editor</h2>
+      <p>A simple Wx text editor demonstrating menus, a toolbar feel, a <code>TextCtrl</code> for the editing area, and file dialogs.</p>
+
+      <pre data-lang="perl"><code><span class="cm">#!/usr/bin/perl</span>
+<span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use</span> <span class="mod">Wx</span> <span class="kw">qw</span><span class="op">(</span>:everything<span class="op">);</span>
+<span class="kw">use</span> <span class="mod">Wx::Event</span> <span class="kw">qw</span><span class="op">(</span>EVT_MENU<span class="op">);</span>
+
+<span class="cm"># ── Constants for menu IDs ────────────────────────────────</span>
+<span class="kw">use constant</span> <span class="op">{</span>
+    ID_NEW   <span class="op">=&gt;</span> <span class="num">101</span><span class="op">,</span>
+    ID_OPEN  <span class="op">=&gt;</span> <span class="num">102</span><span class="op">,</span>
+    ID_SAVE  <span class="op">=&gt;</span> <span class="num">103</span><span class="op">,</span>
+    ID_ABOUT <span class="op">=&gt;</span> <span class="num">104</span><span class="op">,</span>
+<span class="op">};</span>
+
+<span class="kw">package</span> <span class="mod">EditorApp</span><span class="op">;</span>
+<span class="kw">use parent</span> <span class="op">-</span>norequire<span class="op">,</span> <span class="str">'Wx::App'</span><span class="op">;</span>
+<span class="kw">sub</span> <span class="fn">OnInit</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="mod">EditorFrame</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">()-&gt;</span><span class="fn">Show</span><span class="op">(</span><span class="num">1</span><span class="op">);</span>
+    <span class="kw">return</span> <span class="num">1</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="mod">EditorFrame</span><span class="op">;</span>
+<span class="kw">use parent</span> <span class="op">-</span>norequire<span class="op">,</span> <span class="str">'Wx::Frame'</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="var">$class</span><span class="op">-&gt;</span><span class="fn">SUPER::new</span><span class="op">(</span><span class="kw">undef</span><span class="op">,</span> <span class="op">-</span><span class="num">1</span><span class="op">,</span>
+        <span class="str">"Perl Text Editor"</span><span class="op">,</span> wxDefaultPosition<span class="op">,</span> <span class="op">[</span><span class="num">700</span><span class="op">,</span> <span class="num">500</span><span class="op">]);</span>
+
+    <span class="cm"># Build the menu bar</span>
+    <span class="kw">my</span> <span class="var">$menubar</span> <span class="op">=</span> <span class="mod">Wx::MenuBar</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">();</span>
+    <span class="kw">my</span> <span class="var">$file</span>    <span class="op">=</span> <span class="mod">Wx::Menu</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">();</span>
+    <span class="var">$file</span><span class="op">-&gt;</span><span class="fn">Append</span><span class="op">(</span><span class="fn">ID_NEW</span><span class="op">,</span>  <span class="str">"&amp;New\tCtrl+N"</span><span class="op">);</span>
+    <span class="var">$file</span><span class="op">-&gt;</span><span class="fn">Append</span><span class="op">(</span><span class="fn">ID_OPEN</span><span class="op">,</span> <span class="str">"&amp;Open\tCtrl+O"</span><span class="op">);</span>
+    <span class="var">$file</span><span class="op">-&gt;</span><span class="fn">Append</span><span class="op">(</span><span class="fn">ID_SAVE</span><span class="op">,</span> <span class="str">"&amp;Save\tCtrl+S"</span><span class="op">);</span>
+    <span class="var">$file</span><span class="op">-&gt;</span><span class="fn">AppendSeparator</span><span class="op">();</span>
+    <span class="var">$file</span><span class="op">-&gt;</span><span class="fn">Append</span><span class="op">(</span>wxID_EXIT<span class="op">,</span> <span class="str">"E&amp;xit\tAlt+F4"</span><span class="op">);</span>
+    <span class="var">$menubar</span><span class="op">-&gt;</span><span class="fn">Append</span><span class="op">(</span><span class="var">$file</span><span class="op">,</span> <span class="str">"&amp;File"</span><span class="op">);</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">SetMenuBar</span><span class="op">(</span><span class="var">$menubar</span><span class="op">);</span>
+
+    <span class="cm"># Text area (TE_MULTILINE = multi-line, TE_RICH2 = rich text)</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="op">{</span>editor<span class="op">}</span> <span class="op">=</span> <span class="mod">Wx::TextCtrl</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span>
+        <span class="var">$self</span><span class="op">,</span> <span class="op">-</span><span class="num">1</span><span class="op">,</span> <span class="str">""</span><span class="op">,</span>
+        wxDefaultPosition<span class="op">,</span> wxDefaultSize<span class="op">,</span>
+        wxTE_MULTILINE <span class="op">|</span> wxTE_RICH2<span class="op">,</span>
+    <span class="op">);</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="op">{</span>current_file<span class="op">}</span> <span class="op">=</span> <span class="kw">undef</span><span class="op">;</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">CreateStatusBar</span><span class="op">();</span>
+
+    <span class="cm"># Wire menu events</span>
+    <span class="fn">EVT_MENU</span><span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="fn">ID_NEW</span><span class="op">,</span>   \<span class="op">&amp;</span><span class="fn">OnNew</span><span class="op">);</span>
+    <span class="fn">EVT_MENU</span><span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="fn">ID_OPEN</span><span class="op">,</span>  \<span class="op">&amp;</span><span class="fn">OnOpen</span><span class="op">);</span>
+    <span class="fn">EVT_MENU</span><span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="fn">ID_SAVE</span><span class="op">,</span>  \<span class="op">&amp;</span><span class="fn">OnSave</span><span class="op">);</span>
+    <span class="fn">EVT_MENU</span><span class="op">(</span><span class="var">$self</span><span class="op">,</span> wxID_EXIT<span class="op">,</span> \<span class="op">&amp;</span><span class="fn">OnQuit</span><span class="op">);</span>
+
+    <span class="kw">return</span> <span class="var">$self</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">OnNew</span>  <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;</span><span class="op">{</span>editor<span class="op">}</span><span class="op">-&gt;</span><span class="fn">SetValue</span><span class="op">(</span><span class="str">""</span><span class="op">)</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">OnQuit</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;</span><span class="fn">Destroy</span><span class="op">() }</span>
+
+<span class="kw">sub</span> <span class="fn">OnOpen</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$dialog</span> <span class="op">=</span> <span class="mod">Wx::FileDialog</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span>
+        <span class="var">$self</span><span class="op">,</span> <span class="str">"Open File"</span><span class="op">,</span> <span class="str">""</span><span class="op">,</span> <span class="str">""</span><span class="op">,</span>
+        <span class="str">"Text files (*.txt)|*.txt|All files (*.*)|*.*"</span><span class="op">,</span>
+        wxFD_OPEN <span class="op">|</span> wxFD_FILE_MUST_EXIST<span class="op">,</span>
+    <span class="op">);</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="var">$dialog</span><span class="op">-&gt;</span><span class="fn">ShowModal</span><span class="op">()</span> <span class="op">==</span> wxID_OK<span class="op">)</span> <span class="op">{</span>
+        <span class="kw">my</span> <span class="var">$path</span> <span class="op">=</span> <span class="var">$dialog</span><span class="op">-&gt;</span><span class="fn">GetPath</span><span class="op">();</span>
+        <span class="kw">open</span> <span class="kw">my</span> <span class="var">$fh</span><span class="op">,</span> <span class="str">'&lt;'</span><span class="op">,</span> <span class="var">$path</span> <span class="kw">or</span> <span class="kw">die</span> <span class="var">$!</span><span class="op">;</span>
+        <span class="kw">local</span> <span class="op">/</span><span class="op">;</span>
+        <span class="var">$self</span><span class="op">-&gt;</span><span class="op">{</span>editor<span class="op">}</span><span class="op">-&gt;</span><span class="fn">SetValue</span><span class="op">(</span><span class="op">&lt;</span><span class="var">$fh</span><span class="op">&gt;);</span>
+        <span class="kw">close</span> <span class="var">$fh</span><span class="op">;</span>
+        <span class="var">$self</span><span class="op">-&gt;</span><span class="op">{</span>current_file<span class="op">}</span> <span class="op">=</span> <span class="var">$path</span><span class="op">;</span>
+    <span class="op">}</span>
+    <span class="var">$dialog</span><span class="op">-&gt;</span><span class="fn">Destroy</span><span class="op">();</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">OnSave</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$path</span> <span class="op">=</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="op">{</span>current_file<span class="op">}</span><span class="op">;</span>
+    <span class="kw">unless</span> <span class="op">(</span><span class="var">$path</span><span class="op">)</span> <span class="op">{</span>   <span class="cm"># "Save As" if no filename yet</span>
+        <span class="kw">my</span> <span class="var">$d</span> <span class="op">=</span> <span class="mod">Wx::FileDialog</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="str">"Save As"</span><span class="op">,</span>
+                   <span class="str">""</span><span class="op">,</span> <span class="str">""</span><span class="op">,</span> <span class="str">"*.txt"</span><span class="op">,</span> wxFD_SAVE<span class="op">);</span>
+        <span class="kw">return</span> <span class="kw">if</span> <span class="var">$d</span><span class="op">-&gt;</span><span class="fn">ShowModal</span><span class="op">()</span> <span class="op">!=</span> wxID_OK<span class="op">;</span>
+        <span class="var">$path</span> <span class="op">=</span> <span class="var">$d</span><span class="op">-&gt;</span><span class="fn">GetPath</span><span class="op">();</span>
+        <span class="var">$d</span><span class="op">-&gt;</span><span class="fn">Destroy</span><span class="op">();</span>
+    <span class="op">}</span>
+    <span class="kw">open</span> <span class="kw">my</span> <span class="var">$fh</span><span class="op">,</span> <span class="str">'&gt;'</span><span class="op">,</span> <span class="var">$path</span> <span class="kw">or</span> <span class="kw">die</span> <span class="var">$!</span><span class="op">;</span>
+    <span class="fn">print</span> <span class="op">{</span><span class="var">$fh</span><span class="op">}</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="op">{</span>editor<span class="op">}</span><span class="op">-&gt;</span><span class="fn">GetValue</span><span class="op">();</span>
+    <span class="kw">close</span> <span class="var">$fh</span><span class="op">;</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">SetStatusText</span><span class="op">(</span><span class="str">"Saved: $path"</span><span class="op">);</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="mod">main</span><span class="op">;</span>
+<span class="mod">EditorApp</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">()-&gt;</span><span class="fn">MainLoop</span><span class="op">();</span></code></pre>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Tips ── -->
+    <section class="section" id="tips">
+      <div class="section-label">11 — Best Practices</div>
+      <h2>Best Practices &amp; Tips</h2>
+
+      <ol class="steps">
+        <li><strong>Separate logic from GUI.</strong> Keep business logic in plain Perl subroutines or modules. Your GUI code should only call into those functions — never compute things inside a callback directly.</li>
+        <li><strong>Use <code>strict</code> and <code>warnings</code>.</strong> GUI code involves many closures and references. Typos in variable names silently create new ones — <code>use strict</code> catches these immediately.</li>
+        <li><strong>Don't block the event loop.</strong> Long-running work (file reads, network calls) will freeze the UI. Use <code>$mw-&gt;update()</code> periodically in loops, or offload work with <code>Tk::After</code> timers for Tk, or threads/async patterns for Wx.</li>
+        <li><strong>Prefer <code>grid</code> over <code>pack</code> for forms.</strong> As soon as you have more than a few widgets, <code>grid</code> produces cleaner, more maintainable layouts. Never mix <code>pack</code> and <code>grid</code> inside the same container.</li>
+        <li><strong>Store widget references in a hash.</strong> Instead of proliferating <code>$button1</code>, <code>$button2</code> variables, use a <code>%w</code> hash: <code>$w{submit} = $mw-&gt;Button(…)</code>. Scales to large UIs without namespace pollution.</li>
+        <li><strong>Test on all target platforms early.</strong> Font sizes, widget padding, and dialog behavior differ between Windows, macOS, and Linux — even for the same toolkit. Run your app on each OS before shipping.</li>
+        <li><strong>Use <code>Wx::XmlResource</code> for complex layouts.</strong> For large Wx applications, define your UI in an XML layout file (.xrc) and load it at runtime. This separates design from code.</li>
+      </ol>
+    </section>
+
+    <hr class="divider"/>
+
+    <!-- ── Resources ── -->
+    <section class="section" id="resources">
+      <div class="section-label">12 — Further Reading</div>
+      <h2>Resources</h2>
+      <table>
+        <thead>
+          <tr><th>Resource</th><th>URL / Source</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Perl/Tk docs</strong></td><td><code>perldoc Tk</code></td><td>Installed locally with the module</td></tr>
+          <tr><td><strong>Learning Perl/Tk</strong></td><td>O'Reilly book by Nancy Walsh</td><td>The definitive Tk reference</td></tr>
+          <tr><td><strong>wxPerl wiki</strong></td><td>wiki.wxwidgets.org</td><td>Wx-specific guides and examples</td></tr>
+          <tr><td><strong>CPAN Tk</strong></td><td>metacpan.org/pod/Tk</td><td>API reference &amp; version history</td></tr>
+          <tr><td><strong>CPAN Wx</strong></td><td>metacpan.org/pod/Wx</td><td>Wx module documentation</td></tr>
+          <tr><td><strong>Prima</strong></td><td>metacpan.org/pod/Prima</td><td>Pure-Perl GUI toolkit</td></tr>
+          <tr><td><strong>Gtk3</strong></td><td>metacpan.org/pod/Gtk3</td><td>GTK3 Perl bindings</td></tr>
+          <tr><td><strong>perlmonks.org</strong></td><td>perlmonks.org</td><td>Active Perl community Q&amp;A</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Quick Reference:</strong> Run <code>perl -e "use Tk; print $Tk::VERSION"</code> (or <code>Wx</code>) to verify your installed version before starting a project.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Perl GUI Guide &nbsp;·&nbsp; Made with <a href="https://www.perl.org/">Perl</a> knowledge &amp; care &nbsp;·&nbsp;
+  Toolkits: Tk · Wx · Prima · Gtk3 · Win32::GUI
+</footer>
+
+<!-- Sidebar active-link highlighting on scroll -->
+<script>
+const sections = document.querySelectorAll('.section[id]');
+const links    = document.querySelectorAll('.nav-list a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('.nav-list a[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

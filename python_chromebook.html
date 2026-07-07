@@ -1,0 +1,2628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python on a Chromebook — Complete Development Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+/* ── Design Tokens ─────────────────────────────────────────────── */
+:root{
+  --bg:#09090f; --bg-s:#05050a; --bg-c:#0f0f1c; --bg-k:#0c0c18;
+  --bdr:#1e1e30; --am:#f0a030; --amd:#b87820; --amg:#f0a03018;
+  --tx:#e2d9c8; --dm:#9b9380; --mt:#5a5448;
+  --ac:#4db8ff; --gn:#6fcf97; --rd:#eb5757;
+  /* Python colours */
+  --py:#4B8BBE; --pyy:#FFD43B; --pyd:#306998; --pyg:#1e3350;
+  --sw:272px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--tx);font-family:'Source Serif 4',Georgia,serif;
+     font-size:16.5px;line-height:1.78;display:flex;min-height:100vh;}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+#sb{width:var(--sw);min-width:var(--sw);background:var(--bg-s);
+    border-right:1px solid var(--bdr);position:fixed;top:0;left:0;bottom:0;
+    overflow-y:auto;z-index:100;padding-bottom:40px;}
+#sb::-webkit-scrollbar{width:4px;}
+#sb::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+.sbl{padding:26px 20px 16px;border-bottom:1px solid var(--bdr);}
+.sbt{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;
+     color:var(--py);line-height:1.3;}
+.sbs{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);
+     margin-top:3px;letter-spacing:.06em;}
+.sbh{padding:14px 20px 4px;font-family:'JetBrains Mono',monospace;font-size:10px;
+     letter-spacing:.16em;color:var(--am);text-transform:uppercase;}
+a.lk{display:block;padding:4px 20px;text-decoration:none;color:var(--dm);
+     font-family:'JetBrains Mono',monospace;font-size:12px;
+     border-left:2px solid transparent;transition:color .14s,background .14s;}
+a.lk:hover{color:var(--tx);background:var(--bg-c);}
+a.lk.act{color:var(--am);border-left-color:var(--am);background:var(--amg);}
+
+/* ── Main ────────────────────────────────────────────────────────── */
+#mn{margin-left:var(--sw);flex:1;min-width:0;}
+#ct{max-width:900px;margin:0 auto;padding:56px 48px 100px;}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+.hero{padding-bottom:44px;border-bottom:1px solid var(--bdr);margin-bottom:54px;}
+.ey{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;
+    color:var(--py);text-transform:uppercase;margin-bottom:14px;}
+.hero h1{font-family:'Playfair Display',serif;
+         font-size:clamp(30px,4.5vw,52px);font-weight:900;
+         line-height:1.1;margin-bottom:10px;}
+.hero h1 em{font-style:italic;color:var(--py);}
+.hero p{font-style:italic;font-size:18px;color:var(--dm);font-weight:300;margin-bottom:22px;}
+.bgs{display:flex;flex-wrap:wrap;gap:8px;}
+.bg{background:var(--bg-c);border:1px solid var(--bdr);
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--dm);padding:4px 10px;border-radius:3px;}
+.bg.py{border-color:var(--pyd);color:var(--py);}
+.bg.yy{border-color:#a08000;color:var(--pyy);}
+.bg.gn{border-color:#2a7a40;color:var(--gn);}
+.bg.am{border-color:var(--amd);color:var(--am);}
+
+/* ── Sections ────────────────────────────────────────────────────── */
+.sec{margin-bottom:68px;scroll-margin-top:20px;}
+.sh{display:flex;align-items:baseline;gap:14px;margin-bottom:20px;
+    padding-bottom:12px;border-bottom:1px solid var(--bdr);}
+.sh h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;}
+.snm{font-family:'JetBrains Mono',monospace;font-size:10px;
+     background:var(--amg);border:1px solid var(--amd);color:var(--am);
+     padding:2px 8px;border-radius:3px;white-space:nowrap;}
+h3{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;
+   color:var(--am);margin:28px 0 10px;}
+h4{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+   letter-spacing:.1em;text-transform:uppercase;color:var(--dm);margin:20px 0 8px;}
+p{margin-bottom:13px;}p:last-child{margin-bottom:0;}
+strong{color:var(--tx);}em{color:var(--am);font-style:italic;}
+ul,ol{padding-left:22px;margin:10px 0;}li{margin-bottom:5px;}
+ul li::marker{color:var(--amd);}
+
+/* ── Code blocks ─────────────────────────────────────────────────── */
+.cb2{position:relative;margin:16px 0;border-radius:6px;overflow:hidden;
+     border:1px solid var(--bdr);background:var(--bg-k);}
+.ch2{display:flex;align-items:center;justify-content:space-between;
+     padding:7px 14px;background:#0a0a14;border-bottom:1px solid var(--bdr);}
+.cl2{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;
+     color:var(--am);text-transform:uppercase;}
+.cf2{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);}
+.cp2{background:none;border:1px solid var(--bdr);color:var(--mt);
+     font-family:'JetBrains Mono',monospace;font-size:10px;
+     padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .14s;}
+.cp2:hover{color:var(--am);border-color:var(--amd);}
+.cp2.ok{color:var(--gn);border-color:var(--gn);}
+.cb2 pre[class*=language-]{margin:0;padding:18px 20px;
+    background:transparent !important;font-size:13px;line-height:1.68;overflow-x:auto;}
+.cb2 code[class*=language-]{font-family:'JetBrains Mono',monospace !important;}
+.token.comment,.token.prolog{color:#6a7a5a !important;font-style:italic;}
+.token.keyword{color:#f0a030 !important;font-weight:500;}
+.token.string,.token.char{color:#a8d8a0 !important;}
+.token.number{color:#a8c4e0 !important;}
+.token.operator{color:#d4c090 !important;}
+.token.function{color:#8fbce0 !important;}
+.token.class-name{color:#e0b87a !important;}
+.token.decorator{color:#d4a0c8 !important;}
+.token.punctuation{color:#6a7080 !important;}
+.token.builtin{color:#9bbce0 !important;}
+code:not([class]){font-family:'JetBrains Mono',monospace;font-size:13px;
+    background:var(--bg-c);color:var(--am);padding:2px 6px;
+    border-radius:3px;border:1px solid var(--bdr);}
+
+/* ── Tables ──────────────────────────────────────────────────────── */
+.tw{overflow-x:auto;margin:16px 0;}
+table{width:100%;border-collapse:collapse;font-size:14.5px;}
+thead tr{background:var(--bg-c);border-bottom:2px solid var(--amd);}
+th{text-align:left;padding:9px 13px;font-family:'JetBrains Mono',monospace;
+   font-size:10.5px;letter-spacing:.1em;color:var(--am);text-transform:uppercase;}
+td{padding:8px 13px;border-bottom:1px solid var(--bdr);vertical-align:top;}
+tbody tr:hover{background:var(--bg-c);}
+
+/* ── Callouts ────────────────────────────────────────────────────── */
+.ca{padding:14px 18px;border-radius:4px;border-left:3px solid;margin:16px 0;font-size:14.5px;}
+.ca.n{background:#0a1020;border-color:var(--ac);color:#a8c8e0;}
+.ca.t{background:#081510;border-color:var(--gn);color:#90c890;}
+.ca.w{background:#130c04;border-color:var(--am);color:#c8a060;}
+.ca.py{background:#08101a;border-color:var(--py);color:#88b8de;}
+.ca.yy{background:#141000;border-color:#a08000;color:var(--pyy);}
+.ca strong{color:inherit;}
+
+/* ── Install steps ───────────────────────────────────────────────── */
+.is{display:flex;gap:16px;margin-bottom:22px;align-items:flex-start;}
+.inn{background:var(--py);color:white;font-family:'JetBrains Mono',monospace;
+     font-size:12px;font-weight:700;width:26px;height:26px;border-radius:50%;
+     display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.ic{flex:1;}
+.ic strong{display:block;color:var(--tx);font-family:'Playfair Display',serif;
+           font-size:15px;margin-bottom:6px;}
+
+/* ── Option cards ────────────────────────────────────────────────── */
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:20px 0;}
+.opt{background:var(--bg-c);border:1px solid var(--bdr);border-radius:6px;
+     padding:18px 16px;transition:border-color .2s,transform .2s;}
+.opt:hover{transform:translateY(-2px);}
+.opt.main{border-top:3px solid var(--py);}
+.opt.sec{border-top:3px solid var(--am);}
+.opt.trd{border-top:3px solid var(--gn);}
+.opt.fou{border-top:3px solid var(--pyy);}
+.opt .ot{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:3px;}
+.opt.main .ot{color:var(--py);}
+.opt.sec  .ot{color:var(--am);}
+.opt.trd  .ot{color:var(--gn);}
+.opt.fou  .ot{color:var(--pyy);}
+.opt .os{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);margin-bottom:8px;}
+.opt .od{font-size:13px;color:var(--dm);}
+
+/* ── Concept grid ────────────────────────────────────────────────── */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:16px 0;}
+.cc{background:var(--bg-c);border:1px solid var(--bdr);
+    padding:13px 15px;border-radius:4px;transition:border-color .14s;}
+.cc:hover{border-color:var(--amd);}
+.cc .cn{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am);margin-bottom:5px;}
+.cc p{font-size:13px;color:var(--dm);margin:0;}
+
+/* ── Output block ────────────────────────────────────────────────── */
+.ob{background:#040408;border:1px solid var(--bdr);border-left:3px solid var(--gn);
+    padding:14px 18px;margin:14px 0;border-radius:0 4px 4px 0;
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;
+    color:#a0d8a0;line-height:1.6;overflow-x:auto;}
+.ol{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+    color:var(--gn);text-transform:uppercase;margin-bottom:6px;}
+
+/* ── Keyboard ────────────────────────────────────────────────────── */
+kbd{background:var(--bg-c);border:1px solid var(--bdr);border-bottom:2px solid #333;
+    color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:2px 6px;border-radius:3px;}
+
+/* ── Screen mockup ───────────────────────────────────────────────── */
+.chrome-mock{background:#1a1a2a;border:2px solid #2a2a3e;border-radius:10px;
+             overflow:hidden;margin:20px 0;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.chrome-bar{background:#202030;padding:8px 14px;display:flex;align-items:center;gap:8px;
+            border-bottom:1px solid #2a2a3e;}
+.cdot{width:10px;height:10px;border-radius:50%;}
+.cdot.r{background:#ff5f57;}.cdot.y{background:#febc2e;}.cdot.g{background:#28c840;}
+.chrome-title{color:#7878a0;font-size:11px;margin-left:8px;letter-spacing:.04em;}
+.chrome-body{padding:16px;}
+
+/* ── Python snake logo art ───────────────────────────────────────── */
+.py-badge{display:inline-flex;align-items:center;gap:6px;
+          background:var(--pyg);border:1px solid var(--pyd);
+          padding:6px 12px;border-radius:4px;margin-bottom:4px;}
+.py-badge .pyv{font-family:'JetBrains Mono',monospace;font-size:12px;
+               color:var(--pyy);font-weight:700;}
+.py-badge .pyn{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--py);}
+
+/* ── Venv diagram ────────────────────────────────────────────────── */
+.venv-box{background:var(--bg-c);border:1px solid var(--bdr);border-radius:6px;
+          padding:18px 20px;margin:16px 0;}
+.venv-box .vt{font-family:'Playfair Display',serif;font-size:14px;
+              color:var(--py);margin-bottom:10px;}
+
+/* ── Jupyter cell ────────────────────────────────────────────────── */
+.jcell{background:var(--bg-c);border:1px solid var(--bdr);border-left:3px solid var(--py);
+       border-radius:0 4px 4px 0;margin:12px 0;overflow:hidden;}
+.jlabel{background:#0a0a14;padding:4px 12px;font-family:'JetBrains Mono',monospace;
+        font-size:10px;color:var(--py);}
+.jcode{padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;
+       color:#e2d9c8;white-space:pre;}
+.jout{background:#040408;padding:12px 16px;border-top:1px solid var(--bdr);
+      font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#a8d8a0;white-space:pre;}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media(max-width:900px){
+  #sb{transform:translateX(-100%);transition:transform .2s;}
+  #sb.open{transform:translateX(0);}
+  #mn{margin-left:0;}#ct{padding:40px 22px 80px;}#mbt{display:flex;}
+}
+#mbt{display:none;position:fixed;top:14px;left:14px;z-index:200;
+     background:var(--bg-c);border:1px solid var(--bdr);color:var(--py);
+     padding:8px 12px;border-radius:4px;cursor:pointer;
+     font-family:'JetBrains Mono',monospace;font-size:13px;}
+</style>
+</head>
+<body>
+
+<button id="mbt" onclick="document.getElementById('sb').classList.toggle('open')">☰ Menu</button>
+
+<!-- ════════════ SIDEBAR ════════════ -->
+<nav id="sb">
+  <div class="sbl">
+    <div class="sbt">Python on Chromebook</div>
+    <div class="sbs">complete development guide</div>
+  </div>
+
+  <div class="sbh">Setup</div>
+  <a class="lk" href="#overview">Overview &amp; Options</a>
+  <a class="lk" href="#enable-linux">Enable Linux (Crostini)</a>
+  <a class="lk" href="#install-python">Install Python &amp; Tools</a>
+  <a class="lk" href="#venv">Virtual Environments</a>
+  <a class="lk" href="#editors">Editors &amp; IDE</a>
+  <a class="lk" href="#workflow">Development Workflow</a>
+
+  <div class="sbh">Core Programming</div>
+  <a class="lk" href="#hello">Hello World</a>
+  <a class="lk" href="#cli-tools">CLI Scripts &amp; argparse</a>
+  <a class="lk" href="#files">File &amp; Path Operations</a>
+  <a class="lk" href="#data">Data Processing</a>
+  <a class="lk" href="#oop">Classes &amp; OOP</a>
+
+  <div class="sbh">GUI Development</div>
+  <a class="lk" href="#gui-overview">GUI on Chromebook</a>
+  <a class="lk" href="#tkinter-app">Tkinter Notes App</a>
+  <a class="lk" href="#gtk3-app">GTK3 System Monitor</a>
+
+  <div class="sbh">Web Development</div>
+  <a class="lk" href="#flask">Flask Web App</a>
+  <a class="lk" href="#http-client">HTTP Clients &amp; APIs</a>
+
+  <div class="sbh">Data Science</div>
+  <a class="lk" href="#jupyter">Jupyter Notebook</a>
+  <a class="lk" href="#pandas">pandas &amp; NumPy</a>
+  <a class="lk" href="#matplotlib">matplotlib Plots</a>
+
+  <div class="sbh">Alternative Paths</div>
+  <a class="lk" href="#termux">Termux (Android)</a>
+  <a class="lk" href="#cloud">Cloud IDEs</a>
+
+  <div class="sbh">Reference</div>
+  <a class="lk" href="#tips">Tips &amp; Best Practices</a>
+  <a class="lk" href="#cheatsheet">Quick Cheat Sheet</a>
+</nav>
+
+<!-- ════════════ MAIN ════════════ -->
+<main id="mn"><div id="ct">
+
+<!-- ══ HERO ══════════════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="ey">Complete Development Guide · ChromeOS Linux</div>
+  <h1>Python on a <em>Chromebook</em></h1>
+  <p>From first script to GUI apps, web services, and data science — entirely inside the ChromeOS Linux container.</p>
+  <div class="bgs">
+    <span class="bg py">ChromeOS Linux (Crostini)</span>
+    <span class="bg py">Python 3.11+</span>
+    <span class="bg yy">Tkinter · GTK3 · PyQt5</span>
+    <span class="bg am">Flask · FastAPI · Requests</span>
+    <span class="bg gn">Jupyter · pandas · matplotlib</span>
+    <span class="bg">Termux · Cloud IDEs</span>
+  </div>
+</header>
+
+<!-- ══ §01 OVERVIEW ══════════════════════════════════════════════ -->
+<section class="sec" id="overview">
+  <div class="sh"><span class="snm">§01</span><h2>Overview &amp; Your Options</h2></div>
+
+  <p>Python is an ideal language for Chromebook development. The ChromeOS Linux container ships with Python 3 pre-installed — you can open a terminal and start coding immediately. GUI apps appear as native ChromeOS windows via XWayland, Jupyter Notebook opens directly in Chrome, and web apps are accessible at <code>localhost</code> without any configuration.</p>
+
+  <div class="opts">
+    <div class="opt main">
+      <div class="ot">Linux Container</div>
+      <div class="os">Crostini · Debian Bookworm</div>
+      <div class="od">Python 3 pre-installed. Full pip, venv, GUI toolkits, Jupyter. Recommended for all serious work.</div>
+    </div>
+    <div class="opt sec">
+      <div class="ot">Termux</div>
+      <div class="os">Android app · no GUI</div>
+      <div class="od">Python in a terminal via Play Store. CLI and web only — no Tkinter or GTK3.</div>
+    </div>
+    <div class="opt trd">
+      <div class="ot">Cloud IDE</div>
+      <div class="os">Replit · Colab · Codespaces</div>
+      <div class="od">Browser-based. Google Colab is ideal for Python data science — no install at all.</div>
+    </div>
+    <div class="opt fou">
+      <div class="ot">Chrome Extension</div>
+      <div class="os">Jupyter extension for Chrome</div>
+      <div class="od">Run Jupyter notebooks directly in Chrome using the Jupyter extension — no Linux container needed for basic notebooks.</div>
+    </div>
+  </div>
+
+  <div class="ca py"><strong>Python is pre-installed:</strong> Unlike many languages, Python 3 comes with the ChromeOS Linux container. Open a terminal and type <code>python3</code> — it's already there. The minimal extra setup is just <code>pip3</code> and <code>python3-venv</code>.</div>
+
+  <h3>Python on Chromebook vs Other Platforms</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Chromebook Linux</th><th>Termux</th><th>Google Colab</th></tr></thead>
+    <tbody>
+      <tr><td>Python version</td><td>3.11+ (Debian Bookworm)</td><td>3.11+</td><td>3.10+</td></tr>
+      <tr><td>pip / packages</td><td>Full PyPI access</td><td>Most packages</td><td>pip in cells</td></tr>
+      <tr><td>GUI (Tkinter, GTK3)</td><td>✓ Native ChromeOS windows</td><td>✗</td><td>✗</td></tr>
+      <tr><td>Jupyter Notebook</td><td>✓ in Chrome browser</td><td>Limited</td><td>✓ Native</td></tr>
+      <tr><td>Web server (Flask)</td><td>✓ localhost:5000</td><td>✓ localhost</td><td>Ngrok needed</td></tr>
+      <tr><td>File access</td><td>✓ Files app integration</td><td>Limited</td><td>Google Drive</td></tr>
+      <tr><td>Offline use</td><td>✓ Fully offline</td><td>✓</td><td>✗</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ══ §02 ENABLE LINUX ══════════════════════════════════════════ -->
+<section class="sec" id="enable-linux">
+  <div class="sh"><span class="snm">§02</span><h2>Enable the Linux Container</h2></div>
+
+  <p>ChromeOS's Linux container (Crostini) provides a complete Debian environment. Enabling it takes two minutes.</p>
+
+  <div class="is">
+    <div class="inn">1</div>
+    <div class="ic">
+      <strong>Open Settings → Advanced → Developers</strong>
+      <p>Click the clock (bottom-right) → gear icon. Navigate to <strong>Advanced → Developers → Linux development environment → Turn on</strong>.</p>
+    </div>
+  </div>
+  <div class="is">
+    <div class="inn">2</div>
+    <div class="ic">
+      <strong>Choose disk size and install</strong>
+      <p>Select 10–20 GB (more if you plan to use data science libraries and datasets). Click <strong>Install</strong>. First-time setup takes 3–10 minutes.</p>
+    </div>
+  </div>
+  <div class="is">
+    <div class="inn">3</div>
+    <div class="ic">
+      <strong>Verify Python is already there</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">python3 --version      # Python 3.11.x or 3.12.x
+python3 -c "import sys; print(sys.prefix)"
+which python3          # /usr/bin/python3</code></pre></div>
+    </div>
+  </div>
+  <div class="is">
+    <div class="inn">4</div>
+    <div class="ic">
+      <strong>Share Downloads with Linux (optional but handy)</strong>
+      <p>In the Files app, right-click <strong>Downloads</strong> → <strong>Share with Linux</strong>. Your Downloads then appear at <code>/mnt/chromeos/MyFiles/Downloads</code>.</p>
+    </div>
+  </div>
+
+  <div class="chrome-mock">
+    <div class="chrome-bar">
+      <div class="cdot r"></div><div class="cdot y"></div><div class="cdot g"></div>
+      <span class="chrome-title">Terminal — user@penguin: ~</span>
+    </div>
+    <div class="chrome-body">
+      <div style="color:#4B8BBE">user@penguin</div>
+      <div style="color:#9b9380;font-size:11px;margin-bottom:8px">Debian GNU/Linux 12 (bookworm)</div>
+      <div><span style="color:#6fcf97">user@penguin</span><span style="color:#e2d9c8">:~$ </span><span style="color:#FFD43B">python3 --version</span></div>
+      <div style="color:#9b9380;font-size:11px">Python 3.11.9</div>
+      <div><span style="color:#6fcf97">user@penguin</span><span style="color:#e2d9c8">:~$ </span><span style="color:#FFD43B">python3</span></div>
+      <div style="color:#9b9380;font-size:11px">Python 3.11.9 (main) [GCC 12.2.0] on linux</div>
+      <div style="color:#9b9380;font-size:11px">Type "help", "copyright" or "quit()" for more information.</div>
+      <div><span style="color:#4B8BBE">&gt;&gt;&gt; </span><span style="color:#FFD43B">_</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ §03 INSTALL PYTHON ════════════════════════════════════════ -->
+<section class="sec" id="install-python">
+  <div class="sh"><span class="snm">§03</span><h2>Install Python Tools &amp; Libraries</h2></div>
+
+  <p>Python 3 is already present. This section installs the essential developer tools around it.</p>
+
+  <div class="is">
+    <div class="inn">1</div>
+    <div class="ic">
+      <strong>Update and install Python developer essentials</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt update && sudo apt upgrade -y
+sudo apt install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    python3-dev \
+    python3-tk \
+    python3-doc \
+    build-essential \
+    libssl-dev \
+    libffi-dev
+
+# Verify
+python3 -m pip --version   # pip 23.x
+python3 -m venv --help | head -2</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">2</div>
+    <div class="ic">
+      <strong>Install GUI toolkit support</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># GTK3 via PyGObject
+sudo apt install -y \
+    python3-gi \
+    python3-gi-cairo \
+    gir1.2-gtk-3.0 \
+    gir1.2-glib-2.0
+
+# PyQt5 (optional, for Qt-style apps)
+pip3 install PyQt5 --user
+
+# Test Tkinter
+python3 -c "import tkinter; print('Tkinter', tkinter.TkVersion, '— OK')"
+
+# Test GTK3
+python3 -c "
+import gi; gi.require_version('Gtk','3.0')
+from gi.repository import Gtk
+print('GTK3 OK')
+"</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">3</div>
+    <div class="ic">
+      <strong>Install web and network libraries</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pip3 install --user \
+    flask \
+    fastapi \
+    uvicorn \
+    requests \
+    httpx \
+    beautifulsoup4 \
+    lxml</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">4</div>
+    <div class="ic">
+      <strong>Install data science stack</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pip3 install --user \
+    jupyter \
+    jupyterlab \
+    pandas \
+    numpy \
+    matplotlib \
+    seaborn \
+    scikit-learn \
+    openpyxl
+
+# Launch Jupyter (opens in Chrome automatically)
+jupyter notebook</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">5</div>
+    <div class="ic">
+      <strong>Install developer quality tools</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pip3 install --user \
+    black \
+    pylint \
+    mypy \
+    pytest \
+    ipython \
+    rich \
+    typer
+
+# Verify
+black --version     # black, 24.x
+pytest --version    # pytest 8.x
+ipython --version   # 8.x</code></pre></div>
+    </div>
+  </div>
+
+  <div class="ca t"><strong>ARM Chromebooks:</strong> All packages above are available for ARM64. Data science libraries (NumPy, pandas) use pre-built wheels for aarch64 — installation is fast, no compilation needed.</div>
+</section>
+
+<!-- ══ §04 VIRTUAL ENVIRONMENTS ═════════════════════════════════ -->
+<section class="sec" id="venv">
+  <div class="sh"><span class="snm">§04</span><h2>Virtual Environments</h2></div>
+
+  <p>A <strong>virtual environment</strong> is an isolated Python installation for a single project. It keeps dependencies separate so projects don't conflict. In Python, this is best practice for every non-trivial project.</p>
+
+  <div class="venv-box">
+    <div class="vt">Without venv vs With venv</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13.5px;">
+      <div>
+        <div style="color:var(--rd);margin-bottom:6px;font-weight:600">Without venv ✗</div>
+        <div style="color:var(--dm)">All packages install globally. Project A needs Flask 2.3, Project B needs Flask 3.0 → conflict. Upgrading one breaks the other.</div>
+      </div>
+      <div>
+        <div style="color:var(--gn);margin-bottom:6px;font-weight:600">With venv ✓</div>
+        <div style="color:var(--dm)">Each project has its own packages at the exact required versions. Completely isolated. Delete the folder to uninstall everything.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — essential venv commands</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Create a new project with its own environment
+mkdir ~/projects/my_app && cd ~/projects/my_app
+python3 -m venv .venv           # Create venv in .venv/ folder
+
+# Activate (do this every time you open a terminal for this project)
+source .venv/bin/activate       # Prompt changes to (.venv) user@penguin:~/projects/my_app$
+
+# Now pip installs ONLY into this project's venv
+pip install flask pandas        # Installed into .venv/lib/
+
+# Check what's installed
+pip list
+pip freeze > requirements.txt   # Save the dependency list
+
+# Deactivate when done
+deactivate
+
+# Recreate from requirements.txt (on another machine or after deletion)
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</code></pre></div>
+
+  <h3>VS Code + venv Integration</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span></div>
+<pre><code class="language-bash"># VS Code auto-detects .venv in the workspace folder
+code ~/projects/my_app          # Open VS Code in the project
+# Bottom-left of VS Code: click Python version → select .venv/bin/python
+# VS Code then uses that venv for IntelliSense, linting, and running scripts</code></pre></div>
+
+  <h3>Using pyenv for Multiple Python Versions</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Install pyenv (manages multiple Python versions)
+curl https://pyenv.run | bash
+
+# Add to ~/.bashrc:
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# Install a specific Python version
+pyenv install 3.12.4
+pyenv install 3.11.9
+
+# Set versions
+pyenv global 3.12.4           # Default for all new terminals
+pyenv local  3.11.9           # Just for the current directory
+
+python3 --version              # Confirms which version is active</code></pre></div>
+</section>
+
+<!-- ══ §05 EDITORS ══════════════════════════════════════════════ -->
+<section class="sec" id="editors">
+  <div class="sh"><span class="snm">§05</span><h2>Editors &amp; IDE Setup</h2></div>
+
+  <h3>VS Code (Recommended)</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — install VS Code</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt install -y wget gpg
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+    | gpg --dearmor > /tmp/microsoft.gpg
+sudo install -D -o root -g root -m 644 \
+    /tmp/microsoft.gpg /etc/apt/keyrings/microsoft.gpg
+sudo sh -c 'echo "deb [arch=amd64,arm64 \
+    signed-by=/etc/apt/keyrings/microsoft.gpg] \
+    https://packages.microsoft.com/repos/code stable main" \
+    > /etc/apt/sources.list.d/vscode.list'
+sudo apt update && sudo apt install -y code
+
+code .    # Opens VS Code as a ChromeOS window</code></pre></div>
+
+  <h4>Essential VS Code Python Extensions</h4>
+  <div class="cg">
+    <div class="cc"><div class="cn">Python (Microsoft)</div><p>The core Python extension — IntelliSense, debugging, linting, test runner. Install first.</p></div>
+    <div class="cc"><div class="cn">Pylance</div><p>Fast type-checking language server. Auto-installed with the Python extension.</p></div>
+    <div class="cc"><div class="cn">Jupyter</div><p>Run .ipynb notebooks directly inside VS Code.</p></div>
+    <div class="cc"><div class="cn">Black Formatter</div><p>Auto-format on save with Black. Best Python formatter.</p></div>
+    <div class="cc"><div class="cn">Python Indent</div><p>Correct indentation handling — critical for Python.</p></div>
+    <div class="cc"><div class="cn">GitLens</div><p>Git integration — useful when committing Python projects.</p></div>
+  </div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — configure VS Code for Python</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Install from command line
+code --install-extension ms-python.python
+code --install-extension ms-python.pylance
+code --install-extension ms-toolsai.jupyter
+code --install-extension ms-python.black-formatter
+
+# Create a project settings file (auto-formats on save)
+mkdir -p ~/projects/my_app/.vscode
+cat > ~/projects/my_app/.vscode/settings.json << 'EOF'
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true
+}
+EOF</code></pre></div>
+
+  <h3>Thonny — Beginner-Friendly IDE</h3>
+  <p>Thonny is a simple Python IDE designed for learners. It has a built-in debugger that shows variable values visually — great for learning.</p>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt install -y thonny
+thonny    # Opens as a ChromeOS window — simple, clean IDE</code></pre></div>
+
+  <h3>IPython — Enhanced Interactive Shell</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pip3 install --user ipython
+ipython       # Drop into an enhanced REPL with tab-completion and magic commands
+
+# Useful IPython magic commands:
+# %timeit my_function()   — Time execution
+# %run script.py          — Run a file
+# %history               — Show command history
+# ?my_object             — Show documentation
+# ??my_function          — Show source code</code></pre></div>
+</section>
+
+<!-- ══ §06 WORKFLOW ══════════════════════════════════════════════ -->
+<section class="sec" id="workflow">
+  <div class="sh"><span class="snm">§06</span><h2>Development Workflow</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — daily commands</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">python3 script.py                    # Run a script
+python3 -c "print('hello')"         # One-liner
+python3 -m module_name               # Run a module as a script
+
+# Syntax check (without running)
+python3 -m py_compile script.py
+
+# Type checking
+mypy script.py                       # Static type analysis
+
+# Formatting
+black script.py                      # Auto-format (modifies in-place)
+black --check script.py              # Check without changing
+
+# Linting
+pylint script.py                     # Detailed code analysis
+flake8 script.py                     # Fast style checker
+
+# Testing
+pytest                               # Discover and run all tests
+pytest tests/test_app.py             # Run specific test file
+pytest -v                            # Verbose output
+
+# Interactive debugging
+python3 -m pdb script.py             # Built-in debugger
+python3 -m pdb -c continue script.py # Run until error, then drop to debugger</code></pre></div>
+
+  <h3>Files App Integration</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span></div>
+<pre><code class="language-bash"># Access ChromeOS Downloads from the Linux container:
+ls /mnt/chromeos/MyFiles/Downloads/
+
+# Copy a downloaded .py file into your project:
+cp /mnt/chromeos/MyFiles/Downloads/script.py ~/projects/
+
+# Save output to Downloads (opens in ChromeOS Files):
+python3 report.py > /mnt/chromeos/MyFiles/Downloads/report.txt
+
+# Right-click any .py file in ChromeOS Files app:
+# "Open with" → "Code" (VS Code) to edit it directly</code></pre></div>
+
+  <h3>Running in the Background</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span></div>
+<pre><code class="language-bash">python3 app.py &amp;           # Run in background
+jobs                        # List background jobs
+kill %1                     # Stop background job 1
+
+# Keep running after terminal close
+nohup python3 app.py &amp;     # Output goes to nohup.out
+disown                      # Detach from terminal</code></pre></div>
+</section>
+
+<!-- ══ §07 HELLO WORLD ══════════════════════════════════════════ -->
+<section class="sec" id="hello">
+  <div class="sh"><span class="snm">§07</span><h2>Hello World</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">hello.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+hello.py — Your first Python script on a Chromebook.
+Run with:  python3 hello.py
+"""
+import sys
+import platform
+import os
+from pathlib import Path
+
+# f-strings — the modern Python string interpolation
+name = "Chromebook"
+year = __import__("datetime").date.today().year
+print(f"Hello from {name}!")
+print(f"Welcome to Python development in {year}.\n")
+
+# Platform details
+print("── System ───────────────────────────────")
+print(f"  Python    : {sys.version.split()[0]}")
+print(f"  Platform  : {platform.platform()}")
+print(f"  Machine   : {platform.machine()}")
+print(f"  Node      : {platform.node()}")
+print(f"  Home dir  : {Path.home()}")
+print(f"  Shell     : {os.environ.get('SHELL', 'unknown')}")
+
+# List comprehension — a distinctly Pythonic pattern
+tools = ["VS Code", "Jupyter", "IPython", "Black", "pytest"]
+print("\n── Your Python tools ────────────────────")
+for i, tool in enumerate(tools, 1):
+    print(f"  {i}. {tool}")
+
+# Dictionary
+info = {
+    "OS"     : "ChromeOS Linux (Crostini)",
+    "Distro" : platform.linux_distribution()[0] if hasattr(platform, 'linux_distribution') else "Debian",
+    "Python" : sys.version.split()[0],
+    "pip"    : __import__("subprocess").run(
+                   ["pip3", "--version"], capture_output=True, text=True
+               ).stdout.split()[1],
+}
+print("\n── Environment ──────────────────────────")
+for key, val in info.items():
+    print(f"  {key:<10}: {val}")
+
+print("\nSetup complete — happy Python coding! 🐍")</code></pre></div>
+
+  <div class="ob"><div class="ol">Output</div>Hello from Chromebook!
+Welcome to Python development in 2025.
+
+── System ───────────────────────────────
+  Python    : 3.11.9
+  Platform  : Linux-6.1.x-x86_64-with-glibc2.36
+  Machine   : x86_64
+  Node      : penguin
+  Home dir  : /home/user
+  Shell     : /bin/bash
+
+── Your Python tools ────────────────────
+  1. VS Code
+  2. Jupyter
+  3. IPython
+  4. Black
+  5. pytest
+
+── Environment ──────────────────────────
+  OS        : ChromeOS Linux (Crostini)
+  Distro    : Debian
+  Python    : 3.11.9
+  pip       : 23.3.1
+
+Setup complete — happy Python coding! 🐍</div>
+</section>
+
+<!-- ══ §08 CLI TOOLS ════════════════════════════════════════════ -->
+<section class="sec" id="cli-tools">
+  <div class="sh"><span class="snm">§08</span><h2>CLI Scripts &amp; argparse</h2></div>
+
+  <p>Python's <code>argparse</code> module makes it easy to write professional command-line tools — the kind that work just like standard Linux utilities.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">sysinfo.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+sysinfo.py — Chromebook Linux system information reporter.
+Run:  python3 sysinfo.py
+      python3 sysinfo.py --json
+      python3 sysinfo.py --section memory
+"""
+import argparse
+import json
+import os
+import platform
+import sys
+from pathlib import Path
+
+
+def read_meminfo() -> dict:
+    """Parse /proc/meminfo into a dict of {key: kB_value}."""
+    mem = {}
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) >= 2:
+                    mem[parts[0].rstrip(":")] = int(parts[1])
+    except FileNotFoundError:
+        pass
+    return mem
+
+
+def read_cpu_count() -> int:
+    """Count logical CPUs from /proc/cpuinfo."""
+    count = 0
+    try:
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if line.startswith("processor"):
+                    count += 1
+    except FileNotFoundError:
+        count = os.cpu_count() or 1
+    return count
+
+
+def get_disk_info(path: str = None) -> dict:
+    """Return disk usage for the given path (default: home dir)."""
+    target = path or str(Path.home())
+    stat = os.statvfs(target)
+    total = stat.f_blocks * stat.f_frsize
+    free  = stat.f_bfree  * stat.f_frsize
+    return {
+        "path"  : target,
+        "total" : total,
+        "used"  : total - free,
+        "free"  : free,
+        "pct"   : round(100 * (total - free) / max(total, 1)),
+    }
+
+
+def collect_info() -> dict:
+    mem   = read_meminfo()
+    disk  = get_disk_info()
+    total_kb  = mem.get("MemTotal", 0)
+    avail_kb  = mem.get("MemAvailable", 0)
+    used_kb   = total_kb - avail_kb
+
+    return {
+        "system": {
+            "hostname"  : platform.node(),
+            "kernel"    : platform.release(),
+            "arch"      : platform.machine(),
+            "python"    : sys.version.split()[0],
+            "pip"       : _pip_version(),
+        },
+        "cpu": {
+            "count"     : read_cpu_count(),
+            "model"     : _cpu_model(),
+        },
+        "memory": {
+            "total_gb"  : round(total_kb / 1_048_576, 1),
+            "used_gb"   : round(used_kb  / 1_048_576, 1),
+            "avail_gb"  : round(avail_kb / 1_048_576, 1),
+            "pct_used"  : round(100 * used_kb / max(total_kb, 1)),
+        },
+        "disk": {
+            "path"      : disk["path"],
+            "total_gb"  : round(disk["total"] / 1_073_741_824, 1),
+            "used_gb"   : round(disk["used"]  / 1_073_741_824, 1),
+            "free_gb"   : round(disk["free"]  / 1_073_741_824, 1),
+            "pct_used"  : disk["pct"],
+        },
+        "env": {
+            "shell"     : os.environ.get("SHELL", "?"),
+            "display"   : os.environ.get("DISPLAY", "(not set)"),
+            "home"      : str(Path.home()),
+        },
+    }
+
+
+def _pip_version() -> str:
+    import subprocess
+    try:
+        r = subprocess.run(["pip3","--version"], capture_output=True, text=True)
+        return r.stdout.split()[1]
+    except Exception:
+        return "unknown"
+
+
+def _cpu_model() -> str:
+    try:
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if "model name" in line:
+                    return line.split(":")[1].strip()
+    except Exception:
+        pass
+    return platform.processor() or "unknown"
+
+
+def print_section(title: str, data: dict, indent: int = 2) -> None:
+    pad = " " * indent
+    print(f"\n{'─'*48}")
+    print(f"  {title}")
+    print(f"{'─'*48}")
+    for key, val in data.items():
+        print(f"{pad}{key:<14}: {val}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Chromebook Linux system information reporter",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Examples:\n"
+               "  python3 sysinfo.py\n"
+               "  python3 sysinfo.py --json\n"
+               "  python3 sysinfo.py --section memory\n"
+    )
+    parser.add_argument("--json", action="store_true",
+                        help="output as JSON")
+    parser.add_argument("--section", choices=["system","cpu","memory","disk","env"],
+                        help="show only one section")
+    args = parser.parse_args()
+
+    info = collect_info()
+
+    if args.json:
+        print(json.dumps(info, indent=2))
+        return
+
+    sections = [args.section] if args.section else list(info.keys())
+    for sec in sections:
+        if sec in info:
+            print_section(sec.upper(), info[sec])
+
+    print()
+
+
+if __name__ == "__main__":
+    main()</code></pre></div>
+</section>
+
+<!-- ══ §09 FILE & PATH OPERATIONS ═══════════════════════════════ -->
+<section class="sec" id="files">
+  <div class="sh"><span class="snm">§09</span><h2>File &amp; Path Operations</h2></div>
+
+  <p>Python's <code>pathlib</code> module provides an intuitive, object-oriented interface for working with files and directories — much cleaner than the old <code>os.path</code> approach.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">files.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+files.py — File system analyzer using pathlib.
+Usage: python3 files.py [directory]
+       python3 files.py ~
+       python3 files.py ~/projects --ext .py
+"""
+import argparse
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+
+
+def analyze_directory(root: Path, include_hidden: bool = False,
+                       ext_filter: str = None) -> dict:
+    """Walk a directory tree and collect file statistics."""
+    stats = {
+        "total_files"  : 0,
+        "total_size"   : 0,
+        "by_extension" : Counter(),
+        "by_size"      : defaultdict(int),
+        "largest"      : [],
+    }
+
+    for path in root.rglob("*"):
+        # Skip hidden files unless requested
+        if not include_hidden and any(p.startswith(".") for p in path.parts):
+            continue
+        if not path.is_file():
+            continue
+        # Extension filter
+        if ext_filter and path.suffix.lower() != ext_filter.lower():
+            continue
+
+        size = path.stat().st_size
+        ext  = path.suffix.lower() or "(none)"
+
+        stats["total_files"] += 1
+        stats["total_size"]  += size
+        stats["by_extension"][ext] += 1
+        stats["largest"].append((size, str(path.relative_to(root))))
+
+    # Keep only the top 10 largest
+    stats["largest"] = sorted(stats["largest"], reverse=True)[:10]
+    return stats
+
+
+def human_size(n_bytes: int) -> str:
+    """Convert bytes to a human-readable string."""
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if n_bytes < 1024:
+            return f"{n_bytes:.1f} {unit}"
+        n_bytes /= 1024
+    return f"{n_bytes:.1f} PB"
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Analyze a directory")
+    parser.add_argument("directory", nargs="?", default=str(Path.home()),
+                        help="Directory to analyze (default: home)")
+    parser.add_argument("-a", "--all", action="store_true",
+                        help="Include hidden files")
+    parser.add_argument("--ext", metavar="EXT",
+                        help="Filter by extension, e.g. .py")
+    parser.add_argument("--top", type=int, default=15,
+                        help="Show top N extensions (default: 15)")
+    args = parser.parse_args()
+
+    root = Path(args.directory).expanduser().resolve()
+    if not root.is_dir():
+        print(f"Error: '{root}' is not a directory.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"\nAnalyzing: {root}")
+    print("(this may take a moment for large directories...)\n")
+
+    stats = analyze_directory(root, args.all, args.ext)
+
+    # Summary
+    print(f"{'Files found:':<20} {stats['total_files']:,}")
+    print(f"{'Total size:':<20} {human_size(stats['total_size'])}")
+
+    # By extension
+    if stats["by_extension"]:
+        print(f"\n{'Extension':<14} {'Count':>7}  {'Share':>7}")
+        print("─" * 32)
+        total = stats["total_files"]
+        for ext, count in stats["by_extension"].most_common(args.top):
+            bar = "█" * int(20 * count / max(total, 1))
+            print(f"  {ext:<12} {count:>7}  {100*count/total:>6.1f}%  {bar}")
+
+    # Largest files
+    if stats["largest"]:
+        print(f"\nLargest files:")
+        for size, name in stats["largest"]:
+            print(f"  {human_size(size):>10}  {name}")
+
+    print()
+
+
+if __name__ == "__main__":
+    main()</code></pre></div>
+</section>
+
+<!-- ══ §10 DATA PROCESSING ══════════════════════════════════════ -->
+<section class="sec" id="data">
+  <div class="sh"><span class="snm">§10</span><h2>Data Processing</h2></div>
+
+  <h3>CSV + dataclasses + statistics</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">csv_report.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+csv_report.py — CSV sales data analyzer.
+Demonstrates: csv, dataclasses, statistics, typing, f-strings
+Usage: python3 csv_report.py              (uses demo data)
+       python3 csv_report.py data.csv
+"""
+import csv
+import sys
+import statistics
+from dataclasses import dataclass, field
+from collections import defaultdict
+from pathlib import Path
+from typing import List
+
+
+# ── Data model ─────────────────────────────────────────────────────────────
+@dataclass
+class SaleRecord:
+    product  : str
+    category : str
+    units    : int
+    price    : float
+
+    @property
+    def revenue(self) -> float:
+        return self.units * self.price
+
+
+# ── Demo data ───────────────────────────────────────────────────────────────
+DEMO_CSV = """Product,Category,Units,Price
+Widget Pro,Electronics,42,29.99
+Gadget Lite,Electronics,87,14.99
+Desk Lamp,Home,31,45.00
+USB Hub,Electronics,124,19.99
+Notebook,Stationery,200,5.99
+Pen Set,Stationery,315,8.49
+Monitor Stand,Home,28,79.99
+Keyboard,Electronics,56,49.99
+Mouse Pad,Electronics,93,12.99
+Bookend Set,Home,44,24.99
+"""
+
+
+def load_records(source: str) -> List[SaleRecord]:
+    """Load CSV data from a file path or the demo string."""
+    records = []
+    if source == "__demo__":
+        import io
+        reader = csv.DictReader(io.StringIO(DEMO_CSV))
+    else:
+        reader = csv.DictReader(open(source))
+
+    for row in reader:
+        try:
+            records.append(SaleRecord(
+                product  = row["Product"],
+                category = row["Category"],
+                units    = int(row["Units"]),
+                price    = float(row["Price"]),
+            ))
+        except (ValueError, KeyError):
+            continue   # Skip malformed rows
+    return records
+
+
+def print_table(records: List[SaleRecord]) -> None:
+    """Print a formatted table of all records."""
+    fmt = f"  {{:<22}} {{:<14}} {{:>6}} {{:>8}} {{:>10}}"
+    header = fmt.format("Product", "Category", "Units", "Price", "Revenue")
+    print(header)
+    print("  " + "─" * 64)
+    for r in sorted(records, key=lambda x: -x.revenue):
+        print(fmt.format(r.product, r.category, r.units,
+                         f"${r.price:.2f}", f"${r.revenue:.2f}"))
+    total = sum(r.revenue for r in records)
+    print("  " + "─" * 64)
+    print(fmt.format("TOTAL", "", sum(r.units for r in records), "", f"${total:.2f}"))
+
+
+def summarise_by_category(records: List[SaleRecord]) -> None:
+    """Group records by category and print aggregates."""
+    groups: dict = defaultdict(list)
+    for r in records:
+        groups[r.category].append(r)
+
+    print("\nBy Category:")
+    for cat in sorted(groups, key=lambda c: -sum(r.revenue for r in groups[c])):
+        recs = groups[cat]
+        rev  = sum(r.revenue for r in recs)
+        units = sum(r.units for r in recs)
+        print(f"  {cat:<14}  {len(recs):2d} products  "
+              f"{units:5d} units  ${rev:9.2f} revenue")
+
+
+def main():
+    source = sys.argv[1] if len(sys.argv) > 1 else "__demo__"
+
+    if source == "__demo__":
+        print("(Using demo data — pass a CSV file as argument)\n")
+    elif not Path(source).exists():
+        print(f"File not found: {source}", file=sys.stderr)
+        sys.exit(1)
+
+    records = load_records(source)
+    if not records:
+        print("No valid records found.")
+        return
+
+    print(f"Records loaded: {len(records)}\n")
+    print_table(records)
+    summarise_by_category(records)
+
+    revenues = [r.revenue for r in records]
+    print(f"\nStatistics:")
+    print(f"  Total revenue   : ${sum(revenues):.2f}")
+    print(f"  Mean per product: ${statistics.mean(revenues):.2f}")
+    print(f"  Median          : ${statistics.median(revenues):.2f}")
+    print(f"  Stdev           : ${statistics.stdev(revenues):.2f}")
+    best = max(records, key=lambda r: r.revenue)
+    print(f"  Best product    : {best.product} (${best.revenue:.2f})")
+
+
+if __name__ == "__main__":
+    main()</code></pre></div>
+</section>
+
+<!-- ══ §11 OOP ═══════════════════════════════════════════════════ -->
+<section class="sec" id="oop">
+  <div class="sh"><span class="snm">§11</span><h2>Classes, OOP &amp; Type Hints</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">oop_demo.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+oop_demo.py — Object-oriented Python with type hints.
+Run: python3 oop_demo.py
+"""
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Optional, List, Iterator
+from abc import ABC, abstractmethod
+import math
+
+
+# ── Abstract base class ────────────────────────────────────────────────────
+class Shape(ABC):
+    """Abstract base — all shapes must implement area and perimeter."""
+
+    @abstractmethod
+    def area(self) -> float: ...
+
+    @abstractmethod
+    def perimeter(self) -> float: ...
+
+    def describe(self) -> str:
+        return (f"{type(self).__name__}: "
+                f"area={self.area():.2f}, "
+                f"perimeter={self.perimeter():.2f}")
+
+
+# ── Concrete shapes (dataclasses handle __init__, __repr__) ──────────────────
+@dataclass
+class Circle(Shape):
+    radius: float
+
+    def area(self)      -> float: return math.pi * self.radius ** 2
+    def perimeter(self) -> float: return 2 * math.pi * self.radius
+
+
+@dataclass
+class Rectangle(Shape):
+    width: float
+    height: float
+
+    def area(self)      -> float: return self.width * self.height
+    def perimeter(self) -> float: return 2 * (self.width + self.height)
+
+    @property
+    def is_square(self) -> bool:
+        return self.width == self.height
+
+
+@dataclass
+class Triangle(Shape):
+    a: float; b: float; c: float
+
+    def __post_init__(self):
+        if not (self.a + self.b > self.c and
+                self.b + self.c > self.a and
+                self.a + self.c > self.b):
+            raise ValueError("Invalid triangle sides")
+
+    def area(self) -> float:
+        s = self.perimeter() / 2
+        return math.sqrt(s * (s-self.a) * (s-self.b) * (s-self.c))
+
+    def perimeter(self) -> float: return self.a + self.b + self.c
+
+
+# ── Container with dunder methods ───────────────────────────────────────────
+class Canvas:
+    """A collection of shapes with sorting and filtering."""
+
+    def __init__(self, name: str = "Canvas"):
+        self.name   = name
+        self._shapes: List[Shape] = []
+
+    def add(self, *shapes: Shape) -> Canvas:
+        self._shapes.extend(shapes)
+        return self          # Allows chaining: canvas.add(c).add(r)
+
+    def __len__(self)  -> int:  return len(self._shapes)
+    def __iter__(self) -> Iterator[Shape]: return iter(self._shapes)
+
+    def __getitem__(self, idx: int) -> Shape:
+        return self._shapes[idx]
+
+    @property
+    def total_area(self) -> float:
+        return sum(s.area() for s in self._shapes)
+
+    def by_type(self, cls: type) -> List[Shape]:
+        return [s for s in self._shapes if isinstance(s, cls)]
+
+    def sorted_by_area(self) -> List[Shape]:
+        return sorted(self._shapes, key=lambda s: s.area(), reverse=True)
+
+    def __repr__(self) -> str:
+        return f"Canvas({self.name!r}, {len(self)} shapes)"
+
+
+# ── Context manager ──────────────────────────────────────────────────────────
+class TempFile:
+    """Creates a temp file, deletes it on __exit__."""
+    def __init__(self, path: str, content: str = ""):
+        self.path    = path
+        self.content = content
+
+    def __enter__(self) -> TempFile:
+        with open(self.path, "w") as f:
+            f.write(self.content)
+        return self
+
+    def __exit__(self, *args) -> None:
+        import os
+        try: os.remove(self.path)
+        except FileNotFoundError: pass
+
+
+# ── Demo ─────────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    canvas = Canvas("Geometry Demo")
+    canvas.add(
+        Circle(5),
+        Circle(3),
+        Rectangle(10, 4),
+        Rectangle(6, 6),
+        Triangle(3, 4, 5),
+    )
+
+    print(f"{canvas}\n")
+    print("All shapes (sorted by area):")
+    for shape in canvas.sorted_by_area():
+        print(f"  {shape.describe()}")
+
+    print(f"\nCircles only: {canvas.by_type(Circle)}")
+    print(f"Squares:      {[r for r in canvas.by_type(Rectangle) if r.is_square]}")
+    print(f"Total area:   {canvas.total_area:.2f}")
+
+    # Context manager demo
+    with TempFile("/tmp/demo.txt", "Hello from Python!\n") as tf:
+        content = open(tf.path).read()
+        print(f"\nTempFile content: {content.strip()!r}")
+    import os
+    print(f"TempFile deleted: {not os.path.exists('/tmp/demo.txt')}")</code></pre></div>
+</section>
+
+<!-- ══ §12 GUI OVERVIEW ══════════════════════════════════════════ -->
+<section class="sec" id="gui-overview">
+  <div class="sh"><span class="snm">§12</span><h2>GUI Development on Chromebook</h2></div>
+
+  <p>Python GUI apps — Tkinter, GTK3, PyQt5 — all run as <strong>first-class ChromeOS windows</strong> via XWayland/Sommelier. No separate X11 server, no configuration: just run the script and the window appears alongside Chrome tabs.</p>
+
+  <div class="ca py"><strong>How it works:</strong> The ChromeOS Sommelier component translates X11 calls from the Linux container to Wayland and renders them in the ChromeOS compositor. The <code>DISPLAY</code> environment variable is pre-set to <code>:0</code> in every Terminal session. Python GUI apps just work.</div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — verify GUI before coding</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">echo $DISPLAY         # Should print :0 or :1
+
+# Quick Tkinter test
+python3 -c "
+import tkinter as tk
+win = tk.Tk()
+win.title('ChromeOS GUI Test')
+tk.Label(win, text='✓ GUI works!', font=('Helvetica',16,'bold'),
+         fg='#34c759').pack(pady=20)
+tk.Button(win, text='Close', command=win.quit).pack()
+win.mainloop()
+"</code></pre></div>
+
+  <h3>Adding Your App to the ChromeOS Launcher</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">mkdir -p ~/.local/share/applications
+
+cat > ~/.local/share/applications/py-notes.desktop << 'EOF'
+[Desktop Entry]
+Name=Python Notes
+Comment=Tkinter Notes Application
+Exec=python3 /home/user/projects/gui/tk_notes.py
+Icon=text-editor
+Terminal=false
+Type=Application
+Categories=Utility;TextEditor;
+EOF
+
+update-desktop-database ~/.local/share/applications
+# The app now appears in the ChromeOS launcher</code></pre></div>
+</section>
+
+<!-- ══ §13 TKINTER APP ══════════════════════════════════════════ -->
+<section class="sec" id="tkinter-app">
+  <div class="sh"><span class="snm">§13</span><h2>Tkinter App — Chromebook Notes</h2></div>
+  <p>A fully-featured Tkinter notes application. Notes are saved as text files in <code>~/notes/</code> — visible in the ChromeOS Files app. Demonstrates classes, menus, paned layout, keyboard shortcuts, and the dark custom theme.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">tk_notes.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+tk_notes.py — Chromebook Notes  (Tkinter)
+Install:  sudo apt install python3-tk
+Run:      python3 tk_notes.py
+
+Notes are saved in ~/notes/ and are visible in the ChromeOS Files app.
+"""
+import glob
+import os
+import re
+import time
+import tkinter as tk
+from tkinter import messagebox
+from pathlib import Path
+
+NOTES_DIR = Path.home() / "notes"
+NOTES_DIR.mkdir(exist_ok=True)
+
+
+class NotesApp:
+    # ── Colours & fonts (dark theme) ─────────────────────────────────────
+    BG       = "#1e1e2e"
+    BG_SIDE  = "#16161e"
+    BG_ENTRY = "#2a2a3e"
+    FG       = "#e2d9c8"
+    FG_DIM   = "#9b9380"
+    ACCENT   = "#5bc7f0"      # Chromebook blue
+    SEL_BG   = "#2a3a5a"
+    FONT_UI  = ("Helvetica", 11)
+    FONT_HDR = ("Helvetica", 14, "bold")
+    FONT_ED  = ("Helvetica", 12)
+    FONT_SB  = ("Helvetica", 9)
+
+    def __init__(self, root: tk.Tk):
+        self.root          = root
+        self.current_note  = ""
+        self.modified      = False
+
+        self.root.title("Chromebook Notes")
+        self.root.geometry("800x580+60+40")
+        self.root.configure(bg=self.BG)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_quit)
+
+        self._build_menu()
+        self._build_layout()
+        self._bind_shortcuts()
+        self._load_note_list()
+
+    # ── Menu bar ──────────────────────────────────────────────────────────
+    def _build_menu(self):
+        opts = dict(bg=self.BG_SIDE, fg=self.FG, tearoff=0,
+                    activebackground=self.SEL_BG, activeforeground=self.FG)
+        menubar = tk.Menu(self.root, bg=self.BG_SIDE, fg=self.FG)
+
+        file_m = tk.Menu(menubar, **opts)
+        file_m.add_command(label="New Note   Ctrl+N",  command=self.cmd_new)
+        file_m.add_command(label="Save        Ctrl+S",  command=self.cmd_save)
+        file_m.add_separator()
+        file_m.add_command(label="Quit        Ctrl+Q",  command=self.on_quit)
+
+        edit_m = tk.Menu(menubar, **opts)
+        for label, event in [
+            ("Undo  Ctrl+Z", "<<Undo>>"),
+            ("Redo  Ctrl+Y", "<<Redo>>"),
+            None,
+            ("Cut   Ctrl+X", "<<Cut>>"),
+            ("Copy  Ctrl+C", "<<Copy>>"),
+            ("Paste Ctrl+V", "<<Paste>>"),
+        ]:
+            if label is None:
+                edit_m.add_separator()
+            else:
+                edit_m.add_command(
+                    label=label,
+                    command=lambda e=event: self.editor.event_generate(e)
+                )
+
+        menubar.add_cascade(label="File", menu=file_m)
+        menubar.add_cascade(label="Edit", menu=edit_m)
+        self.root.config(menu=menubar)
+
+    # ── Layout: sidebar + editor ──────────────────────────────────────────
+    def _build_layout(self):
+        main = tk.Frame(self.root, bg=self.BG)
+        main.pack(fill="both", expand=True)
+
+        # Sidebar
+        side = tk.Frame(main, bg=self.BG_SIDE, width=215)
+        side.pack(side="left", fill="y")
+        side.pack_propagate(False)
+
+        tk.Label(side, text="MY NOTES", bg=self.BG_SIDE, fg=self.ACCENT,
+                 font=self.FONT_SB, anchor="w").pack(
+            fill="x", padx=10, pady=(12, 4))
+
+        # Note list
+        lb_wrap = tk.Frame(side, bg=self.BG_SIDE)
+        lb_wrap.pack(fill="both", expand=True)
+
+        self.listbox = tk.Listbox(
+            lb_wrap, bg=self.BG_SIDE, fg=self.FG,
+            selectbackground=self.SEL_BG, selectforeground=self.ACCENT,
+            font=self.FONT_UI, bd=0, relief="flat", activestyle="none",
+        )
+        self.listbox.pack(side="left", fill="both", expand=True)
+        sb = tk.Scrollbar(lb_wrap, command=self.listbox.yview, width=8)
+        sb.pack(side="right", fill="y")
+        self.listbox.configure(yscrollcommand=sb.set)
+        self.listbox.bind("<<ListboxSelect>>", self._on_list_select)
+
+        # Sidebar buttons
+        btn_row = tk.Frame(side, bg=self.BG_SIDE)
+        btn_row.pack(fill="x", padx=8, pady=6)
+        self._btn(btn_row, "+ New",    bg="#2a4a8a", fg="white",
+                  cmd=self.cmd_new).pack(side="left", padx=2)
+        self._btn(btn_row, "⌫ Delete", bg="#4a1a1a", fg="#e08080",
+                  cmd=self.cmd_delete).pack(side="left", padx=2)
+
+        # Editor frame
+        ed_frame = tk.Frame(main, bg=self.BG)
+        ed_frame.pack(side="left", fill="both", expand=True)
+
+        self.title_var = tk.StringVar()
+        tk.Entry(
+            ed_frame, textvariable=self.title_var,
+            font=self.FONT_HDR, bg=self.BG_ENTRY, fg=self.FG,
+            insertbackground="white", relief="flat", bd=4,
+        ).pack(fill="x", padx=8, pady=6)
+
+        txt_wrap = tk.Frame(ed_frame, bg=self.BG)
+        txt_wrap.pack(fill="both", expand=True, padx=8)
+        self.editor = tk.Text(
+            txt_wrap, font=self.FONT_ED, bg=self.BG, fg=self.FG,
+            insertbackground="white", selectbackground="#264f78",
+            relief="flat", padx=4, pady=4, wrap="word", undo=True,
+        )
+        self.editor.pack(side="left", fill="both", expand=True)
+        ed_sb = tk.Scrollbar(txt_wrap, command=self.editor.yview, width=8)
+        ed_sb.pack(side="right", fill="y")
+        self.editor.configure(yscrollcommand=ed_sb.set)
+        self.editor.bind("<<Modified>>", self._on_editor_modified)
+
+        # Toolbar below editor
+        tool = tk.Frame(ed_frame, bg="#16161e")
+        tool.pack(fill="x", pady=4)
+        self._btn(tool, "Save  Ctrl+S", bg="#2a4a2a", fg="#6fcf97",
+                  cmd=self.cmd_save, padx=10, pady=4).pack(
+            side="left", padx=4)
+
+        # Status bar
+        self.status_var = tk.StringVar(value="Ready")
+        status = tk.Frame(self.root, bg=self.ACCENT, height=22)
+        status.pack(fill="x", side="bottom")
+        tk.Label(status, textvariable=self.status_var, bg=self.ACCENT,
+                 fg="#0a1a2a", font=("Helvetica", 10), anchor="w",
+                 ).pack(side="left", padx=10)
+        tk.Label(status, text=f"~/notes/", bg=self.ACCENT,
+                 fg="#0a1a2a", font=("Helvetica", 10),
+                 ).pack(side="right", padx=10)
+
+    def _btn(self, parent, text, bg, fg, cmd, padx=8, pady=3):
+        return tk.Button(parent, text=text, bg=bg, fg=fg, relief="flat",
+                         font=("Helvetica", 10), padx=padx, pady=pady,
+                         command=cmd, activebackground=bg, activeforeground=fg)
+
+    # ── Keyboard shortcuts ────────────────────────────────────────────────
+    def _bind_shortcuts(self):
+        self.root.bind("<Control-n>", lambda _: self.cmd_new())
+        self.root.bind("<Control-s>", lambda _: self.cmd_save())
+        self.root.bind("<Control-q>", lambda _: self.on_quit())
+
+    # ── Note list management ──────────────────────────────────────────────
+    def _load_note_list(self):
+        self.listbox.delete(0, "end")
+        for f in sorted(NOTES_DIR.glob("*.txt")):
+            self.listbox.insert("end", f.stem)
+
+    def _on_list_select(self, _event=None):
+        sel = self.listbox.curselection()
+        if not sel:
+            return
+        self._maybe_save_current()
+        self._load_note(self.listbox.get(sel[0]))
+
+    def _load_note(self, name: str):
+        path = NOTES_DIR / f"{name}.txt"
+        if not path.exists():
+            return
+        content = path.read_text()
+        title = content.splitlines()[0].lstrip("# ") if content else name
+        self.title_var.set(title)
+        self.editor.delete("1.0", "end")
+        self.editor.insert("1.0", content)
+        self.editor.edit_modified(False)
+        self.current_note = name
+        self.modified     = False
+        self.root.title(f"Chromebook Notes — {name}")
+        self.status_var.set(f"Loaded: {name}")
+
+    def _on_editor_modified(self, _event=None):
+        if self.editor.edit_modified():
+            self.modified = True
+            self.root.title("Chromebook Notes  •")
+
+    def _maybe_save_current(self):
+        if self.modified:
+            if messagebox.askyesno("Save?", "Save current note first?",
+                                   parent=self.root):
+                self.cmd_save()
+
+    # ── Commands ──────────────────────────────────────────────────────────
+    def cmd_new(self):
+        self._maybe_save_current()
+        self.title_var.set("New Note")
+        self.editor.delete("1.0", "end")
+        self.editor.insert("1.0", "# New Note\n\n")
+        self.editor.edit_modified(False)
+        self.current_note = f"note_{int(time.time())}"
+        self.modified     = False
+        self.root.title("Chromebook Notes — new")
+        self.status_var.set("New note")
+
+    def cmd_save(self):
+        name = re.sub(r"[^\w\s-]", "", self.title_var.get())
+        name = re.sub(r"\s+", "_", name).lower().strip()
+        name = name or self.current_note or f"untitled_{int(time.time())}"
+        content = self.editor.get("1.0", "end")
+        (NOTES_DIR / f"{name}.txt").write_text(content)
+        self.editor.edit_modified(False)
+        self.current_note = name
+        self.modified     = False
+        self.root.title(f"Chromebook Notes — {name}")
+        self.status_var.set(f"Saved: {name}.txt")
+        self._load_note_list()
+
+    def cmd_delete(self):
+        sel = self.listbox.curselection()
+        if not sel:
+            return
+        name = self.listbox.get(sel[0])
+        if messagebox.askyesno("Delete?", f"Delete '{name}'?",
+                               parent=self.root):
+            (NOTES_DIR / f"{name}.txt").unlink(missing_ok=True)
+            self.editor.delete("1.0", "end")
+            self.title_var.set("")
+            self.current_note = ""
+            self.modified     = False
+            self.root.title("Chromebook Notes")
+            self._load_note_list()
+            self.status_var.set(f"Deleted: {name}")
+
+    def on_quit(self):
+        if self.modified:
+            self.cmd_save()
+        self.root.quit()
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    NotesApp(root)
+    root.mainloop()</code></pre></div>
+</section>
+
+<!-- ══ §14 GTK3 APP ══════════════════════════════════════════════ -->
+<section class="sec" id="gtk3-app">
+  <div class="sh"><span class="snm">§14</span><h2>GTK3 App — System Monitor</h2></div>
+  <p>A live-updating system monitor using PyGObject/GTK3. Reads <code>/proc</code> data every second via <code>GLib.timeout_add()</code> and renders progress bars that change colour as resources fill up.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">gtk3_sysmon.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+gtk3_sysmon.py — Live System Monitor (GTK3 / PyGObject)
+Install:  sudo apt install python3-gi gir1.2-gtk-3.0
+Run:      python3 gtk3_sysmon.py
+"""
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, GLib, Gdk
+import os
+import subprocess
+from pathlib import Path
+
+
+# ── System data readers ────────────────────────────────────────────────────
+_prev_cpu = [0] * 8
+
+def cpu_percent() -> int:
+    global _prev_cpu
+    try:
+        line = open("/proc/stat").readline()
+        fields = list(map(int, line.split()[1:]))
+        idle  = fields[3] + fields[4]
+        total = sum(fields)
+        d_idle  = idle  - _prev_cpu[3] - _prev_cpu[4]
+        d_total = total - sum(_prev_cpu)
+        _prev_cpu = fields[:8]
+        return 0 if d_total == 0 else max(0, min(100, int(100 - 100 * d_idle / d_total)))
+    except Exception:
+        return 0
+
+
+def mem_info() -> tuple[int, int]:
+    mem = {}
+    try:
+        for line in open("/proc/meminfo"):
+            k, *v = line.split()
+            if v: mem[k.rstrip(":")] = int(v[0])
+    except Exception:
+        pass
+    total = mem.get("MemTotal", 1)
+    avail = mem.get("MemAvailable", 0)
+    return total, total - avail
+
+
+def disk_info(path: str = None) -> tuple[int, int]:
+    try:
+        st   = os.statvfs(path or str(Path.home()))
+        tot  = st.f_blocks * st.f_frsize
+        free = st.f_bfree  * st.f_frsize
+        return tot, tot - free
+    except Exception:
+        return 1, 0
+
+
+# ── GTK3 Application ────────────────────────────────────────────────────────
+class SysMonApp(Gtk.Application):
+    def __init__(self):
+        super().__init__(application_id="com.chromebook.sysmon")
+        self.connect("activate", self.on_activate)
+
+    def on_activate(self, app):
+        win = SysMonWindow(application=self)
+        win.show_all()
+
+
+class SysMonWindow(Gtk.ApplicationWindow):
+    CSS = b"""
+    window          { background-color: #09090f; }
+    frame           { background-color: #0f0f1c;
+                      border-radius: 8px; border: 1px solid #1e1e30; }
+    .title-lbl      { color: #4B8BBE; font-size: 20px; font-weight: bold; }
+    .section-lbl    { color: #9b9380; font-size: 12px; }
+    .val-ok         { color: #6fcf97; font-size: 15px; font-weight: bold; }
+    .val-warn       { color: #f0a030; font-size: 15px; font-weight: bold; }
+    .val-high       { color: #eb5757; font-size: 15px; font-weight: bold; }
+    .detail-lbl     { color: #5a5448; font-size: 11px; }
+    progressbar trough  { min-height: 14px; border-radius: 7px;
+                          background-color: #1e1e30; }
+    progressbar.ok   progress { border-radius: 7px; background-color: #6fcf97; }
+    progressbar.warn progress { border-radius: 7px; background-color: #f0a030; }
+    progressbar.high progress { border-radius: 7px; background-color: #eb5757; }
+    separator       { background-color: #1e1e30; min-height: 1px; }
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(title="System Monitor", **kwargs)
+        self.set_default_size(460, 380)
+        self.set_resizable(False)
+
+        # Apply CSS
+        provider = Gtk.CssProvider()
+        provider.load_from_data(self.CSS)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+        )
+
+        self._bars   = {}
+        self._vals   = {}
+        self._detail = {}
+
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        root.set_margin_start(20); root.set_margin_end(20)
+        root.set_margin_top(18);   root.set_margin_bottom(18)
+        self.add(root)
+
+        # Title
+        title = Gtk.Label(label="")
+        title.set_markup(
+            '<span size="20000" weight="bold" foreground="#4B8BBE">'
+            'Chromebook System Monitor</span>'
+        )
+        title.set_margin_bottom(16)
+        root.pack_start(title, False, False, 0)
+
+        # Cards for CPU, Memory, Disk
+        for metric_id, label_text in [
+            ("cpu",  "CPU"),
+            ("mem",  "Memory"),
+            ("disk", "Disk"),
+        ]:
+            card = self._make_card(metric_id, label_text)
+            card.set_margin_bottom(10)
+            root.pack_start(card, False, False, 0)
+
+        # Updated label
+        self._updated = Gtk.Label(label="")
+        self._updated.set_halign(Gtk.Align.END)
+        self._updated.set_margin_top(6)
+        root.pack_end(self._updated, False, False, 0)
+
+        # Start 1-second timer
+        self._update()
+        GLib.timeout_add(1000, self._update)
+
+    def _make_card(self, mid: str, label_text: str) -> Gtk.Frame:
+        frame = Gtk.Frame()
+        frame.set_shadow_type(Gtk.ShadowType.NONE)
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        vbox.set_margin_start(16); vbox.set_margin_end(16)
+        vbox.set_margin_top(12);   vbox.set_margin_bottom(12)
+        frame.add(vbox)
+
+        # Header: section label + value
+        hdr = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        lbl = Gtk.Label(label=label_text)
+        lbl.get_style_context().add_class("section-lbl")
+        lbl.set_halign(Gtk.Align.START)
+        hdr.pack_start(lbl, True, True, 0)
+
+        val = Gtk.Label(label="— %")
+        val.get_style_context().add_class("val-ok")
+        val.set_halign(Gtk.Align.END)
+        self._vals[mid] = val
+        hdr.pack_end(val, False, False, 0)
+        vbox.pack_start(hdr, False, False, 0)
+
+        # Progress bar
+        bar = Gtk.ProgressBar()
+        bar.set_fraction(0)
+        bar.get_style_context().add_class("ok")
+        self._bars[mid] = bar
+        vbox.pack_start(bar, False, False, 0)
+
+        # Detail text
+        det = Gtk.Label(label="")
+        det.get_style_context().add_class("detail-lbl")
+        det.set_halign(Gtk.Align.START)
+        det.set_margin_top(2)
+        self._detail[mid] = det
+        vbox.pack_start(det, False, False, 0)
+
+        return frame
+
+    def _set_metric(self, mid: str, pct: int, detail: str):
+        cls = "high" if pct > 80 else "warn" if pct > 55 else "ok"
+        col = "#eb5757" if pct > 80 else "#f0a030" if pct > 55 else "#6fcf97"
+
+        bar = self._bars[mid]
+        ctx = bar.get_style_context()
+        for c in ("ok", "warn", "high"):
+            ctx.remove_class(c)
+        ctx.add_class(cls)
+        bar.set_fraction(pct / 100)
+
+        val = self._vals[mid]
+        for c in ("val-ok", "val-warn", "val-high"):
+            val.get_style_context().remove_class(c)
+        val.get_style_context().add_class(f"val-{cls}")
+        val.set_text(f"{pct}%")
+
+        self._detail[mid].set_markup(
+            f'<span foreground="#5a5448" size="11000">{detail}</span>'
+        )
+
+    def _update(self) -> bool:
+        import time
+
+        # CPU
+        self._set_metric("cpu", cpu_percent(), "Utilisation across all cores")
+
+        # Memory
+        tot_kb, used_kb = mem_info()
+        pct = int(100 * used_kb / max(tot_kb, 1))
+        self._set_metric(
+            "mem", pct,
+            f"{used_kb/1_048_576:.1f} GB used of {tot_kb/1_048_576:.1f} GB"
+        )
+
+        # Disk
+        tot_b, used_b = disk_info()
+        pct = int(100 * used_b / max(tot_b, 1))
+        self._set_metric(
+            "disk", pct,
+            f"{used_b/1_073_741_824:.1f} GB used of {tot_b/1_073_741_824:.1f} GB"
+        )
+
+        # Timestamp
+        self._updated.set_markup(
+            f'<span foreground="#3a3a5a" size="11000">'
+            f'Updated: {time.strftime("%H:%M:%S")}</span>'
+        )
+        return True   # Keep the timer running
+
+
+if __name__ == "__main__":
+    SysMonApp().run()</code></pre></div>
+</section>
+
+<!-- ══ §15 FLASK ══════════════════════════════════════════════════ -->
+<section class="sec" id="flask">
+  <div class="sh"><span class="snm">§15</span><h2>Flask Web App — Notes Service</h2></div>
+  <p>A complete Flask notes web application. Run it in the Linux terminal and access it from Chrome at <code>http://localhost:5000</code> — no port forwarding needed on a Chromebook.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — install and run</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pip3 install flask --user
+python3 flask_notes.py
+# Open Chrome → http://localhost:5000</code></pre></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">flask_notes.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+flask_notes.py — Notes web app (Flask + inline templates)
+Install:  pip3 install flask
+Run:      python3 flask_notes.py
+Visit:    http://localhost:5000
+Notes stored in ~/notes/ (shared with the Tkinter app).
+"""
+import re
+from pathlib import Path
+from flask import Flask, render_template_string, request, redirect, url_for
+
+app   = Flask(__name__)
+NOTES = Path.home() / "notes"
+NOTES.mkdir(exist_ok=True)
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────
+def all_notes() -> list[dict]:
+    notes = []
+    for f in sorted(NOTES.glob("*.txt")):
+        preview = ""
+        try:
+            first_line = f.read_text().splitlines()[0]
+            preview    = first_line.lstrip("# ").strip()
+        except Exception:
+            pass
+        notes.append({"name": f.stem, "preview": preview})
+    return notes
+
+
+def safe_name(raw: str) -> str:
+    name = re.sub(r"[^\w\s-]", "", raw)
+    name = re.sub(r"\s+", "_", name).lower().strip()
+    return name or f"note_{Path.cwd().stat().st_mtime_ns}"
+
+
+# ── Routes ──────────────────────────────────────────────────────────────────
+@app.route("/")
+def index():
+    return render_template_string(LAYOUT, notes=all_notes(),
+                                  title="Notes", body=INDEX_BODY,
+                                  note_name="", note_body="")
+
+
+@app.route("/note/<name>")
+def view_note(name: str):
+    name  = safe_name(name)
+    path  = NOTES / f"{name}.txt"
+    body  = path.read_text() if path.exists() else ""
+    return render_template_string(LAYOUT, notes=all_notes(),
+                                  title=name, body=NOTE_BODY,
+                                  note_name=name, note_body=body)
+
+
+@app.route("/new")
+def new_note():
+    return render_template_string(LAYOUT, notes=all_notes(),
+                                  title="New Note", body=NOTE_BODY,
+                                  note_name="new_note",
+                                  note_body="# New Note\n\n")
+
+
+@app.route("/save", methods=["POST"])
+def save_note():
+    raw_name = request.form.get("name", "untitled")
+    name     = safe_name(raw_name)
+    content  = request.form.get("body", "")
+    (NOTES / f"{name}.txt").write_text(content)
+    return redirect(url_for("view_note", name=name))
+
+
+@app.route("/delete/<name>", methods=["POST"])
+def delete_note(name: str):
+    (NOTES / f"{safe_name(name)}.txt").unlink(missing_ok=True)
+    return redirect(url_for("index"))
+
+
+# ── Templates (Jinja2 inline strings) ──────────────────────────────────────
+LAYOUT = """<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} — Chromebook Notes</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body   { background: #09090f; color: #e2d9c8;
+           font-family: 'Segoe UI', system-ui, sans-serif; display: flex; }
+  .side  { width: 240px; min-height: 100vh; background: #05050a;
+           border-right: 1px solid #1e1e30; padding: 20px; flex-shrink: 0; }
+  .side h2 { color: #4B8BBE; font-size: 13px; margin-bottom: 14px;
+             letter-spacing: .12em; text-transform: uppercase; }
+  .new-btn { display: block; background: #2a4a8a; color: white;
+             text-align: center; padding: 9px; border-radius: 4px;
+             text-decoration: none; margin-bottom: 16px; font-size: 13px; }
+  .new-btn:hover { background: #3a5a9a; }
+  .note-link { display: block; color: #9b9380; text-decoration: none;
+               padding: 6px 8px; border-radius: 4px; font-size: 13px;
+               border-left: 2px solid transparent; margin-bottom: 2px; }
+  .note-link:hover { color: #e2d9c8; background: #0f0f1c; }
+  .main  { flex: 1; padding: 32px; max-width: 800px; }
+  input, textarea { background: #0f0f1c; color: #e2d9c8;
+                    border: 1px solid #1e1e30; border-radius: 4px;
+                    padding: 10px; font-size: 14px; width: 100%; }
+  input[type=text] { font-size: 17px; font-weight: bold; margin-bottom: 12px; }
+  textarea { height: 420px; font-family: 'Courier New', monospace;
+             resize: vertical; line-height: 1.6; }
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+  button   { border: none; padding: 10px 20px; border-radius: 4px;
+             cursor: pointer; font-size: 13px; font-weight: bold; }
+  .btn-save { background: #6fcf97; color: #0a1a0a; }
+  .btn-save:hover { background: #7fdfaf; }
+  .btn-del  { background: #eb5757; color: white; }
+  .btn-del:hover { background: #ff6666; }
+  .welcome { color: #9b9380; }
+  .welcome a { color: #4B8BBE; }
+</style></head><body>
+<nav class="side">
+  <h2>My Notes</h2>
+  <a class="new-btn" href="/new">＋ New Note</a>
+  {% for n in notes %}
+  <a class="note-link" href="/note/{{ n.name }}">
+    {{ n.preview or n.name }}
+  </a>
+  {% endfor %}
+</nav>
+<main class="main">{{ body | safe }}</main>
+</body></html>"""
+
+INDEX_BODY = """
+<h1 style="color:#4B8BBE;margin-bottom:12px">Chromebook Notes</h1>
+<p class="welcome">
+  {{ notes | length }} note(s) stored in <code>~/notes/</code>.<br>
+  {% if not notes %}
+  <a href="/new">Create your first note →</a>
+  {% endif %}
+</p>"""
+
+NOTE_BODY = """
+<form method="post" action="/save">
+  <input type="text" name="name" value="{{ note_name }}"
+         placeholder="Note title / filename">
+  <textarea name="body">{{ note_body }}</textarea>
+  <div class="btn-row">
+    <button type="submit" class="btn-save">💾 Save</button>
+    {% if note_name != 'new_note' %}
+    <form method="post" action="/delete/{{ note_name }}" style="display:inline">
+      <button type="submit" class="btn-del"
+              onclick="return confirm('Delete this note?')">🗑 Delete</button>
+    </form>
+    {% endif %}
+  </div>
+</form>"""
+
+
+if __name__ == "__main__":
+    print("Starting Flask Notes on http://localhost:5000")
+    print("Open Chrome and visit: http://localhost:5000")
+    app.run(debug=True, port=5000)</code></pre></div>
+</section>
+
+<!-- ══ §16 HTTP CLIENT ══════════════════════════════════════════ -->
+<section class="sec" id="http-client">
+  <div class="sh"><span class="snm">§16</span><h2>HTTP Clients &amp; APIs</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">web_fetch.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+web_fetch.py — HTTP client examples with requests.
+Install:  pip3 install requests
+Run:      python3 web_fetch.py
+"""
+import json
+from pathlib import Path
+import requests
+
+# Reuse a session for connection pooling
+session = requests.Session()
+session.headers["User-Agent"] = "PythonChromebook/1.0"
+
+
+# ── GET: plain text ────────────────────────────────────────────────────────
+print("=== GET: JSON API ===")
+resp = session.get("https://httpbin.org/get", timeout=10)
+resp.raise_for_status()           # Raises on 4xx / 5xx
+data = resp.json()                # Parse JSON response
+print(f"  Status : {resp.status_code}")
+print(f"  Origin : {data.get('origin')}")
+print(f"  URL    : {data.get('url')}")
+
+
+# ── GET: GitHub REST API ───────────────────────────────────────────────────
+print("\n=== GET: GitHub API ===")
+resp = session.get(
+    "https://api.github.com/repos/python/cpython",
+    headers={"Accept": "application/vnd.github.v3+json"},
+    timeout=10,
+)
+if resp.ok:
+    repo = resp.json()
+    print(f"  Repo   : {repo['full_name']}")
+    print(f"  Stars  : {repo['stargazers_count']:,}")
+    print(f"  Lang   : {repo['language']}")
+    print(f"  Desc   : {repo['description'][:60]}…")
+
+
+# ── POST: send JSON data ───────────────────────────────────────────────────
+print("\n=== POST: JSON body ===")
+payload = {"name": "Chromebook", "lang": "Python", "year": 2025}
+resp = session.post("https://httpbin.org/post", json=payload, timeout=10)
+if resp.ok:
+    body = resp.json()
+    print(f"  Echoed : {body.get('json')}")
+
+
+# ── Error handling ─────────────────────────────────────────────────────────
+print("\n=== Error handling ===")
+try:
+    session.get("https://httpbin.org/status/404", timeout=10).raise_for_status()
+except requests.HTTPError as e:
+    print(f"  HTTP error caught: {e.response.status_code}")
+except requests.ConnectionError:
+    print("  Connection error — no internet?")
+except requests.Timeout:
+    print("  Request timed out")
+
+
+# ── Download a file ────────────────────────────────────────────────────────
+print("\n=== Streaming download ===")
+url  = "https://www.python.org/static/img/python-logo.png"
+dest = Path("/tmp/python-logo.png")
+try:
+    with session.get(url, stream=True, timeout=10) as r:
+        r.raise_for_status()
+        dest.write_bytes(r.content)
+    print(f"  Downloaded {dest.stat().st_size:,} bytes → {dest}")
+except Exception as e:
+    print(f"  Skipped: {e}")</code></pre></div>
+</section>
+
+<!-- ══ §17 JUPYTER ══════════════════════════════════════════════ -->
+<section class="sec" id="jupyter">
+  <div class="sh"><span class="snm">§17</span><h2>Jupyter Notebook on Chromebook</h2></div>
+
+  <p>Jupyter Notebook is particularly well-suited to Chromebook: you run the server in the Linux container and open it in the Chrome browser — no extra software needed. The browser-based interface makes data exploration and visualisation feel native.</p>
+
+  <div class="is">
+    <div class="inn">1</div>
+    <div class="ic">
+      <strong>Install Jupyter</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">pip3 install --user jupyterlab jupyter notebook
+# Verify
+jupyter --version</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">2</div>
+    <div class="ic">
+      <strong>Launch — the URL opens automatically in Chrome</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">jupyter notebook          # Classic interface (http://localhost:8888)
+jupyter lab               # Modern JupyterLab (recommended)
+
+# The terminal shows a URL like:
+#   http://localhost:8888/lab?token=abc123...
+# Copy it into Chrome. Token is shown only on first start.</code></pre></div>
+    </div>
+  </div>
+
+  <div class="is">
+    <div class="inn">3</div>
+    <div class="ic">
+      <strong>Optional: no-token auto-open</strong>
+      <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">jupyter notebook --no-browser --NotebookApp.token=''
+
+# Or configure permanently:
+jupyter notebook --generate-config
+# Edit ~/.jupyter/jupyter_notebook_config.py:
+#   c.NotebookApp.token = ''
+#   c.NotebookApp.open_browser = False</code></pre></div>
+    </div>
+  </div>
+
+  <h3>A Sample Notebook (equivalent Python cells)</h3>
+  <div class="jcell">
+    <div class="jlabel">In [1]: — imports</div>
+    <div class="jcode">import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+print("Libraries loaded")</div>
+    <div class="jout">Libraries loaded</div>
+  </div>
+  <div class="jcell">
+    <div class="jlabel">In [2]: — create a DataFrame</div>
+    <div class="jcode">df = pd.DataFrame({
+    'month'   : range(1, 13),
+    'sales'   : [120, 135, 148, 162, 175, 190,
+                 185, 178, 168, 155, 142, 200],
+    'expenses': [80,   85,  90,  95, 100, 105,
+                 103,  98,  94,  88,  84, 112],
+})
+df['profit'] = df['sales'] - df['expenses']
+df.describe().round(1)</div>
+    <div class="jout">          month   sales  expenses  profit
+count   12.0   12.000    12.000  12.000
+mean     6.5  163.167    94.500  68.667
+std      3.6   24.408     9.654  15.565
+...</div>
+  </div>
+  <div class="jcell">
+    <div class="jlabel">In [3]: — plot inline in the notebook</div>
+    <div class="jcode">fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+# Bar chart
+df.set_index('month')[['sales','expenses','profit']].plot.bar(ax=axes[0])
+axes[0].set_title('Monthly Financials')
+axes[0].set_xlabel('Month')
+
+# Line chart
+axes[1].plot(df['month'], df['sales'],    label='Sales',    marker='o')
+axes[1].plot(df['month'], df['expenses'], label='Expenses', marker='s')
+axes[1].plot(df['month'], df['profit'],   label='Profit',   marker='^')
+axes[1].legend()
+axes[1].set_title('Trend Over Year')
+
+plt.tight_layout()
+plt.savefig('report.png', dpi=150, bbox_inches='tight')
+plt.show()</div>
+    <div class="jout">[inline chart appears here in the notebook]</div>
+  </div>
+</section>
+
+<!-- ══ §18 PANDAS & NUMPY ════════════════════════════════════════ -->
+<section class="sec" id="pandas">
+  <div class="sh"><span class="snm">§18</span><h2>pandas &amp; NumPy</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">data_analysis.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+data_analysis.py — pandas and NumPy essentials.
+Install:  pip3 install pandas numpy
+Run:      python3 data_analysis.py
+"""
+import numpy as np
+import pandas as pd
+from pathlib import Path
+
+
+# ══ NUMPY ═══════════════════════════════════════════════════════════════════
+print("═" * 50)
+print("  NumPy")
+print("═" * 50)
+
+# Array creation and operations
+arr = np.array([1, 4, 9, 16, 25, 36, 49, 64, 81, 100])
+print(f"\nArray:      {arr}")
+print(f"Sqrt:       {np.sqrt(arr)}")
+print(f"Mean:       {np.mean(arr):.2f}")
+print(f"Std dev:    {np.std(arr):.2f}")
+
+# 2-D matrix
+matrix = np.arange(1, 10).reshape(3, 3)
+print(f"\nMatrix:\n{matrix}")
+print(f"Transpose:\n{matrix.T}")
+print(f"Row sums:   {matrix.sum(axis=1)}")
+print(f"Col means:  {matrix.mean(axis=0)}")
+
+# Boolean indexing
+nums = np.random.default_rng(42).integers(0, 100, 20)
+print(f"\n20 random ints: {nums}")
+print(f"Values > 50:    {nums[nums > 50]}")
+print(f"Count > 50:     {(nums > 50).sum()}")
+
+
+# ══ PANDAS ═══════════════════════════════════════════════════════════════════
+print("\n" + "═" * 50)
+print("  pandas")
+print("═" * 50)
+
+# Build a DataFrame from a dictionary
+df = pd.DataFrame({
+    "name"     : ["Alice", "Bob", "Carol", "Dave", "Eve"],
+    "dept"     : ["Eng",   "HR",  "Eng",   "Mkt",  "Eng"],
+    "salary"   : [95000,   68000, 102000,  75000,   89000],
+    "years"    : [5,       3,     8,       2,        6],
+})
+
+print(f"\nShape:  {df.shape}")
+print(f"\n{df.to_string(index=False)}")
+
+# Selection and filtering
+print("\nEngineering team:")
+eng = df[df["dept"] == "Eng"]
+print(eng[["name","salary","years"]].to_string(index=False))
+
+# Aggregation
+print("\nSalary by department:")
+print(df.groupby("dept")["salary"].agg(["mean","min","max","count"])
+        .rename(columns={"mean":"avg"})
+        .round(0).to_string())
+
+# Adding computed columns
+df["seniority"] = pd.cut(df["years"],
+    bins=[0, 2, 5, 100],
+    labels=["junior", "mid", "senior"]
+)
+print(f"\nWith seniority:\n{df[['name','seniority']].to_string(index=False)}")
+
+# Sorting
+top3 = df.nlargest(3, "salary")[["name","dept","salary"]]
+print(f"\nTop 3 earners:\n{top3.to_string(index=False)}")
+
+# Save and reload
+csv_path = Path("/tmp/employees.csv")
+df.to_csv(csv_path, index=False)
+reloaded = pd.read_csv(csv_path)
+print(f"\nSaved {len(reloaded)} rows to {csv_path}")
+csv_path.unlink()   # Clean up</code></pre></div>
+</section>
+
+<!-- ══ §19 MATPLOTLIB ═══════════════════════════════════════════ -->
+<section class="sec" id="matplotlib">
+  <div class="sh"><span class="snm">§19</span><h2>matplotlib — Plots &amp; Charts</h2></div>
+
+  <p>On a Chromebook, matplotlib plots open as ChromeOS windows via XWayland — just like any other GUI app. You can also save them directly to PNG/SVG/PDF files.</p>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python</span><span class="cf2">plots.py</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-python">#!/usr/bin/env python3
+"""
+plots.py — matplotlib chart gallery.
+Install:  pip3 install matplotlib numpy
+Run:      python3 plots.py        (shows plots as ChromeOS windows)
+          python3 plots.py --save (saves PNGs, no window)
+"""
+import sys
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+
+SAVE_ONLY = "--save" in sys.argv
+if SAVE_ONLY:
+    matplotlib.use("Agg")   # Non-interactive backend for saving only
+
+# Use a dark style for the Chromebook dark-themed desktop
+plt.style.use("dark_background")
+
+
+def demo_plots():
+    fig = plt.figure(figsize=(14, 10), facecolor="#09090f")
+    fig.suptitle("matplotlib on Chromebook",
+                 color="#e2d9c8", fontsize=16, fontweight="bold", y=0.98)
+    gs = GridSpec(2, 3, figure=fig, hspace=0.45, wspace=0.35)
+
+    # ── Line chart ────────────────────────────────────────────────────────
+    ax1 = fig.add_subplot(gs[0, 0])
+    x   = np.linspace(0, 4 * np.pi, 300)
+    ax1.plot(x, np.sin(x), color="#4B8BBE", linewidth=2, label="sin")
+    ax1.plot(x, np.cos(x), color="#FFD43B", linewidth=2, label="cos")
+    ax1.axhline(0, color="#3a3a4a", linewidth=0.8, linestyle="--")
+    ax1.legend(fontsize=9); ax1.set_title("Line Chart", color="#e2d9c8")
+
+    # ── Bar chart ──────────────────────────────────────────────────────────
+    ax2 = fig.add_subplot(gs[0, 1])
+    langs   = ["Python", "JS", "Rust", "Go", "Java"]
+    scores  = [88, 76, 72, 68, 60]
+    colours = ["#4B8BBE", "#f0a030", "#6fcf97", "#4dd0c8", "#eb5757"]
+    bars = ax2.bar(langs, scores, color=colours, edgecolor="none")
+    for bar, val in zip(bars, scores):
+        ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                 str(val), ha="center", va="bottom", fontsize=9, color="white")
+    ax2.set_ylim(0, 100); ax2.set_title("Bar Chart", color="#e2d9c8")
+
+    # ── Scatter plot ───────────────────────────────────────────────────────
+    ax3 = fig.add_subplot(gs[0, 2])
+    rng  = np.random.default_rng(42)
+    n    = 120
+    x_s  = rng.standard_normal(n)
+    y_s  = x_s * 0.8 + rng.standard_normal(n) * 0.5
+    cols = rng.uniform(0, 1, n)
+    sc   = ax3.scatter(x_s, y_s, c=cols, cmap="plasma", alpha=0.8, s=30)
+    fig.colorbar(sc, ax=ax3, label="Random value")
+    ax3.set_title("Scatter Plot", color="#e2d9c8")
+
+    # ── Histogram ─────────────────────────────────────────────────────────
+    ax4 = fig.add_subplot(gs[1, 0])
+    data = rng.normal(100, 15, 1000)
+    ax4.hist(data, bins=30, color="#4B8BBE", edgecolor="#09090f", alpha=0.85)
+    ax4.axvline(data.mean(), color="#FFD43B", linestyle="--",
+                linewidth=2, label=f"Mean={data.mean():.1f}")
+    ax4.legend(fontsize=9); ax4.set_title("Histogram", color="#e2d9c8")
+
+    # ── Pie chart ──────────────────────────────────────────────────────────
+    ax5 = fig.add_subplot(gs[1, 1])
+    sizes  = [35, 25, 20, 12, 8]
+    labels = ["Python", "JS", "Java", "C++", "Other"]
+    explode= [0.05] * len(sizes)
+    ax5.pie(sizes, labels=labels, autopct="%1.0f%%",
+            colors=colours, explode=explode,
+            textprops={"color": "#e2d9c8", "fontsize": 9})
+    ax5.set_title("Pie Chart", color="#e2d9c8")
+
+    # ── Area chart ─────────────────────────────────────────────────────────
+    ax6 = fig.add_subplot(gs[1, 2])
+    months = range(1, 13)
+    sales  = [80, 90, 105, 120, 115, 130, 125, 118, 110, 100, 95, 150]
+    costs  = [60, 65,  72,  80,  78,  88,  84,  80,  76,  70, 68, 100]
+    ax6.fill_between(months, sales,  alpha=0.4, color="#4B8BBE", label="Sales")
+    ax6.fill_between(months, costs,  alpha=0.4, color="#eb5757", label="Costs")
+    ax6.plot(months, sales, color="#4B8BBE", linewidth=2)
+    ax6.plot(months, costs, color="#eb5757", linewidth=2)
+    ax6.legend(fontsize=9); ax6.set_title("Area Chart", color="#e2d9c8")
+    ax6.set_xticks(months)
+    ax6.set_xticklabels(["J","F","M","A","M","J","J","A","S","O","N","D"])
+
+    return fig
+
+
+fig = demo_plots()
+if SAVE_ONLY:
+    path = "/tmp/chromebook_charts.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight", facecolor=fig.get_facecolor())
+    print(f"Saved to {path}")
+else:
+    plt.show()   # Opens as a ChromeOS window via XWayland</code></pre></div>
+</section>
+
+<!-- ══ §20 TERMUX ════════════════════════════════════════════════ -->
+<section class="sec" id="termux">
+  <div class="sh"><span class="snm">§20</span><h2>Termux — Python via Android</h2></div>
+
+  <p>Termux gives you Python in an Android terminal on Chromebooks that have the Play Store but lack the Linux container. CLI scripts and web servers work; GUI toolkits do not.</p>
+
+  <div class="ca w"><strong>Limitation:</strong> No display server in Termux — Tkinter, GTK3, and matplotlib <code>plt.show()</code> will fail. Use <code>plt.savefig()</code> instead, and open the saved image in Chrome.</div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — Termux setup</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Install Termux from F-Droid (not Play Store — outdated version)
+# https://f-droid.org/packages/com.termux/
+
+pkg update && pkg upgrade -y
+
+# Python is a single command
+pkg install python
+
+# Verify
+python --version       # Python 3.12.x (no '3' suffix in Termux)
+pip --version
+
+# Install packages
+pip install flask requests pandas numpy matplotlib
+
+# Access ChromeOS files
+termux-setup-storage   # Enables ~/storage/ → Android shared folders
+ls ~/storage/downloads/
+
+# Save a matplotlib plot to Downloads (viewable from Chrome)
+python -c "
+import matplotlib
+matplotlib.use('Agg')    # Non-GUI backend — REQUIRED in Termux
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.linspace(0, 10, 100)
+plt.plot(x, np.sin(x))
+plt.savefig('/data/data/com.termux/files/home/storage/downloads/plot.png')
+print('Plot saved to Downloads')
+"</code></pre></div>
+
+  <h3>Flask in Termux → Access from Chrome</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span></div>
+<pre><code class="language-bash"># Run the Flask app in Termux
+python flask_notes.py   # Starts on localhost:5000
+
+# Open Chrome on the Chromebook → http://localhost:5000
+# (The Android localhost is the same as the Chromebook browser's localhost)</code></pre></div>
+</section>
+
+<!-- ══ §21 CLOUD ════════════════════════════════════════════════ -->
+<section class="sec" id="cloud">
+  <div class="sh"><span class="snm">§21</span><h2>Cloud IDEs &amp; Notebooks</h2></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Service</th><th>Best for</th><th>Python</th><th>Free tier</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Google Colab</strong></td><td>Data science, ML — GPU access free</td><td>3.10</td><td>Unlimited (CPU), limited GPU</td></tr>
+      <tr><td><strong>Replit</strong></td><td>General Python, web apps, sharing</td><td>3.10+</td><td>Yes, limited RAM</td></tr>
+      <tr><td><strong>GitHub Codespaces</strong></td><td>Full dev environment with git</td><td>3.11+</td><td>60h/month</td></tr>
+      <tr><td><strong>Gitpod</strong></td><td>Pre-configured workspace from repo</td><td>3.11+</td><td>50h/month</td></tr>
+      <tr><td><strong>Kaggle Notebooks</strong></td><td>Data science, ML competitions</td><td>3.10</td><td>30h/week GPU</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="ca py"><strong>Google Colab for Chromebook users:</strong> Colab runs entirely in the browser, integrates with Google Drive, provides free GPU time, and all output is inline. For data science work, it requires zero setup and is often the best starting point on a Chromebook.</div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">python — Colab cell</span></div>
+<pre><code class="language-python"># In a Google Colab notebook cell:
+# Install extra packages
+!pip install yfinance --quiet
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Mount Google Drive (Colab-specific)
+from google.colab import drive
+drive.mount('/content/drive')
+
+# Download data
+import yfinance as yf
+aapl = yf.download('AAPL', start='2023-01-01', progress=False)
+aapl['Close'].plot(figsize=(12,4), title='Apple Stock 2023')
+plt.savefig('/content/drive/MyDrive/aapl_chart.png')
+plt.show()</code></pre></div>
+</section>
+
+<!-- ══ §22 TIPS ══════════════════════════════════════════════════ -->
+<section class="sec" id="tips">
+  <div class="sh"><span class="snm">§22</span><h2>Tips &amp; Best Practices</h2></div>
+
+  <h3>Python-Specific Tips for Chromebook</h3>
+  <ul>
+    <li><strong>Always use virtual environments</strong> for projects — <code>python3 -m venv .venv</code> prevents dependency conflicts.</li>
+    <li><strong>Use <code>pip3</code> not <code>pip</code></strong> when outside a venv to ensure you're installing for Python 3.</li>
+    <li><strong>Black formatter</strong> — run <code>black .</code> before committing. Consistent formatting is effortless with Black.</li>
+    <li><strong>Type hints</strong> — add them from the start. <code>mypy</code> catches bugs before they happen.</li>
+    <li><strong>Pathlib over os.path</strong> — <code>Path.home() / "notes"</code> is cleaner than <code>os.path.join(os.path.expanduser("~"), "notes")</code>.</li>
+    <li><strong>f-strings over format()</strong> — <code>f"Hello {name}!"</code> is faster and more readable.</li>
+  </ul>
+
+  <h3>Chromebook Integration Tips</h3>
+  <ul>
+    <li>Pin the Terminal to the shelf and set your default directory to <code>~/projects</code>: add <code>cd ~/projects</code> to your <code>~/.bashrc</code>.</li>
+    <li>Open VS Code from ChromeOS Files: right-click any <code>.py</code> file → <strong>Open with → Code</strong>.</li>
+    <li>Drag files from ChromeOS Downloads directly into the terminal window to paste the full path.</li>
+    <li>Jupyter Notebook: bookmark <code>http://localhost:8888/lab</code> in Chrome for one-click access.</li>
+    <li>Set up a shell alias: <code>alias jl='jupyter lab --no-browser'</code> in <code>~/.bashrc</code>.</li>
+  </ul>
+
+  <h3>Backup Your Python Environment</h3>
+  <div class="cb2"><div class="ch2"><span class="cl2">bash</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash"># Export ALL globally installed pip packages
+pip3 freeze > ~/pip_packages.txt
+
+# Per-project (inside activated venv):
+pip freeze > requirements.txt
+
+# Copy projects to ChromeOS Downloads for backup
+cp -r ~/projects /mnt/chromeos/MyFiles/Downloads/python_backup_$(date +%Y%m%d)
+
+# Restore on a new Chromebook:
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</code></pre></div>
+</section>
+
+<!-- ══ §23 CHEATSHEET ════════════════════════════════════════════ -->
+<section class="sec" id="cheatsheet">
+  <div class="sh"><span class="snm">§23</span><h2>Quick Cheat Sheet</h2></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — one-time setup (paste into fresh Linux terminal)</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-pip python3-venv python3-dev \
+    python3-tk python3-gi gir1.2-gtk-3.0 build-essential wget code
+pip3 install --user black pylint mypy pytest ipython jupyterlab \
+    flask requests httpx pandas numpy matplotlib seaborn scikit-learn
+code --install-extension ms-python.python ms-python.pylance \
+    ms-toolsai.jupyter ms-python.black-formatter</code></pre></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — every new project</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">mkdir ~/projects/my_project && cd ~/projects/my_project
+python3 -m venv .venv
+source .venv/bin/activate
+pip install flask          # or pandas, or whatever you need
+code .                     # VS Code auto-selects the venv</code></pre></div>
+
+  <div class="cb2"><div class="ch2"><span class="cl2">bash — daily workflow</span><button class="cp2" onclick="cc(this)">copy</button></div>
+<pre><code class="language-bash">source .venv/bin/activate       # Activate venv for this project
+python3 script.py               # Run
+python3 -m pytest               # Test
+black .                         # Format
+mypy script.py                  # Type check
+jupyter lab                     # Data science
+python3 app.py                  # Web app → localhost:5000 in Chrome</code></pre></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Goal</th><th>Command / Action</th></tr></thead>
+    <tbody>
+      <tr><td>Enable Linux</td><td>Settings → Advanced → Developers → Linux</td></tr>
+      <tr><td>Open terminal</td><td>Launcher → Terminal</td></tr>
+      <tr><td>Python REPL</td><td><code>python3</code> or <code>ipython</code></td></tr>
+      <tr><td>Jupyter in Chrome</td><td><code>jupyter lab</code> → Chrome → localhost:8888</td></tr>
+      <tr><td>Flask app in Chrome</td><td><code>python3 app.py</code> → Chrome → localhost:5000</td></tr>
+      <tr><td>GUI app as ChromeOS window</td><td><code>python3 tk_notes.py</code></td></tr>
+      <tr><td>Format code</td><td><code>black .</code></td></tr>
+      <tr><td>Type check</td><td><code>mypy script.py</code></td></tr>
+      <tr><td>Share project files</td><td>Files app → Linux files → drag to Downloads</td></tr>
+      <tr><td>Increase Linux disk</td><td>Settings → Developers → Linux → Disk size</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script>
+function cc(b){
+  const p=b.closest('.cb2').querySelector('pre');
+  navigator.clipboard.writeText(p.textContent).then(()=>{
+    b.textContent='copied!';b.classList.add('ok');
+    setTimeout(()=>{b.textContent='copy';b.classList.remove('ok');},1800);
+  });
+}
+const ss=document.querySelectorAll('section.sec'),ls=document.querySelectorAll('a.lk');
+ss.forEach(s=>new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){
+    ls.forEach(l=>l.classList.remove('act'));
+    const a=document.querySelector(`a.lk[href="#${e.target.id}"]`);
+    if(a){a.classList.add('act');a.scrollIntoView({block:'nearest'});}
+  }});
+},{rootMargin:'-8% 0px -82% 0px'}).observe(s));
+</script>
+</body>
+</html>

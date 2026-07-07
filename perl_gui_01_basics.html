@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perl/Tk GUI Basics — perl_gui_01_basics.pl</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root{--bg:#09090f;--bg-card:#0f0f1c;--bg-code:#0c0c18;--border:#1e1e30;--amber:#f0a030;--amber-dim:#b87820;--amber-glow:#f0a03018;--text:#e2d9c8;--text-dim:#9b9380;--text-muted:#5a5448;--accent:#4db8ff;--green:#6fcf97;--red:#eb5757;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:1.75;}
+.topnav{background:#06060d;border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topnav-brand{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--amber);}
+.topnav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);text-decoration:none;transition:all .15s;}
+.nav-link:hover{color:var(--amber);border-color:var(--amber-dim);}
+.nav-link.current{color:var(--amber);border-color:var(--amber);background:var(--amber-glow);}
+.wrapper{max-width:980px;margin:0 auto;padding:48px 32px 100px;display:grid;grid-template-columns:1fr 260px;gap:48px;align-items:start;}
+@media(max-width:800px){.wrapper{grid-template-columns:1fr;}.toc-panel{display:none;}}
+.toc-panel{position:sticky;top:72px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:20px;}
+.toc-panel h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;}
+.toc-list{list-style:none;}
+.toc-list a{font-size:12px;color:var(--text-dim);text-decoration:none;font-family:'JetBrains Mono',monospace;display:block;padding:4px 6px;border-radius:2px;border-left:2px solid transparent;transition:all .12s;}
+.toc-list a:hover,.toc-list a.active{color:var(--amber);border-left-color:var(--amber);background:var(--amber-glow);}
+.page-hero{margin-bottom:40px;padding-bottom:28px;border-bottom:1px solid var(--border);}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.page-hero h1{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,42px);font-weight:900;line-height:1.15;color:var(--text);margin-bottom:8px;}
+.page-hero h1 em{font-style:italic;color:var(--amber);}
+.page-hero p{font-style:italic;color:var(--text-dim);font-size:16px;font-weight:300;margin-bottom:14px;}
+.file-badge{display:inline-flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);padding:7px 14px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);}
+.file-badge span{color:var(--amber);}
+.tut-section{margin-bottom:52px;scroll-margin-top:20px;}
+.tut-section-header{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--amber-glow);border:1px solid var(--amber-dim);color:var(--amber);padding:2px 8px;border-radius:3px;letter-spacing:.06em;}
+.tut-section-header h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);}
+.tut-section h3{font-family:'Playfair Display',serif;font-size:17px;color:var(--amber);margin:20px 0 8px;}
+p{margin-bottom:12px;} p:last-child{margin-bottom:0;}
+strong{color:var(--text);} em{color:var(--amber);font-style:italic;}
+ul,ol{padding-left:22px;margin:10px 0;}
+li{margin-bottom:4px;}
+ul li::marker{color:var(--amber-dim);}
+.code-block{position:relative;margin:14px 0;border-radius:5px;overflow:hidden;border:1px solid var(--border);background:var(--bg-code);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#0a0a14;border-bottom:1px solid var(--border);}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase;}
+.copy-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .15s;}
+.copy-btn:hover{color:var(--amber);border-color:var(--amber-dim);} .copy-btn.copied{color:var(--green);border-color:var(--green);}
+.code-block pre[class*="language-"]{margin:0;padding:16px 18px;background:transparent !important;font-size:13px;line-height:1.65;overflow-x:auto;}
+.code-block code[class*="language-"]{font-family:'JetBrains Mono',monospace !important;}
+.token.comment,.token.prolog{color:#6a7a5a !important;font-style:italic;}
+.token.keyword{color:#f0a030 !important;font-weight:500;}
+.token.string,.token.char{color:#a8d8a0 !important;}
+.token.number{color:#a8c4e0 !important;}
+.token.operator{color:#d4c090 !important;}
+.token.function{color:#8fbce0 !important;}
+.token.variable{color:#e0b87a !important;}
+.token.regex{color:#d4a0c8 !important;}
+.token.punctuation{color:#6a7080 !important;}
+code:not([class]){font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--bg-card);color:var(--amber);padding:2px 6px;border-radius:3px;border:1px solid var(--border);}
+.callout{padding:13px 17px;border-radius:3px;border-left:3px solid;margin:14px 0;font-size:14.5px;}
+.callout.note{background:#0a1020;border-color:var(--accent);color:#a8c8e0;}
+.callout.tip{background:#081510;border-color:var(--green);color:#90c890;}
+.callout.warn{background:#130c04;border-color:var(--amber);color:#c8a060;}
+.callout strong{color:inherit;}
+.teaches-box{background:var(--bg-card);border:1px solid var(--border);border-top:3px solid var(--amber);padding:18px 22px;margin:20px 0;border-radius:0 0 4px 4px;}
+.teaches-box h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.teaches-box ul{list-style:none;padding:0;}
+.teaches-box li{font-size:13.5px;color:var(--text-dim);padding:3px 0;font-family:'JetBrains Mono',monospace;}
+.teaches-box li::before{content:"→ ";color:var(--amber-dim);}
+/* Concept card */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:14px 0;}
+.concept-card{background:var(--bg-card);border:1px solid var(--border);padding:14px;border-radius:4px;transition:border-color .15s;}
+.concept-card:hover{border-color:var(--amber-dim);}
+.concept-card .c-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);margin-bottom:6px;}
+.concept-card p{font-size:13px;color:var(--text-dim);margin:0;}
+/* Preview mockup */
+.window-mock{background:#1e1e2e;border:1px solid #3a3a5a;border-radius:8px;overflow:hidden;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.window-bar{background:#2a2a3e;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #3a3a5a;}
+.dot{width:10px;height:10px;border-radius:50%;}
+.dot.r{background:#ff5f57;} .dot.y{background:#febc2e;} .dot.g{background:#28c840;}
+.win-title{color:#8888aa;font-size:11px;margin-left:8px;letter-spacing:.06em;}
+.window-body{padding:20px;}
+.mock-btn{display:inline-block;background:#007aff;color:white;padding:5px 12px;border-radius:4px;margin:4px;font-size:11px;}
+.mock-btn.green{background:#34c759;}
+.mock-btn.red{background:#ff3b30;}
+.mock-btn.grey{background:#48484a;}
+.mock-entry{background:#3a3a5a;border:1px solid #5a5a8a;color:#d0d0ff;padding:5px 10px;border-radius:3px;width:200px;display:inline-block;font-size:11px;margin:4px;}
+.mock-label{color:#9898bc;font-size:12px;margin:4px 0;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="topnav-brand">The Perl Guide</span>
+  <div class="topnav-links">
+    <a class="nav-link" href="perl_guide.html">↑ Guide</a>
+    <a class="nav-link" href="perl_tutorial.html">01 · Core</a>
+    <a class="nav-link current" href="perl_gui_01_basics.html">02 · GUI Basics</a>
+    <a class="nav-link" href="perl_gui_02_widgets.html">03 · Widgets</a>
+    <a class="nav-link" href="perl_gui_03_events_canvas.html">04 · Events</a>
+    <a class="nav-link" href="perl_gui_04_app.html">05 · App</a>
+  </div>
+</nav>
+
+<div class="wrapper">
+<main>
+
+<header class="page-hero">
+  <div class="eyebrow">Tutorial 02 — GUI Basics</div>
+  <h1>Your First <em>Perl/Tk</em><br>Windows</h1>
+  <p>Build real GUI windows on macOS: labels, buttons, text entry, frames, live data binding, and second windows — all from scratch.</p>
+  <div class="file-badge">▶ <span>perl perl_gui_01_basics.pl</span></div>
+</header>
+
+<div class="teaches-box">
+  <h4>What This Tutorial Covers</h4>
+  <ul>
+    <li>MainWindow → geometry → title → MainLoop</li>
+    <li>Label with -text and live -textvariable binding</li>
+    <li>Button with named and anonymous callbacks</li>
+    <li>Button -state: normal / active / disabled</li>
+    <li>Entry for single-line input and password (-show)</li>
+    <li>Frame and LabelFrame as containers</li>
+    <li>configure() to change options at runtime</li>
+    <li>cget() to read the current value of any option</li>
+    <li>Toplevel — opening a second window</li>
+    <li>Binding &lt;Return&gt; to move focus between fields</li>
+  </ul>
+</div>
+
+<!-- Window mock preview -->
+<div class="window-mock">
+  <div class="window-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span class="win-title">Perl/Tk — Basics Tutorial</span></div>
+  <div class="window-body">
+    <div class="mock-label">Perl/Tk Basics Tutorial</div>
+    <div style="border:1px solid #3a3a5a;padding:10px;margin:8px 0;border-radius:4px;">
+      <div class="mock-label">Label Examples</div>
+      <div class="mock-label" style="color:#4db8ff;font-style:italic;">Click the button below to update me.</div>
+      <div style="color:#34c759;font-size:20px;font-weight:bold;text-align:center;">0</div>
+    </div>
+    <div style="border:1px solid #3a3a5a;padding:10px;margin:8px 0;border-radius:4px;">
+      <div class="mock-label">Button Examples</div>
+      <span class="mock-btn">Update Label</span>
+      <span class="mock-btn green">Increment Counter</span>
+      <span class="mock-btn red">Reset</span>
+    </div>
+    <div style="border:1px solid #3a3a5a;padding:10px;margin:8px 0;border-radius:4px;">
+      <div class="mock-label">Entry Examples</div>
+      <div><span class="mock-label">Username: </span><span class="mock-entry">alice</span></div>
+      <div><span class="mock-label">Password: </span><span class="mock-entry">●●●●●●●●</span></div>
+      <span class="mock-btn">Login</span>
+    </div>
+  </div>
+</div>
+
+<!-- §1 Program structure -->
+<section class="tut-section" id="structure">
+  <div class="tut-section-header"><span class="sec-tag">§22</span><h2>Program Structure &amp; the Event Loop</h2></div>
+  <p>Every Perl/Tk program follows the same three-step pattern. Build your widgets, then hand control to <code>MainLoop</code>. From that point on, your callbacks drive everything.</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use Tk;
+
+# Step 1 — Create the main window
+my $mw = MainWindow-&gt;new;
+$mw-&gt;title("Perl/Tk — Basics Tutorial");
+$mw-&gt;geometry("520x620+100+50");   # WxH+X+Y
+$mw-&gt;resizable(1, 1);               # (allow-x, allow-y)
+$mw-&gt;configure(-background =&gt; "#f0f0f0");
+
+# Step 2 — Create widgets (see sections below)
+# ...
+
+# Step 3 — Enter the event loop (never returns until window closes)
+MainLoop;</code></pre></div>
+
+  <div class="callout warn"><strong>MainLoop never returns</strong> — all code after it is unreachable. Place all widget creation <em>before</em> <code>MainLoop</code>. Your callbacks are what run afterwards.</div>
+</section>
+
+<!-- §2 Labels -->
+<section class="tut-section" id="labels">
+  <div class="tut-section-header"><span class="sec-tag">§23</span><h2>Labels — Static &amp; Dynamic</h2></div>
+  <p>Labels display text or images. A <em>static</em> label never changes. A <em>dynamic</em> label is bound to a Perl variable with <code>-textvariable</code> — when the variable changes, the display updates <strong>instantly and automatically</strong>.</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl"># Static label — text set once, never changes
+$mw-&gt;Label(
+    -text       =&gt; "Static label: never changes.",
+    -font       =&gt; "Helvetica 11",
+    -foreground =&gt; "#333333",
+    -background =&gt; "#f0f0f0",
+    -anchor     =&gt; "w",    # west = left-align text
+)-&gt;pack(-fill =&gt; "x", -padx =&gt; 10);
+
+# Dynamic label — linked to $dynamic_msg via -textvariable
+my $dynamic_msg = "Click the button below to update me.";
+$mw-&gt;Label(
+    -textvariable =&gt; \$dynamic_msg,   # NOTE: pass a REFERENCE (\$var)
+    -font         =&gt; "Helvetica 11 italic",
+    -foreground   =&gt; "#007aff",
+    -background   =&gt; "#f0f0f0",
+    -wraplength   =&gt; 460,              # Wrap at 460 pixels wide
+)-&gt;pack(-fill =&gt; "x", -padx =&gt; 10);
+
+# Counter label — shows a number that increments
+my $counter_val = 0;
+$mw-&gt;Label(
+    -textvariable =&gt; \$counter_val,
+    -font         =&gt; "Helvetica 24 bold",
+    -foreground   =&gt; "#34c759",
+    -background   =&gt; "#f0f0f0",
+)-&gt;pack(-pady =&gt; 5);
+
+# Later, in a button callback:
+$dynamic_msg = "Now I show something different!";  # Label updates automatically!
+$counter_val++;                                     # Counter label updates too!</code></pre></div>
+
+  <div class="concept-grid">
+    <div class="concept-card"><div class="c-title">-text</div><p>Fixed string — set once at creation</p></div>
+    <div class="concept-card"><div class="c-title">-textvariable</div><p>Reference to a Perl variable — updates automatically</p></div>
+    <div class="concept-card"><div class="c-title">-wraplength</div><p>Pixel width at which text wraps to next line</p></div>
+    <div class="concept-card"><div class="c-title">-anchor</div><p>Text alignment: <code>w</code>=left, <code>e</code>=right, <code>center</code></p></div>
+  </div>
+</section>
+
+<!-- §3 Buttons -->
+<section class="tut-section" id="buttons">
+  <div class="tut-section-header"><span class="sec-tag">§23</span><h2>Buttons &amp; Callbacks</h2></div>
+  <p>Every button has a <code>-command</code> option that points to a subroutine. You can use a <em>reference</em> to a named sub (<code>\&amp;my_sub</code>) or an <em>anonymous</em> sub (<code>sub { ... }</code>).</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">my $btn_row = $frame-&gt;Frame(-background =&gt; "#f0f0f0")-&gt;pack(-fill =&gt; "x");
+
+# Named callback — defined as a sub below
+$btn_row-&gt;Button(
+    -text       =&gt; "Update Label",
+    -font       =&gt; "Helvetica 11",
+    -background =&gt; "#007aff",
+    -foreground =&gt; "white",
+    -relief     =&gt; "flat",
+    -padx       =&gt; 12, -pady =&gt; 5,
+    -command    =&gt; \&amp;on_update_label,   # Reference to named sub
+)-&gt;pack(-side =&gt; "left", -padx =&gt; 5);
+
+# Anonymous callback — defined inline
+$btn_row-&gt;Button(
+    -text    =&gt; "Increment Counter",
+    -command =&gt; sub {               # Anonymous sub
+        $counter_val++;
+        $dynamic_msg = "Counter is now $counter_val.";
+    },
+)-&gt;pack(-side =&gt; "left", -padx =&gt; 5);
+
+# Disabled button
+my $disabled_btn = $frame-&gt;Button(
+    -text  =&gt; "Disabled Button",
+    -state =&gt; "disabled",    # normal | active | disabled
+)-&gt;pack;
+
+# Toggle between enabled and disabled with cget()
+$frame-&gt;Button(
+    -text    =&gt; "Toggle",
+    -command =&gt; sub {
+        my $s = $disabled_btn-&gt;cget(-state);   # READ current state
+        $disabled_btn-&gt;configure(              # WRITE new state
+            -state =&gt; ($s eq "disabled" ? "normal" : "disabled")
+        );
+    },
+)-&gt;pack;
+
+# The named callback subroutine
+sub on_update_label {
+    our $update_idx //= 0;
+    my @msgs = (
+        "Labels update via -textvariable!",
+        "Callbacks are just Perl subroutines.",
+        "The event loop handles everything.",
+    );
+    $dynamic_msg = $msgs[$update_idx++ % @msgs];
+}</code></pre></div>
+</section>
+
+<!-- §4 Entry -->
+<section class="tut-section" id="entry">
+  <div class="tut-section-header"><span class="sec-tag">§23</span><h2>Entry — Single-Line Text Input</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">my ($username, $password) = ("", "");
+
+# Username field — linked to $username
+my $name_entry = $frame-&gt;Entry(
+    -textvariable =&gt; \$username,   # Variable updates as user types
+    -width        =&gt; 25,
+    -font         =&gt; "Helvetica 11",
+    -relief       =&gt; "sunken",
+)-&gt;pack;
+
+# Password field — -show hides characters
+my $pass_entry = $frame-&gt;Entry(
+    -textvariable =&gt; \$password,
+    -show         =&gt; "*",     # Replace each character with *
+    -width        =&gt; 25,
+)-&gt;pack;
+
+# Bind &lt;Return&gt; to move focus, just like real forms
+$name_entry-&gt;bind("&lt;Return&gt;", sub { $pass_entry-&gt;focus });
+$pass_entry-&gt;bind("&lt;Return&gt;", \&amp;on_login);
+
+sub on_login {
+    if (!$username) {
+        $entry_result = "ERROR: Username required.";
+        $name_entry-&gt;focus;
+        return;
+    }
+    $entry_result = "Login successful! Welcome, $username.";
+    $password = "";    # Clear password field after login
+}
+
+# Entry methods for programmatic control
+my $val = $name_entry-&gt;get;            # Get current text
+$name_entry-&gt;delete(0, "end");         # Clear the field
+$name_entry-&gt;insert(0, "new text");    # Insert at position</code></pre></div>
+</section>
+
+<!-- §5 Frames -->
+<section class="tut-section" id="frames">
+  <div class="tut-section-header"><span class="sec-tag">§23</span><h2>Frame &amp; LabelFrame — Containers</h2></div>
+  <p>Frames are invisible boxes that group widgets. LabelFrames add a visible border and title. Both are containers — you create child widgets <em>inside</em> them, not on the main window.</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl"># Plain Frame — invisible container for layout
+my $toolbar = $mw-&gt;Frame(
+    -background  =&gt; "#e8e8e8",
+    -relief      =&gt; "flat",
+    -borderwidth =&gt; 0,
+)-&gt;pack(-fill =&gt; "x");
+
+# Now pack buttons INSIDE $toolbar, not $mw
+$toolbar-&gt;Button(-text =&gt; "Save")-&gt;pack(-side =&gt; "left");
+$toolbar-&gt;Button(-text =&gt; "Open")-&gt;pack(-side =&gt; "left");
+
+# LabelFrame — adds a border and title label
+my $options_box = $mw-&gt;LabelFrame(
+    -text        =&gt; "Options",      # Title shown on the border
+    -font        =&gt; "Helvetica 11 bold",
+    -foreground  =&gt; "#333333",
+    -background  =&gt; "#f0f0f0",
+    -relief      =&gt; "groove",
+    -borderwidth =&gt; 2,
+)-&gt;pack(-fill =&gt; "x", -padx =&gt; 15, -pady =&gt; 8);
+
+# Widgets go inside the LabelFrame
+$options_box-&gt;Checkbutton(-text =&gt; "Enable feature")-&gt;pack(-anchor =&gt; "w");
+$options_box-&gt;Checkbutton(-text =&gt; "Debug mode"    )-&gt;pack(-anchor =&gt; "w");</code></pre></div>
+</section>
+
+<!-- §6 configure / cget -->
+<section class="tut-section" id="configure">
+  <div class="tut-section-header"><span class="sec-tag">§22</span><h2>configure() &amp; cget() — Runtime Changes</h2></div>
+  <p>Every widget option set at creation can be changed later with <code>configure()</code>. Use <code>cget()</code> to read the current value of any option.</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">my $demo_lbl = $mw-&gt;Label(
+    -text       =&gt; "Watch my style change!",
+    -font       =&gt; "Helvetica 13",
+    -foreground =&gt; "#1a1a2e",
+    -background =&gt; "#e8f4f8",
+)-&gt;pack;
+
+# Cycle through styles on each button click
+my @styles = (
+    [-foreground =&gt; "red",     -font =&gt; "Helvetica 13 bold"  ],
+    [-foreground =&gt; "blue",    -font =&gt; "Helvetica 13 italic"],
+    [-foreground =&gt; "#007a00", -font =&gt; "Helvetica 13"       ],
+);
+my $style_idx = 0;
+
+$mw-&gt;Button(
+    -text    =&gt; "Cycle Style",
+    -command =&gt; sub {
+        # configure() changes multiple options at once
+        $demo_lbl-&gt;configure(@{ $styles[$style_idx++ % @styles] });
+    },
+)-&gt;pack;
+
+$mw-&gt;Button(
+    -text    =&gt; "Show Current Font",
+    -command =&gt; sub {
+        # cget() reads the current value of one option
+        my $font = $demo_lbl-&gt;cget(-font);
+        $mw-&gt;messageBox(-message =&gt; "Current font: $font", -type =&gt; "OK");
+    },
+)-&gt;pack;</code></pre></div>
+</section>
+
+<!-- §7 Toplevel -->
+<section class="tut-section" id="toplevel">
+  <div class="tut-section-header"><span class="sec-tag">§23</span><h2>Toplevel — Opening a Second Window</h2></div>
+  <p>A <code>Toplevel</code> widget creates a new independent window. It has its own title bar but shares the event loop with the main window.</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">sub open_second_window {
+    my $top = $mw-&gt;Toplevel;           # Create a new window
+    $top-&gt;title("Second Window");
+    $top-&gt;geometry("300x180+200+200");
+    $top-&gt;configure(-background =&gt; "#1a1a2e");
+
+    $top-&gt;Label(
+        -text       =&gt; "I am a Toplevel window!",
+        -font       =&gt; "Helvetica 13 bold",
+        -foreground =&gt; "white",
+        -background =&gt; "#1a1a2e",
+    )-&gt;pack(-pady =&gt; 20);
+
+    $top-&gt;Button(
+        -text       =&gt; "Close Me",
+        -command    =&gt; sub { $top-&gt;destroy },   # destroy() closes the window
+    )-&gt;pack(-pady =&gt; 10);
+
+    # For a MODAL dialog (blocks the parent until closed):
+    # $top-&gt;transient($mw);   # Keep above parent
+    # $top-&gt;grab;              # Block all input to other windows
+    # $top-&gt;waitWindow;        # Pause here until $top is destroyed
+}</code></pre></div>
+</section>
+
+<div class="callout tip">
+  <strong>Next:</strong> Open <a href="perl_gui_02_widgets.html">Tutorial 03 — Widget Showcase</a> to learn Checkbuttons, Radiobuttons, Scales, Listboxes, the Text widget, and all three layout managers side by side.
+</div>
+
+</main>
+
+<aside class="toc-panel">
+  <h4>Sections</h4>
+  <ul class="toc-list">
+    <li><a href="#structure">Program Structure</a></li>
+    <li><a href="#labels">Labels &amp; -textvariable</a></li>
+    <li><a href="#buttons">Buttons &amp; Callbacks</a></li>
+    <li><a href="#entry">Entry Fields</a></li>
+    <li><a href="#frames">Frame &amp; LabelFrame</a></li>
+    <li><a href="#configure">configure / cget</a></li>
+    <li><a href="#toplevel">Toplevel Windows</a></li>
+  </ul>
+</aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-perl.min.js"></script>
+<script>
+function copyCode(btn){const pre=btn.closest('.code-block').querySelector('pre');navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1800);});}
+const tl=document.querySelectorAll('.toc-list a'),ts=document.querySelectorAll('.tut-section');
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){tl.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-list a[href="#${e.target.id}"]`);if(a)a.classList.add('active');}});},{rootMargin:'-15% 0px -75% 0px'}).observe(...ts),ts.forEach(s=>new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){tl.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-list a[href="#${e.target.id}"]`);if(a)a.classList.add('active');}});},{rootMargin:'-15% 0px -75% 0px'}).observe(s));
+</script>
+</body>
+</html>

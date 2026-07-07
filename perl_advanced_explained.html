@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Perl — Deep Explanations with OOP</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0e1117;
+  --bg2:      #141922;
+  --bg3:      #1a2130;
+  --bg4:      #202838;
+  --paper:    #111820;
+  --ink:      #d8e4f0;
+  --ink2:     #9aafc4;
+  --ink3:     #5a7090;
+  --rule:     #243040;
+  --em:       #38e8a0;   /* phosphor green */
+  --em2:      #2bc87e;
+  --em-dim:   #1a5a40;
+  --em-bg:    rgba(56,232,160,0.07);
+  --amber:    #f0b840;
+  --amber-bg: rgba(240,184,64,0.07);
+  --rose:     #f07080;
+  --rose-bg:  rgba(240,112,128,0.07);
+  --sky:      #60b8f0;
+  --sky-bg:   rgba(96,184,240,0.07);
+  --lavender: #b090f0;
+  --lav-bg:   rgba(176,144,240,0.07);
+  /* code syntax */
+  --kw:   #f0a060;
+  --str:  #68d898;
+  --num:  #f0c858;
+  --fn:   #68b8f8;
+  --var:  #f08878;
+  --cm:   #486070;
+  --rx:   #48d8e8;
+  --op:   #7898b0;
+  --pkg:  #c890f8;
+  --mod:  #f8e090;
+  --self: #f8a870;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── HERO ── */
+.hero {
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 50%, rgba(56,232,160,0.04) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 1020px;
+  margin: 0 auto;
+  padding: 72px 52px 64px;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 48px;
+  align-items: center;
+}
+.hero-eyebrow {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--em);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-eyebrow::before {
+  content: '▶';
+  font-size: 8px;
+}
+h1 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+h1 em {
+  font-style: italic;
+  color: var(--em);
+}
+.hero-sub {
+  margin-top: 18px;
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--ink3);
+  max-width: 480px;
+  line-height: 1.65;
+}
+.hero-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-box {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 14px 12px;
+  text-align: center;
+}
+.stat-box .n {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.9rem;
+  color: var(--em);
+  line-height: 1;
+  display: block;
+}
+.stat-box .l {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-top: 4px;
+  display: block;
+}
+
+/* ── STICKY NAV ── */
+.sidenav-wrap {
+  display: flex;
+  max-width: 1020px;
+  margin: 0 auto;
+}
+.sticky-rail {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 36px 0 36px 0;
+  border-right: 1px solid var(--rule);
+  background: var(--bg);
+}
+.sticky-rail::-webkit-scrollbar { width: 4px; }
+.sticky-rail::-webkit-scrollbar-track { background: transparent; }
+.sticky-rail::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 2px; }
+.rail-section {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding: 14px 22px 6px;
+}
+.rail-section:not(:first-child) { margin-top: 8px; }
+.sticky-rail a {
+  display: block;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+  color: var(--ink2);
+  text-decoration: none;
+  padding: 5px 22px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.sticky-rail a:hover {
+  color: var(--em);
+  border-left-color: var(--em);
+  background: var(--em-bg);
+}
+
+/* ── CONTENT AREA ── */
+.content-area {
+  flex: 1;
+  min-width: 0;
+  padding: 52px 52px 100px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── SECTION BREAK ── */
+.sec-break {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0 10px;
+  margin-bottom: 10px;
+}
+.sec-break::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+.sec-break-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--em);
+  white-space: nowrap;
+  padding: 3px 10px;
+  border: 1px solid var(--em-dim);
+  border-radius: 2px;
+}
+
+/* ── CONCEPT ── */
+.concept {
+  border-bottom: 1px solid var(--rule);
+  padding: 52px 0;
+}
+.concept:last-child { border-bottom: none; }
+
+.concept-header {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 24px;
+}
+.cnum {
+  font-family: 'DM Serif Display', serif;
+  font-size: 3rem;
+  color: var(--rule);
+  line-height: 0.95;
+  padding-top: 4px;
+}
+.ctitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.csub {
+  font-family: 'Lora', serif;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ink3);
+  margin-top: 5px;
+}
+.ctags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.ctag {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.tg-em    { color: var(--em);      border-color: var(--em-dim);  background: var(--em-bg); }
+.tg-amber { color: var(--amber);   border-color: #5a4010;        background: var(--amber-bg); }
+.tg-rose  { color: var(--rose);    border-color: #5a2030;        background: var(--rose-bg); }
+.tg-sky   { color: var(--sky);     border-color: #1a4060;        background: var(--sky-bg); }
+.tg-lav   { color: var(--lavender); border-color: #402870;       background: var(--lav-bg); }
+
+/* ── PROSE ── */
+.prose {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--ink2);
+  max-width: 740px;
+  margin-bottom: 20px;
+}
+.prose p { margin-bottom: 1em; }
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose em { font-style: italic; color: var(--ink); }
+.prose code {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.85em;
+  background: var(--bg3);
+  color: var(--em);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+
+/* ── CODE PANEL ── */
+.code-panel {
+  margin: 22px 0;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  box-shadow: 0 0 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(56,232,160,0.04);
+}
+.code-bar {
+  background: var(--bg3);
+  padding: 9px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+}
+.code-dots { display: flex; gap: 6px; }
+.code-dots span { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #c04040; }
+.dot-y { background: #b89030; }
+.dot-g { background: #408040; }
+.code-fname {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: var(--ink3);
+  letter-spacing: 0.06em;
+}
+pre {
+  margin: 0;
+  padding: 22px 20px;
+  background: var(--bg2);
+  overflow-x: auto;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12.5px;
+  line-height: 1.85;
+}
+.kw   { color: var(--kw);  font-weight: 700; }
+.str  { color: var(--str); }
+.num  { color: var(--num); }
+.fn   { color: var(--fn);  }
+.var  { color: var(--var); }
+.cm   { color: var(--cm);  font-style: italic; }
+.rx   { color: var(--rx);  }
+.op   { color: var(--op);  }
+.pkg  { color: var(--pkg); font-weight: 700; }
+.mod  { color: var(--mod); }
+.self { color: var(--self); }
+.hi   { background: rgba(56,232,160,0.09); border-radius: 2px; padding: 0 2px; }
+
+/* ── ANNOTATIONS ── */
+.ann-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 22px 0;
+  max-width: 740px;
+}
+.ann {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.ann-n {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--em-dim);
+  border: 1px solid var(--em);
+  color: var(--em);
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.ann-t {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--ink2);
+}
+.ann-t code {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.83em;
+  background: var(--bg3);
+  color: var(--em);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+.ann-t strong { color: var(--ink); }
+
+/* ── CALLOUTS ── */
+.callout {
+  border-left: 2px solid;
+  padding: 13px 16px;
+  margin: 18px 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.91rem;
+  line-height: 1.68;
+  max-width: 740px;
+}
+.callout.why   { border-color: var(--em);     background: var(--em-bg);    color: #70d8b0; }
+.callout.warn  { border-color: var(--rose);   background: var(--rose-bg);  color: #d89098; }
+.callout.tip   { border-color: var(--amber);  background: var(--amber-bg); color: #d0a050; }
+.callout.note  { border-color: var(--sky);    background: var(--sky-bg);   color: #70a8d0; }
+.callout.deep  { border-color: var(--lavender); background: var(--lav-bg); color: #a88ae0; }
+.cl-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+  opacity: 0.65;
+}
+.callout code {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.83em;
+  background: rgba(0,0,0,0.2);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── FLOW DIAGRAM ── */
+.flow-diagram {
+  background: var(--bg3);
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: 18px 20px;
+  margin: 18px 0;
+  max-width: 740px;
+  overflow-x: auto;
+}
+.flow-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 12px;
+}
+.flow-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11.5px;
+}
+.fbox {
+  background: var(--bg4);
+  border: 1px solid var(--rule);
+  padding: 5px 12px;
+  border-radius: 3px;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.fbox.active { border-color: var(--em); color: var(--em); background: var(--em-bg); }
+.fbox.warn   { border-color: var(--rose); color: var(--rose); background: var(--rose-bg); }
+.farrow { color: var(--ink3); font-size: 13px; }
+
+/* ── OOP TABLE ── */
+.oop-table {
+  width: 100%;
+  max-width: 740px;
+  border-collapse: collapse;
+  margin: 18px 0;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+}
+.oop-table th {
+  background: var(--bg3);
+  color: var(--ink3);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  text-align: left;
+  border: 1px solid var(--rule);
+}
+.oop-table td {
+  padding: 8px 14px;
+  border: 1px solid var(--rule);
+  color: var(--ink2);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.oop-table tr:nth-child(even) td { background: var(--bg3); }
+.oop-table td:first-child { color: var(--em); font-weight: 700; }
+
+/* ── OUTPUT ── */
+.out-box {
+  background: #060a0e;
+  border: 1px solid #1a2530;
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin: 14px 0;
+  max-width: 740px;
+}
+.out-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #304050;
+  margin-bottom: 8px;
+}
+.out-box pre {
+  padding: 0;
+  background: transparent;
+  font-size: 12px;
+  color: var(--em);
+  line-height: 1.65;
+}
+
+@media (max-width: 800px) {
+  .sidenav-wrap { display: block; }
+  .sticky-rail { display: none; }
+  .content-area { padding: 32px 20px 60px; }
+  .hero-inner { grid-template-columns: 1fr; padding: 44px 24px 36px; }
+  .hero-stat-grid { display: none; }
+  pre { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HERO ══════════ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Advanced Perl &nbsp;·&nbsp; Level 3 &nbsp;·&nbsp; Deep Explanation Series</div>
+      <h1>Advanced Perl<br>with <em>OOP</em></h1>
+      <p class="hero-sub">Meta-programming, operator overloading, roles, type systems, concurrency, and the full object-oriented model — all explained line-by-line.</p>
+    </div>
+    <div class="hero-stat-grid">
+      <div class="stat-box"><span class="n">14</span><span class="l">Concepts</span></div>
+      <div class="stat-box"><span class="n">OOP</span><span class="l">Focus</span></div>
+      <div class="stat-box"><span class="n">5</span><span class="l">Sections</span></div>
+      <div class="stat-box"><span class="n">L3</span><span class="l">Advanced</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ TWO-COLUMN LAYOUT ══════════ -->
+<div class="sidenav-wrap">
+
+  <nav class="sticky-rail">
+    <div class="rail-section">OOP Foundations</div>
+    <a href="#c1">01 bless & packages</a>
+    <a href="#c2">02 Inheritance</a>
+    <a href="#c3">03 Method Resolution</a>
+    <a href="#c4">04 Operator Overload</a>
+    <div class="rail-section">Moose Deep Dive</div>
+    <a href="#c5">05 Type Constraints</a>
+    <a href="#c6">06 Roles & Composition</a>
+    <a href="#c7">07 Meta-programming</a>
+    <div class="rail-section">Advanced Patterns</div>
+    <a href="#c8">08 Inside-Out Objects</a>
+    <a href="#c9">09 Weak References</a>
+    <a href="#c10">10 Tie Interface</a>
+    <div class="rail-section">Systems Programming</div>
+    <a href="#c11">11 XS & Inline::C</a>
+    <a href="#c12">12 Concurrency</a>
+    <div class="rail-section">Meta</div>
+    <a href="#c13">13 Symbol Tables</a>
+    <a href="#c14">14 BEGIN & Phases</a>
+  </nav>
+
+  <main class="content-area">
+
+    <!-- ══ SECTION: OOP ══ -->
+    <div class="sec-break"><span class="sec-break-label">OOP Foundations</span></div>
+
+    <!-- 01 bless & packages -->
+    <section class="concept" id="c1">
+      <div class="concept-header">
+        <div class="cnum">01</div>
+        <div>
+          <div class="ctitle">bless, packages &amp; the object model</div>
+          <div class="csub">How Perl OOP really works under the hood</div>
+          <div class="ctags">
+            <span class="ctag tg-em">bless</span>
+            <span class="ctag tg-amber">packages</span>
+            <span class="ctag tg-sky">OOP core</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Perl's object system has exactly three moving parts: <strong>references</strong> (for data), <strong>packages</strong> (for namespaces and method tables), and <strong><code>bless</code></strong> (which links a reference to a package). That's all there is. A Perl "object" is simply a reference that has been told which package to look up its methods in.</p>
+        <p>Understanding this deeply matters because every OOP framework (Moose, Moo, Class::Accessor) is built on these three primitives. When things go wrong, you debug at this level.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">bless_deep.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">Animal</span><span class="op">;</span>
+<span class="kw">use strict</span><span class="op">;</span> <span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">%args</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+
+    <span class="cm"># bless takes: a REFERENCE, and a class name (string)</span>
+    <span class="cm"># It stamps the reference so Perl knows where to look for methods</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">bless</span> <span class="op">{</span>
+        <span class="str">name</span>  <span class="op">=&gt;</span> <span class="var">$args</span><span class="op">{</span><span class="str">name</span><span class="op">}</span> <span class="op">//</span> <span class="str">'Unknown'</span><span class="op">,</span>
+        <span class="str">sound</span> <span class="op">=&gt;</span> <span class="var">$args</span><span class="op">{</span><span class="str">sound</span><span class="op">}</span> <span class="op">//</span> <span class="str">'...'</span><span class="op">,</span>
+    <span class="op">}</span><span class="op">,</span> <span class="var">$class</span><span class="op">;</span>      <span class="cm"># $class NOT 'Animal' — allows subclassing</span>
+
+    <span class="kw">return</span> <span class="var">$self</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Methods: just subs where $_[0] (or $self) is the invocant</span>
+<span class="kw">sub</span> <span class="fn">name</span>  <span class="op">{</span> <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span> <span class="kw">return</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">name</span><span class="op">}</span>  <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">sound</span> <span class="op">{</span> <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span> <span class="kw">return</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">sound</span><span class="op">}</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">speak</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="fn">printf</span> <span class="str">"%s says: %s\n"</span><span class="op">,</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">,</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">sound</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Class method — called on the package, not an instance</span>
+<span class="kw">sub</span> <span class="fn">kingdom</span> <span class="op">{</span> <span class="kw">return</span> <span class="str">'Animalia'</span> <span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$a</span> <span class="op">=</span> <span class="pkg">Animal</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">name</span> <span class="op">=&gt;</span> <span class="str">'Parrot'</span><span class="op">,</span> <span class="str">sound</span> <span class="op">=&gt;</span> <span class="str">'Squawk'</span><span class="op">);</span>
+<span class="var">$a</span><span class="op">-&gt;</span><span class="fn">speak</span><span class="op">();</span>
+
+<span class="cm"># Peek under the hood</span>
+<span class="fn">print</span> <span class="fn">ref</span><span class="op">(</span><span class="var">$a</span><span class="op">)</span><span class="op">;</span>          <span class="cm"># "Animal" — the blessing class</span>
+<span class="fn">print</span> <span class="var">$a</span><span class="op">-&gt;</span><span class="fn">isa</span><span class="op">(</span><span class="str">'Animal'</span><span class="op">);</span> <span class="cm"># 1</span>
+<span class="fn">print</span> <span class="var">$a</span><span class="op">-&gt;</span><span class="fn">can</span><span class="op">(</span><span class="str">'speak'</span><span class="op">);</span>  <span class="cm"># returns the coderef for speak()</span>
+
+<span class="cm"># Re-bless: change an object's class at runtime</span>
+<span class="kw">bless</span> <span class="var">$a</span><span class="op">,</span> <span class="str">'Dog'</span><span class="op">;</span>          <span class="cm"># $a is now a Dog (if Dog package exists)</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong><code>bless $ref, $class</code></strong> modifies the reference in-place, stamping it with the class name. It returns the same reference. The stamp is stored in the reference itself — you can inspect it with <code>ref($obj)</code>.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Use <code>$class</code> not <code>'Animal'</code></strong> in constructors. When a subclass calls <code>Animal-&gt;new()</code>, <code>$class</code> is the subclass name. Hard-coding <code>'Animal'</code> breaks inheritance — all instances would be blessed as Animal even when created via a subclass.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>Method dispatch via <code>-&gt;</code></strong>: <code>$a-&gt;speak()</code> is syntactic sugar for <code>Animal::speak($a)</code>. Perl looks up the method in <code>ref($a)</code>'s package (or its <code>@ISA</code> chain), then calls it with <code>$a</code> as the first argument.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong><code>can()</code></strong> returns the coderef for a method if the object can call it, or <code>undef</code>. Use this instead of <code>eval { $obj-&gt;method }</code> to check capability. It's also how duck-typing works in Perl.</div></div>
+      </div>
+    </section>
+
+    <!-- 02 Inheritance -->
+    <section class="concept" id="c2">
+      <div class="concept-header">
+        <div class="cnum">02</div>
+        <div>
+          <div class="ctitle">Inheritance with @ISA and SUPER</div>
+          <div class="csub">The inheritance chain, method lookup, and cooperative overriding</div>
+          <div class="ctags">
+            <span class="ctag tg-em">inheritance</span>
+            <span class="ctag tg-sky">@ISA</span>
+            <span class="ctag tg-amber">SUPER</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Perl inheritance is implemented through the <strong><code>@ISA</code></strong> array in a package. When Perl can't find a method in the current package, it searches the packages listed in <code>@ISA</code>, recursively. <code>use parent</code> is the modern way to set <code>@ISA</code>.</p>
+        <p><code>SUPER::</code> calls the parent's version of the current method — essential for cooperative inheritance where a child extends rather than replaces parent behaviour. The tricky part is that <code>SUPER::</code> is resolved at <em>compile time</em> relative to the package it's written in, not the object's class.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">inheritance.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">Animal</span><span class="op">;</span>
+<span class="kw">sub</span> <span class="fn">new</span>   <span class="op">{</span> <span class="kw">my</span> <span class="op">(</span><span class="var">$c</span><span class="op">,</span><span class="var">%a</span><span class="op">)=</span><span class="var">@_</span><span class="op">;</span> <span class="fn">bless</span><span class="op">{</span><span class="str">name</span><span class="op">=&gt;</span><span class="var">$a</span><span class="op">{</span><span class="str">name</span><span class="op">}},</span><span class="var">$c</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">name</span>  <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">name</span><span class="op">}</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">describe</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="str">"Animal: "</span> <span class="op">.</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">Dog</span><span class="op">;</span>
+<span class="kw">use parent</span> <span class="op">-</span><span class="fn">norequire</span><span class="op">,</span> <span class="str">'Animal'</span><span class="op">;</span>  <span class="cm"># sets @Dog::ISA = ('Animal')</span>
+                                     <span class="cm"># -norequire: don't load Animal.pm</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">%args</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="cm"># Call parent constructor, then add Dog-specific data</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="var">$class</span><span class="op">-&gt;</span><span class="pkg">SUPER</span><span class="op">::</span><span class="fn">new</span><span class="op">(</span><span class="var">%args</span><span class="op">);</span>
+    <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">breed</span><span class="op">}</span> <span class="op">=</span> <span class="var">$args</span><span class="op">{</span><span class="str">breed</span><span class="op">}</span> <span class="op">//</span> <span class="str">'Mixed'</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="var">$self</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">describe</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="cm"># SUPER:: calls Animal::describe — extend, don't replace</span>
+    <span class="kw">my</span> <span class="var">$base</span> <span class="op">=</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="pkg">SUPER</span><span class="op">::</span><span class="fn">describe</span><span class="op">();</span>
+    <span class="kw">return</span> <span class="var">$base</span> <span class="op">.</span> <span class="str">" (Dog, breed: "</span> <span class="op">.</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">breed</span><span class="op">}</span> <span class="op">.</span> <span class="str">")"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">GoldenRetriever</span><span class="op">;</span>
+<span class="kw">use parent</span> <span class="op">-</span><span class="fn">norequire</span><span class="op">,</span> <span class="str">'Dog'</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">describe</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="pkg">SUPER</span><span class="op">::</span><span class="fn">describe</span><span class="op">()</span> <span class="op">.</span> <span class="str">" [Golden!]"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$g</span> <span class="op">=</span> <span class="pkg">GoldenRetriever</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">name</span><span class="op">=&gt;</span><span class="str">'Buddy'</span><span class="op">,</span> <span class="str">breed</span><span class="op">=&gt;</span><span class="str">'Golden'</span><span class="op">);</span>
+<span class="fn">print</span> <span class="var">$g</span><span class="op">-&gt;</span><span class="fn">describe</span><span class="op">()</span><span class="op">;</span>
+<span class="cm"># Animal: Buddy (Dog, breed: Golden) [Golden!]</span>
+
+<span class="cm"># Inspect the ISA chain</span>
+<span class="fn">print</span> <span class="fn">join</span><span class="op">(</span><span class="str">' -> '</span><span class="op">,</span> <span class="var">$g</span><span class="op">-&gt;</span><span class="fn">isa</span><span class="op">(</span><span class="str">$_</span><span class="op">)</span> <span class="op">?</span> <span class="var">$_</span> <span class="op">:</span> <span class="op">()</span>
+    <span class="kw">for</span> <span class="str">qw(GoldenRetriever Dog Animal)</span><span class="op">);</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong><code>use parent -norequire, 'Animal'</code></strong>: without <code>-norequire</code>, Perl tries to <code>require Animal</code> from disk. Use <code>-norequire</code> when both classes are in the same file (common in single-file examples and tests).</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong><code>$class-&gt;SUPER::new(%args)</code></strong>: calling <code>SUPER::new</code> on <code>$class</code> (not <code>$self</code>) is critical in constructors. If you wrote <code>$self-&gt;SUPER::new</code>, you'd be calling the parent constructor on an already-constructed object. Always use the class variable for super constructor calls.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>Cooperative inheritance</strong>: each class calls <code>SUPER::describe()</code> and appends to the result, creating a layered string. This is the proper pattern — each class is responsible for its own additions without duplicating parent logic.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>MRO (Method Resolution Order)</strong>: by default Perl uses DFS (depth-first search) for <code>@ISA</code>. For diamond inheritance, use <code>use mro 'c3'</code> which implements the same linearization algorithm as Python 3. <code>SUPER::</code> always follows the MRO.</div></div>
+      </div>
+    </section>
+
+    <!-- 03 Method Resolution Order -->
+    <section class="concept" id="c3">
+      <div class="concept-header">
+        <div class="cnum">03</div>
+        <div>
+          <div class="ctitle">Method Resolution Order &amp; UNIVERSAL</div>
+          <div class="csub">DFS vs C3, AUTOLOAD, DESTROY, and the UNIVERSAL base class</div>
+          <div class="ctags">
+            <span class="ctag tg-rose">MRO</span>
+            <span class="ctag tg-em">AUTOLOAD</span>
+            <span class="ctag tg-sky">UNIVERSAL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p><strong><code>AUTOLOAD</code></strong> is a special sub that Perl calls when a method is not found anywhere in the ISA chain. It receives the fully-qualified method name in <code>$AUTOLOAD</code>. This is how many accessor-generation modules work — they intercept unknown method calls and create accessors on the fly. <strong><code>DESTROY</code></strong> is called automatically when an object's reference count drops to zero — Perl's destructor.</p>
+        <p><strong><code>UNIVERSAL</code></strong> is the invisible base class of every Perl object. It provides <code>isa()</code>, <code>can()</code>, and <code>DOES()</code> — available on every object without any inheritance declaration.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">autoload_destroy.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">AutoAccessor</span><span class="op">;</span>
+<span class="kw">use strict</span><span class="op">;</span> <span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># Our AUTOLOAD uses 'our' because $AUTOLOAD is a package global</span>
+<span class="kw">our</span> <span class="var">$AUTOLOAD</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">%data</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="fn">bless</span> <span class="op">\</span><span class="var">%data</span><span class="op">,</span> <span class="var">$class</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">AUTOLOAD</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+
+    <span class="cm"># $AUTOLOAD is "Package::method_name" — strip the package prefix</span>
+    <span class="kw">my</span> <span class="var">$method</span> <span class="op">=</span> <span class="var">$AUTOLOAD</span><span class="op">;</span>
+    <span class="var">$method</span> <span class="op">=~</span> <span class="rx">s/.*:://</span><span class="op">;</span>   <span class="cm"># remove "AutoAccessor::"</span>
+
+    <span class="cm"># CRUCIAL: don't intercept DESTROY — it would suppress warnings</span>
+    <span class="kw">return</span> <span class="kw">if</span> <span class="var">$method</span> <span class="op">eq</span> <span class="str">'DESTROY'</span><span class="op">;</span>
+
+    <span class="cm"># Act as a getter/setter for any hash key</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="fn">exists</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="var">$method</span><span class="op">}</span><span class="op">)</span> <span class="op">{</span>
+        <span class="cm"># Install the method permanently so AUTOLOAD isn't called again</span>
+        <span class="kw">no strict</span> <span class="str">'refs'</span><span class="op">;</span>
+        <span class="op">*{</span><span class="str">"AutoAccessor::$method"</span><span class="op">}</span> <span class="op">=</span> <span class="kw">sub</span> <span class="op">{</span>
+            <span class="kw">my</span> <span class="var">$s</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+            <span class="var">$s</span><span class="op">-&gt;{</span><span class="var">$method</span><span class="op">}</span> <span class="op">=</span> <span class="fn">shift</span> <span class="kw">if</span> <span class="var">@_</span><span class="op">;</span>  <span class="cm"># setter if arg given</span>
+            <span class="kw">return</span> <span class="var">$s</span><span class="op">-&gt;{</span><span class="var">$method</span><span class="op">}</span><span class="op">;</span>
+        <span class="op">};</span>
+        <span class="kw">return</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="var">$method</span><span class="op">}</span><span class="op">;</span>
+    <span class="op">}</span>
+    <span class="kw">die</span> <span class="str">"No such attribute: $method\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">DESTROY</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="fn">print</span> <span class="str">"Destroying: "</span> <span class="op">.</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">name</span><span class="op">}</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$obj</span> <span class="op">=</span> <span class="pkg">AutoAccessor</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">name</span><span class="op">=&gt;</span><span class="str">'Foo'</span><span class="op">,</span> <span class="str">value</span><span class="op">=&gt;</span><span class="num">42</span><span class="op">);</span>
+<span class="fn">print</span> <span class="var">$obj</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">();</span>    <span class="cm"># triggers AUTOLOAD -> installs name()</span>
+<span class="fn">print</span> <span class="var">$obj</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">();</span>    <span class="cm"># calls installed name() directly — AUTOLOAD skipped</span>
+<span class="var">$obj</span><span class="op">-&gt;</span><span class="fn">value</span><span class="op">(</span><span class="num">99</span><span class="op">);</span>       <span class="cm"># setter: sets $self->{value} = 99</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong>Always return early for <code>DESTROY</code></strong>. When an object goes out of scope, Perl calls <code>DESTROY</code>. If your <code>AUTOLOAD</code> intercepts it (because you didn't return early), it suppresses the automatic destructor logic and can cause memory leaks and spurious warnings.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Install the method permanently</strong> using the glob trick <code>*{"Package::method"} = sub { ... }</code>. This stores the coderef in the package's symbol table. The next call goes directly to the installed method — <code>AUTOLOAD</code> is not invoked again. This is called <em>method caching</em>.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong><code>no strict 'refs'</code></strong> is needed to use a variable as a glob name like <code>*{"Package::$method"}</code>. Strict mode normally forbids symbolic references (using a string as a variable name). This block-scoped pragma disables that check for just the next statement.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong><code>$AUTOLOAD</code> contains the full name</strong> including the package: <code>"AutoAccessor::name"</code>. Always strip the package prefix with <code>s/.*:://</code>. Otherwise your attribute lookup would search for <code>"AutoAccessor::name"</code> in the hash instead of <code>"name"</code>.</div></div>
+      </div>
+    </section>
+
+    <!-- 04 Operator Overloading -->
+    <section class="concept" id="c4">
+      <div class="concept-header">
+        <div class="cnum">04</div>
+        <div>
+          <div class="ctitle">Operator Overloading</div>
+          <div class="csub">use overload — making objects behave like built-in types</div>
+          <div class="ctags">
+            <span class="ctag tg-lav">overload</span>
+            <span class="ctag tg-amber">operators</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>The <code>overload</code> pragma lets you define what happens when standard Perl operators are applied to objects. This is how you make a <code>Vector</code> class support <code>$v1 + $v2</code>, or a <code>BigNum</code> class support <code>$n &gt; 100</code>, or a custom class print meaningfully when interpolated in a string.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">overload_vector.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">Vector</span><span class="op">;</span>
+<span class="kw">use strict</span><span class="op">;</span> <span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use overload</span>
+    <span class="str">'+'</span>   <span class="op">=&gt;</span> <span class="op">\&amp;</span><span class="fn">add</span><span class="op">,</span>
+    <span class="str">'-'</span>   <span class="op">=&gt;</span> <span class="op">\&amp;</span><span class="fn">subtract</span><span class="op">,</span>
+    <span class="str">'*'</span>   <span class="op">=&gt;</span> <span class="op">\&amp;</span><span class="fn">scale</span><span class="op">,</span>
+    <span class="str">'""'</span>  <span class="op">=&gt;</span> <span class="op">\&amp;</span><span class="fn">stringify</span><span class="op">,</span>   <span class="cm"># called when object is used as string</span>
+    <span class="str">'=='</span>  <span class="op">=&gt;</span> <span class="op">\&amp;</span><span class="fn">equal</span><span class="op">,</span>
+    <span class="str">'abs'</span> <span class="op">=&gt;</span> <span class="op">\&amp;</span><span class="fn">magnitude</span><span class="op">,</span>
+    <span class="str">'neg'</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="pkg">Vector</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="op">-</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">x</span><span class="op">}</span><span class="op">,</span> <span class="op">-</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">y</span><span class="op">}</span><span class="op">)</span> <span class="op">}</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">$x</span><span class="op">,</span> <span class="var">$y</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="fn">bless</span> <span class="op">{</span> <span class="str">x</span> <span class="op">=&gt;</span> <span class="var">$x</span><span class="op">,</span> <span class="str">y</span> <span class="op">=&gt;</span> <span class="var">$y</span> <span class="op">}</span><span class="op">,</span> <span class="var">$class</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Operator handlers receive: ($left, $right, $swap)</span>
+<span class="cm"># $swap is true if the operands were reversed (e.g. 3 + $vec vs $vec + 3)</span>
+<span class="kw">sub</span> <span class="fn">add</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="pkg">Vector</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="var">$a</span><span class="op">-&gt;{</span><span class="str">x</span><span class="op">}+</span><span class="var">$b</span><span class="op">-&gt;{</span><span class="str">x</span><span class="op">}</span><span class="op">,</span> <span class="var">$a</span><span class="op">-&gt;{</span><span class="str">y</span><span class="op">}+</span><span class="var">$b</span><span class="op">-&gt;{</span><span class="str">y</span><span class="op">}</span><span class="op">);</span>
+<span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">subtract</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">,</span> <span class="var">$swap</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="var">$swap</span>
+        <span class="op">?</span> <span class="pkg">Vector</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="var">$b</span><span class="op">-&gt;{</span><span class="str">x</span><span class="op">}-</span><span class="var">$a</span><span class="op">-&gt;{</span><span class="str">x</span><span class="op">}</span><span class="op">,</span> <span class="var">$b</span><span class="op">-&gt;{</span><span class="str">y</span><span class="op">}-</span><span class="var">$a</span><span class="op">-&gt;{</span><span class="str">y</span><span class="op">}</span><span class="op">)</span>
+        <span class="op">:</span> <span class="pkg">Vector</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="var">$a</span><span class="op">-&gt;{</span><span class="str">x</span><span class="op">}-</span><span class="var">$b</span><span class="op">-&gt;{</span><span class="str">x</span><span class="op">}</span><span class="op">,</span> <span class="var">$a</span><span class="op">-&gt;{</span><span class="str">y</span><span class="op">}-</span><span class="var">$b</span><span class="op">-&gt;{</span><span class="str">y</span><span class="op">}</span><span class="op">)</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">scale</span>     <span class="op">{</span> <span class="pkg">Vector</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">x</span><span class="op">}*</span><span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span><span class="op">,</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">y</span><span class="op">}*</span><span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span><span class="op">)</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">magnitude</span> <span class="op">{</span> <span class="fn">sqrt</span><span class="op">(</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">x</span><span class="op">}**</span><span class="num">2</span> <span class="op">+</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">y</span><span class="op">}**</span><span class="num">2</span><span class="op">)</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">stringify</span> <span class="op">{</span> <span class="str">"("</span> <span class="op">.</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">x</span><span class="op">}</span> <span class="op">.</span> <span class="str">","</span> <span class="op">.</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">y</span><span class="op">}</span> <span class="op">.</span> <span class="str">")"</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">equal</span>     <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">x</span><span class="op">}==</span><span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]-&gt;{</span><span class="str">x</span><span class="op">}</span> <span class="op">&amp;&amp;</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">y</span><span class="op">}==</span><span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]-&gt;{</span><span class="str">y</span><span class="op">}</span> <span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+<span class="kw">my</span> <span class="op">(</span><span class="var">$v1</span><span class="op">,</span> <span class="var">$v2</span><span class="op">)</span> <span class="op">=</span> <span class="op">(</span><span class="pkg">Vector</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="num">3</span><span class="op">,</span><span class="num">4</span><span class="op">),</span> <span class="pkg">Vector</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="num">1</span><span class="op">,</span><span class="num">2</span><span class="op">)</span><span class="op">);</span>
+<span class="fn">print</span> <span class="var">$v1</span> <span class="op">+</span> <span class="var">$v2</span><span class="op">;</span>     <span class="cm"># "(4,6)"  — calls add(), then stringify()</span>
+<span class="fn">print</span> <span class="var">$v1</span> <span class="op">*</span> <span class="num">3</span><span class="op">;</span>       <span class="cm"># "(9,12)" — calls scale()</span>
+<span class="fn">print</span> <span class="fn">abs</span><span class="op">(</span><span class="var">$v1</span><span class="op">)</span><span class="op">;</span>     <span class="cm"># "5"      — calls magnitude(): sqrt(9+16)</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong>The three arguments to operator handlers</strong>: <code>($left, $right, $swap)</code>. <code>$swap</code> is <code>1</code> when Perl reversed the operands (e.g. <code>5 - $vec</code> means <code>$left=$vec, $right=5, $swap=1</code>). Always handle <code>$swap</code> for non-commutative operators like <code>-</code>, <code>/</code>, and <code>**</code>.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong><code>""</code> (stringify) overload</strong> is the most important. It's called whenever Perl needs to convert your object to a string: in <code>print</code>, string interpolation, concatenation, <code>warn</code>, and error messages. Without it, objects print as <code>Vector=HASH(0x...)</code>.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>Overload inheritance</strong>: operators are inherited. If <code>ColorVector</code> extends <code>Vector</code> without its own overloads, it uses Vector's. Return <code>ref($a)-&gt;new(...)</code> instead of <code>Vector-&gt;new(...)</code> in handlers to respect subclasses.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>Other powerful overloads</strong>: <code>0+</code> (numification — used in numeric context), <code>bool</code> (truthiness), <code>@{}</code>/<code>%{}</code>/<code>${}</code> (dereference as array/hash/scalar), <code>&lt;=&gt;</code>/<code>cmp</code> (for <code>sort</code>), <code>x</code> (repetition).</div></div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: MOOSE ══ -->
+    <div class="sec-break"><span class="sec-break-label">Moose Deep Dive</span></div>
+
+    <!-- 05 Type Constraints -->
+    <section class="concept" id="c5">
+      <div class="concept-header">
+        <div class="cnum">05</div>
+        <div>
+          <div class="ctitle">Moose Type Constraints &amp; Coercions</div>
+          <div class="csub">Custom types, subtypes, coerce, and type unions</div>
+          <div class="ctags">
+            <span class="ctag tg-lav">Moose</span>
+            <span class="ctag tg-em">types</span>
+            <span class="ctag tg-amber">coerce</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Moose's type system goes far beyond the built-in types like <code>Str</code> and <code>Int</code>. You can create <strong>subtypes</strong> with custom validation constraints, <strong>coercions</strong> that automatically convert one type to another, and <strong>type unions</strong>. This is how you enforce business rules at the object-construction level rather than inside methods.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">moose_types.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">MyTypes</span><span class="op">;</span>
+<span class="kw">use Moose::Util::TypeConstraints</span><span class="op">;</span>
+
+<span class="cm"># Subtype: a Str that must match a pattern</span>
+<span class="fn">subtype</span> <span class="str">'PositiveInt'</span><span class="op">,</span>
+    <span class="fn">as</span>      <span class="str">'Int'</span><span class="op">,</span>
+    <span class="fn">where</span>   <span class="op">{</span> <span class="var">$_</span> <span class="op">&gt;</span> <span class="num">0</span> <span class="op">}</span><span class="op">,</span>
+    <span class="fn">message</span> <span class="op">{</span> <span class="str">"$_ is not a positive integer"</span> <span class="op">}</span><span class="op">;</span>
+
+<span class="fn">subtype</span> <span class="str">'EmailAddress'</span><span class="op">,</span>
+    <span class="fn">as</span>      <span class="str">'Str'</span><span class="op">,</span>
+    <span class="fn">where</span>   <span class="op">{</span> <span class="var">$_</span> <span class="op">=~</span> <span class="rx">/^[\w.+-]+\@[\w-]+\.\w{2,}$/</span> <span class="op">}</span><span class="op">,</span>
+    <span class="fn">message</span> <span class="op">{</span> <span class="str">"'$_' is not a valid email"</span> <span class="op">}</span><span class="op">;</span>
+
+<span class="cm"># Coercion: automatically convert ArrayRef to comma-joined Str</span>
+<span class="fn">coerce</span> <span class="str">'Str'</span><span class="op">,</span>
+    <span class="fn">from</span> <span class="str">'ArrayRef'</span><span class="op">,</span>
+    <span class="fn">via</span>  <span class="op">{</span> <span class="fn">join</span><span class="op">(</span><span class="str">', '</span><span class="op">,</span> <span class="var">@$_</span><span class="op">)</span> <span class="op">}</span><span class="op">;</span>
+
+<span class="kw">package</span> <span class="pkg">Person</span><span class="op">;</span>
+<span class="kw">use Moose</span><span class="op">;</span>
+<span class="pkg">MyTypes</span><span class="op">-&gt;</span><span class="fn">import</span><span class="op">();</span>
+
+<span class="fn">has</span> <span class="str">'name'</span> <span class="op">=&gt;</span> <span class="op">(</span>
+    <span class="str">is</span>     <span class="op">=&gt;</span> <span class="str">'ro'</span><span class="op">,</span>
+    <span class="str">isa</span>    <span class="op">=&gt;</span> <span class="str">'Str'</span><span class="op">,</span>
+    <span class="str">coerce</span> <span class="op">=&gt;</span> <span class="num">1</span><span class="op">,</span>         <span class="cm"># enable coercion for this attribute</span>
+<span class="op">);</span>
+<span class="fn">has</span> <span class="str">'age'</span> <span class="op">=&gt;</span> <span class="op">(</span>
+    <span class="str">is</span>  <span class="op">=&gt;</span> <span class="str">'rw'</span><span class="op">,</span>
+    <span class="str">isa</span> <span class="op">=&gt;</span> <span class="str">'PositiveInt'</span><span class="op">,</span>  <span class="cm"># custom subtype — dies if &lt;= 0</span>
+<span class="op">);</span>
+<span class="fn">has</span> <span class="str">'email'</span> <span class="op">=&gt;</span> <span class="op">(</span>
+    <span class="str">is</span>        <span class="op">=&gt;</span> <span class="str">'rw'</span><span class="op">,</span>
+    <span class="str">isa</span>       <span class="op">=&gt;</span> <span class="str">'EmailAddress'</span><span class="op">,</span>
+    <span class="str">predicate</span> <span class="op">=&gt;</span> <span class="str">'has_email'</span><span class="op">,</span>  <span class="cm"># generates: $p->has_email() -> bool</span>
+    <span class="str">clearer</span>   <span class="op">=&gt;</span> <span class="str">'clear_email'</span><span class="op">,</span> <span class="cm"># generates: $p->clear_email()</span>
+<span class="op">);</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$p</span> <span class="op">=</span> <span class="pkg">Person</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span>
+    <span class="str">name</span>  <span class="op">=&gt;</span> <span class="op">[</span><span class="str">'John'</span><span class="op">,</span> <span class="str">'Doe'</span><span class="op">]</span><span class="op">,</span>  <span class="cm"># ArrayRef coerced to "John, Doe"</span>
+    <span class="str">age</span>   <span class="op">=&gt;</span> <span class="num">30</span><span class="op">,</span>
+    <span class="str">email</span> <span class="op">=&gt;</span> <span class="str">'john@example.com'</span><span class="op">,</span>
+<span class="op">);</span>
+
+<span class="cm"># This would throw: "0 is not a positive integer"</span>
+<span class="cm"># Person->new(name => 'X', age => 0);</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong><code>subtype ... as ... where ... message</code></strong>: the <code>as</code> parent determines what's checked first. Only values that pass the parent constraint reach the <code>where</code> block. The <code>message</code> block receives the failing value in <code>$_</code> and provides a custom error string.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Coercions are opt-in per-attribute</strong> with <code>coerce =&gt; 1</code>. Without that, even if a coercion is defined globally, the attribute won't use it. This is intentional — it keeps behaviour explicit and predictable.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong><code>predicate</code> and <code>clearer</code></strong> generate helper methods for optional attributes. <code>predicate =&gt; 'has_email'</code> creates <code>$obj-&gt;has_email()</code> which returns true if the attribute is defined. <code>clearer</code> resets it to undef.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>Type unions</strong>: <code>isa =&gt; 'Int | Str'</code> accepts either. You can also use <code>Maybe[Str]</code> (Str or undef), <code>ArrayRef[Int]</code> (arrayref containing only integers), <code>HashRef[Str]</code>, and nested parameterized types.</div></div>
+      </div>
+    </section>
+
+    <!-- 06 Roles & Composition -->
+    <section class="concept" id="c6">
+      <div class="concept-header">
+        <div class="cnum">06</div>
+        <div>
+          <div class="ctitle">Roles, Composition &amp; Method Modifiers</div>
+          <div class="csub">before/after/around, requires, conflicts, and multi-role composition</div>
+          <div class="ctags">
+            <span class="ctag tg-em">roles</span>
+            <span class="ctag tg-sky">composition</span>
+            <span class="ctag tg-lav">modifiers</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Roles are Moose's answer to multiple inheritance. Where multiple inheritance creates fragile class hierarchies, roles compose cleanly — conflicts are detected at compile time. The <strong><code>around</code></strong> modifier is the most powerful: it receives the original method as a coderef and can completely control if and how it runs, enabling AOP-style patterns like logging, caching, and timing.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">roles_advanced.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">Role::Printable</span><span class="op">;</span>
+<span class="kw">use Moose::Role</span><span class="op">;</span>
+<span class="fn">requires</span> <span class="str">'to_string'</span><span class="op">;</span>   <span class="cm"># consuming class must implement this</span>
+<span class="kw">sub</span> <span class="fn">print_self</span> <span class="op">{</span> <span class="fn">print</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;</span><span class="fn">to_string</span><span class="op">()</span> <span class="op">.</span> <span class="str">"\n"</span> <span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">Role::Auditable</span><span class="op">;</span>
+<span class="kw">use Moose::Role</span><span class="op">;</span>
+<span class="fn">has</span> <span class="str">'_log'</span> <span class="op">=&gt;</span> <span class="op">(</span><span class="str">is</span><span class="op">=&gt;</span><span class="str">'rw'</span><span class="op">,</span> <span class="str">isa</span><span class="op">=&gt;</span><span class="str">'ArrayRef'</span><span class="op">,</span> <span class="str">default</span><span class="op">=&gt;</span><span class="kw">sub</span><span class="op">{[]});</span>
+<span class="kw">sub</span> <span class="fn">log_event</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="var">$event</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="fn">push</span> <span class="var">@{$self->_log}</span><span class="op">,</span> <span class="fn">sprintf</span><span class="op">(</span><span class="str">"[%s] %s"</span><span class="op">,</span> <span class="fn">scalar</span> <span class="fn">localtime</span><span class="op">,</span> <span class="var">$event</span><span class="op">);</span>
+<span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">audit_trail</span> <span class="op">{</span> <span class="kw">return</span> <span class="var">@{$_[0]->_log}</span> <span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">BankAccount</span><span class="op">;</span>
+<span class="kw">use Moose</span><span class="op">;</span>
+<span class="kw">with</span> <span class="str">'Role::Printable'</span><span class="op">,</span> <span class="str">'Role::Auditable'</span><span class="op">;</span>  <span class="cm"># compose both roles</span>
+
+<span class="fn">has</span> <span class="str">'balance'</span> <span class="op">=&gt;</span> <span class="op">(</span><span class="str">is</span><span class="op">=&gt;</span><span class="str">'rw'</span><span class="op">,</span> <span class="str">isa</span><span class="op">=&gt;</span><span class="str">'Num'</span><span class="op">,</span> <span class="str">default</span><span class="op">=&gt;</span><span class="num">0</span><span class="op">);</span>
+
+<span class="kw">sub</span> <span class="fn">deposit</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="var">$amount</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">balance</span><span class="op">(</span><span class="var">$self</span><span class="op">-&gt;</span><span class="fn">balance</span> <span class="op">+</span> <span class="var">$amount</span><span class="op">);</span>
+<span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">to_string</span> <span class="op">{</span> <span class="str">"Balance: \$"</span> <span class="op">.</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;</span><span class="fn">balance</span> <span class="op">}</span>
+
+<span class="cm"># 'around' wraps deposit: logs before AND after the real method</span>
+<span class="fn">around</span> <span class="str">'deposit'</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$orig</span><span class="op">,</span> <span class="var">$self</span><span class="op">,</span> <span class="var">$amount</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>  <span class="cm"># $orig is the original deposit()</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">log_event</span><span class="op">(</span><span class="str">"Before deposit: $amount"</span><span class="op">);</span>
+    <span class="kw">my</span> <span class="var">$result</span> <span class="op">=</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="var">$orig</span><span class="op">(</span><span class="var">$amount</span><span class="op">);</span>  <span class="cm"># call the REAL method</span>
+    <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">log_event</span><span class="op">(</span><span class="str">"After deposit: balance="</span> <span class="op">.</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">balance</span><span class="op">);</span>
+    <span class="kw">return</span> <span class="var">$result</span><span class="op">;</span>
+<span class="op">};</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$acct</span> <span class="op">=</span> <span class="pkg">BankAccount</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">();</span>
+<span class="var">$acct</span><span class="op">-&gt;</span><span class="fn">deposit</span><span class="op">(</span><span class="num">100</span><span class="op">);</span>
+<span class="var">$acct</span><span class="op">-&gt;</span><span class="fn">print_self</span><span class="op">();</span>    <span class="cm"># from Role::Printable</span>
+<span class="fn">print</span> <span class="var">$_</span><span class="op">,</span> <span class="str">"\n"</span> <span class="kw">for</span> <span class="var">$acct</span><span class="op">-&gt;</span><span class="fn">audit_trail</span><span class="op">();</span>  <span class="cm"># from Role::Auditable</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong><code>around</code> receives <code>($orig, $self, @args)</code></strong>. The first argument is the <em>original method as a coderef</em>. Call it as <code>$self-&gt;$orig(@args)</code>. You can inspect arguments before passing them, modify the return value, or skip calling <code>$orig</code> entirely (caching).</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Role conflict detection</strong>: if two roles both provide a method with the same name, Moose throws a compile-time error. You must resolve it explicitly in the class using <code>-alias</code> or <code>-excludes</code> in the <code>with</code> statement, or by providing your own implementation.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>Roles can have attributes</strong>. The <code>_log</code> attribute in <code>Role::Auditable</code> is composed into any consuming class. The attribute's storage is in the class instance — not shared between instances or in the role itself.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong><code>before</code> vs <code>after</code> vs <code>around</code></strong>: <code>before</code> can abort (if it dies), but can't change the return value. <code>after</code> sees the result but can't change it. <code>around</code> has full control — use it for caching, input validation, or conditional execution.</div></div>
+      </div>
+    </section>
+
+    <!-- 07 Meta-programming -->
+    <section class="concept" id="c7">
+      <div class="concept-header">
+        <div class="cnum">07</div>
+        <div>
+          <div class="ctitle">Moose Meta-programming</div>
+          <div class="csub">Introspecting and modifying classes at runtime via the meta-object protocol</div>
+          <div class="ctags">
+            <span class="ctag tg-rose">meta</span>
+            <span class="ctag tg-lav">MOP</span>
+            <span class="ctag tg-amber">introspection</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Every Moose class has a <strong>metaclass</strong> — an object that represents the class itself. Through <code>$class-&gt;meta</code> you can inspect and modify the class: list attributes, add methods, find superclasses, and even create new classes entirely at runtime. This is the <em>Meta-Object Protocol (MOP)</em>.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">moose_meta.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">Point</span><span class="op">;</span>
+<span class="kw">use Moose</span><span class="op">;</span>
+<span class="fn">has</span> <span class="str">$_</span> <span class="op">=&gt;</span> <span class="op">(</span><span class="str">is</span><span class="op">=&gt;</span><span class="str">'rw'</span><span class="op">,</span> <span class="str">isa</span><span class="op">=&gt;</span><span class="str">'Num'</span><span class="op">,</span> <span class="str">default</span><span class="op">=&gt;</span><span class="num">0</span><span class="op">)</span> <span class="kw">for</span> <span class="str">qw(x y)</span><span class="op">;</span>
+<span class="kw">sub</span> <span class="fn">to_string</span> <span class="op">{</span> <span class="str">"("</span><span class="op">.</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;</span><span class="fn">x</span><span class="op">.</span><span class="str">","</span><span class="op">.</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;</span><span class="fn">y</span><span class="op">.</span><span class="str">")"</span> <span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+
+<span class="cm"># $meta is the metaclass object for Point</span>
+<span class="kw">my</span> <span class="var">$meta</span> <span class="op">=</span> <span class="pkg">Point</span><span class="op">-&gt;</span><span class="fn">meta</span><span class="op">;</span>
+
+<span class="cm"># Introspect: list all attribute names</span>
+<span class="fn">print</span> <span class="fn">join</span><span class="op">(</span><span class="str">', '</span><span class="op">,</span> <span class="fn">sort</span> <span class="var">$meta</span><span class="op">-&gt;</span><span class="fn">get_attribute_list</span><span class="op">)</span><span class="op">;</span>  <span class="cm"># x, y</span>
+
+<span class="cm"># Introspect: get details about a specific attribute</span>
+<span class="kw">my</span> <span class="var">$x_attr</span> <span class="op">=</span> <span class="var">$meta</span><span class="op">-&gt;</span><span class="fn">get_attribute</span><span class="op">(</span><span class="str">'x'</span><span class="op">);</span>
+<span class="fn">print</span> <span class="var">$x_attr</span><span class="op">-&gt;</span><span class="fn">type_constraint</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">;</span>  <span class="cm"># "Num"</span>
+<span class="fn">print</span> <span class="var">$x_attr</span><span class="op">-&gt;</span><span class="fn">is_required</span><span class="op">;</span>           <span class="cm"># "" (false, has default)</span>
+
+<span class="cm"># Add a method to an existing class at runtime</span>
+<span class="var">$meta</span><span class="op">-&gt;</span><span class="fn">add_method</span><span class="op">(</span><span class="str">'magnitude'</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="fn">sqrt</span><span class="op">(</span><span class="var">$self</span><span class="op">-&gt;</span><span class="fn">x</span><span class="op">**</span><span class="num">2</span> <span class="op">+</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">y</span><span class="op">**</span><span class="num">2</span><span class="op">);</span>
+<span class="op">});</span>
+
+<span class="kw">my</span> <span class="var">$p</span> <span class="op">=</span> <span class="pkg">Point</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">x</span><span class="op">=&gt;</span><span class="num">3</span><span class="op">,</span> <span class="str">y</span><span class="op">=&gt;</span><span class="num">4</span><span class="op">);</span>
+<span class="fn">print</span> <span class="var">$p</span><span class="op">-&gt;</span><span class="fn">magnitude</span><span class="op">;</span>   <span class="cm"># 5 — method added at runtime works immediately</span>
+
+<span class="cm"># Create a new class entirely at runtime via metaclass</span>
+<span class="kw">my</span> <span class="var">$dynamic_class</span> <span class="op">=</span> <span class="pkg">Moose::Meta::Class</span><span class="op">-&gt;</span><span class="fn">create</span><span class="op">(</span>
+    <span class="str">'DynamicPoint3D'</span><span class="op">,</span>
+    <span class="str">superclasses</span> <span class="op">=&gt;</span> <span class="op">[</span><span class="str">'Point'</span><span class="op">]</span><span class="op">,</span>
+    <span class="str">attributes</span>   <span class="op">=&gt;</span> <span class="op">[</span>
+        <span class="pkg">Moose::Meta::Attribute</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">'z'</span> <span class="op">=&gt;</span> <span class="op">(</span><span class="str">is</span><span class="op">=&gt;</span><span class="str">'rw'</span><span class="op">,</span><span class="str">isa</span><span class="op">=&gt;</span><span class="str">'Num'</span><span class="op">,</span><span class="str">default</span><span class="op">=&gt;</span><span class="num">0</span><span class="op">))</span>
+    <span class="op">]</span><span class="op">,</span>
+<span class="op">);</span>
+
+<span class="kw">my</span> <span class="var">$p3</span> <span class="op">=</span> <span class="var">$dynamic_class</span><span class="op">-&gt;</span><span class="fn">new_object</span><span class="op">(</span><span class="str">x</span><span class="op">=&gt;</span><span class="num">1</span><span class="op">,</span><span class="str">y</span><span class="op">=&gt;</span><span class="num">2</span><span class="op">,</span><span class="str">z</span><span class="op">=&gt;</span><span class="num">3</span><span class="op">);</span>
+<span class="fn">print</span> <span class="var">$p3</span><span class="op">-&gt;</span><span class="fn">z</span><span class="op">;</span>   <span class="cm"># 3</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong><code>->meta</code> returns the metaclass instance</strong>. In Moose, every class automatically gets a <code>meta()</code> method that returns a <code>Moose::Meta::Class</code> object. This object has methods for everything you can do declaratively (add attributes, methods, roles) plus inspection capabilities.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong><code>add_method</code> modifies a live class</strong>. New instances (and existing instances) gain the method immediately. This is legitimate for building framework code, test helpers, or plugins — but use it carefully in production as it bypasses Moose's declaration machinery.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong><code>Moose::Meta::Class->create</code></strong> builds an entire class programmatically. This is how ORMs and other meta-frameworks work — they inspect a database schema and generate classes with the right attributes on the fly without any <code>has</code> declarations in source code.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>Always call <code>__PACKAGE__->meta->make_immutable</code></strong> at the end of a production Moose class. It compiles optimised accessor methods and freezes the class structure, providing a significant performance boost.</div></div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: ADVANCED PATTERNS ══ -->
+    <div class="sec-break"><span class="sec-break-label">Advanced Patterns</span></div>
+
+    <!-- 08 Inside-Out Objects -->
+    <section class="concept" id="c8">
+      <div class="concept-header">
+        <div class="cnum">08</div>
+        <div>
+          <div class="ctitle">Inside-Out Objects</div>
+          <div class="csub">Encapsulation without hash exposure — using scalar refs and external storage</div>
+          <div class="ctags">
+            <span class="ctag tg-amber">inside-out</span>
+            <span class="ctag tg-rose">encapsulation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Classic Perl objects store data in a hashref, and any code with the object can access <code>$self-&gt;{name}</code> directly — bypassing accessors and violating encapsulation. <strong>Inside-out objects</strong> store data in hashes <em>keyed by the object's memory address</em> inside the class, not in the object itself. The object is just an opaque scalar reference.</p>
+        <p>This is a technique you'll encounter in legacy code and libraries like <code>Class::InsideOut</code>. Understanding it deepens your knowledge of Perl's reference counting and memory model.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">inside_out.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">SecureAccount</span><span class="op">;</span>
+<span class="kw">use strict</span><span class="op">;</span> <span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use Scalar::Util</span> <span class="str">qw(refaddr weaken)</span><span class="op">;</span>
+
+<span class="cm"># Data stored OUTSIDE the object, keyed by memory address</span>
+<span class="cm"># %_balance is private to this package — callers cannot access it</span>
+<span class="kw">my</span> <span class="var">%_balance</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">%_owner</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">%args</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+
+    <span class="cm"># The object is a blessed SCALAR ref (not a hash ref)</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">bless</span> <span class="op">\(</span><span class="kw">my</span> <span class="var">$dummy</span><span class="op">)</span><span class="op">,</span> <span class="var">$class</span><span class="op">;</span>
+
+    <span class="cm"># refaddr returns the numeric memory address — unique per object</span>
+    <span class="kw">my</span> <span class="var">$id</span> <span class="op">=</span> <span class="fn">refaddr</span><span class="op">(</span><span class="var">$self</span><span class="op">);</span>
+
+    <span class="cm"># Store data in package-level hashes indexed by memory address</span>
+    <span class="var">$_balance</span><span class="op">{</span><span class="var">$id</span><span class="op">}</span> <span class="op">=</span> <span class="var">$args</span><span class="op">{</span><span class="str">balance</span><span class="op">}</span> <span class="op">//</span> <span class="num">0</span><span class="op">;</span>
+    <span class="var">$_owner</span><span class="op">{</span><span class="var">$id</span><span class="op">}</span>   <span class="op">=</span> <span class="var">$args</span><span class="op">{</span><span class="str">owner</span><span class="op">}</span><span class="op">;</span>
+
+    <span class="kw">return</span> <span class="var">$self</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Accessors use refaddr to find the right data slot</span>
+<span class="kw">sub</span> <span class="fn">balance</span> <span class="op">{</span> <span class="var">$_balance</span><span class="op">{</span><span class="fn">refaddr</span><span class="op">(</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">])</span><span class="op">}</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">owner</span>   <span class="op">{</span> <span class="var">$_owner</span><span class="op">{</span>  <span class="fn">refaddr</span><span class="op">(</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">])</span><span class="op">}</span> <span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">deposit</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="var">$amt</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="var">$_balance</span><span class="op">{</span><span class="fn">refaddr</span><span class="op">(</span><span class="var">$self</span><span class="op">)</span><span class="op">}</span> <span class="op">+=</span> <span class="var">$amt</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># DESTROY is MANDATORY — must clean up the external hash entries</span>
+<span class="kw">sub</span> <span class="fn">DESTROY</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$id</span> <span class="op">=</span> <span class="fn">refaddr</span><span class="op">(</span><span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">])</span><span class="op">;</span>
+    <span class="kw">delete</span> <span class="var">$_balance</span><span class="op">{</span><span class="var">$id</span><span class="op">};</span>
+    <span class="kw">delete</span> <span class="var">$_owner</span><span class="op">{</span><span class="var">$id</span><span class="op">};</span>   <span class="cm"># memory leak if you forget this!</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$acct</span> <span class="op">=</span> <span class="pkg">SecureAccount</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">owner</span><span class="op">=&gt;</span><span class="str">'Alice'</span><span class="op">,</span> <span class="str">balance</span><span class="op">=&gt;</span><span class="num">1000</span><span class="op">);</span>
+<span class="var">$acct</span><span class="op">-&gt;</span><span class="fn">deposit</span><span class="op">(</span><span class="num">500</span><span class="op">);</span>
+<span class="fn">printf</span> <span class="str">"%s: \$%d\n"</span><span class="op">,</span> <span class="var">$acct</span><span class="op">-&gt;</span><span class="fn">owner</span><span class="op">,</span> <span class="var">$acct</span><span class="op">-&gt;</span><span class="fn">balance</span><span class="op">;</span>  <span class="cm"># Alice: $1500</span>
+<span class="cm"># print $acct->{balance}; # ERROR: $acct is not a hashref!</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong><code>refaddr($ref)</code></strong> from <code>Scalar::Util</code> returns the numeric memory address of a reference. This is unique for each live object. It's the key insight: use the address as a hash key to look up that object's data in package-level storage.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>The object is a blessed scalar ref</strong>, not a hashref. <code>bless \(my $dummy), $class</code> creates a reference to an anonymous scalar. Callers get back an opaque blessed reference — they literally cannot access the data without going through the accessors.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong><code>DESTROY</code> is mandatory with inside-out objects</strong>. When the object is destroyed, its slot in <code>%_balance</code> and <code>%_owner</code> is not automatically freed — those are separate lexical hashes. Forgetting <code>DESTROY</code> creates a memory leak: the data grows without bound.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>Memory address reuse is the hidden danger</strong>. Perl reuses freed memory addresses. If object A is destroyed and then object B is created at the same address, and you forgot to <code>delete</code> from the hash in <code>DESTROY</code>, object B would inherit A's stale data. Always clean up in <code>DESTROY</code>.</div></div>
+      </div>
+    </section>
+
+    <!-- 09 Weak References -->
+    <section class="concept" id="c9">
+      <div class="concept-header">
+        <div class="cnum">09</div>
+        <div>
+          <div class="ctitle">Weak References &amp; Circular Structures</div>
+          <div class="csub">Scalar::Util weaken(), reference counting, and avoiding memory leaks</div>
+          <div class="ctags">
+            <span class="ctag tg-sky">memory</span>
+            <span class="ctag tg-rose">weaken</span>
+            <span class="ctag tg-em">Scalar::Util</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Perl uses <strong>reference counting</strong> for garbage collection. When two objects hold references to each other (a circular reference), their counts never reach zero — they leak forever. <code>Scalar::Util::weaken()</code> marks a reference as "weak": it doesn't count toward reference counting and becomes <code>undef</code> automatically when the referent is destroyed. This is how parent-child relationships are safely modelled.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">weak_refs.pl</span>
+        </div>
+        <pre><span class="kw">use strict</span><span class="op">;</span> <span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use Scalar::Util</span> <span class="str">qw(weaken isweak refaddr)</span><span class="op">;</span>
+
+<span class="kw">package</span> <span class="pkg">Node</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">$name</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="fn">bless</span> <span class="op">{</span> <span class="str">name</span> <span class="op">=&gt;</span> <span class="var">$name</span><span class="op">,</span> <span class="str">parent</span> <span class="op">=&gt;</span> <span class="kw">undef</span><span class="op">,</span> <span class="str">children</span> <span class="op">=&gt;</span> <span class="op">[]</span> <span class="op">}</span><span class="op">,</span> <span class="var">$class</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">add_child</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="var">$child</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="fn">push</span> <span class="var">@{$self->{children}}</span><span class="op">,</span> <span class="var">$child</span><span class="op">;</span>
+
+    <span class="cm"># child holds a reference BACK to parent — this would be circular</span>
+    <span class="cm"># WITHOUT weaken, neither would ever be garbage-collected</span>
+    <span class="var">$child</span><span class="op">-&gt;{</span><span class="str">parent</span><span class="op">}</span> <span class="op">=</span> <span class="var">$self</span><span class="op">;</span>
+    <span class="fn">weaken</span><span class="op">(</span><span class="var">$child</span><span class="op">-&gt;{</span><span class="str">parent</span><span class="op">}</span><span class="op">);</span>   <span class="cm"># make the back-reference WEAK</span>
+    <span class="cm"># Now: parent's refcount is NOT incremented by this assignment</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">DESTROY</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Destroying: $_[0]->{name}\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+
+<span class="op">{</span>  <span class="cm"># inner scope — objects destroyed when scope ends</span>
+    <span class="kw">my</span> <span class="var">$root</span>  <span class="op">=</span> <span class="pkg">Node</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">'root'</span><span class="op">);</span>
+    <span class="kw">my</span> <span class="var">$child</span> <span class="op">=</span> <span class="pkg">Node</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">'child'</span><span class="op">);</span>
+    <span class="var">$root</span><span class="op">-&gt;</span><span class="fn">add_child</span><span class="op">(</span><span class="var">$child</span><span class="op">);</span>
+
+    <span class="fn">print</span> <span class="fn">isweak</span><span class="op">(</span><span class="var">$child</span><span class="op">-&gt;{</span><span class="str">parent</span><span class="op">}</span><span class="op">)</span>
+        <span class="op">?</span> <span class="str">"parent ref is weak\n"</span>
+        <span class="op">:</span> <span class="str">"parent ref is strong\n"</span><span class="op">;</span>
+
+    <span class="cm"># When $root leaves scope, it's destroyed because child's</span>
+    <span class="cm"># weak parent reference doesn't hold a strong ref to it</span>
+<span class="op">}</span>  <span class="cm"># prints "Destroying: child" then "Destroying: root"</span>
+
+<span class="cm"># If we had NOT used weaken(), neither would ever be destroyed</span>
+<span class="cm"># because: root keeps child alive, child keeps root alive — cycle</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong>Reference counting works by incrementing a counter</strong> each time you copy a reference, and decrementing when it goes out of scope. When the count hits zero, memory is freed. A circular reference means A holds B (count: 1) and B holds A (count: 1) — even when your code has no references, both counts are still 1.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong><code>weaken($ref)</code> modifies the reference in-place</strong>. After weakening, the reference still points to the object and works normally. But it no longer increments the reference count. When all <em>strong</em> references to the object are gone, it's destroyed, and the weak reference becomes <code>undef</code>.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>Always weaken the "back" pointer</strong>. In parent-child relationships, the parent holds a strong reference to each child (keeping children alive). Children hold a <em>weak</em> reference back to the parent. This way, the parent's lifetime controls the tree — destroy the root and everything cleans up.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>Check with <code>isweak($ref)</code></strong> to verify. Also, <code>Scalar::Util::blessed($ref)</code> returns the class name of a blessed ref (like <code>ref()</code> but returns <code>undef</code> for non-objects instead of the ref type). Use <code>blessed</code> for type checking in library code.</div></div>
+      </div>
+    </section>
+
+    <!-- 10 Tie -->
+    <section class="concept" id="c10">
+      <div class="concept-header">
+        <div class="cnum">10</div>
+        <div>
+          <div class="ctitle">The Tie Interface</div>
+          <div class="csub">Overloading built-in variable behaviour — scalars, arrays, hashes, filehandles</div>
+          <div class="ctags">
+            <span class="ctag tg-lav">tie</span>
+            <span class="ctag tg-amber">magic</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p><strong><code>tie</code></strong> lets you attach a class to a regular Perl variable — scalar, array, hash, or filehandle — so that ordinary operations like <code>$x = 5</code>, <code>push @a, 1</code>, or <code>$h{key}</code> trigger your class's methods. This is "transparent magic" — code using the tied variable doesn't know anything special is happening.</p>
+        <p>Classic uses: variables that persist to disk on assignment, hashes that enforce unique values, read-only scalars, logging variables, and environment-variable hash overlays.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">tie_example.pl</span>
+        </div>
+        <pre><span class="kw">package</span> <span class="pkg">TiedScalar</span><span class="op">;</span>
+<span class="cm"># Must implement TIESCALAR, FETCH, STORE, DESTROY for a tied scalar</span>
+
+<span class="kw">sub</span> <span class="fn">TIESCALAR</span> <span class="op">{</span>         <span class="cm"># called when tie() is invoked</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">%opts</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="fn">bless</span> <span class="op">{</span>
+        <span class="str">value</span>   <span class="op">=&gt;</span> <span class="var">$opts</span><span class="op">{</span><span class="str">default</span><span class="op">}</span><span class="op">,</span>
+        <span class="str">min</span>     <span class="op">=&gt;</span> <span class="var">$opts</span><span class="op">{</span><span class="str">min</span><span class="op">}</span><span class="op">,</span>
+        <span class="str">max</span>     <span class="op">=&gt;</span> <span class="var">$opts</span><span class="op">{</span><span class="str">max</span><span class="op">}</span><span class="op">,</span>
+        <span class="str">history</span> <span class="op">=&gt;</span> <span class="op">[]</span><span class="op">,</span>
+    <span class="op">}</span><span class="op">,</span> <span class="var">$class</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">FETCH</span> <span class="op">{</span>            <span class="cm"># called when reading $scalar</span>
+    <span class="kw">return</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">value</span><span class="op">}</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">STORE</span> <span class="op">{</span>            <span class="cm"># called when writing $scalar = value</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$self</span><span class="op">,</span> <span class="var">$new_val</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+
+    <span class="cm"># Range validation on every assignment</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="fn">defined</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">min</span><span class="op">}</span> <span class="op">&amp;&amp;</span> <span class="var">$new_val</span> <span class="op">&lt;</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">min</span><span class="op">}</span><span class="op">)</span> <span class="op">{</span>
+        <span class="kw">die</span> <span class="str">"Value $new_val below minimum $self->{min}\n"</span><span class="op">;</span>
+    <span class="op">}</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="fn">defined</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">max</span><span class="op">}</span> <span class="op">&amp;&amp;</span> <span class="var">$new_val</span> <span class="op">&gt;</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">max</span><span class="op">}</span><span class="op">)</span> <span class="op">{</span>
+        <span class="kw">die</span> <span class="str">"Value $new_val above maximum $self->{max}\n"</span><span class="op">;</span>
+    <span class="op">}</span>
+    <span class="fn">push</span> <span class="var">@{$self->{history}}</span><span class="op">,</span> <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">value</span><span class="op">}</span><span class="op">;</span>
+    <span class="var">$self</span><span class="op">-&gt;{</span><span class="str">value</span><span class="op">}</span> <span class="op">=</span> <span class="var">$new_val</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">sub</span> <span class="fn">DESTROY</span> <span class="op">{}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+<span class="kw">use strict</span><span class="op">;</span> <span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># tie $scalar, 'ClassName', constructor_args...</span>
+<span class="fn">tie</span> <span class="kw">my</span> <span class="var">$temp</span><span class="op">,</span> <span class="str">'TiedScalar'</span><span class="op">,</span>
+    <span class="str">default</span> <span class="op">=&gt;</span> <span class="num">20</span><span class="op">,</span> <span class="str">min</span> <span class="op">=&gt;</span> <span class="op">-</span><span class="num">273</span><span class="op">,</span> <span class="str">max</span> <span class="op">=&gt;</span> <span class="num">1000</span><span class="op">;</span>
+
+<span class="fn">print</span> <span class="var">$temp</span><span class="op">;</span>     <span class="cm"># 20  — triggers FETCH</span>
+<span class="var">$temp</span> <span class="op">=</span> <span class="num">37</span><span class="op">;</span>     <span class="cm"># triggers STORE, logs 20 to history</span>
+<span class="var">$temp</span> <span class="op">=</span> <span class="num">100</span><span class="op">;</span>    <span class="cm"># triggers STORE</span>
+<span class="cm"># $temp = 2000; # dies: "Value 2000 above maximum 1000"</span>
+
+<span class="cm"># Access the underlying tied object to inspect history</span>
+<span class="kw">my</span> <span class="var">$obj</span> <span class="op">=</span> <span class="fn">tied</span> <span class="var">$temp</span><span class="op">;</span>
+<span class="fn">print</span> <span class="fn">join</span><span class="op">(</span><span class="str">', '</span><span class="op">,</span> <span class="var">@{$obj->{history}}</span><span class="op">)</span><span class="op">;</span>  <span class="cm"># "20, 37"</span>
+
+<span class="cm"># untie removes the magic, returns to normal variable</span>
+<span class="fn">untie</span> <span class="var">$temp</span><span class="op">;</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong>The required interface for tied scalars</strong>: <code>TIESCALAR</code> (constructor), <code>FETCH</code> (read), <code>STORE</code> (write), <code>DESTROY</code>. For tied arrays: <code>TIEARRAY</code>, <code>FETCH</code>, <code>STORE</code>, <code>FETCHSIZE</code>, <code>STORESIZE</code>, <code>PUSH</code>, <code>POP</code>, etc. For tied hashes: <code>TIEHASH</code>, <code>FETCH</code>, <code>STORE</code>, <code>EXISTS</code>, <code>DELETE</code>, <code>FIRSTKEY</code>, <code>NEXTKEY</code>.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong><code>tied $var</code></strong> returns the underlying tied object. This is the only way to access the implementation object directly — calling its private methods or inspecting internal state. Without this, the tie is truly transparent.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>Performance cost</strong>: tied variables are significantly slower than plain variables because every access goes through a method call. Prefer tie for situations where the magic justifies the overhead — persistent storage, validation, debugging — not hot paths.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>Real-world uses</strong>: <code>Tie::File</code> (array tied to a file), <code>Tie::IxHash</code> (hash that preserves insertion order), <code>DB_File</code>/<code>GDBM_File</code> (hashes persisted to disk files), and <code>Readonly</code> (makes variables read-only by tying them to a class that dies on STORE).</div></div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: SYSTEMS ══ -->
+    <div class="sec-break"><span class="sec-break-label">Systems Programming</span></div>
+
+    <!-- 11 XS / Inline::C -->
+    <section class="concept" id="c11">
+      <div class="concept-header">
+        <div class="cnum">11</div>
+        <div>
+          <div class="ctitle">XS &amp; Inline::C</div>
+          <div class="csub">Calling C code from Perl for performance-critical operations</div>
+          <div class="ctags">
+            <span class="ctag tg-rose">XS</span>
+            <span class="ctag tg-em">C extension</span>
+            <span class="ctag tg-amber">performance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>When pure Perl isn't fast enough, <strong>XS</strong> (eXternal Subroutines) is the standard way to write Perl extension modules in C. <strong><code>Inline::C</code></strong> is a friendlier alternative that compiles C code embedded directly in a Perl file — ideal for learning and one-off optimisation without a full module structure.</p>
+        <p>The key concepts are: the Perl C API (<code>SV</code>, <code>AV</code>, <code>HV</code>), the argument stack, and the XS typemap that converts between Perl scalars and C types.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">inline_c.pl</span>
+        </div>
+        <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use Inline</span> <span class="str">C</span> <span class="op">=&gt;</span> <span class="str">&lt;&lt;'END_C'</span><span class="op">;</span>
+
+<span class="cm">/* C code compiled and linked at runtime by Inline::C */</span>
+
+<span class="cm">/* Fast integer GCD using Euclidean algorithm in C */</span>
+long fast_gcd(long a, long b) {
+    while (b) {
+        long t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+
+<span class="cm">/* Sieve of Eratosthenes — returns count of primes up to n */</span>
+int count_primes(int n) {
+    char *sieve = (char *)calloc(n + 1, sizeof(char));
+    int count = 0;
+    for (int i = 2; i <= n; i++) {
+        if (!sieve[i]) {
+            count++;
+            for (int j = i*2; j <= n; j += i)
+                sieve[j] = 1;
+        }
+    }
+    free(sieve);
+    return count;
+}
+
+<span class="str">END_C</span>
+
+<span class="cm"># Perl calls C functions as if they were Perl subs</span>
+<span class="fn">printf</span> <span class="str">"GCD(48, 36) = %d\n"</span><span class="op">,</span> <span class="fn">fast_gcd</span><span class="op">(</span><span class="num">48</span><span class="op">,</span> <span class="num">36</span><span class="op">);</span>       <span class="cm"># 12</span>
+<span class="fn">printf</span> <span class="str">"Primes up to 1M: %d\n"</span><span class="op">,</span> <span class="fn">count_primes</span><span class="op">(</span><span class="num">1_000_000</span><span class="op">);</span>  <span class="cm"># 78498</span>
+
+<span class="cm"># XS typemap handles the Perl-C type conversion automatically:</span>
+<span class="cm"># Perl integer (SvIV) <-> C int/long</span>
+<span class="cm"># Perl float (SvNV)   <-> C double</span>
+<span class="cm"># Perl string (SvPV)  <-> C char*</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong><code>use Inline C =&gt; '...'</code></strong> compiles the C code on first run using the system C compiler, caches the result in <code>_Inline/</code>, and links it into the running Perl process. Subsequent runs use the cache. The compilation only happens when the C code changes.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Typemap conversion is automatic</strong> for basic types. Inline::C (via XS) reads the C function signature and generates the glue code: Perl's <code>SV*</code> (scalar value) is converted to <code>int</code>/<code>long</code>/<code>double</code>/<code>char*</code> going in, and back to a Perl scalar on return.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>Full XS is more powerful but complex</strong>. A proper XS module has a <code>.xs</code> file (C with XS directives), a <code>typemap</code> file for type conversions, and a <code>Makefile.PL</code>. Use <code>h2xs</code> or <code>Module::Build</code> to scaffold it. Inline::C is perfect for prototyping before moving to full XS.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>When to reach for XS/Inline::C</strong>: tight loops processing millions of items, bit-manipulation, interfacing with C libraries, crypto primitives, or any computation where a profiler shows Perl overhead is the bottleneck. Often a well-written Perl solution with the right CPAN module (which is already in C) is faster to deploy.</div></div>
+      </div>
+    </section>
+
+    <!-- 12 Concurrency / Threads -->
+    <section class="concept" id="c12">
+      <div class="concept-header">
+        <div class="cnum">12</div>
+        <div>
+          <div class="ctitle">Concurrency: forks, threads &amp; async</div>
+          <div class="csub">fork(), Parallel::ForkManager, threads, and IO::Async patterns</div>
+          <div class="ctags">
+            <span class="ctag tg-sky">concurrency</span>
+            <span class="ctag tg-rose">fork</span>
+            <span class="ctag tg-em">async</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Perl has three concurrency models: <strong>fork-based</strong> (separate processes, no shared memory), <strong>threads</strong> (shared memory, complex synchronisation), and <strong>event-loop/async</strong> (single-threaded, non-blocking I/O via <code>IO::Async</code> or <code>AnyEvent</code>). Fork is the most idiomatic and safest for CPU-bound work. Threads in Perl are expensive and have significant caveats.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">parallel_fork.pl</span>
+        </div>
+        <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use Parallel::ForkManager</span><span class="op">;</span>  <span class="cm"># CPAN — manages a pool of child processes</span>
+<span class="kw">use POSIX</span> <span class="str">qw(WNOHANG)</span><span class="op">;</span>
+
+<span class="cm"># Process 12 URLs with max 4 parallel workers</span>
+<span class="kw">my</span> <span class="var">@urls</span>    <span class="op">=</span> <span class="fn">map</span> <span class="op">{</span> <span class="str">"https://api.example.com/item/$_"</span> <span class="op">}</span> <span class="num">1</span><span class="op">..</span><span class="num">12</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">%results</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$pm</span> <span class="op">=</span> <span class="pkg">Parallel::ForkManager</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="num">4</span><span class="op">);</span>
+
+<span class="cm"># Callback: called in PARENT process when a child finishes</span>
+<span class="cm"># $data_structure is what the child passed to finish()</span>
+<span class="var">$pm</span><span class="op">-&gt;</span><span class="fn">run_on_finish</span><span class="op">(</span><span class="kw">sub</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$pid</span><span class="op">,</span> <span class="var">$exit</span><span class="op">,</span> <span class="var">$ident</span><span class="op">,</span> <span class="var">$signal</span><span class="op">,</span> <span class="var">$core</span><span class="op">,</span> <span class="var">$data</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="fn">defined</span> <span class="var">$data</span><span class="op">)</span> <span class="op">{</span>
+        <span class="var">%results</span> <span class="op">=</span> <span class="op">(</span><span class="var">%results</span><span class="op">,</span> <span class="var">%$data</span><span class="op">);</span>   <span class="cm"># merge child's result</span>
+    <span class="op">}</span>
+<span class="op">});</span>
+
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$url</span> <span class="op">(</span><span class="var">@urls</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$pid</span> <span class="op">=</span> <span class="var">$pm</span><span class="op">-&gt;</span><span class="fn">start</span><span class="op">(</span><span class="var">$url</span><span class="op">)</span> <span class="op">and</span> <span class="kw">next</span><span class="op">;</span>
+
+    <span class="cm"># --- CHILD PROCESS CODE ---</span>
+    <span class="cm"># This block runs in a forked child. No shared memory with parent.</span>
+    <span class="kw">my</span> <span class="var">$data</span> <span class="op">=</span> <span class="fn">fetch_url</span><span class="op">(</span><span class="var">$url</span><span class="op">);</span>    <span class="cm"># hypothetical HTTP fetch</span>
+
+    <span class="cm"># Pass result back to parent via serialised data structure</span>
+    <span class="var">$pm</span><span class="op">-&gt;</span><span class="fn">finish</span><span class="op">(</span><span class="num">0</span><span class="op">,</span> <span class="op">{</span> <span class="var">$url</span> <span class="op">=&gt;</span> <span class="var">$data</span> <span class="op">});</span>
+    <span class="cm"># --- END CHILD CODE ---</span>
+<span class="op">}</span>
+
+<span class="var">$pm</span><span class="op">-&gt;</span><span class="fn">wait_all_children</span><span class="op">;</span>   <span class="cm"># blocks until all children complete</span>
+
+<span class="cm"># Raw fork() pattern (lower level):</span>
+<span class="kw">my</span> <span class="var">$pid</span> <span class="op">=</span> <span class="fn">fork</span><span class="op">();</span>
+<span class="kw">die</span> <span class="str">"fork failed: $!"</span> <span class="kw">unless</span> <span class="fn">defined</span> <span class="var">$pid</span><span class="op">;</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">$pid</span> <span class="op">==</span> <span class="num">0</span><span class="op">)</span> <span class="op">{</span>
+    <span class="cm"># CHILD: $pid == 0 in child process</span>
+    <span class="fn">print</span> <span class="str">"Child PID: $$\n"</span><span class="op">;</span>
+    <span class="fn">exit</span> <span class="num">0</span><span class="op">;</span>
+<span class="op">}</span> <span class="kw">else</span> <span class="op">{</span>
+    <span class="cm"># PARENT: $pid is the child's PID</span>
+    <span class="fn">waitpid</span><span class="op">(</span><span class="var">$pid</span><span class="op">,</span> <span class="num">0</span><span class="op">);</span>   <span class="cm"># wait for specific child</span>
+<span class="op">}</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-n">1</div><div class="ann-t"><strong><code>$pm->start($ident) and next</code></strong> — the idiomatic Parallel::ForkManager loop. <code>start()</code> forks a child. In the <strong>parent</strong>, it returns the child's PID (a true value), so <code>and next</code> skips the rest of the loop body. In the <strong>child</strong>, it returns 0 (false), so the child proceeds into the work block.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Fork creates a complete copy of the process</strong>. All variables are copied (copy-on-write). Changes in the child do NOT affect the parent — you must pass results back explicitly. <code>Parallel::ForkManager</code> serializes the hashref with <code>Storable</code> and passes it via a pipe.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong>In raw <code>fork()</code></strong>: <code>$pid == 0</code> in the child, <code>$pid > 0</code> (child's PID) in the parent, <code>undef</code> on failure. Always <code>die</code> on undef. Always call <code>waitpid</code> or <code>wait</code> in the parent — otherwise children become zombies, consuming process table entries.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>Perl threads (<code>use threads</code>) vs fork</strong>: threads share memory but require locks (<code>threads::shared</code>, <code>Thread::Semaphore</code>). They're heavy (Perl duplicates the interpreter per thread) and many CPAN modules aren't thread-safe. For most tasks, fork is simpler and more reliable.</div></div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: META ══ -->
+    <div class="sec-break"><span class="sec-break-label">Perl Internals &amp; Meta</span></div>
+
+    <!-- 13 Symbol Tables -->
+    <section class="concept" id="c13">
+      <div class="concept-header">
+        <div class="cnum">13</div>
+        <div>
+          <div class="ctitle">Symbol Tables &amp; Glob Manipulation</div>
+          <div class="csub">%main::, typeglobs, dynamic method installation, import mechanics</div>
+          <div class="ctags">
+            <span class="ctag tg-lav">symbol table</span>
+            <span class="ctag tg-rose">globs</span>
+            <span class="ctag tg-amber">meta</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Every Perl package has a <strong>symbol table</strong> — a hash stored as <code>%PackageName::</code> where each key is a symbol name and each value is a <strong>typeglob</strong> (<code>*symbol</code>). A typeglob is a container that simultaneously holds up to six "slots": scalar, array, hash, code, filehandle, and format. This is how <code>Exporter</code> works — it copies coderefs from one package's symbol table into another.</p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">symbol_tables.pl</span>
+        </div>
+        <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># --- Inspect a package's symbol table ---</span>
+<span class="kw">package</span> <span class="pkg">MyLib</span><span class="op">;</span>
+<span class="kw">sub</span> <span class="fn">hello</span> <span class="op">{</span> <span class="str">"hello"</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">world</span> <span class="op">{</span> <span class="str">"world"</span> <span class="op">}</span>
+<span class="kw">our</span> <span class="var">$VERSION</span> <span class="op">=</span> <span class="str">'1.0'</span><span class="op">;</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+
+<span class="cm"># %MyLib:: is the symbol table hash</span>
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$sym</span> <span class="op">(</span><span class="fn">sort</span> <span class="fn">keys</span> <span class="var">%MyLib::</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$code</span> <span class="op">=</span> <span class="var">*{"MyLib::$sym"}</span><span class="op">{</span><span class="str">CODE</span><span class="op">}</span><span class="op">;</span>   <span class="cm"># extract CODE slot from glob</span>
+    <span class="fn">print</span> <span class="str">"$sym => "</span> <span class="op">.</span> <span class="op">(</span><span class="fn">defined</span> <span class="var">$code</span> <span class="op">?</span> <span class="str">"sub"</span> <span class="op">:</span> <span class="str">"var"</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># --- Install a method at runtime (used by import, Exporter, etc.) ---</span>
+<span class="op">{</span>
+    <span class="kw">no strict</span> <span class="str">'refs'</span><span class="op">;</span>    <span class="cm"># required for symbolic glob assignment</span>
+
+    <span class="cm"># Assign to the CODE slot of the glob — adds/replaces a sub</span>
+    <span class="op">*{</span><span class="str">"main::greet"</span><span class="op">}</span> <span class="op">=</span> <span class="kw">sub</span> <span class="op">{</span> <span class="str">"Hello, $_[0]!"</span> <span class="op">};</span>
+<span class="op">}</span>
+<span class="fn">print</span> <span class="fn">greet</span><span class="op">(</span><span class="str">"World"</span><span class="op">)</span><span class="op">;</span>   <span class="cm"># "Hello, World!" — installed method works</span>
+
+<span class="cm"># --- How Exporter works (simplified) ---</span>
+<span class="kw">sub</span> <span class="fn">my_import</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$from_pkg</span><span class="op">,</span> <span class="var">$to_pkg</span><span class="op">,</span> <span class="var">@funcs</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">no strict</span> <span class="str">'refs'</span><span class="op">;</span>
+    <span class="kw">for</span> <span class="kw">my</span> <span class="var">$fn</span> <span class="op">(</span><span class="var">@funcs</span><span class="op">)</span> <span class="op">{</span>
+        <span class="cm"># Copy the CODE glob slot from source to destination package</span>
+        <span class="op">*{"${to_pkg}::${fn}"}</span> <span class="op">=</span> <span class="op">\&amp;{"${from_pkg}::${fn}"}</span><span class="op">;</span>
+    <span class="op">}</span>
+<span class="op">}</span>
+
+<span class="fn">my_import</span><span class="op">(</span><span class="str">'MyLib'</span><span class="op">,</span> <span class="str">'main'</span><span class="op">,</span> <span class="str">'hello'</span><span class="op">,</span> <span class="str">'world'</span><span class="op">);</span>
+<span class="fn">print</span> <span class="fn">hello</span><span class="op">()</span> <span class="op">.</span> <span class="str">" "</span> <span class="op">.</span> <span class="fn">world</span><span class="op">();</span>   <span class="cm"># "hello world"</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-t"><strong>The symbol table <code>%MyLib::</code></strong> is a real hash you can iterate over. Keys are symbol names; values are typeglobs. Note the double colon at the end of the package name.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Glob slots</strong>: <code>*{"Pkg::name"}{CODE}</code>, <code>{SCALAR}</code>, <code>{ARRAY}</code>, <code>{HASH}</code>, <code>{IO}</code>, <code>{FORMAT}</code>. You can install only a specific slot without touching the others. Assigning a coderef to the CODE slot (<code>*foo = \&amp;bar</code>) creates an alias, not a copy.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong><code>\&amp;{"PackageName::subname"}</code></strong> takes a reference to a named function using a string. This requires <code>no strict 'refs'</code>. It's how <code>Exporter</code> copies functions between packages and how many <code>AUTOLOAD</code> implementations install methods permanently.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong>The <code>import()</code> mechanism</strong>: when you write <code>use Foo qw(bar)</code>, Perl calls <code>Foo::import('Foo', 'bar')</code>. <code>Exporter</code>-based modules implement <code>import()</code> as the glob-copying function above. This is the entire magic behind all <code>use Module qw(...)</code> imports.</div></div>
+      </div>
+    </section>
+
+    <!-- 14 BEGIN and compilation phases -->
+    <section class="concept" id="c14">
+      <div class="concept-header">
+        <div class="cnum">14</div>
+        <div>
+          <div class="ctitle">BEGIN, END &amp; Perl's Compilation Phases</div>
+          <div class="csub">Compile time vs runtime, CHECK, INIT, UNITCHECK, and source filters</div>
+          <div class="ctags">
+            <span class="ctag tg-em">BEGIN</span>
+            <span class="ctag tg-sky">phases</span>
+            <span class="ctag tg-lav">compile-time</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Perl programs don't simply run top-to-bottom. There are distinct <strong>compilation phases</strong>. Understanding them is essential for advanced metaprogramming, writing pragmas, and debugging mysterious "use constant" or "use strict" failures. <strong><code>BEGIN</code></strong> runs immediately when compiled (before anything else in the file executes). <strong><code>END</code></strong> runs after the program exits. <strong><code>CHECK</code></strong>, <strong><code>INIT</code></strong>, and <strong><code>UNITCHECK</code></strong> run at different transition points.</p>
+      </div>
+
+      <div class="flow-diagram">
+        <div class="flow-label">Perl Execution Phases</div>
+        <div class="flow-row">
+          <span class="fbox">Source loaded</span>
+          <span class="farrow">→</span>
+          <span class="fbox active">BEGIN runs</span>
+          <span class="farrow">→</span>
+          <span class="fbox">Compile rest</span>
+          <span class="farrow">→</span>
+          <span class="fbox active">UNITCHECK</span>
+          <span class="farrow">→</span>
+          <span class="fbox active">CHECK</span>
+          <span class="farrow">→</span>
+          <span class="fbox active">INIT</span>
+          <span class="farrow">→</span>
+          <span class="fbox">Runtime runs</span>
+          <span class="farrow">→</span>
+          <span class="fbox active">END</span>
+        </div>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-bar">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <span class="code-fname">phases.pl</span>
+        </div>
+        <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># BEGIN runs as SOON as it is compiled — before the rest of the file</span>
+<span class="kw">BEGIN</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"1. BEGIN — compile time\n"</span><span class="op">;</span>
+
+    <span class="cm"># use statements are compiled to: BEGIN { require M; M->import() }</span>
+    <span class="cm"># That's why constants from 'use constant' are available immediately</span>
+<span class="op">}</span>
+
+<span class="cm"># Multiple BEGINs run in order of appearance</span>
+<span class="kw">BEGIN</span> <span class="op">{</span> <span class="fn">print</span> <span class="str">"2. second BEGIN\n"</span> <span class="op">}</span>
+
+<span class="cm"># UNITCHECK: after the current unit (file or eval) is compiled</span>
+<span class="kw">UNITCHECK</span> <span class="op">{</span> <span class="fn">print</span> <span class="str">"3. UNITCHECK\n"</span> <span class="op">}</span>
+
+<span class="cm"># CHECK: after ALL compilation is done, before runtime</span>
+<span class="kw">CHECK</span>     <span class="op">{</span> <span class="fn">print</span> <span class="str">"4. CHECK\n"</span> <span class="op">}</span>
+
+<span class="cm"># INIT: first thing at runtime</span>
+<span class="kw">INIT</span>      <span class="op">{</span> <span class="fn">print</span> <span class="str">"5. INIT — start of runtime\n"</span> <span class="op">}</span>
+
+<span class="fn">print</span> <span class="str">"6. Runtime code\n"</span><span class="op">;</span>
+
+<span class="cm"># END: runs when the program exits (even on die), LIFO order</span>
+<span class="kw">END</span>       <span class="op">{</span> <span class="fn">print</span> <span class="str">"7. END\n"</span> <span class="op">}</span>
+
+<span class="cm"># Practical BEGIN use: conditionally load modules based on Perl version</span>
+<span class="kw">BEGIN</span> <span class="op">{</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="var">$]</span> <span class="op">&gt;=</span> <span class="num">5.020</span><span class="op">)</span> <span class="op">{</span>
+        <span class="fn">require</span> <span class="mod">feature</span><span class="op">;</span>
+        <span class="fn">feature</span><span class="op">-&gt;</span><span class="fn">import</span><span class="op">(</span><span class="str">'say'</span><span class="op">,</span> <span class="str">'state'</span><span class="op">);</span>
+    <span class="op">}</span>
+<span class="op">}</span>
+
+<span class="cm"># use constant is really: BEGIN { *NAME = \$value } in the symbol table</span>
+<span class="kw">use constant</span> <span class="op">{</span>
+    <span class="str">MAX_RETRIES</span> <span class="op">=&gt;</span> <span class="num">3</span><span class="op">,</span>
+    <span class="str">TIMEOUT</span>     <span class="op">=&gt;</span> <span class="num">30</span><span class="op">,</span>
+<span class="op">};</span>
+<span class="cm"># Perl inlines constant values at compile time — no hash lookup at runtime</span>
+
+<span class="cm"># END cleanup: always runs, even after die or exit()</span>
+<span class="kw">END</span> <span class="op">{</span>
+    <span class="fn">unlink</span> <span class="str">'/tmp/my_lockfile'</span><span class="op">;</span>   <span class="cm"># guaranteed cleanup</span>
+<span class="op">}</span></pre>
+      </div>
+
+      <div class="ann-list">
+        <div class="ann"><div class="ann-n">1</div><div class="ann-n">1</div><div class="ann-t"><strong><code>BEGIN</code> runs at compile time, immediately</strong>. This means it runs even under <code>perl -c</code> (syntax check only). That's why <code>use Foo</code> is safe to put anywhere — it compiles to <code>BEGIN { require Foo; Foo-&gt;import() }</code> and the module is loaded before any runtime code.</div></div>
+        <div class="ann"><div class="ann-n">2</div><div class="ann-t"><strong>Multiple <code>BEGIN</code> blocks run in order</strong>, but all run before any runtime code, no matter where in the file they appear. This surprises beginners: a <code>BEGIN</code> at line 100 runs before a bare <code>print</code> at line 5.</div></div>
+        <div class="ann"><div class="ann-n">3</div><div class="ann-t"><strong><code>use constant</code> is compile-time magic</strong>. It installs a constant sub in the symbol table during <code>BEGIN</code>. Perl's optimizer inlines constant values — <code>MAX_RETRIES</code> is replaced with <code>3</code> at compile time, making it as fast as a literal number with zero runtime lookup cost.</div></div>
+        <div class="ann"><div class="ann-n">4</div><div class="ann-t"><strong><code>END</code> blocks are a safety net</strong> for cleanup. They run after <code>exit()</code>, after uncaught <code>die()</code>, and even after signals (if you have a signal handler). Multiple <code>END</code> blocks run in reverse order (LIFO) — the last-declared runs first, which is the right order for teardown of nested resources.</div></div>
+      </div>
+
+      <div class="callout deep">
+        <span class="cl-label">Deep Dive</span>
+        The <code>$]</code> variable holds the Perl version as a number (e.g. <code>5.038001</code>). <code>$^O</code> is the operating system name. <code>$0</code> is the script name. <code>$$</code> is the current PID. These special variables, documented in <code>perlvar</code>, are your runtime introspection toolkit.
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

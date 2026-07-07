@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTML5 + CSS3 Interactive Masterclass</title>
+<style>
+:root{
+  --bg:#0b0d12;
+  --bg-elev:#121621;
+  --text:#e6e8ee;
+  --muted:#a0a8b8;
+  --accent:#6ea8fe;
+  --accent-2:#a78bfa;
+  --border:#222838;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --radius:16px;
+  --code-bg:#0a0c12;
+  --success:#22c55e;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+}
+[data-theme="light"]{
+  --bg:#f7f8fc;
+  --bg-elev:#ffffff;
+  --text:#0b1220;
+  --muted:#556070;
+  --accent:#3b82f6;
+  --accent-2:#7c3aed;
+  --border:#e2e8f0;
+  --shadow:0 10px 30px rgba(2,6,23,.08);
+  --code-bg:#0f172a;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.5;
+}
+.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+.skip-link:focus{left:1rem;top:1rem;width:auto;height:auto;background:var(--accent);color:#000;padding:.5rem .75rem;border-radius:8px;z-index:3000}
+.site-header{
+  position:sticky;top:0;z-index:1000;
+  display:flex;align-items:center;gap:.75rem;
+  padding:.75rem 1rem;
+  backdrop-filter: blur(8px);
+  background:color-mix(in oklab, var(--bg) 80%, transparent);
+  border-bottom:1px solid var(--border);
+}
+.site-header h1{font-size:1rem;margin:0;font-weight:600;letter-spacing:.3px}
+.grow{flex:1}
+.btn{
+  background:var(--bg-elev);color:var(--text);border:1px solid var(--border);
+  padding:.5rem .75rem;border-radius:10px;cursor:pointer;
+}
+.btn:hover{border-color:color-mix(in oklab, var(--accent) 40%, var(--border))}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;color:#fff}
+.icon-btn{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elev);cursor:pointer}
+.progress{
+  position:fixed;top:0;left:0;height:3px;width:0;z-index:2000;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  transform-origin:left;
+}
+@supports (animation-timeline: scroll()){
+  .progress{width:100%;transform:scaleX(0);animation:grow linear;animation-timeline:scroll(root);}
+  @keyframes grow{to{transform:scaleX(1)}}
+}
+.layout{
+  display:grid;grid-template-columns:280px 1fr;gap:1.5rem;
+  max-width:1400px;margin:0 auto;padding:1rem;
+}
+.nav{
+  position:sticky;top:64px;align-self:start;
+  background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1rem;max-height:calc(100vh - 80px);overflow:auto;
+}
+.nav h2{margin:.25rem 0 .5rem;font-size:.9rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.nav ul{list-style:none;margin:0;padding:0}
+.nav a{display:block;padding:.4rem .6rem;border-radius:8px;color:var(--text);text-decoration:none}
+.nav a:hover,.nav a:focus-visible{background:color-mix(in oklab,var(--bg) 80%, var(--bg-elev));outline:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .nav{position:fixed;inset:0 auto 0 0;width:280px;transform:translateX(-105%);transition:.25s;z-index:1500;border-radius:0}
+  .nav.open{transform:translateX(0)}
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);z-index:1400}
+}
+main{min-width:0}
+.card{
+  background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:1.25rem;margin-bottom:1.5rem;
+}
+.card h2{margin:.25rem 0 1rem;font-size:1.25rem}
+.card h3{margin:1rem 0 .5rem;font-size:1rem;color:var(--muted)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media (max-width:700px){.grid-2{grid-template-columns:1fr}}
+label{display:block;margin:.5rem 0 .25rem;font-weight:500}
+input[type="text"],input[type="email"],input[type="url"],input[type="tel"],input[type="number"],input[type="date"],input[type="time"],select,textarea{
+  width:100%;padding:.55rem .65rem;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);
+}
+input[type="color"]{padding:0;height:38px;width:100%;border-radius:10px;border:1px solid var(--border);background:var(--bg)}
+input[type="range"]{width:100%}
+.form-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+.form-row > *{flex:1 1 180px}
+.help{color:var(--muted);font-size:.9rem}
+.badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;background:color-mix(in oklab,var(--accent) 20%, transparent);border:1px solid var(--border);font-size:.75rem}
+.kbd{font-family:ui-monospace,monospace;background:var(--bg);border:1px solid var(--border);border-bottom-width:2px;padding:.1rem .35rem;border-radius:6px;font-size:.85em}
+pre{
+  position:relative;background:var(--code-bg);color:#d6deeb;padding:1rem;border-radius:12px;overflow:auto;border:1px solid #1c2333;margin:.75rem 0;
+}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9rem}
+.copy{
+  position:absolute;top:.5rem;right:.5rem;
+  background:#1b2130;color:var(--text);border:1px solid var(--border);
+  border-radius:8px;padding:.25rem .5rem;cursor:pointer;font-size:.8rem;
+}
+.copy:active{transform:translateY(1px)}
+.divider{height:1px;background:var(--border);margin:1rem 0}
+.demo-box{padding:1rem;border:1px dashed var(--border);border-radius:12px;background:color-mix(in oklab,var(--bg) 90%, var(--bg-elev))}
+.semantic-demo > *{padding:.5rem;margin:.35rem;border:2px solid;border-radius:8px}
+.semantic-demo header{border-color:#ef4444}
+.semantic-demo nav{border-color:#f59e0b}
+.semantic-demo main{border-color:#22c55e}
+.semantic-demo section{border-color:#3b82f6}
+.semantic-demo article{border-color:#a78bfa}
+.semantic-demo aside{border-color:#ec4899}
+.semantic-demo footer{border-color:#64748b}
+.canvas-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+#pad{touch-action:none;display:block;background:#fff;width:100%;height:300px}
+.match{outline:3px solid var(--warning);outline-offset:2px;background:color-mix(in oklab,var(--warning) 20%, transparent)}
+.box-model{display:grid;place-items:center;padding:1rem}
+.box-model .margin{background:color-mix(in oklab,var(--accent) 18%, transparent);padding:var(--m,24px)}
+.box-model .border{background:color-mix(in oklab,var(--accent-2) 22%, transparent);padding:var(--b,16px);border:var(--b,16px) solid #334155}
+.box-model .padding{background:color-mix(in oklab,var(--success) 20%, transparent);padding:var(--p,24px)}
+.box-model .content{background:#0f172a;color:#fff;padding:1rem;border-radius:8px;min-width:120px;text-align:center}
+.collapse-demo div{background:#1f2937;margin:1rem 0;padding:1rem;border-radius:8px}
+.collapse-demo .a{margin-bottom:40px}
+.collapse-demo .b{margin-top:40px}
+.flex-lab,.grid-lab{display:flex;flex-direction:column;gap:.75rem}
+.flex-preview,.grid-preview{
+  min-height:160px;border:1px dashed var(--border);border-radius:12px;padding:.75rem;
+  background:color-mix(in oklab,var(--bg) 85%, var(--bg-elev));
+}
+.flex-preview{display:flex}
+.flex-preview > div,.grid-preview > div{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  padding:.75rem 1rem;border-radius:10px;min-width:60px;text-align:center;
+}
+.grid-preview{display:grid}
+.clamp-demo{font-size:clamp(1rem, 2vw + .5rem, 2rem);font-weight:700}
+.aspect-box{width:100%;max-width:360px;aspect-ratio:16/9;background:linear-gradient(135deg,#1f2937,#334155);border-radius:12px;display:grid;place-items:center;color:#cbd5e1;border:1px solid var(--border)}
+.motion-box{width:120px;height:120px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent-2));margin:1rem 0}
+.transition-btn{transition:transform .25s ease, background .25s ease}
+.transition-btn:hover{transform:translateY(-2px)}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.bounce{animation:bounce .8s ease-in-out infinite}
+.clip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.clip{height:100px;background:linear-gradient(135deg,var(--accent),var(--accent-2));}
+.clip.circle{clip-path:circle(45% at 50% 50%)}
+.clip.hex{clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0% 50%)}
+.clip.star{clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.glass{
+  position:relative;height:160px;border-radius:16px;overflow:hidden;border:1px solid var(--border);
+  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="%236ea8fe"/><stop offset="1" stop-color="%23a78bfa"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/></svg>') center/cover;
+}
+.glass .cardy{
+  position:absolute;inset:1rem;backdrop-filter:blur(10px);
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:1rem;color:#fff;
+}
+.resizable{
+  resize:horizontal;overflow:auto;min-width:240px;max-width:100%;padding:.75rem;border:1px dashed var(--border);border-radius:12px;
+  container-type:inline-size;
+}
+@container (min-width:420px){
+  .cq-inner{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+}
+.has-demo{border:2px solid var(--border);padding:1rem;border-radius:12px}
+.has-demo:has(input:invalid){border-color:var(--danger)}
+.carousel{display:flex;overflow-x:auto;gap:1rem;padding:.5rem;scroll-snap-type:x mandatory;border:1px solid var(--border);border-radius:12px}
+.carousel > *{flex:0 0 220px;height:120px;scroll-snap-align:start;background:var(--bg);border:1px solid var(--border);border-radius:12px;display:grid;place-items:center}
+.viewport-indicator{font-variant-numeric:tabular-nums}
+.auto-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.auto-grid > div{padding:1rem;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+.live{border:1px solid var(--border);border-radius:12px;padding:.75rem;min-height:60px;background:var(--bg)}
+.spinner{
+  width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spinner{animation:none}}
+.dnd-list{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
+.dnd-list li{padding:.6rem .8rem;border:1px solid var(--border);border-radius:10px;background:var(--bg);cursor:grab}
+.dnd-list li.dragging{opacity:.5}
+.todo{display:grid;gap:.75rem}
+.todo ul{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
+.todo li{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.todo li:has(input[type="checkbox"]:checked) span{text-decoration:line-through;color:var(--muted)}
+.todo .actions{margin-left:auto;display:flex;gap:.35rem}
+.todo .actions button{border:1px solid var(--border);background:var(--bg-elev);color:var(--text);border-radius:8px;padding:.25rem .45rem;cursor:pointer}
+.site-footer{padding:2rem 1rem;text-align:center;color:var(--muted);border-top:1px solid var(--border);margin-top:2rem}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border-bottom:1px solid var(--border);padding:.5rem;text-align:left}
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div class="progress" id="progress"></div>
+<header class="site-header">
+  <button class="icon-btn" id="menuBtn" aria-label="Toggle menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <h1>HTML5 + CSS3 Masterclass</h1>
+  <div class="grow"></div>
+  <button class="btn" id="themeToggle" aria-pressed="false" title="Toggle theme">🌙 / ☀️</button>
+</header>
+
+<div class="layout">
+  <aside class="nav" id="sidebar" aria-label="Table of contents">
+    <h2>Contents</h2>
+    <ul>
+      <li><a href="#semantic">1. Semantic Structure</a></li>
+      <li><a href="#forms">2. Forms Deep Dive</a></li>
+      <li><a href="#multimedia">3. Multimedia</a></li>
+      <li><a href="#canvas">4. Canvas API</a></li>
+      <li><a href="#svg">5. Inline SVG</a></li>
+      <li><a href="#selectors">6. Selectors Playground</a></li>
+      <li><a href="#boxmodel">7. Box Model Visualizer</a></li>
+      <li><a href="#flexbox">8. Flexbox Lab</a></li>
+      <li><a href="#grid">9. Grid Lab</a></li>
+      <li><a href="#variables">10. CSS Variables Theming</a></li>
+      <li><a href="#motion">11. Motion</a></li>
+      <li><a href="#advanced">12. Advanced CSS</a></li>
+      <li><a href="#responsive">13. Responsive Design</a></li>
+      <li><a href="#a11y">14. Accessibility</a></li>
+      <li><a href="#apis">15. HTML5 APIs + Todo</a></li>
+    </ul>
+  </aside>
+  <div class="backdrop" id="backdrop" hidden></div>
+
+  <main id="main">
+    <section class="card" id="semantic">
+      <h2>1. Semantic Structure</h2>
+      <div class="demo-box semantic-demo" aria-label="Semantic elements demo">
+        <header>header</header>
+        <nav>nav</nav>
+        <main>main
+          <section>section
+            <article>article</article>
+          </section>
+          <aside>aside</aside>
+        </main>
+        <footer>footer</footer>
+      </div>
+      <pre><code>&lt;header&gt;&lt;/header&gt;
+&lt;nav&gt;&lt;/nav&gt;
+&lt;main&gt;
+  &lt;section&gt;
+    &lt;article&gt;&lt;/article&gt;
+  &lt;/section&gt;
+  &lt;aside&gt;&lt;/aside&gt;
+&lt;/main&gt;
+&lt;footer&gt;&lt;/footer&gt;</code></pre>
+    </section>
+
+    <section class="card" id="forms">
+      <h2>2. Forms Deep Dive</h2>
+      <form id="deepForm" class="demo-box">
+        <div class="grid-2">
+          <div>
+            <label for="email">Email (required)</label>
+            <input id="email" type="email" required placeholder="you@example.com">
+          </div>
+          <div>
+            <label for="url">URL</label>
+            <input id="url" type="url" placeholder="https://example.com">
+          </div>
+          <div>
+            <label for="tel">Tel (pattern: 123-456-7890)</label>
+            <input id="tel" type="tel" pattern="\d{3}-\d{4}" placeholder="123-456-7890">
+          </div>
+          <div>
+            <label for="num">Number (0–10 step 0.5)</label>
+            <input id="num" type="number" min="0" max="10" step="0.5" value="5">
+          </div>
+          <div>
+            <label for="range">Range <output id="rangeOut" for="range">50</output></label>
+            <input id="range" type="range" min="0" max="100" value="50">
+          </div>
+          <div>
+            <label for="color">Color</label>
+            <input id="color" type="color" value="#6ea8fe">
+          </div>
+          <div>
+            <label for="date">Date</label>
+            <input id="date" type="date">
+          </div>
+          <div>
+            <label for="time">Time</label>
+            <input id="time" type="time">
+          </div>
+          <div>
+            <label for="list">Datalist (browser)</label>
+            <input id="list" list="browsers" placeholder="Choose…">
+            <datalist id="browsers">
+              <option value="Chrome"><option value="Firefox"><option value="Safari"><option value="Edge">
+            </datalist>
+          </div>
+          <div>
+            <label for="username">Username (minlength 4, custom message)</label>
+            <input id="username" type="text" minlength="4" required placeholder="at least 4 chars">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:.75rem">
+          <label><input type="checkbox" id="toggleNovalidate"> novalidate</label>
+          <button class="btn primary" type="submit">Submit</button>
+          <button class="btn" type="reset">Reset</button>
+        </div>
+        <p class="help">Try submitting empty/invalid to see native validation. Toggle novalidate to disable.</p>
+      </form>
+      <pre><code>&lt;input type="email" required&gt;
+&lt;input type="tel" pattern="\d{3}-\d{4}"&gt;
+&lt;input type="range"&gt; &lt;output&gt;&lt;/output&gt;
+&lt;form novalidate&gt; … &lt;/form&gt;</code></pre>
+    </section>
+
+    <section class="card" id="multimedia">
+      <h2>3. Multimedia</h2>
+      <div class="grid-2">
+        <div>
+          <h3>Audio (WAV data URI)</h3>
+          <audio controls src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+        </div>
+        <div>
+          <h3>Video + WebVTT (data URI track)</h3>
+          <video controls width="100%" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='100%25' height='100%25' fill='%23121821'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23cbd5e1' font-family='system-ui' font-size='24'%3EVideo Placeholder%3C/text%3E%3C/svg%3E">
+            <track kind="captions" srclang="en" label="English" default
+              src="data:text/vtt;charset=utf-8,WEBVTT%0A%0A00:00:00.000 --> 00:00:03.000%0AHello from a data URI WebVTT track!">
+          </video>
+        </div>
+      </div>
+      <h3>Picture + srcset (inline SVG)</h3>
+      <picture>
+        <source media="(min-width:800px)" srcset="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='200'%3E%3Crect width='100%25' height='100%25' fill='%236ea8fe'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='32' fill='white'%3ELarge 800w%3C/text%3E%3C/svg%3E">
+        <img alt="Responsive picture demo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='150'%3E%3Crect width='100%25' height='100%25' fill='%23a78bfa'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='white'%3ESmall%3C/text%3E%3C/svg%3E" style="width:100%;height:auto;border-radius:12px;border:1px solid var(--border)">
+      </picture>
+    </section>
+
+    <section class="card" id="canvas">
+      <h2>4. Canvas API – Drawing Pad</h2>
+      <div class="form-row">
+        <label>Color <input type="color" id="drawColor" value="#6ea8fe"></label>
+        <label>Size <input type="range" id="drawSize" min="1" max="40" value="6"></label>
+        <button class="btn" id="clearPad" type="button">Clear</button>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="pad" width="900" height="300" aria-label="Drawing pad"></canvas>
+      </div>
+      <pre><code>const ctx = canvas.getContext('2d');
+ctx.lineCap = 'round';
+// pointerdown → beginPath
+// pointermove → lineTo + stroke</code></pre>
+    </section>
+
+    <section class="card" id="svg">
+      <h2>5. Inline SVG – Gradient Circle</h2>
+      <div class="demo-box" style="display:grid;place-items:center">
+        <svg width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="Gradient circle">
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="var(--accent)"/>
+              <stop offset="100%" stop-color="var(--accent-2)"/>
+            </linearGradient>
+          </defs>
+          <circle cx="90" cy="90" r="70" fill="url(#grad)" class="hoverable"/>
+          <text x="90" y="96" text-anchor="middle" font-size="20" fill="white" font-weight="700">SVG</text>
+          <style>
+            .hoverable{transition:transform .25s}
+            .hoverable:hover{transform:scale(1.06);transform-origin:center}
+          </style>
+        </svg>
+      </div>
+      <pre><code>&lt;svg&gt;
+  &lt;defs&gt;&lt;linearGradient id="grad"&gt;...&lt;/linearGradient&gt;&lt;/defs&gt;
+  &lt;circle fill="url(#grad)" /&gt;
+&lt;/svg&gt;</code></pre>
+    </section>
+
+    <section class="card" id="selectors">
+      <h2>6. Selectors Playground</h2>
+      <label for="selectorInput">Enter any CSS selector:</label>
+      <input id="selectorInput" type="text" placeholder="e.g., ul > li.item[data-active='true']">
+      <p class="help">Matches: <strong id="matchCount">0</strong></p>
+      <div id="selectorDemo" class="demo-box">
+        <ul>
+          <li class="item" data-active="true">Item A</li>
+          <li class="item">Item B</li>
+          <li class="item" data-active="true">Item C</li>
+        </ul>
+        <p data-test="yes">Paragraph with data-test</p>
+        <p>Another <span class="item">span.item</span> in paragraph</p>
+        <button class="item">Button.item</button>
+      </div>
+      <pre><code>document.querySelectorAll(yourSelector)</code></pre>
+    </section>
+
+    <section class="card" id="boxmodel">
+      <h2>7. Box Model Visualizer</h2>
+      <div class="grid-2">
+        <div>
+          <label>Margin <input type="range" id="mRange" min="0" max="64" value="24"></label>
+          <label>Border <input type="range" id="bRange" min="0" max="32" value="16"></label>
+          <label>Padding <input type="range" id="pRange" min="0" max="64" value="24"></label>
+        </div>
+        <div class="box-model demo-box">
+          <div class="margin">
+            <div class="border">
+              <div class="padding">
+                <div class="content">Content</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3>Margin Collapse Demo</h3>
+      <div class="collapse-demo demo-box">
+        <div class="a">Box A margin-bottom: 40px</div>
+        <div class="b">Box B margin-top: 40px (collapses to 40px gap, not 80px)</div>
+      </div>
+    </section>
+
+    <section class="card" id="flexbox">
+      <h2>8. Flexbox Lab</h2>
+      <div class="flex-lab">
+        <div class="form-row">
+          <label>flex-direction
+            <select id="flexDir">
+              <option>row</option><option>row-reverse</option><option>column</option><option>column-reverse</option>
+            </select>
+          </label>
+          <label>justify-content
+            <select id="justify">
+              <option>flex-start</option><option selected>center</option><option>flex-end</option><option>space-between</option><option>space-around</option><option>space-evenly</option>
+            </select>
+          </label>
+          <label>align-items
+            <select id="align">
+              <option>stretch</option><option selected>center</option><option>flex-start</option><option>flex-end</option>
+            </select>
+          </label>
+          <label>gap <input type="range" id="flexGap" min="0" max="40" value="12"></label>
+        </div>
+        <div id="flexPreview" class="flex-preview">
+          <div>1</div><div>2</div><div>3</div>
+        </div>
+      </div>
+      <pre><code>.container{
+  display:flex;
+  flex-direction: row;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+}</code></pre>
+    </section>
+
+    <section class="card" id="grid">
+      <h2>9. Grid Lab</h2>
+      <div class="grid-lab">
+        <div class="form-row">
+          <label>columns (CSS value) <input id="gridCols" type="text" value="repeat(3, 1fr)"></label>
+          <label>rows <input id="gridRows" type="number" min="1" max="6" value="2"></label>
+          <label>gap <input id="gridGap" type="range" min="0" max="40" value="12"></label>
+        </div>
+        <div id="gridPreview" class="grid-preview">
+          <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div>
+        </div>
+      </div>
+      <h3>Auto-fit Example</h3>
+      <div class="demo-box" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center">A</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center">B</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center">C</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center">D</div>
+      </div>
+      <pre><code>grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));</code></pre>
+    </section>
+
+    <section class="card" id="variables">
+      <h2>10. CSS Variables Theming</h2>
+      <div class="form-row">
+        <label>--accent <input type="color" id="pickAccent" value="#6ea8fe"></label>
+        <label>--accent-2 <input type="color" id="pickAccent2" value="#a78bfa"></label>
+        <label>--bg <input type="color" id="pickBg" value="#0b0d12"></label>
+      </div>
+      <div class="demo-box">
+        <p class="clamp-demo">clamp() demo: resize window → font scales between 1rem and 2rem</p>
+        <p style="width:calc(100% - 40px);background:var(--bg);border:1px solid var(--border);padding:.5rem;border-radius:8px">calc() demo: width = calc(100% - 40px)</p>
+        <div class="aspect-box">16 / 9 aspect-ratio</div>
+      </div>
+      <pre><code>:root{ --accent:#6ea8fe; --accent-2:#a78bfa; }
+.box{ background:var(--accent); width:calc(100% - 40px); }
+.title{ font-size:clamp(1rem, 2vw + .5rem, 2rem); }
+.media{ aspect-ratio:16/9; }</code></pre>
+    </section>
+
+    <section class="card" id="motion">
+      <h2>11. Motion</h2>
+      <button class="btn transition-btn">Hover Transition</button>
+      <div class="form-row">
+        <label>Rotate <input type="range" id="rot" min="-180" max="180" value="0"></label>
+        <label>Scale <input type="range" id="scl" min="50" max="200" value="100"></label>
+        <button class="btn" id="resetTransform">Reset</button>
+        <button class="btn" id="toggleBounce">Toggle Bounce</button>
+      </div>
+      <div id="motionBox" class="motion-box"></div>
+      <pre><code>transition: transform .25s ease;
+transform: rotate(20deg) scale(1.2);
+animation: bounce .8s infinite;</code></pre>
+    </section>
+
+    <section class="card" id="advanced">
+      <h2>12. Advanced CSS</h2>
+      <h3>Clip-path Gallery</h3>
+      <div class="clip-grid">
+        <div class="clip circle"></div>
+        <div class="clip hex"></div>
+        <div class="clip star"></div>
+      </div>
+      <h3>Backdrop-filter Glass</h3>
+      <div class="glass">
+        <div class="cardy">Glassmorphism card with backdrop-filter: blur(10px)</div>
+      </div>
+      <h3>Container Query (resize me)</h3>
+      <div class="resizable">
+        <div class="cq-inner">
+          <div class="demo-box">Panel A</div>
+          <div class="demo-box">Panel B</div>
+        </div>
+        <p class="help">Drag the right edge. Layout switches at 420px container width.</p>
+      </div>
+      <h3>:has() Validation Demo</h3>
+      <form class="has-demo">
+        <label for="hasInput">Type "ok" to be valid (pattern)</label>
+        <input id="hasInput" pattern="ok" required placeholder="ok">
+        <p class="help">Form border turns red when child input is invalid.</p>
+      </form>
+      <h3>Scroll Snap Carousel</h3>
+      <div class="carousel" aria-label="Scroll snap demo">
+        <div>Slide 1</div><div>Slide 2</div><div>Slide 3</div><div>Slide 4</div><div>Slide 5</div>
+      </div>
+      <p class="help">Progress bar at top uses CSS Scroll-driven Animations with JS fallback.</p>
+    </section>
+
+    <section class="card" id="responsive">
+      <h2>13. Responsive Design</h2>
+      <p>Viewport width: <strong class="viewport-indicator" id="vw">–</strong> px</p>
+      <div class="auto-grid">
+        <div>Card 1</div><div>Card 2</div><div>Card 3</div><div>Card 4</div><div>Card 5</div>
+      </div>
+      <pre><code>.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }</code></pre>
+    </section>
+
+    <section class="card" id="a11y">
+      <h2>14. Accessibility</h2>
+      <h3>Focus-visible</h3>
+      <div class="form-row">
+        <button class="btn">Button</button>
+        <a href="#a11y" class="btn">Link</a>
+        <input type="text" placeholder="Focus me">
+      </div>
+      <h3>ARIA Live Region</h3>
+      <button class="btn" id="addMessage">Add message</button>
+      <div id="liveRegion" class="live" aria-live="polite" aria-atomic="false"></div>
+      <h3>Prefers Reduced Motion</h3>
+      <div class="spinner" role="status" aria-label="Loading"></div>
+      <p class="help">Spinner stops animating if you enable “Reduce motion” in OS settings.</p>
+    </section>
+
+    <section class="card" id="apis">
+      <h2>15. HTML5 APIs + Todo Mini-Project</h2>
+      <div class="grid-2">
+        <div>
+          <h3>localStorage Note</h3>
+          <textarea id="note" rows="3" placeholder="Type a note…"></textarea>
+          <div class="form-row">
+            <button class="btn" id="saveNote">Save</button>
+            <button class="btn" id="loadNote">Load</button>
+            <span id="noteStatus" class="help"></span>
+          </div>
+        </div>
+        <div>
+          <h3>sessionStorage Counter</h3>
+          <p>Views this session: <strong id="sessionCount">0</strong></p>
+          <button class="btn" id="incSession">Increment</button>
+        </div>
+      </div>
+
+      <h3>Drag & Drop Reorder</h3>
+      <ul class="dnd-list" id="dndList">
+        <li draggable="true">Item 1</li>
+        <li draggable="true">Item 2</li>
+        <li draggable="true">Item 3</li>
+        <li draggable="true">Item 4</li>
+      </ul>
+
+      <div class="grid-2">
+        <div>
+          <h3>Geolocation</h3>
+          <button class="btn" id="geoBtn">Get location</button>
+          <p id="geoOut" class="help"></p>
+        </div>
+        <div>
+          <h3>Notifications</h3>
+          <button class="btn" id="notifBtn">Request permission</button>
+          <p id="notifOut" class="help"></p>
+        </div>
+      </div>
+
+      <h3>Details / Summary</h3>
+      <details>
+        <summary>What is this?</summary>
+        <p>Native accordion without JavaScript.</p>
+      </details>
+
+      <h3>Dialog</h3>
+      <button class="btn" id="openDialog">Open dialog</button>
+      <dialog id="dlg">
+        <form method="dialog">
+          <h3>Native &lt;dialog&gt;</h3>
+          <p>Press Esc or click Close.</p>
+          <button class="btn primary">Close</button>
+        </form>
+      </dialog>
+
+      <h3>Popover API</h3>
+      <button class="btn" popovertarget="pop">Toggle popover</button>
+      <div id="pop" popover class="demo-box" style="position:fixed;inset:auto;top:20%;left:50%;transform:translateX(-50%);width:min(90vw,320px)">
+        <strong>Popover</strong>
+        <p>This uses the Popover API. No JS needed.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>Todo List Mini-Project (persisted)</h3>
+      <div class="todo">
+        <form id="todoForm" class="form-row">
+          <input id="todoInput" type="text" placeholder="Add a task…" required>
+          <button class="btn primary" type="submit">Add</button>
+        </form>
+        <ul id="todoList"></ul>
+      </div>
+      <pre><code>// localStorage CRUD
+// :has() styles completed items
+li:has(input:checked) { text-decoration: line-through; }</code></pre>
+    </section>
+  </main>
+</div>
+
+<footer class="site-footer">
+  Built as a single-file offline masterclass. No external dependencies.
+</footer>
+
+<script>
+// Theme toggle
+const root = document.documentElement;
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('mc-theme');
+if(savedTheme){ root.setAttribute('data-theme', savedTheme); themeToggle.setAttribute('aria-pressed', savedTheme === 'light'); }
+themeToggle.addEventListener('click', ()=>{
+  const current = root.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('mc-theme', next);
+  themeToggle.setAttribute('aria-pressed', next === 'light');
+});
+
+// Sidebar mobile
+const menuBtn = document.getElementById('menuBtn');
+const sidebar = document.getElementById('sidebar');
+const backdrop = document.getElementById('backdrop');
+function closeNav(){ sidebar.classList.remove('open'); backdrop.hidden = true; menuBtn.setAttribute('aria-expanded','false'); }
+function openNav(){ sidebar.classList.add('open'); backdrop.hidden = false; menuBtn.setAttribute('aria-expanded','true'); }
+menuBtn.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeNav() : openNav());
+backdrop.addEventListener('click', closeNav);
+
+// Copy buttons for pre > code
+document.querySelectorAll('pre').forEach(pre=>{
+  if(!pre.querySelector('.copy')){
+    const btn = document.createElement('button');
+    btn.className = 'copy';
+    btn.type = 'button';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', async ()=>{
+      const code = pre.querySelector('code');
+      try{ await navigator.clipboard.writeText(code.innerText); btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy',1200);}catch(e){ btn.textContent='Error'; }
+    });
+    pre.appendChild(btn);
+  }
+});
+
+// Forms: range output + novalidate + custom validation
+const range = document.getElementById('range');
+const rangeOut = document.getElementById('rangeOut');
+range.addEventListener('input', ()=> rangeOut.value = range.value);
+const deepForm = document.getElementById('deepForm');
+const toggleNovalidate = document.getElementById('toggleNovalidate');
+toggleNovalidate.addEventListener('change', ()=> deepForm.noValidate = toggleNovalidate.checked);
+const username = document.getElementById('username');
+username.addEventListener('input', ()=>{
+  if(username.validity.tooShort){
+    username.setCustomValidity('Username must be at least 4 characters.');
+  }else{
+    username.setCustomValidity('');
+  }
+});
+deepForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  alert('Form submitted (demo).');
+});
+
+// Canvas drawing
+const canvas = document.getElementById('pad');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+let lastX = 0, lastY = 0;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+function getPos(e){
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {x: x*scaleX, y: y*scaleY};
+}
+function startDraw(e){ drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }
+function draw(e){
+  if(!drawing) return;
+  e.preventDefault();
+  const p = getPos(e);
+  ctx.strokeStyle = document.getElementById('drawColor').value;
+  ctx.lineWidth = document.getElementById('drawSize').value;
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  lastX = p.x; lastY = p.y;
+}
+function endDraw(){ drawing = false; }
+canvas.addEventListener('pointerdown', startDraw);
+canvas.addEventListener('pointermove', draw);
+window.addEventListener('pointerup', endDraw);
+canvas.addEventListener('touchstart', startDraw, {passive:false});
+canvas.addEventListener('touchmove', draw, {passive:false});
+window.addEventListener('touchend', endDraw);
+document.getElementById('clearPad').addEventListener('click', ()=> ctx.clearRect(0,0,canvas.width,canvas.height));
+
+// Selectors playground
+const selectorInput = document.getElementById('selectorInput');
+const selectorDemo = document.getElementById('selectorDemo');
+const matchCount = document.getElementById('matchCount');
+function updateMatches(){
+  selectorDemo.querySelectorAll('.match').forEach(el=> el.classList.remove('match'));
+  const sel = selectorInput.value.trim();
+  if(!sel){ matchCount.textContent = '0'; return; }
+  try{
+    const nodes = selectorDemo.querySelectorAll(sel);
+    nodes.forEach(n=> n.classList.add('match'));
+    matchCount.textContent = nodes.length;
+  }catch(err){
+    matchCount.textContent = 'Invalid selector';
+  }
+}
+selectorInput.addEventListener('input', updateMatches);
+selectorInput.value = '.item';
+updateMatches();
+
+// Box model visualizer
+const mRange = document.getElementById('mRange');
+const bRange = document.getElementById('bRange');
+const pRange = document.getElementById('pRange');
+function updateBox(){
+  document.querySelector('.box-model .margin').style.setProperty('--m', mRange.value+'px');
+  document.querySelector('.box-model .border').style.setProperty('--b', bRange.value+'px');
+  document.querySelector('.box-model .padding').style.setProperty('--p', pRange.value+'px');
+}
+[mRange,bRange,pRange].forEach(el=> el.addEventListener('input', updateBox));
+updateBox();
+
+// Flexbox lab
+const flexPreview = document.getElementById('flexPreview');
+document.getElementById('flexDir').addEventListener('change', e=> flexPreview.style.flexDirection = e.target.value);
+document.getElementById('justify').addEventListener('change', e=> flexPreview.style.justifyContent = e.target.value);
+document.getElementById('align').addEventListener('change', e=> flexPreview.style.alignItems = e.target.value);
+document.getElementById('flexGap').addEventListener('input', e=> flexPreview.style.gap = e.target.value+'px');
+
+// Grid lab
+const gridPreview = document.getElementById('gridPreview');
+document.getElementById('gridCols').addEventListener('input', e=> gridPreview.style.gridTemplateColumns = e.target.value);
+document.getElementById('gridRows').addEventListener('input', e=> gridPreview.style.gridTemplateRows = `repeat(${e.target.value}, 100px)`);
+document.getElementById('gridGap').addEventListener('input', e=> gridPreview.style.gap = e.target.value+'px');
+gridPreview.style.gridTemplateColumns = 'repeat(3, 1fr)';
+gridPreview.style.gridTemplateRows = 'repeat(2, 100px)';
+gridPreview.style.gap = '12px';
+
+// CSS variables theming
+document.getElementById('pickAccent').addEventListener('input', e=> root.style.setProperty('--accent', e.target.value));
+document.getElementById('pickAccent2').addEventListener('input', e=> root.style.setProperty('--accent-2', e.target.value));
+document.getElementById('pickBg').addEventListener('input', e=> root.style.setProperty('--bg', e.target.value));
+
+// Motion
+const motionBox = document.getElementById('motionBox');
+const rot = document.getElementById('rot');
+const scl = document.getElementById('scl');
+function updateTransform(){
+  const r = rot.value;
+  const s = scl.value/100;
+  motionBox.style.transform = `rotate(${r}deg) scale(${s})`;
+}
+rot.addEventListener('input', updateTransform);
+scl.addEventListener('input', updateTransform);
+document.getElementById('resetTransform').addEventListener('click', ()=>{ rot.value=0; scl.value=100; updateTransform(); });
+document.getElementById('toggleBounce').addEventListener('click', ()=> motionBox.classList.toggle('bounce'));
+updateTransform();
+
+// Scroll progress fallback
+const progress = document.getElementById('progress');
+if(!CSS.supports('animation-timeline: scroll()')){
+  const onScroll = ()=>{
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    progress.style.width = (scrolled * 100) + '%';
+  };
+  document.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+}
+
+// Responsive indicator
+const vw = document.getElementById('vw');
+function updateVW(){ vw.textContent = window.innerWidth; }
+window.addEventListener('resize', updateVW);
+updateVW();
+
+// ARIA live region
+let msgCount = 0;
+document.getElementById('addMessage').addEventListener('click', ()=>{
+  msgCount++;
+  const p = document.createElement('p');
+  p.textContent = `Message ${msgCount} at ${new Date().toLocaleTimeString()}`;
+  document.getElementById('liveRegion').appendChild(p);
+});
+
+// localStorage note
+const note = document.getElementById('note');
+const noteStatus = document.getElementById('noteStatus');
+document.getElementById('saveNote').addEventListener('click', ()=>{
+  localStorage.setItem('mc-note', note.value);
+  noteStatus.textContent = 'Saved!';
+  setTimeout(()=> noteStatus.textContent='',1200);
+});
+document.getElementById('loadNote').addEventListener('click', ()=>{
+  note.value = localStorage.getItem('mc-note') || '';
+  noteStatus.textContent = 'Loaded!';
+  setTimeout(()=> noteStatus.textContent='',1200);
+});
+note.value = localStorage.getItem('mc-note') || '';
+
+// sessionStorage counter
+const sessionCount = document.getElementById('sessionCount');
+let s = Number(sessionStorage.getItem('mc-session') || 0);
+s++;
+sessionStorage.setItem('mc-session', s);
+sessionCount.textContent = s;
+document.getElementById('incSession').addEventListener('click', ()=>{
+  s++; sessionStorage.setItem('mc-session', s); sessionCount.textContent = s;
+});
+
+// Drag & drop reorder
+const dndList = document.getElementById('dndList');
+let dragEl = null;
+dndList.querySelectorAll('li').forEach(li=>{
+  li.addEventListener('dragstart', ()=>{ dragEl = li; li.classList.add('dragging'); });
+  li.addEventListener('dragend', ()=>{ li.classList.remove('dragging'); dragEl = null; });
+  li.addEventListener('dragover', e=>{
+    e.preventDefault();
+    const after = [...dndList.querySelectorAll('li:not(.dragging)')].find(sib=>{
+      const rect = sib.getBoundingClientRect();
+      return e.clientY < rect.top + rect.height/2;
+    });
+    dndList.insertBefore(dragEl, after || null);
+  });
+});
+
+// Geolocation
+document.getElementById('geoBtn').addEventListener('click', ()=>{
+  const out = document.getElementById('geoOut');
+  if(!navigator.geolocation){ out.textContent = 'Geolocation not supported.'; return; }
+  out.textContent = 'Locating…';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    out.textContent = `Lat ${pos.coords.latitude.toFixed(4)}, Lon ${pos.coords.longitude.toFixed(4)}`;
+  }, err=> out.textContent = 'Error: ' + err.message);
+});
+
+// Notifications
+document.getElementById('notifBtn').addEventListener('click', async ()=>{
+  const out = document.getElementById('notifOut');
+  if(!('Notification' in window)){ out.textContent = 'Notifications not supported.'; return; }
+  const perm = await Notification.requestPermission();
+  out.textContent = 'Permission: ' + perm;
+  if(perm === 'granted'){ new Notification('Masterclass', { body: 'Notifications enabled!' }); }
+});
+
+// Dialog
+const dlg = document.getElementById('dlg');
+document.getElementById('openDialog').addEventListener('click', ()=> dlg.showModal());
+
+// Todo app
+const todoForm = document.getElementById('todoForm');
+const todoInput = document.getElementById('todoInput');
+const todoList = document.getElementById('todoList');
+let todos = JSON.parse(localStorage.getItem('mc-todos') || '[]');
+function renderTodos(){
+  todoList.innerHTML = '';
+  todos.forEach((t, i)=>{
+    const li = document.createElement('li');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = t.done;
+    cb.addEventListener('change', ()=>{ t.done = cb.checked; saveTodos(); });
+    const span = document.createElement('span');
+    span.textContent = t.text;
+    const del = document.createElement('button');
+    del.textContent = '✕';
+    del.title = 'Delete';
+    del.addEventListener('click', ()=>{ todos.splice(i,1); saveTodos(); renderTodos(); });
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    actions.appendChild(del);
+    li.appendChild(cb);
+    li.appendChild(span);
+    li.appendChild(actions);
+    todoList.appendChild(li);
+  });
+}
+function saveTodos(){ localStorage.setItem('mc-todos', JSON.stringify(todos)); }
+todoForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const text = todoInput.value.trim();
+  if(!text) return;
+  todos.push({text, done:false});
+  todoInput.value = '';
+  saveTodos();
+  renderTodos();
+});
+renderTodos();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+</body>
+</html>

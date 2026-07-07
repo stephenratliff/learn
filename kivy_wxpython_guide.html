@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python GUI on macOS — Kivy & wxPython Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Literata:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --panel:     #13161e;
+    --border:    #1e2330;
+    --kivy-a:    #00e5a0;
+    --kivy-b:    #00b87a;
+    --wx-a:      #ff9f43;
+    --wx-b:      #e07b20;
+    --text:      #cdd3e0;
+    --muted:     #5a6275;
+    --code-bg:   #090b10;
+    --highlight: #1a2030;
+    --white:     #f0f4ff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Literata', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    overflow: hidden;
+    padding: 72px 40px 56px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    background: linear-gradient(160deg, #0d0f14 0%, #111620 60%, #0d0f14 100%);
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 25% 50%, rgba(0,229,160,.07) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 80% at 75% 50%, rgba(255,159,67,.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-badge {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 5px 14px;
+    border-radius: 30px;
+    margin-bottom: 28px;
+  }
+  .header-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--kivy-a); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -.02em;
+    line-height: 1.1;
+    margin-bottom: 18px;
+  }
+  h1 .k  { color: var(--kivy-a); }
+  h1 .wx { color: var(--wx-a); }
+  .subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── FRAMEWORK TABS ── */
+  .fw-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin: 0 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+  }
+  .fw-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 24px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s, background .2s;
+    user-select: none;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .fw-tab .dot { width: 9px; height: 9px; border-radius: 50%; transition: background .2s; }
+  .fw-tab.kivy-tab .dot  { background: var(--muted); }
+  .fw-tab.wx-tab   .dot  { background: var(--muted); }
+  .fw-tab.kivy-tab.active { color: var(--kivy-a); border-bottom-color: var(--kivy-a); }
+  .fw-tab.kivy-tab.active .dot { background: var(--kivy-a); }
+  .fw-tab.wx-tab.active   { color: var(--wx-a);   border-bottom-color: var(--wx-a); }
+  .fw-tab.wx-tab.active   .dot { background: var(--wx-a); }
+  .fw-tab:hover:not(.active) { color: var(--text); background: var(--highlight); }
+
+  /* ── PANELS ── */
+  .fw-panel { display: none; }
+  .fw-panel.active { display: block; }
+
+  /* ── SIDEBAR + CONTENT ── */
+  .guide-body {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* ── NAV ── */
+  .guide-nav {
+    border-right: 1px solid var(--border);
+    padding: 36px 0 36px;
+    position: sticky;
+    top: 57px;
+    height: calc(100vh - 57px);
+    overflow-y: auto;
+  }
+  .nav-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 24px;
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .15s, background .15s;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--highlight); }
+  .kivy-panel  .nav-item.active,
+  .kivy-panel  .nav-item:hover { border-left-color: var(--kivy-a); color: var(--kivy-a); }
+  .wx-panel    .nav-item.active,
+  .wx-panel    .nav-item:hover { border-left-color: var(--wx-a);   color: var(--wx-a); }
+  .nav-item .num {
+    font-size: 10px;
+    opacity: .45;
+    min-width: 16px;
+  }
+
+  /* ── ARTICLE ── */
+  .guide-content {
+    padding: 52px 56px 80px;
+    max-width: 780px;
+  }
+
+  /* ── LESSON ── */
+  .lesson {
+    margin-bottom: 72px;
+    scroll-margin-top: 80px;
+  }
+  .lesson-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .lesson-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .kivy-panel  .lesson-num { background: rgba(0,229,160,.12); color: var(--kivy-a); }
+  .wx-panel    .lesson-num { background: rgba(255,159,67,.12);  color: var(--wx-a); }
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -.01em;
+    line-height: 1.2;
+  }
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--white);
+    margin: 32px 0 12px;
+  }
+  p { margin-bottom: 16px; color: var(--text); }
+
+  /* ── CODE ── */
+  .code-block {
+    position: relative;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 20px 0 28px;
+    overflow: hidden;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,.02);
+  }
+  .code-lang {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dots .d1 { background: #ff5f57; }
+  .code-dots .d2 { background: #febc2e; }
+  .code-dots .d3 { background: #28c840; }
+  pre {
+    padding: 22px 22px;
+    overflow-x: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #b0bcd8;
+    tab-size: 4;
+  }
+  .kw  { color: #c792ea; }
+  .fn  { color: #82aaff; }
+  .st  { color: #c3e88d; }
+  .cm  { color: #444c66; font-style: italic; }
+  .cl  { color: #ffcb6b; }
+  .nm  { color: #f78c6c; }
+  .dc  { color: var(--kivy-a); }
+  .wx-dc { color: var(--wx-a); }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-left: 3px solid;
+    padding: 14px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 20px 0;
+    font-size: .93rem;
+  }
+  .callout.tip   { border-color: var(--kivy-a); background: rgba(0,229,160,.06); }
+  .callout.tip p { color: rgba(0,229,160,.8); margin: 0; }
+  .callout.warn  { border-color: var(--wx-a);  background: rgba(255,159,67,.06); }
+  .callout.warn p{ color: rgba(255,159,67,.8); margin: 0; }
+  .callout.info  { border-color: #82aaff; background: rgba(130,170,255,.06); }
+  .callout.info p{ color: rgba(130,170,255,.85); margin: 0; }
+  .callout-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+    opacity: .7;
+  }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .85em;
+    background: rgba(255,255,255,.07);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #e0e6f5;
+  }
+
+  /* ── STEP LIST ── */
+  .steps { list-style: none; counter-reset: steps; padding: 0; }
+  .steps li {
+    counter-increment: steps;
+    position: relative;
+    padding: 14px 14px 14px 58px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    font-size: .95rem;
+  }
+  .steps li::before {
+    content: counter(steps);
+    position: absolute;
+    left: 16px;
+    top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .kivy-panel .steps li::before  { background: rgba(0,229,160,.15); color: var(--kivy-a); }
+  .wx-panel   .steps li::before  { background: rgba(255,159,67,.15);  color: var(--wx-a); }
+
+  /* ── TABLE ── */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+    margin: 20px 0 28px;
+  }
+  .comp-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    border-bottom: 2px solid var(--border);
+    color: var(--muted);
+    text-align: left;
+  }
+  .comp-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .comp-table tr:hover td { background: var(--highlight); }
+
+  /* ── DIVIDER ── */
+  .lesson-divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 0 0 72px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-ring {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .progress-bar {
+    width: 120px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+  .kivy-panel  .progress-fill { background: var(--kivy-a); }
+  .wx-panel    .progress-fill { background: var(--wx-a); }
+
+  /* ── INTRO CARD ── */
+  .intro-card {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    margin-bottom: 40px;
+    align-items: flex-start;
+  }
+  .intro-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .intro-card h3 { margin: 0 0 6px; font-size: 1rem; }
+  .intro-card p  { margin: 0; font-size: .9rem; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .guide-body { grid-template-columns: 1fr; }
+    .guide-nav  { display: none; }
+    .guide-content { padding: 32px 24px 60px; }
+    header { padding: 48px 24px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-badge"><span></span>macOS Tutorial Guide</div>
+  <h1>Python GUI Dev:<br><span class="k">Kivy</span> & <span class="wx">wxPython</span></h1>
+  <p class="subtitle">A learn-as-you-go tutorial for building desktop & mobile GUI apps on your Mac — from zero to functional.</p>
+</header>
+
+<!-- ═══════════════════  TABS  ═══════════════════ -->
+<div class="fw-tabs">
+  <button class="fw-tab kivy-tab active" onclick="switchTab('kivy')">
+    <span class="dot"></span> Kivy
+  </button>
+  <button class="fw-tab wx-tab" onclick="switchTab('wx')">
+    <span class="dot"></span> wxPython
+  </button>
+</div>
+
+<!-- ═══════════════════  KIVY PANEL  ═══════════════════ -->
+<div id="kivy-panel" class="fw-panel kivy-panel active">
+  <div class="guide-body">
+    <nav class="guide-nav">
+      <div class="nav-section-label">Getting Started</div>
+      <a class="nav-item active" href="#k1"><span class="num">01</span> What is Kivy?</a>
+      <a class="nav-item" href="#k2"><span class="num">02</span> Installation</a>
+      <a class="nav-item" href="#k3"><span class="num">03</span> Hello, World!</a>
+      <div class="nav-section-label">Core Concepts</div>
+      <a class="nav-item" href="#k4"><span class="num">04</span> Widgets</a>
+      <a class="nav-item" href="#k5"><span class="num">05</span> Layouts</a>
+      <a class="nav-item" href="#k6"><span class="num">06</span> KV Language</a>
+      <a class="nav-item" href="#k7"><span class="num">07</span> Events & Binding</a>
+      <div class="nav-section-label">Going Deeper</div>
+      <a class="nav-item" href="#k8"><span class="num">08</span> Screen Manager</a>
+      <a class="nav-item" href="#k9"><span class="num">09</span> Canvas & Graphics</a>
+      <a class="nav-item" href="#k10"><span class="num">10</span> A Mini App</a>
+    </nav>
+
+    <article class="guide-content">
+
+      <!-- LESSON 1 -->
+      <section class="lesson" id="k1">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 01</span>
+          <h2>What is Kivy?</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div>10% complete</div>
+
+        <div class="intro-card">
+          <div class="intro-icon">🐍</div>
+          <div>
+            <h3>Cross-Platform GUI & Touch Framework</h3>
+            <p>Kivy is a free, open-source Python library for developing multi-touch applications. It runs on macOS, Windows, Linux, Android, and iOS — write once, deploy everywhere.</p>
+          </div>
+        </div>
+
+        <p>Kivy is not a "native" UI toolkit (its widgets look the same on every platform, rendered via OpenGL ES 2). This makes it ideal for apps that need a custom look, games, or mobile targets. It's less suited to apps that must blend into the OS's native aesthetic.</p>
+
+        <table class="comp-table">
+          <thead><tr><th>Feature</th><th>Kivy</th></tr></thead>
+          <tbody>
+            <tr><td>Targets</td><td>macOS, Windows, Linux, Android, iOS</td></tr>
+            <tr><td>Rendering</td><td>OpenGL ES 2 (GPU accelerated)</td></tr>
+            <tr><td>Touch/Gesture</td><td>First-class support</td></tr>
+            <tr><td>License</td><td>MIT</td></tr>
+            <tr><td>Layout language</td><td>KV Language (declarative)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout tip">
+          <span class="callout-label">💡 Best For</span>
+          <p>Custom-styled apps, games, cross-platform mobile/desktop apps, touch-based UIs.</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 2 -->
+      <section class="lesson" id="k2">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 02</span>
+          <h2>Installing Kivy on macOS</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>20% complete</div>
+
+        <p>Kivy on macOS works best inside a virtual environment. Follow these steps:</p>
+
+        <ol class="steps">
+          <li>Install Python 3.11+ from <strong>python.org</strong> (or via Homebrew: <code>brew install python</code>).</li>
+          <li>Create and activate a virtual environment:<br>
+            <code>python3 -m venv kivyenv &amp;&amp; source kivyenv/bin/activate</code>
+          </li>
+          <li>Upgrade pip: <code>pip install --upgrade pip</code></li>
+          <li>Install Kivy with all dependencies:<br>
+            <code>pip install "kivy[base]"</code>
+          </li>
+          <li>Verify: <code>python -c "import kivy; print(kivy.__version__)"</code></li>
+        </ol>
+
+        <div class="callout warn">
+          <span class="callout-label">⚠️ macOS Note</span>
+          <p>On Apple Silicon (M1/M2/M3) Macs, make sure your Python is the ARM-native version from python.org — not the Rosetta one — to avoid OpenGL issues.</p>
+        </div>
+
+        <h3>Optional: Install SDL2 via Homebrew</h3>
+        <p>If you encounter display errors, install the system SDL2 library first:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Terminal</span>
+          </div>
+          <pre>brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer</pre>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 3 -->
+      <section class="lesson" id="k3">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 03</span>
+          <h2>Hello, Kivy World!</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div>30% complete</div>
+
+        <p>Every Kivy app inherits from <code>App</code> and implements a <code>build()</code> method that returns the root widget.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — hello.py</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+<span class="kw">from</span> kivy.uix.label <span class="kw">import</span> <span class="cl">Label</span>
+
+<span class="kw">class</span> <span class="cl">HelloApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="nm">self</span>):
+        <span class="cm"># Return the root widget — a simple Label</span>
+        <span class="kw">return</span> <span class="cl">Label</span>(text=<span class="st">'Hello, Kivy on macOS!'</span>)
+
+<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:
+    <span class="cl">HelloApp</span>().run()</pre>
+        </div>
+
+        <p>Run it from your terminal (with the venv active):</p>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Terminal</span>
+          </div>
+          <pre>python hello.py</pre>
+        </div>
+
+        <p>A black window with white centred text will appear — you've written your first Kivy app!</p>
+
+        <div class="callout tip">
+          <span class="callout-label">💡 Class Naming</span>
+          <p>Kivy strips "App" from your class name to produce the window title. <code>HelloApp</code> → title becomes "Hello".</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 4 -->
+      <section class="lesson" id="k4">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 04</span>
+          <h2>Widgets — The Building Blocks</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>40% complete</div>
+
+        <p>Everything visible in a Kivy app is a <strong>Widget</strong>. Common ones include:</p>
+
+        <table class="comp-table">
+          <thead><tr><th>Widget</th><th>Import path</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>Label</code></td><td>kivy.uix.label</td><td>Display text</td></tr>
+            <tr><td><code>Button</code></td><td>kivy.uix.button</td><td>Clickable button</td></tr>
+            <tr><td><code>TextInput</code></td><td>kivy.uix.textinput</td><td>User text entry</td></tr>
+            <tr><td><code>Image</code></td><td>kivy.uix.image</td><td>Display images</td></tr>
+            <tr><td><code>CheckBox</code></td><td>kivy.uix.checkbox</td><td>Toggle checkbox</td></tr>
+            <tr><td><code>Slider</code></td><td>kivy.uix.slider</td><td>Value slider</td></tr>
+            <tr><td><code>ToggleButton</code></td><td>kivy.uix.togglebutton</td><td>On/off toggle</td></tr>
+          </tbody>
+        </table>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — button example</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+<span class="kw">from</span> kivy.uix.button <span class="kw">import</span> <span class="cl">Button</span>
+
+<span class="kw">class</span> <span class="cl">BtnApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="nm">self</span>):
+        btn = <span class="cl">Button</span>(
+            text=<span class="st">'Click me!'</span>,
+            font_size=<span class="nm">24</span>,
+            background_color=(<span class="nm">0.2</span>, <span class="nm">0.6</span>, <span class="nm">1</span>, <span class="nm">1</span>)  <span class="cm"># R,G,B,A floats</span>
+        )
+        btn.bind(on_press=<span class="nm">self</span>.on_btn_press)
+        <span class="kw">return</span> btn
+
+    <span class="kw">def</span> <span class="fn">on_btn_press</span>(<span class="nm">self</span>, instance):
+        instance.text = <span class="st">'Pressed!'</span>
+
+<span class="cl">BtnApp</span>().run()</pre>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 5 -->
+      <section class="lesson" id="k5">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 05</span>
+          <h2>Layouts — Arranging Widgets</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>50% complete</div>
+
+        <p>Widgets need a <strong>Layout</strong> container to position them on screen. Kivy ships with several:</p>
+
+        <table class="comp-table">
+          <thead><tr><th>Layout</th><th>Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td><code>BoxLayout</code></td><td>Stack widgets horizontally or vertically</td></tr>
+            <tr><td><code>GridLayout</code></td><td>Fixed rows × columns grid</td></tr>
+            <tr><td><code>FloatLayout</code></td><td>Absolute or relative position/size</td></tr>
+            <tr><td><code>AnchorLayout</code></td><td>Anchor child to a corner or edge</td></tr>
+            <tr><td><code>StackLayout</code></td><td>Like CSS flexbox wrap</td></tr>
+          </tbody>
+        </table>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — BoxLayout</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+<span class="kw">from</span> kivy.uix.boxlayout <span class="kw">import</span> <span class="cl">BoxLayout</span>
+<span class="kw">from</span> kivy.uix.button <span class="kw">import</span> <span class="cl">Button</span>
+<span class="kw">from</span> kivy.uix.label <span class="kw">import</span> <span class="cl">Label</span>
+
+<span class="kw">class</span> <span class="cl">LayoutApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="nm">self</span>):
+        layout = <span class="cl">BoxLayout</span>(orientation=<span class="st">'vertical'</span>, padding=<span class="nm">20</span>, spacing=<span class="nm">10</span>)
+        layout.add_widget(<span class="cl">Label</span>(text=<span class="st">'Name:'</span>, size_hint_y=<span class="nm">None</span>, height=<span class="nm">40</span>))
+        layout.add_widget(<span class="cl">Button</span>(text=<span class="st">'Submit'</span>))
+        <span class="kw">return</span> layout
+
+<span class="cl">LayoutApp</span>().run()</pre>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-label">ℹ️ size_hint</span>
+          <p><code>size_hint</code> is a 0–1 fraction of the parent's size. Set <code>size_hint_y=None</code> and <code>height=40</code> for a fixed-pixel height widget.</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 6 -->
+      <section class="lesson" id="k6">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 06</span>
+          <h2>KV Language — Declarative UI</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>60% complete</div>
+
+        <p>Defining widgets in Python quickly becomes verbose. <strong>KV Language</strong> is Kivy's built-in declarative language — like YAML meets CSS for your UI structure.</p>
+
+        <p>Create <code>myapp.kv</code> alongside your Python file (Kivy loads it automatically based on your App class name):</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">KV — myapp.kv</span>
+          </div>
+          <pre><span class="dc">BoxLayout</span>:
+    orientation: <span class="st">'vertical'</span>
+    padding: <span class="nm">20</span>
+    spacing: <span class="nm">12</span>
+
+    <span class="cl">Label</span>:
+        text: <span class="st">'Enter your name:'</span>
+        font_size: <span class="nm">18</span>
+
+    <span class="cl">TextInput</span>:
+        id: name_input
+        hint_text: <span class="st">'Type here...'</span>
+        size_hint_y: <span class="nm">None</span>
+        height: <span class="nm">44</span>
+
+    <span class="cl">Button</span>:
+        text: <span class="st">'Greet'</span>
+        size_hint_y: <span class="nm">None</span>
+        height: <span class="nm">50</span>
+        on_press: app.greet(name_input.text)</pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — myapp.py</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+
+<span class="kw">class</span> <span class="cl">MyApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">greet</span>(<span class="nm">self</span>, name):
+        <span class="fn">print</span>(<span class="st">f'Hello, {name}!'</span>)
+
+<span class="cl">MyApp</span>().run()</pre>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-label">💡 Pro Tip</span>
+          <p>You can also embed KV strings directly with <code>Builder.load_string()</code> — great for single-file apps.</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 7 -->
+      <section class="lesson" id="k7">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 07</span>
+          <h2>Events & Property Binding</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:70%"></div></div>70% complete</div>
+
+        <p>Kivy uses a reactive <strong>property system</strong>. When a property changes, bound callbacks fire automatically — no manual event listeners needed in most cases.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — reactive property</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+<span class="kw">from</span> kivy.uix.slider <span class="kw">import</span> <span class="cl">Slider</span>
+<span class="kw">from</span> kivy.uix.label <span class="kw">import</span> <span class="cl">Label</span>
+<span class="kw">from</span> kivy.uix.boxlayout <span class="kw">import</span> <span class="cl">BoxLayout</span>
+
+<span class="kw">class</span> <span class="cl">SliderApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="nm">self</span>):
+        box = <span class="cl">BoxLayout</span>(orientation=<span class="st">'vertical'</span>, padding=<span class="nm">30</span>)
+        <span class="nm">self</span>.label = <span class="cl">Label</span>(text=<span class="st">'Value: 50'</span>, font_size=<span class="nm">22</span>)
+        slider = <span class="cl">Slider</span>(min=<span class="nm">0</span>, max=<span class="nm">100</span>, value=<span class="nm">50</span>)
+        <span class="cm"># Bind the 'value' property — fires on any change</span>
+        slider.bind(value=<span class="nm">self</span>.on_slider_change)
+        box.add_widget(<span class="nm">self</span>.label)
+        box.add_widget(slider)
+        <span class="kw">return</span> box
+
+    <span class="kw">def</span> <span class="fn">on_slider_change</span>(<span class="nm">self</span>, instance, value):
+        <span class="nm">self</span>.label.text = <span class="st">f'Value: {value:.0f}'</span>
+
+<span class="cl">SliderApp</span>().run()</pre>
+        </div>
+
+        <h3>Common Event Names</h3>
+        <table class="comp-table">
+          <thead><tr><th>Event</th><th>Fired when…</th></tr></thead>
+          <tbody>
+            <tr><td><code>on_press</code></td><td>Button pressed down</td></tr>
+            <tr><td><code>on_release</code></td><td>Button released</td></tr>
+            <tr><td><code>on_text</code></td><td>TextInput text changes</td></tr>
+            <tr><td><code>on_touch_down</code></td><td>Touch/click begins on widget</td></tr>
+            <tr><td><code>on_value</code></td><td>Slider value changes</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 8 -->
+      <section class="lesson" id="k8">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 08</span>
+          <h2>Screen Manager — Multi-Screen Apps</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>80% complete</div>
+
+        <p>Use <code>ScreenManager</code> to build apps with multiple pages (like a mobile app's navigation stack).</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — screen manager</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+<span class="kw">from</span> kivy.uix.screenmanager <span class="kw">import</span> <span class="cl">ScreenManager</span>, <span class="cl">Screen</span>, <span class="cl">SlideTransition</span>
+<span class="kw">from</span> kivy.uix.button <span class="kw">import</span> <span class="cl">Button</span>
+
+<span class="kw">class</span> <span class="cl">HomeScreen</span>(<span class="cl">Screen</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>, **kwargs):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(**kwargs)
+        btn = <span class="cl">Button</span>(text=<span class="st">'Go to Settings →'</span>)
+        btn.bind(on_press=<span class="kw">lambda</span> _: <span class="nm">self</span>.<span class="fn">manager_goto</span>(<span class="st">'settings'</span>))
+        <span class="nm">self</span>.add_widget(btn)
+
+    <span class="kw">def</span> <span class="fn">manager_goto</span>(<span class="nm">self</span>, screen):
+        <span class="nm">self</span>.manager.current = screen
+
+<span class="kw">class</span> <span class="cl">SettingsScreen</span>(<span class="cl">Screen</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>, **kwargs):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(**kwargs)
+        btn = <span class="cl">Button</span>(text=<span class="st">'← Back Home'</span>)
+        btn.bind(on_press=<span class="kw">lambda</span> _: <span class="fn">setattr</span>(<span class="nm">self</span>.manager, <span class="st">'current'</span>, <span class="st">'home'</span>))
+        <span class="nm">self</span>.add_widget(btn)
+
+<span class="kw">class</span> <span class="cl">NavApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="nm">self</span>):
+        sm = <span class="cl">ScreenManager</span>(transition=<span class="cl">SlideTransition</span>())
+        sm.add_widget(<span class="cl">HomeScreen</span>(name=<span class="st">'home'</span>))
+        sm.add_widget(<span class="cl">SettingsScreen</span>(name=<span class="st">'settings'</span>))
+        <span class="kw">return</span> sm
+
+<span class="cl">NavApp</span>().run()</pre>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-label">💡 Transitions</span>
+          <p>Try <code>FadeTransition</code>, <code>WipeTransition</code>, or <code>NoTransition</code> instead of <code>SlideTransition</code> for different navigation feels.</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 9 -->
+      <section class="lesson" id="k9">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 09</span>
+          <h2>Canvas & Custom Drawing</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div>90% complete</div>
+
+        <p>Every Kivy widget has a <code>canvas</code> you can draw on using OpenGL-based drawing instructions like <code>Rectangle</code>, <code>Ellipse</code>, <code>Line</code>, and <code>Color</code>.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — canvas drawing</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+<span class="kw">from</span> kivy.uix.widget <span class="kw">import</span> <span class="cl">Widget</span>
+<span class="kw">from</span> kivy.graphics <span class="kw">import</span> <span class="cl">Color</span>, <span class="cl">Ellipse</span>, <span class="cl">Rectangle</span>
+
+<span class="kw">class</span> <span class="cl">PaintWidget</span>(<span class="cl">Widget</span>):
+    <span class="kw">def</span> <span class="fn">on_touch_down</span>(<span class="nm">self</span>, touch):
+        <span class="kw">with</span> <span class="nm">self</span>.canvas:
+            <span class="cl">Color</span>(<span class="nm">0</span>, <span class="nm">0.9</span>, <span class="nm">0.6</span>, <span class="nm">1</span>)  <span class="cm"># Kivy green</span>
+            d = <span class="nm">30</span>
+            <span class="cl">Ellipse</span>(pos=(touch.x - d/<span class="nm">2</span>, touch.y - d/<span class="nm">2</span>), size=(d, d))
+
+<span class="kw">class</span> <span class="cl">PaintApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="nm">self</span>):
+        <span class="kw">return</span> <span class="cl">PaintWidget</span>()
+
+<span class="cl">PaintApp</span>().run()</pre>
+        </div>
+
+        <p>Click/tap anywhere in the window and green dots will appear — a mini paint app in 15 lines!</p>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON 10 -->
+      <section class="lesson" id="k10">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 10</span>
+          <h2>Capstone — A Temperature Converter</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>100% complete 🎉</div>
+
+        <p>Let's put it all together: layouts, KV language, TextInput, Labels, and event binding into a real, usable app.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — converter.py</span>
+          </div>
+          <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> <span class="cl">App</span>
+<span class="kw">from</span> kivy.lang <span class="kw">import</span> <span class="cl">Builder</span>
+
+KV = <span class="st">"""
+BoxLayout:
+    orientation: 'vertical'
+    padding: 40
+    spacing: 16
+
+    Label:
+        text: 'Temperature Converter'
+        font_size: 26
+        bold: True
+        size_hint_y: None
+        height: 50
+
+    TextInput:
+        id: celsius_input
+        hint_text: 'Enter Celsius'
+        input_filter: 'float'
+        size_hint_y: None
+        height: 48
+
+    Button:
+        text: 'Convert to Fahrenheit'
+        size_hint_y: None
+        height: 52
+        on_press: app.convert(celsius_input.text)
+
+    Label:
+        id: result_label
+        text: 'Result will appear here'
+        font_size: 20
+        color: 0, 0.9, 0.6, 1
+"""</span>
+
+<span class="kw">class</span> <span class="cl">ConverterApp</span>(<span class="cl">App</span>):
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="nm">self</span>):
+        <span class="nm">self</span>.root = <span class="cl">Builder</span>.load_string(KV)
+        <span class="kw">return</span> <span class="nm">self</span>.root
+
+    <span class="kw">def</span> <span class="fn">convert</span>(<span class="nm">self</span>, value):
+        <span class="kw">try</span>:
+            c = <span class="fn">float</span>(value)
+            f = c * <span class="nm">9</span>/<span class="nm">5</span> + <span class="nm">32</span>
+            <span class="nm">self</span>.root.ids.result_label.text = <span class="st">f'{c:.1f}°C  =  {f:.1f}°F'</span>
+        <span class="kw">except</span> <span class="cl">ValueError</span>:
+            <span class="nm">self</span>.root.ids.result_label.text = <span class="st">'Please enter a valid number'</span>
+
+<span class="cl">ConverterApp</span>().run()</pre>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-label">🎓 What you learned</span>
+          <p>You've installed Kivy, used Widgets, Layouts, KV Language, events, ScreenManager, Canvas drawing, and built a complete app. Next: explore <strong>kivy.org</strong> docs, Buildozer (for Android packaging), and Kivy Garden for community widgets.</p>
+        </div>
+      </section>
+
+    </article>
+  </div>
+</div>
+
+<!-- ═══════════════════  WXPYTHON PANEL  ═══════════════════ -->
+<div id="wx-panel" class="fw-panel wx-panel">
+  <div class="guide-body">
+    <nav class="guide-nav">
+      <div class="nav-section-label">Getting Started</div>
+      <a class="nav-item active" href="#w1"><span class="num">01</span> What is wxPython?</a>
+      <a class="nav-item" href="#w2"><span class="num">02</span> Installation</a>
+      <a class="nav-item" href="#w3"><span class="num">03</span> Hello, World!</a>
+      <div class="nav-section-label">Core Concepts</div>
+      <a class="nav-item" href="#w4"><span class="num">04</span> Frames & Panels</a>
+      <a class="nav-item" href="#w5"><span class="num">05</span> Controls</a>
+      <a class="nav-item" href="#w6"><span class="num">06</span> Sizers & Layout</a>
+      <a class="nav-item" href="#w7"><span class="num">07</span> Events</a>
+      <div class="nav-section-label">Going Deeper</div>
+      <a class="nav-item" href="#w8"><span class="num">08</span> Menus & Dialogs</a>
+      <a class="nav-item" href="#w9"><span class="num">09</span> Custom Drawing</a>
+      <a class="nav-item" href="#w10"><span class="num">10</span> A Mini App</a>
+    </nav>
+
+    <article class="guide-content">
+
+      <!-- LESSON W1 -->
+      <section class="lesson" id="w1">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 01</span>
+          <h2>What is wxPython?</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div>10% complete</div>
+
+        <div class="intro-card">
+          <div class="intro-icon">🪟</div>
+          <div>
+            <h3>Native Desktop GUI Toolkit</h3>
+            <p>wxPython is a Python wrapper around the wxWidgets C++ library. Unlike Kivy, it renders true native OS controls — your app looks and feels like a real macOS app, using Cocoa widgets under the hood.</p>
+          </div>
+        </div>
+
+        <p>wxPython is ideal for desktop-only productivity tools, utilities, file managers, and any application where blending into the OS is important. It's been around since 1996 and remains the gold standard for native-looking Python desktop apps.</p>
+
+        <table class="comp-table">
+          <thead><tr><th>Feature</th><th>wxPython</th></tr></thead>
+          <tbody>
+            <tr><td>Targets</td><td>macOS, Windows, Linux</td></tr>
+            <tr><td>Rendering</td><td>Native OS controls (Cocoa on macOS)</td></tr>
+            <tr><td>Look & Feel</td><td>Matches the OS perfectly</td></tr>
+            <tr><td>License</td><td>wxWindows Library Licence</td></tr>
+            <tr><td>Main package</td><td>wxPython Phoenix (wx)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout warn">
+          <span class="callout-label">💡 Best For</span>
+          <p>Desktop utilities, file tools, settings dialogs, productivity apps — anything that should feel truly native on macOS.</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W2 -->
+      <section class="lesson" id="w2">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 02</span>
+          <h2>Installing wxPython on macOS</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>20% complete</div>
+
+        <p>wxPython has a pre-built binary (wheel) for macOS — installation is straightforward:</p>
+
+        <ol class="steps">
+          <li>Ensure Python 3.9–3.12 is installed. Check with:<br>
+            <code>python3 --version</code>
+          </li>
+          <li>Create and activate a virtual environment:<br>
+            <code>python3 -m venv wxenv &amp;&amp; source wxenv/bin/activate</code>
+          </li>
+          <li>Install wxPython Phoenix (this downloads a ~30MB binary wheel):<br>
+            <code>pip install wxpython</code>
+          </li>
+          <li>If pip fails to find a wheel, install from the official snapshot:<br>
+            <code>pip install -U --pre wxPython</code>
+          </li>
+          <li>Verify: <code>python -c "import wx; print(wx.version())"</code></li>
+        </ol>
+
+        <div class="callout warn">
+          <span class="callout-label">⚠️ Apple Silicon Note</span>
+          <p>On M-series Macs, run your script with <code>arch -arm64 python yourscript.py</code> if you see architecture mismatch errors.</p>
+        </div>
+
+        <h3>Testing the install</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Terminal</span>
+          </div>
+          <pre>python -c "import wx; app = wx.App(); wx.Frame(None, title='wx works!').Show(); app.MainLoop()"</pre>
+        </div>
+        <p>A small native macOS window with the title "wx works!" should appear.</p>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W3 -->
+      <section class="lesson" id="w3">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 03</span>
+          <h2>Hello, wxPython World!</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div>30% complete</div>
+
+        <p>Every wxPython app needs three things: a <code>wx.App</code>, a <code>wx.Frame</code> (the window), and a call to <code>MainLoop()</code>.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — hello.py</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">HelloFrame</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(
+            parent=<span class="nm">None</span>,
+            title=<span class="st">'Hello wxPython on macOS!'</span>,
+            size=(<span class="nm">400</span>, <span class="nm">250</span>)
+        )
+        panel = <span class="wx-dc">wx</span>.<span class="cl">Panel</span>(<span class="nm">self</span>)
+        text = <span class="wx-dc">wx</span>.<span class="cl">StaticText</span>(
+            panel,
+            label=<span class="st">'Hello, World!'</span>,
+            style=<span class="wx-dc">wx</span>.ALIGN_CENTER
+        )
+        <span class="nm">self</span>.Centre()   <span class="cm"># Centre window on screen</span>
+        <span class="nm">self</span>.Show()
+
+<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:
+    app = <span class="wx-dc">wx</span>.<span class="cl">App</span>()
+    frame = <span class="cl">HelloFrame</span>()
+    app.MainLoop()</pre>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-label">ℹ️ wx.Panel</span>
+          <p>Always place widgets inside a <code>wx.Panel</code> within your Frame — it handles keyboard navigation, background repainting, and gives the correct native background colour on macOS.</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W4 -->
+      <section class="lesson" id="w4">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 04</span>
+          <h2>Frames & Panels — App Structure</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>40% complete</div>
+
+        <p>Understanding the hierarchy is key to wxPython apps:</p>
+
+        <table class="comp-table">
+          <thead><tr><th>Class</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td><code>wx.App</code></td><td>The application object — must be created first</td></tr>
+            <tr><td><code>wx.Frame</code></td><td>A top-level window with title bar, resize handles, etc.</td></tr>
+            <tr><td><code>wx.Panel</code></td><td>A container widget inside a Frame</td></tr>
+            <tr><td><code>wx.Dialog</code></td><td>A modal dialog window</td></tr>
+            <tr><td><code>wx.Notebook</code></td><td>Tabbed panel container</td></tr>
+          </tbody>
+        </table>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — structured frame</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">MainFrame</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">None</span>, title=<span class="st">'My App'</span>, size=(<span class="nm">500</span>, <span class="nm">400</span>))
+
+        <span class="cm"># Status bar at the bottom (native on macOS)</span>
+        <span class="nm">self</span>.CreateStatusBar()
+        <span class="nm">self</span>.SetStatusText(<span class="st">'Ready'</span>)
+
+        panel = <span class="wx-dc">wx</span>.<span class="cl">Panel</span>(<span class="nm">self</span>)
+        <span class="cm"># All widgets go inside panel</span>
+
+        <span class="nm">self</span>.Centre()
+        <span class="nm">self</span>.Show()
+
+<span class="wx-dc">wx</span>.<span class="cl">App</span>()
+<span class="cl">MainFrame</span>()
+<span class="wx-dc">wx</span>.<span class="cl">GetApp</span>().MainLoop()</pre>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W5 -->
+      <section class="lesson" id="w5">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 05</span>
+          <h2>Controls — Native Widgets</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>50% complete</div>
+
+        <p>wxPython wraps dozens of native macOS (Cocoa) controls. These will automatically look correct — dark mode, system fonts, and all:</p>
+
+        <table class="comp-table">
+          <thead><tr><th>Widget</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>wx.StaticText</code></td><td>Non-editable text label</td></tr>
+            <tr><td><code>wx.TextCtrl</code></td><td>Single or multi-line text input</td></tr>
+            <tr><td><code>wx.Button</code></td><td>Push button</td></tr>
+            <tr><td><code>wx.CheckBox</code></td><td>Checkbox with label</td></tr>
+            <tr><td><code>wx.RadioButton</code></td><td>Grouped radio buttons</td></tr>
+            <tr><td><code>wx.Slider</code></td><td>Horizontal/vertical slider</td></tr>
+            <tr><td><code>wx.ListBox</code></td><td>Scrollable item list</td></tr>
+            <tr><td><code>wx.ComboBox</code></td><td>Dropdown + text combo</td></tr>
+            <tr><td><code>wx.SpinCtrl</code></td><td>Numeric up/down spin</td></tr>
+          </tbody>
+        </table>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — various controls</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">ControlsFrame</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">None</span>, title=<span class="st">'Controls Demo'</span>, size=(<span class="nm">380</span>, <span class="nm">300</span>))
+        panel = <span class="wx-dc">wx</span>.<span class="cl">Panel</span>(<span class="nm">self</span>)
+        vbox = <span class="wx-dc">wx</span>.<span class="cl">BoxSizer</span>(<span class="wx-dc">wx</span>.VERTICAL)
+
+        text = <span class="wx-dc">wx</span>.<span class="cl">TextCtrl</span>(panel, value=<span class="st">'Enter text here'</span>)
+        check = <span class="wx-dc">wx</span>.<span class="cl">CheckBox</span>(panel, label=<span class="st">'Enable feature'</span>)
+        combo = <span class="wx-dc">wx</span>.<span class="cl">ComboBox</span>(panel, choices=[<span class="st">'Option A'</span>, <span class="st">'Option B'</span>, <span class="st">'Option C'</span>])
+        btn   = <span class="wx-dc">wx</span>.<span class="cl">Button</span>(panel, label=<span class="st">'Submit'</span>)
+
+        <span class="kw">for</span> w <span class="kw">in</span> [text, check, combo, btn]:
+            vbox.Add(w, flag=<span class="wx-dc">wx</span>.EXPAND|<span class="wx-dc">wx</span>.ALL, border=<span class="nm">10</span>)
+
+        panel.SetSizer(vbox)
+        <span class="nm">self</span>.Centre(); <span class="nm">self</span>.Show()
+
+<span class="wx-dc">wx</span>.<span class="cl">App</span>(); <span class="cl">ControlsFrame</span>(); <span class="wx-dc">wx</span>.<span class="cl">GetApp</span>().MainLoop()</pre>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W6 -->
+      <section class="lesson" id="w6">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 06</span>
+          <h2>Sizers — Layout Management</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>60% complete</div>
+
+        <p>wxPython does not use absolute positions. Instead, <strong>Sizers</strong> manage layout dynamically — they resize and reposition widgets when the window changes size.</p>
+
+        <table class="comp-table">
+          <thead><tr><th>Sizer</th><th>Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td><code>wx.BoxSizer</code></td><td>Stack widgets horizontally or vertically</td></tr>
+            <tr><td><code>wx.GridSizer</code></td><td>Equal-sized grid of cells</td></tr>
+            <tr><td><code>wx.FlexGridSizer</code></td><td>Grid with variable row/col sizes</td></tr>
+            <tr><td><code>wx.StaticBoxSizer</code></td><td>BoxSizer with a labelled border box</td></tr>
+          </tbody>
+        </table>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — FlexGridSizer form</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">FormFrame</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">None</span>, title=<span class="st">'Form'</span>, size=(<span class="nm">360</span>, <span class="nm">220</span>))
+        panel = <span class="wx-dc">wx</span>.<span class="cl">Panel</span>(<span class="nm">self</span>)
+
+        fgs = <span class="wx-dc">wx</span>.<span class="cl">FlexGridSizer</span>(<span class="nm">2</span>, <span class="nm">2</span>, <span class="nm">10</span>, <span class="nm">10</span>)   <span class="cm"># rows, cols, vgap, hgap</span>
+        fgs.AddGrowableCol(<span class="nm">1</span>, <span class="nm">1</span>)               <span class="cm"># col 1 stretches</span>
+
+        fields = [(<span class="st">'First Name:'</span>,), (<span class="st">'Last Name:'</span>,)]
+        <span class="kw">for</span> label, <span class="kw">in</span> fields:
+            fgs.Add(<span class="wx-dc">wx</span>.<span class="cl">StaticText</span>(panel, label=label),
+                    flag=<span class="wx-dc">wx</span>.ALIGN_CENTER_VERTICAL)
+            fgs.Add(<span class="wx-dc">wx</span>.<span class="cl">TextCtrl</span>(panel), flag=<span class="wx-dc">wx</span>.EXPAND)
+
+        outer = <span class="wx-dc">wx</span>.<span class="cl">BoxSizer</span>(<span class="wx-dc">wx</span>.VERTICAL)
+        outer.Add(fgs, <span class="nm">1</span>, <span class="wx-dc">wx</span>.ALL|<span class="wx-dc">wx</span>.EXPAND, <span class="nm">20</span>)
+        outer.Add(<span class="wx-dc">wx</span>.<span class="cl">Button</span>(panel, label=<span class="st">'Save'</span>),
+                  flag=<span class="wx-dc">wx</span>.ALIGN_RIGHT|<span class="wx-dc">wx</span>.ALL, border=<span class="nm">10</span>)
+        panel.SetSizer(outer)
+        <span class="nm">self</span>.Centre(); <span class="nm">self</span>.Show()
+
+<span class="wx-dc">wx</span>.<span class="cl">App</span>(); <span class="cl">FormFrame</span>(); <span class="wx-dc">wx</span>.<span class="cl">GetApp</span>().MainLoop()</pre>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W7 -->
+      <section class="lesson" id="w7">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 07</span>
+          <h2>Events — Binding User Actions</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:70%"></div></div>70% complete</div>
+
+        <p>wxPython uses an <strong>event table</strong> approach via <code>self.Bind()</code>. You bind an event type to a handler method on any widget.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — button events</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">EventFrame</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">None</span>, title=<span class="st">'Events'</span>, size=(<span class="nm">340</span>, <span class="nm">200</span>))
+        panel = <span class="wx-dc">wx</span>.<span class="cl">Panel</span>(<span class="nm">self</span>)
+        vbox = <span class="wx-dc">wx</span>.<span class="cl">BoxSizer</span>(<span class="wx-dc">wx</span>.VERTICAL)
+
+        <span class="nm">self</span>.label = <span class="wx-dc">wx</span>.<span class="cl">StaticText</span>(panel, label=<span class="st">'Click the button'</span>)
+        btn = <span class="wx-dc">wx</span>.<span class="cl">Button</span>(panel, label=<span class="st">'Click Me!'</span>)
+        slider = <span class="wx-dc">wx</span>.<span class="cl">Slider</span>(panel, value=<span class="nm">50</span>, minValue=<span class="nm">0</span>, maxValue=<span class="nm">100</span>)
+
+        <span class="cm"># Bind button click event</span>
+        btn.Bind(<span class="wx-dc">wx</span>.EVT_BUTTON, <span class="nm">self</span>.on_click)
+        <span class="cm"># Bind slider scroll event</span>
+        slider.Bind(<span class="wx-dc">wx</span>.EVT_SLIDER, <span class="nm">self</span>.on_slide)
+
+        <span class="kw">for</span> w <span class="kw">in</span> [<span class="nm">self</span>.label, btn, slider]:
+            vbox.Add(w, flag=<span class="wx-dc">wx</span>.ALL|<span class="wx-dc">wx</span>.EXPAND, border=<span class="nm">14</span>)
+        panel.SetSizer(vbox)
+        <span class="nm">self</span>.Centre(); <span class="nm">self</span>.Show()
+
+    <span class="kw">def</span> <span class="fn">on_click</span>(<span class="nm">self</span>, event):
+        <span class="nm">self</span>.label.SetLabel(<span class="st">'Button was clicked!'</span>)
+
+    <span class="kw">def</span> <span class="fn">on_slide</span>(<span class="nm">self</span>, event):
+        val = event.GetEventObject().GetValue()
+        <span class="nm">self</span>.label.SetLabel(<span class="st">f'Slider: {val}'</span>)
+
+<span class="wx-dc">wx</span>.<span class="cl">App</span>(); <span class="cl">EventFrame</span>(); <span class="wx-dc">wx</span>.<span class="cl">GetApp</span>().MainLoop()</pre>
+        </div>
+
+        <h3>Common Event Types</h3>
+        <table class="comp-table">
+          <thead><tr><th>Event</th><th>Triggered by</th></tr></thead>
+          <tbody>
+            <tr><td><code>wx.EVT_BUTTON</code></td><td>Button click</td></tr>
+            <tr><td><code>wx.EVT_TEXT</code></td><td>Text input changes</td></tr>
+            <tr><td><code>wx.EVT_CHECKBOX</code></td><td>Checkbox toggle</td></tr>
+            <tr><td><code>wx.EVT_SLIDER</code></td><td>Slider dragged</td></tr>
+            <tr><td><code>wx.EVT_CLOSE</code></td><td>Window close button</td></tr>
+            <tr><td><code>wx.EVT_MENU</code></td><td>Menu item selected</td></tr>
+            <tr><td><code>wx.EVT_KEY_DOWN</code></td><td>Key pressed</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W8 -->
+      <section class="lesson" id="w8">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 08</span>
+          <h2>Menus & Dialogs</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>80% complete</div>
+
+        <p>Native menus and standard dialogs are wxPython superpowers — they integrate perfectly with the macOS menu bar and dialog system.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — menu bar + file dialog</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">MenuFrame</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">None</span>, title=<span class="st">'Menus Demo'</span>, size=(<span class="nm">450</span>, <span class="nm">300</span>))
+
+        <span class="cm"># Build the menu bar</span>
+        menubar = <span class="wx-dc">wx</span>.<span class="cl">MenuBar</span>()
+        file_menu = <span class="wx-dc">wx</span>.<span class="cl">Menu</span>()
+        open_item = file_menu.Append(<span class="wx-dc">wx</span>.ID_OPEN, <span class="st">'&amp;Open...\tCtrl+O'</span>)
+        file_menu.AppendSeparator()
+        quit_item = file_menu.Append(<span class="wx-dc">wx</span>.ID_EXIT, <span class="st">'&amp;Quit\tCmd+Q'</span>)
+        menubar.Append(file_menu, <span class="st">'&amp;File'</span>)
+        <span class="nm">self</span>.SetMenuBar(menubar)
+
+        <span class="nm">self</span>.Bind(<span class="wx-dc">wx</span>.EVT_MENU, <span class="nm">self</span>.on_open, open_item)
+        <span class="nm">self</span>.Bind(<span class="wx-dc">wx</span>.EVT_MENU, <span class="kw">lambda</span> e: <span class="nm">self</span>.Close(), quit_item)
+
+        panel = <span class="wx-dc">wx</span>.<span class="cl">Panel</span>(<span class="nm">self</span>)
+        <span class="nm">self</span>.info = <span class="wx-dc">wx</span>.<span class="cl">StaticText</span>(panel, label=<span class="st">'Use File → Open'</span>)
+        <span class="nm">self</span>.Centre(); <span class="nm">self</span>.Show()
+
+    <span class="kw">def</span> <span class="fn">on_open</span>(<span class="nm">self</span>, event):
+        dlg = <span class="wx-dc">wx</span>.<span class="cl">FileDialog</span>(<span class="nm">self</span>, <span class="st">'Open file'</span>,
+            wildcard=<span class="st">'Text files (*.txt)|*.txt|All files (*.*)|*.*'</span>,
+            style=<span class="wx-dc">wx</span>.FD_OPEN | <span class="wx-dc">wx</span>.FD_FILE_MUST_EXIST)
+        <span class="kw">if</span> dlg.ShowModal() == <span class="wx-dc">wx</span>.ID_OK:
+            <span class="nm">self</span>.info.SetLabel(<span class="st">f'Opened: {dlg.GetPath()}'</span>)
+        dlg.Destroy()
+
+<span class="wx-dc">wx</span>.<span class="cl">App</span>(); <span class="cl">MenuFrame</span>(); <span class="wx-dc">wx</span>.<span class="cl">GetApp</span>().MainLoop()</pre>
+        </div>
+
+        <h3>Common Built-in Dialogs</h3>
+        <table class="comp-table">
+          <thead><tr><th>Dialog</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>wx.FileDialog</code></td><td>Open/save file picker</td></tr>
+            <tr><td><code>wx.DirDialog</code></td><td>Folder chooser</td></tr>
+            <tr><td><code>wx.MessageDialog</code></td><td>Alert/confirm/info box</td></tr>
+            <tr><td><code>wx.TextEntryDialog</code></td><td>Single line text input dialog</td></tr>
+            <tr><td><code>wx.ColourDialog</code></td><td>System colour picker</td></tr>
+            <tr><td><code>wx.FontDialog</code></td><td>System font picker</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W9 -->
+      <section class="lesson" id="w9">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 09</span>
+          <h2>Custom Drawing with wx.PaintDC</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div>90% complete</div>
+
+        <p>For custom 2D graphics, draw to a <code>wx.Panel</code> using a Device Context (DC) inside an <code>EVT_PAINT</code> handler.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — custom 2D drawing</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">DrawPanel</span>(<span class="wx-dc">wx</span>.<span class="cl">Panel</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>, parent):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(parent)
+        <span class="nm">self</span>.Bind(<span class="wx-dc">wx</span>.EVT_PAINT, <span class="nm">self</span>.on_paint)
+
+    <span class="kw">def</span> <span class="fn">on_paint</span>(<span class="nm">self</span>, event):
+        dc = <span class="wx-dc">wx</span>.<span class="cl">PaintDC</span>(<span class="nm">self</span>)
+        dc.SetBackground(<span class="wx-dc">wx</span>.<span class="cl">Brush</span>(<span class="st">'#1a1a2e'</span>))
+        dc.Clear()
+
+        <span class="cm"># Draw a gradient-like bar chart</span>
+        colours = [<span class="st">'#ff9f43'</span>, <span class="st">'#ee5a24'</span>, <span class="st">'#0097e6'</span>, <span class="st">'#00a8ff'</span>]
+        values  = [<span class="nm">80</span>, <span class="nm">55</span>, <span class="nm">120</span>, <span class="nm">95</span>]
+        <span class="kw">for</span> i, (h, c) <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="fn">zip</span>(values, colours)):
+            dc.SetBrush(<span class="wx-dc">wx</span>.<span class="cl">Brush</span>(c))
+            dc.SetPen(<span class="wx-dc">wx</span>.<span class="cl">TRANSPARENT_PEN</span>)
+            dc.DrawRectangle(<span class="nm">60</span> + i * <span class="nm">90</span>, <span class="nm">200</span> - h, <span class="nm">60</span>, h)
+
+        <span class="cm"># Labels</span>
+        dc.SetTextForeground(<span class="st">'white'</span>)
+        dc.DrawText(<span class="st">'Bar Chart Demo'</span>, <span class="nm">140</span>, <span class="nm">20</span>)
+
+<span class="kw">class</span> <span class="cl">DrawFrame</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">None</span>, title=<span class="st">'Custom Drawing'</span>, size=(<span class="nm">420</span>, <span class="nm">260</span>))
+        <span class="cl">DrawPanel</span>(<span class="nm">self</span>)
+        <span class="nm">self</span>.Centre(); <span class="nm">self</span>.Show()
+
+<span class="wx-dc">wx</span>.<span class="cl">App</span>(); <span class="cl">DrawFrame</span>(); <span class="wx-dc">wx</span>.<span class="cl">GetApp</span>().MainLoop()</pre>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-label">ℹ️ Always use PaintDC inside EVT_PAINT</span>
+          <p>For drawing outside a paint event (e.g., on a timer), use <code>wx.ClientDC</code>. For double-buffered flicker-free animation use <code>wx.BufferedPaintDC</code>.</p>
+        </div>
+      </section>
+      <hr class="lesson-divider">
+
+      <!-- LESSON W10 -->
+      <section class="lesson" id="w10">
+        <div class="lesson-header">
+          <span class="lesson-num">LESSON 10</span>
+          <h2>Capstone — A Note-Taking App</h2>
+        </div>
+        <div class="progress-ring"><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>100% complete 🎉</div>
+
+        <p>Let's combine everything — menus, sizers, TextCtrl, and events — into a functional native macOS note-taking app with save capability.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+            <span class="code-lang">Python — notes_app.py</span>
+          </div>
+          <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="cl">NotesApp</span>(<span class="wx-dc">wx</span>.<span class="cl">Frame</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">None</span>, title=<span class="st">'Notes'</span>, size=(<span class="nm">580</span>, <span class="nm">460</span>))
+        <span class="nm">self</span>.current_file = <span class="nm">None</span>
+
+        <span class="cm"># ── Menus ──</span>
+        mb = <span class="wx-dc">wx</span>.<span class="cl">MenuBar</span>()
+        fm = <span class="wx-dc">wx</span>.<span class="cl">Menu</span>()
+        fm.Append(<span class="wx-dc">wx</span>.ID_NEW,  <span class="st">'New\tCmd+N'</span>)
+        fm.Append(<span class="wx-dc">wx</span>.ID_OPEN, <span class="st">'Open...\tCmd+O'</span>)
+        fm.Append(<span class="wx-dc">wx</span>.ID_SAVE, <span class="st">'Save\tCmd+S'</span>)
+        fm.AppendSeparator()
+        fm.Append(<span class="wx-dc">wx</span>.ID_EXIT, <span class="st">'Quit\tCmd+Q'</span>)
+        mb.Append(fm, <span class="st">'File'</span>)
+        <span class="nm">self</span>.SetMenuBar(mb)
+
+        <span class="nm">self</span>.Bind(<span class="wx-dc">wx</span>.EVT_MENU, <span class="nm">self</span>.on_new,  id=<span class="wx-dc">wx</span>.ID_NEW)
+        <span class="nm">self</span>.Bind(<span class="wx-dc">wx</span>.EVT_MENU, <span class="nm">self</span>.on_open, id=<span class="wx-dc">wx</span>.ID_OPEN)
+        <span class="nm">self</span>.Bind(<span class="wx-dc">wx</span>.EVT_MENU, <span class="nm">self</span>.on_save, id=<span class="wx-dc">wx</span>.ID_SAVE)
+        <span class="nm">self</span>.Bind(<span class="wx-dc">wx</span>.EVT_MENU, <span class="kw">lambda</span> e: <span class="nm">self</span>.Close(), id=<span class="wx-dc">wx</span>.ID_EXIT)
+
+        <span class="cm"># ── Editor ──</span>
+        panel = <span class="wx-dc">wx</span>.<span class="cl">Panel</span>(<span class="nm">self</span>)
+        <span class="nm">self</span>.editor = <span class="wx-dc">wx</span>.<span class="cl">TextCtrl</span>(
+            panel, style=<span class="wx-dc">wx</span>.TE_MULTILINE | <span class="wx-dc">wx</span>.TE_RICH2,
+            font=<span class="wx-dc">wx</span>.<span class="cl">Font</span>(<span class="nm">14</span>, <span class="wx-dc">wx</span>.FONTFAMILY_MODERN,
+                          <span class="wx-dc">wx</span>.FONTSTYLE_NORMAL, <span class="wx-dc">wx</span>.FONTWEIGHT_NORMAL)
+        )
+        sizer = <span class="wx-dc">wx</span>.<span class="cl">BoxSizer</span>(<span class="wx-dc">wx</span>.VERTICAL)
+        sizer.Add(<span class="nm">self</span>.editor, <span class="nm">1</span>, <span class="wx-dc">wx</span>.EXPAND | <span class="wx-dc">wx</span>.ALL, <span class="nm">8</span>)
+        panel.SetSizer(sizer)
+
+        <span class="nm">self</span>.CreateStatusBar()
+        <span class="nm">self</span>.SetStatusText(<span class="st">'New document'</span>)
+        <span class="nm">self</span>.Centre(); <span class="nm">self</span>.Show()
+
+    <span class="kw">def</span> <span class="fn">on_new</span>(<span class="nm">self</span>, _):
+        <span class="nm">self</span>.editor.SetValue(<span class="st">''</span>)
+        <span class="nm">self</span>.current_file = <span class="nm">None</span>
+        <span class="nm">self</span>.SetStatusText(<span class="st">'New document'</span>)
+
+    <span class="kw">def</span> <span class="fn">on_open</span>(<span class="nm">self</span>, _):
+        dlg = <span class="wx-dc">wx</span>.<span class="cl">FileDialog</span>(<span class="nm">self</span>, wildcard=<span class="st">'*.txt'</span>, style=<span class="wx-dc">wx</span>.FD_OPEN)
+        <span class="kw">if</span> dlg.ShowModal() == <span class="wx-dc">wx</span>.ID_OK:
+            <span class="nm">self</span>.current_file = dlg.GetPath()
+            <span class="kw">with</span> <span class="fn">open</span>(<span class="nm">self</span>.current_file) <span class="kw">as</span> f:
+                <span class="nm">self</span>.editor.SetValue(f.read())
+            <span class="nm">self</span>.SetStatusText(<span class="nm">self</span>.current_file)
+
+    <span class="kw">def</span> <span class="fn">on_save</span>(<span class="nm">self</span>, _):
+        <span class="kw">if</span> <span class="kw">not</span> <span class="nm">self</span>.current_file:
+            dlg = <span class="wx-dc">wx</span>.<span class="cl">FileDialog</span>(<span class="nm">self</span>, wildcard=<span class="st">'*.txt'</span>,
+                                  style=<span class="wx-dc">wx</span>.FD_SAVE|<span class="wx-dc">wx</span>.FD_OVERWRITE_PROMPT)
+            <span class="kw">if</span> dlg.ShowModal() != <span class="wx-dc">wx</span>.ID_OK: <span class="kw">return</span>
+            <span class="nm">self</span>.current_file = dlg.GetPath()
+        <span class="kw">with</span> <span class="fn">open</span>(<span class="nm">self</span>.current_file, <span class="st">'w'</span>) <span class="kw">as</span> f:
+            f.write(<span class="nm">self</span>.editor.GetValue())
+        <span class="nm">self</span>.SetStatusText(<span class="st">f'Saved: {self.current_file}'</span>)
+
+<span class="wx-dc">wx</span>.<span class="cl">App</span>(); <span class="cl">NotesApp</span>(); <span class="wx-dc">wx</span>.<span class="cl">GetApp</span>().MainLoop()</pre>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-label">🎓 What You Learned</span>
+          <p>You've installed wxPython, used Frames, Panels, Controls, Sizers, native Menus, File Dialogs, Events, and built a complete native macOS text editor. Next: explore <strong>wxpython.org</strong>, <code>wx.aui</code> for docking panels, <code>wx.grid.Grid</code> for spreadsheet-style tables, and <code>pyinstaller</code> for packaging your app as a .app bundle.</p>
+        </div>
+      </section>
+
+    </article>
+  </div>
+</div>
+
+<script>
+  function switchTab(fw) {
+    document.querySelectorAll('.fw-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.fw-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('.' + fw + '-tab').classList.add('active');
+    document.getElementById(fw + '-panel').classList.add('active');
+  }
+
+  // Highlight active nav item on scroll
+  function setupScrollSpy(panelId) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    const sections = panel.querySelectorAll('.lesson');
+    const navItems = panel.querySelectorAll('.nav-item');
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.id;
+          navItems.forEach(n => {
+            n.classList.toggle('active', n.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(s => obs.observe(s));
+  }
+
+  setupScrollSpy('kivy-panel');
+  setupScrollSpy('wx-panel');
+</script>
+</body>
+</html>

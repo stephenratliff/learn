@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intermediate Perl Examples</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #f5f0e8;
+    --bg2:      #ede6d6;
+    --bg3:      #e4dbc8;
+    --ink:      #1c1710;
+    --ink2:     #4a4030;
+    --ink3:     #8a7a60;
+    --rule:     #cfc3a8;
+    --amber:    #c47d1a;
+    --amber2:   #e8941f;
+    --teal:     #1a7c6e;
+    --rose:     #a83240;
+    --blue:     #2255a4;
+    --code-bg:  #1e1a12;
+    --code-bg2: #252019;
+
+    /* syntax */
+    --kw:   #d4874a;
+    --str:  #6aaa72;
+    --num:  #d4b84a;
+    --fn:   #7db3d4;
+    --var:  #e08060;
+    --cm:   #5a5040;
+    --rx:   #60b8c8;
+    --op:   #8a9aaa;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 64px 48px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: 'PERL';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Fraunces', serif;
+    font-size: 200px;
+    font-weight: 700;
+    color: #2c2618;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.06em;
+  }
+
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .level-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+  .level-pill::before {
+    content: '▶';
+    font-size: 8px;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--bg);
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--amber2);
+  }
+
+  .header-sub {
+    margin-top: 16px;
+    font-size: 1rem;
+    font-weight: 300;
+    color: #9a9080;
+    max-width: 440px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  /* ── NAV PILLS ── */
+  .toc-bar {
+    background: var(--bg2);
+    border-bottom: 2px solid var(--rule);
+    padding: 16px 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .toc-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .toc-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--ink3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-right: 6px;
+  }
+  .toc-inner a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink2);
+    text-decoration: none;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    padding: 3px 11px;
+    border-radius: 2px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .toc-inner a:hover {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--ink);
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 48px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  /* ── EXAMPLE CARD ── */
+  .example {
+    border: 1.5px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 4px 4px 0 var(--bg3);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .example:hover {
+    box-shadow: 6px 6px 0 var(--rule);
+    transform: translate(-1px, -1px);
+  }
+
+  .ex-head {
+    background: var(--bg2);
+    border-bottom: 1.5px solid var(--rule);
+    padding: 14px 20px;
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .ex-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--rule);
+    line-height: 1;
+  }
+
+  .ex-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .ex-tags {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+  .tg-a { background: #fff3cd; color: #7a5c00; border: 1px solid #e8c840; }
+  .tg-b { background: #d4edda; color: #1a5c30; border: 1px solid #7dcd9a; }
+  .tg-c { background: #cce5ff; color: #1a3a6e; border: 1px solid #7ab3e8; }
+  .tg-d { background: #f8d7da; color: #7a1a24; border: 1px solid #e08090; }
+  .tg-e { background: #e2d9f3; color: #4a2a7a; border: 1px solid #b09cd8; }
+  .tg-f { background: #d1ecf1; color: #0c5460; border: 1px solid #7accd4; }
+
+  .ex-desc {
+    padding: 14px 20px;
+    border-bottom: 1.5px solid var(--bg2);
+    font-size: 0.9rem;
+    color: var(--ink2);
+    line-height: 1.65;
+    font-style: italic;
+    background: #fdfaf4;
+  }
+  .ex-desc code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-style: normal;
+    color: var(--rose);
+  }
+
+  /* ── CODE ── */
+  pre {
+    margin: 0;
+    padding: 24px 20px;
+    background: var(--code-bg);
+    overflow-x: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .kw  { color: var(--kw); font-weight: 600; }
+  .str { color: var(--str); }
+  .num { color: var(--num); }
+  .fn  { color: var(--fn); }
+  .var { color: var(--var); }
+  .cm  { color: var(--cm); font-style: italic; }
+  .rx  { color: var(--rx); }
+  .op  { color: var(--op); }
+  .pkg { color: #c8a8e8; font-weight: 600; }
+  .mod { color: #f0d080; }
+
+  /* ── OUTPUT ── */
+  .ex-out {
+    border-top: 1.5px solid #2e2818;
+    background: #141008;
+    padding: 14px 20px;
+  }
+  .out-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #4a4030;
+    margin-bottom: 8px;
+  }
+  .ex-out pre {
+    padding: 0;
+    background: transparent;
+    font-size: 12px;
+    line-height: 1.65;
+    color: #88c890;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: -28px;
+  }
+  .section-label span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    white-space: nowrap;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  @media (max-width: 640px) {
+    header, main { padding-left: 20px; padding-right: 20px; }
+    .toc-bar { padding-left: 20px; padding-right: 20px; }
+    .ex-head { grid-template-columns: 36px 1fr; }
+    .ex-tags { display: none; }
+    pre { font-size: 11.5px; }
+    header::before { font-size: 100px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="level-pill">Intermediate Level</div>
+    <h1>Perl Code<br><em>Examples</em></h1>
+    <p class="header-sub">Idiomatic patterns, modules, error handling, and real-world techniques — all correct and debugged.</p>
+  </div>
+</header>
+
+<nav class="toc-bar">
+  <div class="toc-inner">
+    <span class="toc-label">Jump to</span>
+    <a href="#ex1">Dispatch Tables</a>
+    <a href="#ex2">Error Handling</a>
+    <a href="#ex3">Closures</a>
+    <a href="#ex4">File Processing</a>
+    <a href="#ex5">List::Util</a>
+    <a href="#ex6">Schwartzian</a>
+    <a href="#ex7">Formats/sprintf</a>
+    <a href="#ex8">Moose OOP</a>
+    <a href="#ex9">JSON</a>
+    <a href="#ex10">Getopt</a>
+    <a href="#ex11">Regex Advanced</a>
+    <a href="#ex12">DBI</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- SECTION: FUNCTIONAL -->
+<div class="section-label"><span>Functional Patterns</span></div>
+
+<!-- 1. Dispatch Table -->
+<section class="example" id="ex1">
+  <div class="ex-head">
+    <span class="ex-num">01</span>
+    <span class="ex-title">Dispatch tables (hash of coderefs)</span>
+    <div class="ex-tags">
+      <span class="tag tg-a">coderefs</span>
+      <span class="tag tg-b">dispatch</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    A <em>dispatch table</em> maps string keys to anonymous subroutines. This replaces long <code>if/elsif</code> chains and is faster, extensible, and idiomatic Perl. Coderefs are first-class values — store them in hashes, pass them to subs, return them.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># Each value is an anonymous sub (coderef)</span>
+<span class="kw">my</span> <span class="var">%calc</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="str">add</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">+</span> <span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span> <span class="op">}</span><span class="op">,</span>
+    <span class="str">sub</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">-</span> <span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span> <span class="op">}</span><span class="op">,</span>
+    <span class="str">mul</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">*</span> <span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span> <span class="op">}</span><span class="op">,</span>
+    <span class="str">div</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span>
+        <span class="kw">die</span> <span class="str">"Division by zero\n"</span> <span class="kw">if</span> <span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span> <span class="op">==</span> <span class="num">0</span><span class="op">;</span>
+        <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">/</span> <span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span><span class="op">;</span>
+    <span class="op">}</span><span class="op">,</span>
+    <span class="str">pow</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">**</span> <span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span> <span class="op">}</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Dispatch: look up the coderef and call it with -&gt;()</span>
+<span class="kw">sub</span> <span class="fn">calculate</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$op</span><span class="op">,</span> <span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">die</span> <span class="str">"Unknown op: $op\n"</span> <span class="kw">unless</span> <span class="fn">exists</span> <span class="var">$calc</span><span class="op">{</span><span class="var">$op</span><span class="op">}</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="var">$calc</span><span class="op">{</span><span class="var">$op</span><span class="op">}-&gt;(</span><span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">);</span>
+<span class="op">}</span>
+
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$test</span> <span class="op">(</span>
+    <span class="op">[</span><span class="str">add</span><span class="op">,</span> <span class="num">10</span><span class="op">,</span> <span class="num">3</span><span class="op">]</span><span class="op">,</span>  <span class="op">[</span><span class="str">sub</span><span class="op">,</span> <span class="num">10</span><span class="op">,</span> <span class="num">3</span><span class="op">]</span><span class="op">,</span>
+    <span class="op">[</span><span class="str">mul</span><span class="op">,</span> <span class="num">10</span><span class="op">,</span> <span class="num">3</span><span class="op">]</span><span class="op">,</span>  <span class="op">[</span><span class="str">div</span><span class="op">,</span> <span class="num">10</span><span class="op">,</span> <span class="num">3</span><span class="op">]</span><span class="op">,</span>
+    <span class="op">[</span><span class="str">pow</span><span class="op">,</span> <span class="num">2</span><span class="op">,</span>  <span class="num">8</span><span class="op">]</span><span class="op">,</span>
+<span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$op</span><span class="op">,</span> <span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">)</span> <span class="op">=</span> <span class="var">@$test</span><span class="op">;</span>
+    <span class="fn">printf</span> <span class="str">"%3s(%2d, %d) = %s\n"</span><span class="op">,</span>
+        <span class="var">$op</span><span class="op">,</span> <span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">,</span> <span class="fn">calculate</span><span class="op">(</span><span class="var">$op</span><span class="op">,</span> <span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">);</span>
+<span class="op">}</span>
+
+<span class="cm"># Dynamically add a new operation at runtime</span>
+<span class="var">$calc</span><span class="op">{</span><span class="str">mod</span><span class="op">}</span> <span class="op">=</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">%</span> <span class="var">$_</span><span class="op">[</span><span class="num">1</span><span class="op">]</span> <span class="op">}</span><span class="op">;</span>
+<span class="fn">printf</span> <span class="str">"mod(10, 3) = %d\n"</span><span class="op">,</span> <span class="fn">calculate</span><span class="op">(</span><span class="str">'mod'</span><span class="op">,</span> <span class="num">10</span><span class="op">,</span> <span class="num">3</span><span class="op">);</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>add(10, 3) = 13
+sub(10, 3) = 7
+mul(10, 3) = 30
+div(10, 3) = 3.33333333333333
+pow( 2, 8) = 256
+mod(10, 3) = 1</pre>
+  </div>
+</section>
+
+<!-- 2. Error Handling with eval/die -->
+<section class="example" id="ex2">
+  <div class="ex-head">
+    <span class="ex-num">02</span>
+    <span class="ex-title">Error handling — eval, die, and exception objects</span>
+    <div class="ex-tags">
+      <span class="tag tg-d">errors</span>
+      <span class="tag tg-e">eval</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    Perl uses <code>eval { }</code> as a try block and <code>$@</code> to catch errors. For richer exceptions, <code>die</code> with a blessed object (or use <code>Carp</code> for better stack traces). Always check <code>$@</code> immediately after <code>eval</code> — it can be cleared by other operations.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use Carp</span> <span class="str">qw(croak confess)</span><span class="op">;</span>
+
+<span class="cm"># --- Simple eval/die ---</span>
+<span class="kw">sub</span> <span class="fn">divide</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="fn">croak</span> <span class="str">"Cannot divide by zero"</span> <span class="kw">if</span> <span class="var">$b</span> <span class="op">==</span> <span class="num">0</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="var">$a</span> <span class="op">/</span> <span class="var">$b</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">eval</span> <span class="op">{</span> <span class="fn">divide</span><span class="op">(</span><span class="num">10</span><span class="op">,</span> <span class="num">0</span><span class="op">) }</span><span class="op">;</span>
+<span class="kw">if</span> <span class="op">(</span><span class="kw">my</span> <span class="var">$err</span> <span class="op">=</span> <span class="var">$@</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Caught: $err\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># --- Exception objects (lightweight, no module needed) ---</span>
+<span class="kw">package</span> <span class="pkg">MyException</span><span class="op">;</span>
+<span class="kw">sub</span> <span class="fn">new</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$class</span><span class="op">,</span> <span class="var">%args</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="fn">bless</span> <span class="op">{</span> <span class="str">message</span> <span class="op">=&gt;</span> <span class="var">$args</span><span class="op">{</span><span class="str">message</span><span class="op">}</span><span class="op">,</span>
+                   <span class="str">code</span>    <span class="op">=&gt;</span> <span class="var">$args</span><span class="op">{</span><span class="str">code</span><span class="op">}</span> <span class="op">//</span> <span class="num">0</span> <span class="op">}</span><span class="op">,</span> <span class="var">$class</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">message</span> <span class="op">{</span> <span class="kw">return</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">message</span><span class="op">}</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">code</span>    <span class="op">{</span> <span class="kw">return</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]-&gt;{</span><span class="str">code</span><span class="op">}</span>    <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">stringify</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="str">"[Error </span><span class="var">${\$self->code}</span><span class="str">] </span><span class="var">${\$self->message}</span><span class="str">"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">risky_op</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$val</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">die</span> <span class="pkg">MyException</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span>
+        <span class="str">message</span> <span class="op">=&gt;</span> <span class="str">"Value $val out of range"</span><span class="op">,</span>
+        <span class="str">code</span>    <span class="op">=&gt;</span> <span class="num">404</span><span class="op">,</span>
+    <span class="op">)</span> <span class="kw">if</span> <span class="var">$val</span> <span class="op">&lt;</span> <span class="num">0</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="fn">sqrt</span><span class="op">(</span><span class="var">$val</span><span class="op">);</span>
+<span class="op">}</span>
+
+<span class="cm"># Distinguish object exceptions from string exceptions</span>
+<span class="kw">eval</span> <span class="op">{</span> <span class="fn">risky_op</span><span class="op">(-</span><span class="num">4</span><span class="op">) }</span><span class="op">;</span>
+<span class="kw">if</span> <span class="op">(</span><span class="kw">my</span> <span class="var">$e</span> <span class="op">=</span> <span class="var">$@</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">if</span> <span class="op">(</span><span class="fn">ref</span> <span class="var">$e</span> <span class="op">&amp;&amp;</span> <span class="var">$e</span><span class="op">-&gt;</span><span class="fn">isa</span><span class="op">(</span><span class="str">'MyException'</span><span class="op">))</span> <span class="op">{</span>
+        <span class="fn">printf</span> <span class="str">"Object exception: %s\n"</span><span class="op">,</span> <span class="var">$e</span><span class="op">-&gt;</span><span class="fn">stringify</span><span class="op">();</span>
+    <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span>
+        <span class="fn">print</span> <span class="str">"String exception: $e"</span><span class="op">;</span>
+    <span class="op">}</span>
+<span class="op">}</span>
+
+<span class="cm"># Nested eval — inner errors don't escape</span>
+<span class="kw">eval</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"sqrt(9)  = "</span> <span class="op">.</span> <span class="fn">risky_op</span><span class="op">(</span><span class="num">9</span><span class="op">)</span>  <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+    <span class="fn">print</span> <span class="str">"sqrt(25) = "</span> <span class="op">.</span> <span class="fn">risky_op</span><span class="op">(</span><span class="num">25</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="op">}</span><span class="op">;</span>
+<span class="fn">warn</span> <span class="var">$@</span> <span class="kw">if</span> <span class="var">$@</span><span class="op">;</span>   <span class="cm"># no error expected</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>Caught: Cannot divide by zero at script.pl line 6.
+Object exception: [Error 404] Value -4 out of range
+sqrt(9)  = 3
+sqrt(25) = 5</pre>
+  </div>
+</section>
+
+<!-- 3. Closures -->
+<section class="example" id="ex3">
+  <div class="ex-head">
+    <span class="ex-num">03</span>
+    <span class="ex-title">Closures — factories and encapsulated state</span>
+    <div class="ex-tags">
+      <span class="tag tg-b">closures</span>
+      <span class="tag tg-a">functional</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    A <em>closure</em> is a sub that captures variables from its enclosing scope. This is how Perl implements private state, factory functions, iterators, and partial application — without needing a class.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># --- Counter factory: each call creates independent state ---</span>
+<span class="kw">sub</span> <span class="fn">make_counter</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$start</span><span class="op">,</span> <span class="var">$step</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="var">$step</span> <span class="op">//=</span> <span class="num">1</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$count</span> <span class="op">=</span> <span class="var">$start</span><span class="op">;</span>           <span class="cm"># captured by closure</span>
+    <span class="kw">return</span> <span class="op">{</span>
+        <span class="str">next</span>  <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="kw">return</span> <span class="var">$count</span> <span class="op">+=</span> <span class="var">$step</span> <span class="op">}</span><span class="op">,</span>
+        <span class="str">reset</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="var">$count</span> <span class="op">=</span> <span class="var">$start</span>         <span class="op">}</span><span class="op">,</span>
+        <span class="str">value</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span> <span class="kw">return</span> <span class="var">$count</span>            <span class="op">}</span><span class="op">,</span>
+    <span class="op">};</span>
+<span class="op">}</span>
+
+<span class="kw">my</span> <span class="var">$c1</span> <span class="op">=</span> <span class="fn">make_counter</span><span class="op">(</span><span class="num">0</span><span class="op">,</span> <span class="num">1</span><span class="op">);</span>
+<span class="kw">my</span> <span class="var">$c2</span> <span class="op">=</span> <span class="fn">make_counter</span><span class="op">(</span><span class="num">100</span><span class="op">,</span> <span class="op">-</span><span class="num">10</span><span class="op">);</span>
+
+<span class="var">$c1</span><span class="op">-&gt;{</span><span class="str">next</span><span class="op">}-&gt;()</span> <span class="kw">for</span> <span class="num">1</span><span class="op">..</span><span class="num">3</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"c1 after 3 steps: "</span> <span class="op">.</span> <span class="var">$c1</span><span class="op">-&gt;{</span><span class="str">value</span><span class="op">}-&gt;()</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="var">$c2</span><span class="op">-&gt;{</span><span class="str">next</span><span class="op">}-&gt;()</span> <span class="kw">for</span> <span class="num">1</span><span class="op">..</span><span class="num">4</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"c2 after 4 steps: "</span> <span class="op">.</span> <span class="var">$c2</span><span class="op">-&gt;{</span><span class="str">value</span><span class="op">}-&gt;()</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># --- Partial application (currying) ---</span>
+<span class="kw">sub</span> <span class="fn">make_multiplier</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$factor</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="kw">sub</span> <span class="op">{</span> <span class="kw">return</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">*</span> <span class="var">$factor</span> <span class="op">};</span>
+<span class="op">}</span>
+
+<span class="kw">my</span> <span class="var">$double</span> <span class="op">=</span> <span class="fn">make_multiplier</span><span class="op">(</span><span class="num">2</span><span class="op">);</span>
+<span class="kw">my</span> <span class="var">$triple</span> <span class="op">=</span> <span class="fn">make_multiplier</span><span class="op">(</span><span class="num">3</span><span class="op">);</span>
+
+<span class="kw">my</span> <span class="var">@nums</span>    <span class="op">=</span> <span class="op">(</span><span class="num">1</span><span class="op">..</span><span class="num">5</span><span class="op">);</span>
+<span class="kw">my</span> <span class="var">@doubled</span> <span class="op">=</span> <span class="fn">map</span> <span class="op">{</span> <span class="var">$double</span><span class="op">-&gt;(</span><span class="var">$_</span><span class="op">)</span> <span class="op">}</span> <span class="var">@nums</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">@tripled</span> <span class="op">=</span> <span class="fn">map</span> <span class="op">{</span> <span class="var">$triple</span><span class="op">-&gt;(</span><span class="var">$_</span><span class="op">)</span> <span class="op">}</span> <span class="var">@nums</span><span class="op">;</span>
+
+<span class="fn">print</span> <span class="str">"doubled: "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@doubled</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"tripled: "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@tripled</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># --- Memoization with a closure ---</span>
+<span class="kw">sub</span> <span class="fn">memoize</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$fn</span><span class="op">)</span> <span class="op">=</span> <span class="var">@_</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">%cache</span><span class="op">;</span>                    <span class="cm"># private to this closure</span>
+    <span class="kw">return</span> <span class="kw">sub</span> <span class="op">{</span>
+        <span class="kw">my</span> <span class="var">$key</span> <span class="op">=</span> <span class="fn">join</span><span class="op">(</span><span class="str">','</span><span class="op">,</span> <span class="var">@_</span><span class="op">);</span>
+        <span class="kw">return</span> <span class="var">$cache</span><span class="op">{</span><span class="var">$key</span><span class="op">}</span> <span class="kw">if</span> <span class="fn">exists</span> <span class="var">$cache</span><span class="op">{</span><span class="var">$key</span><span class="op">};</span>
+        <span class="kw">return</span> <span class="var">$cache</span><span class="op">{</span><span class="var">$key</span><span class="op">}</span> <span class="op">=</span> <span class="var">$fn</span><span class="op">-&gt;(</span><span class="var">@_</span><span class="op">);</span>
+    <span class="op">};</span>
+<span class="op">}</span>
+
+<span class="kw">my</span> <span class="var">$slow_sq</span> <span class="op">=</span> <span class="kw">sub</span> <span class="op">{</span> <span class="kw">return</span> <span class="var">$_</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">**</span> <span class="num">2</span> <span class="op">};</span>
+<span class="kw">my</span> <span class="var">$fast_sq</span> <span class="op">=</span> <span class="fn">memoize</span><span class="op">(</span><span class="var">$slow_sq</span><span class="op">);</span>
+
+<span class="fn">print</span> <span class="str">"7^2 = "</span> <span class="op">.</span> <span class="var">$fast_sq</span><span class="op">-&gt;(</span><span class="num">7</span><span class="op">)</span> <span class="op">.</span> <span class="str">" (computed)\n"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"7^2 = "</span> <span class="op">.</span> <span class="var">$fast_sq</span><span class="op">-&gt;(</span><span class="num">7</span><span class="op">)</span> <span class="op">.</span> <span class="str">" (cached)\n"</span><span class="op">;</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>c1 after 3 steps: 3
+c2 after 4 steps: 60
+doubled: 2, 4, 6, 8, 10
+tripled: 3, 6, 9, 12, 15
+7^2 = 49 (computed)
+7^2 = 49 (cached)</pre>
+  </div>
+</section>
+
+<!-- SECTION: DATA PROCESSING -->
+<div class="section-label"><span>Data Processing</span></div>
+
+<!-- 4. File processing -->
+<section class="example" id="ex4">
+  <div class="ex-head">
+    <span class="ex-num">04</span>
+    <span class="ex-title">CSV file processing without a module</span>
+    <div class="ex-tags">
+      <span class="tag tg-f">file i/o</span>
+      <span class="tag tg-b">parsing</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    Parsing and aggregating structured data from a file is a classic Perl task. This demonstrates reading CSV, building a hash-of-arrays for grouping, computing statistics, and writing a summary report — all with idiomatic Perl.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use List::Util</span> <span class="str">qw(sum min max)</span><span class="op">;</span>
+
+<span class="cm"># Write sample CSV to a temp file</span>
+<span class="kw">my</span> <span class="var">$csv_data</span> <span class="op">=</span> <span class="op">&lt;&lt;</span><span class="str">'END'</span><span class="op">;</span>
+<span class="str">name,dept,salary
+Alice,Engineering,95000
+Bob,HR,62000
+Carol,Engineering,105000
+Dave,Marketing,71000
+Eve,HR,68000
+Frank,Engineering,88000
+Grace,Marketing,75000
+END</span>
+
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$tmp</span><span class="op">,</span> <span class="str">'>'</span><span class="op">,</span> <span class="str">'/tmp/staff.csv'</span><span class="op">)</span> <span class="kw">or die</span> <span class="var">$!</span><span class="op">;</span>
+<span class="fn">print</span> <span class="var">$tmp</span> <span class="var">$csv_data</span><span class="op">;</span>
+<span class="fn">close</span> <span class="var">$tmp</span><span class="op">;</span>
+
+<span class="cm"># Read and parse, skip header</span>
+<span class="fn">open</span><span class="op">(</span><span class="kw">my</span> <span class="var">$fh</span><span class="op">,</span> <span class="str">'&lt;'</span><span class="op">,</span> <span class="str">'/tmp/staff.csv'</span><span class="op">)</span> <span class="kw">or die</span> <span class="var">$!</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$header</span> <span class="op">=</span> <span class="op">&lt;</span><span class="var">$fh</span><span class="op">&gt;;</span>  <span class="cm"># consume header line</span>
+<span class="fn">chomp</span> <span class="var">$header</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">@fields</span> <span class="op">=</span> <span class="fn">split</span> <span class="rx">/,/</span><span class="op">,</span> <span class="var">$header</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">%by_dept</span><span class="op">;</span>  <span class="cm"># dept => [ {record}, ... ]</span>
+
+<span class="kw">while</span> <span class="op">(</span><span class="kw">my</span> <span class="var">$line</span> <span class="op">=</span> <span class="op">&lt;</span><span class="var">$fh</span><span class="op">&gt;)</span> <span class="op">{</span>
+    <span class="fn">chomp</span> <span class="var">$line</span><span class="op">;</span>
+    <span class="kw">next</span> <span class="kw">unless</span> <span class="var">$line</span> <span class="op">=~</span> <span class="rx">/\S/</span><span class="op">;</span>   <span class="cm"># skip blank lines</span>
+
+    <span class="cm"># Build a record hash from field names + values</span>
+    <span class="kw">my</span> <span class="var">%rec</span><span class="op">;</span>
+    <span class="var">@rec</span><span class="op">{</span><span class="var">@fields</span><span class="op">}</span> <span class="op">=</span> <span class="fn">split</span> <span class="rx">/,/</span><span class="op">,</span> <span class="var">$line</span><span class="op">;</span>    <span class="cm"># hash slice assignment</span>
+
+    <span class="fn">push</span> <span class="var">@{</span><span class="var">$by_dept</span><span class="op">{</span> <span class="var">$rec</span><span class="op">{</span><span class="str">dept</span><span class="op">}</span> <span class="op">}</span><span class="var">}</span><span class="op">,</span> <span class="op">\</span><span class="var">%rec</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="fn">close</span> <span class="var">$fh</span><span class="op">;</span>
+
+<span class="cm"># Print department summary</span>
+<span class="fn">printf</span> <span class="str">"%-16s %5s %8s %8s %8s\n"</span><span class="op">,</span>
+    <span class="str">"Department"</span><span class="op">,</span> <span class="str">"Count"</span><span class="op">,</span> <span class="str">"Min"</span><span class="op">,</span> <span class="str">"Max"</span><span class="op">,</span> <span class="str">"Avg"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"-"</span> <span class="op">x</span> <span class="num">52</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$dept</span> <span class="op">(</span><span class="fn">sort</span> <span class="fn">keys</span> <span class="var">%by_dept</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">@salaries</span> <span class="op">=</span> <span class="fn">map</span> <span class="op">{</span> <span class="var">$_</span><span class="op">-&gt;{</span><span class="str">salary</span><span class="op">}</span> <span class="op">}</span> <span class="var">@{</span><span class="var">$by_dept</span><span class="op">{</span><span class="var">$dept</span><span class="op">}</span><span class="var">}</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$avg</span>  <span class="op">=</span> <span class="fn">sum</span><span class="op">(</span><span class="var">@salaries</span><span class="op">)</span> <span class="op">/</span> <span class="fn">scalar</span><span class="op">(</span><span class="var">@salaries</span><span class="op">);</span>
+    <span class="fn">printf</span> <span class="str">"%-16s %5d %8d %8d %8.0f\n"</span><span class="op">,</span>
+        <span class="var">$dept</span><span class="op">,</span> <span class="fn">scalar</span><span class="op">(</span><span class="var">@salaries</span><span class="op">),</span>
+        <span class="fn">min</span><span class="op">(</span><span class="var">@salaries</span><span class="op">),</span> <span class="fn">max</span><span class="op">(</span><span class="var">@salaries</span><span class="op">),</span> <span class="var">$avg</span><span class="op">;</span>
+<span class="op">}</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>Department        Count      Min      Max      Avg
+----------------------------------------------------
+Engineering           3    88000   105000    96000
+HR                    2    62000    68000    65000
+Marketing             2    71000    75000    73000</pre>
+  </div>
+</section>
+
+<!-- 5. List::Util -->
+<section class="example" id="ex5">
+  <div class="ex-head">
+    <span class="ex-num">05</span>
+    <span class="ex-title">List::Util — the essential list toolkit</span>
+    <div class="ex-tags">
+      <span class="tag tg-c">modules</span>
+      <span class="tag tg-a">lists</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    <code>List::Util</code> (core module, always available) provides <code>sum</code>, <code>min</code>, <code>max</code>, <code>first</code>, <code>any</code>, <code>all</code>, <code>none</code>, <code>reduce</code>, <code>uniq</code>, and more. Know these — they eliminate hand-written loops.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use List::Util</span> <span class="str">qw(
+    sum sum0 product
+    min max minstr maxstr
+    first any all none
+    reduce uniq uniqstr
+    shuffle pairs
+)</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">@nums</span>  <span class="op">=</span> <span class="op">(</span><span class="num">3</span><span class="op">,</span> <span class="num">1</span><span class="op">,</span> <span class="num">4</span><span class="op">,</span> <span class="num">1</span><span class="op">,</span> <span class="num">5</span><span class="op">,</span> <span class="num">9</span><span class="op">,</span> <span class="num">2</span><span class="op">,</span> <span class="num">6</span><span class="op">)</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">@words</span> <span class="op">=</span> <span class="op">(</span><span class="str">'banana'</span><span class="op">,</span> <span class="str">'apple'</span><span class="op">,</span> <span class="str">'cherry'</span><span class="op">,</span> <span class="str">'date'</span><span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Numeric aggregation</span>
+<span class="fn">printf</span> <span class="str">"sum=%-4d  product=%-6d  min=%d  max=%d\n"</span><span class="op">,</span>
+    <span class="fn">sum</span><span class="op">(</span><span class="var">@nums</span><span class="op">),</span> <span class="fn">product</span><span class="op">(</span><span class="var">@nums</span><span class="op">),</span> <span class="fn">min</span><span class="op">(</span><span class="var">@nums</span><span class="op">),</span> <span class="fn">max</span><span class="op">(</span><span class="var">@nums</span><span class="op">);</span>
+
+<span class="cm"># String min/max (uses cmp not &lt;=&gt;)</span>
+<span class="fn">printf</span> <span class="str">"minstr=%s  maxstr=%s\n"</span><span class="op">,</span>
+    <span class="fn">minstr</span><span class="op">(</span><span class="var">@words</span><span class="op">),</span> <span class="fn">maxstr</span><span class="op">(</span><span class="var">@words</span><span class="op">);</span>
+
+<span class="cm"># first — returns first matching element</span>
+<span class="kw">my</span> <span class="var">$big</span> <span class="op">=</span> <span class="fn">first</span> <span class="op">{</span> <span class="var">$_</span> <span class="op">&gt;</span> <span class="num">5</span> <span class="op">}</span> <span class="var">@nums</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"first > 5: $big\n"</span><span class="op">;</span>
+
+<span class="cm"># any / all / none — boolean tests</span>
+<span class="fn">print</span> <span class="str">"any even?  "</span> <span class="op">.</span> <span class="op">(</span><span class="fn">any</span>  <span class="op">{</span> <span class="var">$_</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span> <span class="op">}</span> <span class="var">@nums</span> <span class="op">?</span> <span class="str">"yes"</span> <span class="op">:</span> <span class="str">"no"</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"all > 0?   "</span> <span class="op">.</span> <span class="op">(</span><span class="fn">all</span>  <span class="op">{</span> <span class="var">$_</span> <span class="op">&gt;</span> <span class="num">0</span>        <span class="op">}</span> <span class="var">@nums</span> <span class="op">?</span> <span class="str">"yes"</span> <span class="op">:</span> <span class="str">"no"</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"none neg?  "</span> <span class="op">.</span> <span class="op">(</span><span class="fn">none</span> <span class="op">{</span> <span class="var">$_</span> <span class="op">&lt;</span> <span class="num">0</span>        <span class="op">}</span> <span class="var">@nums</span> <span class="op">?</span> <span class="str">"yes"</span> <span class="op">:</span> <span class="str">"no"</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># reduce — fold left with accumulator in $a, current in $b</span>
+<span class="kw">my</span> <span class="var">$gcd</span><span class="op">;</span>
+<span class="var">$gcd</span> <span class="op">=</span> <span class="fn">reduce</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$x</span><span class="op">,</span> <span class="var">$y</span><span class="op">)</span> <span class="op">=</span> <span class="op">(</span><span class="var">$a</span><span class="op">,</span> <span class="var">$b</span><span class="op">);</span>
+    <span class="op">(</span><span class="var">$x</span><span class="op">,</span> <span class="var">$y</span><span class="op">)</span> <span class="op">=</span> <span class="op">(</span><span class="var">$y</span><span class="op">,</span> <span class="var">$x</span> <span class="op">%</span> <span class="var">$y</span><span class="op">)</span> <span class="kw">while</span> <span class="var">$y</span><span class="op">;</span>
+    <span class="var">$x</span><span class="op">;</span>
+<span class="op">}</span> <span class="num">48</span><span class="op">,</span> <span class="num">36</span><span class="op">,</span> <span class="num">24</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"GCD(48,36,24) = $gcd\n"</span><span class="op">;</span>
+
+<span class="cm"># uniq — removes consecutive duplicates (sort first for all dups)</span>
+<span class="kw">my</span> <span class="var">@unique</span> <span class="op">=</span> <span class="fn">uniq</span> <span class="fn">sort</span> <span class="op">{</span><span class="var">$a</span><span class="op">&lt;=&gt;</span><span class="var">$b</span><span class="op">}</span> <span class="var">@nums</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"uniq sorted: "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">" "</span><span class="op">,</span> <span class="var">@unique</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># pairs — iterate list as key-value pairs</span>
+<span class="kw">my</span> <span class="var">@kv</span> <span class="op">=</span> <span class="op">(</span><span class="str">a</span> <span class="op">=&gt;</span> <span class="num">1</span><span class="op">,</span> <span class="str">b</span> <span class="op">=&gt;</span> <span class="num">2</span><span class="op">,</span> <span class="str">c</span> <span class="op">=&gt;</span> <span class="num">3</span><span class="op">);</span>
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$p</span> <span class="op">(</span><span class="fn">pairs</span> <span class="var">@kv</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"  $p->[0] => $p->[1]\n"</span><span class="op">;</span>
+<span class="op">}</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>sum=31    product=6480    min=1  max=9
+minstr=apple  maxstr=date
+first > 5: 9
+any even?  yes
+all > 0?   yes
+none neg?  yes
+GCD(48,36,24) = 12
+uniq sorted: 1 2 3 4 5 6 9
+  a => 1
+  b => 2
+  c => 3</pre>
+  </div>
+</section>
+
+<!-- 6. Schwartzian Transform -->
+<section class="example" id="ex6">
+  <div class="ex-head">
+    <span class="ex-num">06</span>
+    <span class="ex-title">Schwartzian transform — efficient complex sorting</span>
+    <div class="ex-tags">
+      <span class="tag tg-a">sorting</span>
+      <span class="tag tg-b">performance</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    When a sort key is expensive to compute, the <em>Schwartzian transform</em> computes it once per element (map → sort → map). This is idiomatic Perl and significantly faster than calling the key function inside <code>sort</code>.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">@files</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="str">"report10.txt"</span><span class="op">,</span> <span class="str">"report2.txt"</span><span class="op">,</span>
+    <span class="str">"report1.txt"</span><span class="op">,</span>  <span class="str">"report20.txt"</span><span class="op">,</span>
+    <span class="str">"notes.txt"</span><span class="op">,</span>    <span class="str">"archive.txt"</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># --- Problem: plain string sort gives wrong numeric order ---</span>
+<span class="kw">my</span> <span class="var">@str_sorted</span> <span class="op">=</span> <span class="fn">sort</span> <span class="var">@files</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"String sort:  "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@str_sorted</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># --- Schwartzian: decorate → sort → undecorate ---</span>
+<span class="cm"># Step 1 (map): wrap each element as [$original, $computed_key]</span>
+<span class="cm"># Step 2 (sort): compare only on the precomputed key</span>
+<span class="cm"># Step 3 (map): unwrap back to original</span>
+
+<span class="kw">my</span> <span class="var">@nat_sorted</span> <span class="op">=</span>
+    <span class="fn">map</span>  <span class="op">{</span> <span class="var">$_</span><span class="op">-&gt;[</span><span class="num">0</span><span class="op">]</span> <span class="op">}</span>                          <span class="cm"># 3. unwrap</span>
+    <span class="fn">sort</span> <span class="op">{</span>
+        <span class="var">$a</span><span class="op">-&gt;[</span><span class="num">1</span><span class="op">]</span>  <span class="fn">cmp</span>  <span class="var">$b</span><span class="op">-&gt;[</span><span class="num">1</span><span class="op">]</span>            <span class="cm"># compare alpha prefix</span>
+        <span class="op">||</span>
+        <span class="var">$a</span><span class="op">-&gt;[</span><span class="num">2</span><span class="op">]</span>  <span class="op">&lt;=&gt;</span>  <span class="var">$b</span><span class="op">-&gt;[</span><span class="num">2</span><span class="op">]</span>            <span class="cm"># then numeric suffix</span>
+    <span class="op">}</span>
+    <span class="fn">map</span>  <span class="op">{</span>                                    <span class="cm"># 1. decorate</span>
+        <span class="kw">my</span> <span class="op">(</span><span class="var">$prefix</span><span class="op">,</span> <span class="var">$num</span><span class="op">)</span> <span class="op">=</span> <span class="var">$_</span> <span class="op">=~</span> <span class="rx">/^([a-z]+)(\d*)/i</span><span class="op">;</span>
+        <span class="op">[</span><span class="var">$_</span><span class="op">,</span> <span class="var">$prefix</span><span class="op">,</span> <span class="var">$num</span> <span class="op">||</span> <span class="num">0</span><span class="op">]</span>
+    <span class="op">}</span>
+    <span class="var">@files</span><span class="op">;</span>
+
+<span class="fn">print</span> <span class="str">"Natural sort: "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@nat_sorted</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># --- Sort objects by computed score (the classic use case) ---</span>
+<span class="kw">my</span> <span class="var">@people</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="op">{</span> <span class="str">name</span> <span class="op">=&gt;</span> <span class="str">"Alice"</span><span class="op">,</span> <span class="str">scores</span> <span class="op">=&gt;</span> <span class="op">[</span><span class="num">90</span><span class="op">,</span><span class="num">85</span><span class="op">,</span><span class="num">92</span><span class="op">]</span> <span class="op">}</span><span class="op">,</span>
+    <span class="op">{</span> <span class="str">name</span> <span class="op">=&gt;</span> <span class="str">"Bob"</span><span class="op">,</span>   <span class="str">scores</span> <span class="op">=&gt;</span> <span class="op">[</span><span class="num">70</span><span class="op">,</span><span class="num">88</span><span class="op">,</span><span class="num">75</span><span class="op">]</span> <span class="op">}</span><span class="op">,</span>
+    <span class="op">{</span> <span class="str">name</span> <span class="op">=&gt;</span> <span class="str">"Carol"</span><span class="op">,</span> <span class="str">scores</span> <span class="op">=&gt;</span> <span class="op">[</span><span class="num">95</span><span class="op">,</span><span class="num">91</span><span class="op">,</span><span class="num">89</span><span class="op">]</span> <span class="op">}</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="kw">use List::Util</span> <span class="str">qw(sum)</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">@ranked</span> <span class="op">=</span>
+    <span class="fn">map</span>  <span class="op">{</span> <span class="var">$_</span><span class="op">-&gt;[</span><span class="num">0</span><span class="op">]</span> <span class="op">}</span>
+    <span class="fn">sort</span> <span class="op">{</span> <span class="var">$b</span><span class="op">-&gt;[</span><span class="num">1</span><span class="op">]</span> <span class="op">&lt;=&gt;</span> <span class="var">$a</span><span class="op">-&gt;[</span><span class="num">1</span><span class="op">]</span> <span class="op">}</span>    <span class="cm"># descending avg</span>
+    <span class="fn">map</span>  <span class="op">{</span>
+        <span class="kw">my</span> <span class="var">$avg</span> <span class="op">=</span> <span class="fn">sum</span><span class="op">(</span><span class="var">@{</span><span class="var">$_</span><span class="op">-&gt;{</span><span class="str">scores</span><span class="op">}</span><span class="var">}</span><span class="op">)</span> <span class="op">/</span> <span class="fn">scalar</span><span class="op">(</span><span class="var">@{</span><span class="var">$_</span><span class="op">-&gt;{</span><span class="str">scores</span><span class="op">}</span><span class="var">}</span><span class="op">);</span>
+        <span class="op">[</span><span class="var">$_</span><span class="op">,</span> <span class="var">$avg</span><span class="op">]</span>                   <span class="cm"># [$original, $key]</span>
+    <span class="op">}</span>
+    <span class="var">@people</span><span class="op">;</span>
+
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$p</span> <span class="op">(</span><span class="var">@ranked</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$avg</span> <span class="op">=</span> <span class="fn">sum</span><span class="op">(</span><span class="var">@{</span><span class="var">$p</span><span class="op">-&gt;{</span><span class="str">scores</span><span class="op">}</span><span class="var">}</span><span class="op">)</span> <span class="op">/</span> <span class="fn">scalar</span><span class="op">(</span><span class="var">@{</span><span class="var">$p</span><span class="op">-&gt;{</span><span class="str">scores</span><span class="op">}</span><span class="var">}</span><span class="op">);</span>
+    <span class="fn">printf</span> <span class="str">"  %-8s avg=%.1f\n"</span><span class="op">,</span> <span class="var">$p</span><span class="op">-&gt;{</span><span class="str">name</span><span class="op">}</span><span class="op">,</span> <span class="var">$avg</span><span class="op">;</span>
+<span class="op">}</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>String sort:  archive.txt, notes.txt, report1.txt, report10.txt, report2.txt, report20.txt
+Natural sort: archive.txt, notes.txt, report1.txt, report2.txt, report10.txt, report20.txt
+  Carol    avg=91.7
+  Alice    avg=89.0
+  Bob      avg=77.7</pre>
+  </div>
+</section>
+
+<!-- SECTION: MODULES & OOP -->
+<div class="section-label"><span>Modules &amp; OOP</span></div>
+
+<!-- 7. sprintf / printf formatting -->
+<section class="example" id="ex7">
+  <div class="ex-head">
+    <span class="ex-num">07</span>
+    <span class="ex-title">sprintf / printf — formatted output mastery</span>
+    <div class="ex-tags">
+      <span class="tag tg-f">formatting</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    <code>sprintf</code> and <code>printf</code> are workhorses for producing aligned, numeric, and structured text output. Understanding width, precision, padding, and format codes is essential for report generation and log output.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use POSIX</span> <span class="str">qw(floor ceil)</span><span class="op">;</span>
+
+<span class="cm"># Integers: %d  width  zero-pad  sign</span>
+<span class="fn">printf</span> <span class="str">"%d\n"</span><span class="op">,</span>       <span class="num">42</span><span class="op">;</span>        <span class="cm"># 42</span>
+<span class="fn">printf</span> <span class="str">"%8d\n"</span><span class="op">,</span>      <span class="num">42</span><span class="op">;</span>        <span class="cm">#       42  (right-aligned, width 8)</span>
+<span class="fn">printf</span> <span class="str">"%-8d|\n"</span><span class="op">,</span>     <span class="num">42</span><span class="op">;</span>        <span class="cm"># 42      |  (left-aligned)</span>
+<span class="fn">printf</span> <span class="str">"%08d\n"</span><span class="op">,</span>     <span class="num">42</span><span class="op">;</span>        <span class="cm"># 00000042  (zero-padded)</span>
+<span class="fn">printf</span> <span class="str">"%+d  %+d\n"</span><span class="op">,</span> <span class="num">42</span><span class="op">,</span> <span class="op">-</span><span class="num">3</span><span class="op">;</span>    <span class="cm"># +42  -3   (force sign)</span>
+
+<span class="fn">print</span> <span class="str">"---\n"</span><span class="op">;</span>
+<span class="cm"># Floats: %f %e %g  precision</span>
+<span class="fn">printf</span> <span class="str">"%.2f\n"</span><span class="op">,</span>    <span class="num">3.14159</span><span class="op">;</span>   <span class="cm"># 3.14</span>
+<span class="fn">printf</span> <span class="str">"%10.3f\n"</span><span class="op">,</span> <span class="num">3.14159</span><span class="op">;</span>   <span class="cm">#      3.142</span>
+<span class="fn">printf</span> <span class="str">"%e\n"</span><span class="op">,</span>     <span class="num">123456.78</span><span class="op">;</span> <span class="cm"># 1.234568e+05</span>
+<span class="fn">printf</span> <span class="str">"%g\n"</span><span class="op">,</span>     <span class="num">0.0001</span><span class="op">;</span>    <span class="cm"># 0.0001</span>
+<span class="fn">printf</span> <span class="str">"%g\n"</span><span class="op">,</span>     <span class="num">0.00001</span><span class="op">;</span>   <span class="cm"># 1e-05  (%g picks shorter form)</span>
+
+<span class="fn">print</span> <span class="str">"---\n"</span><span class="op">;</span>
+<span class="cm"># Strings: %s  hex: %x  octal: %o  binary: %b</span>
+<span class="fn">printf</span> <span class="str">"%s and %-10s|\n"</span><span class="op">,</span> <span class="str">"hello"</span><span class="op">,</span> <span class="str">"world"</span><span class="op">;</span>
+<span class="fn">printf</span> <span class="str">"hex=0x%04X  oct=0%o  bin=%08b\n"</span><span class="op">,</span> <span class="num">255</span><span class="op">,</span> <span class="num">255</span><span class="op">,</span> <span class="num">255</span><span class="op">;</span>
+
+<span class="fn">print</span> <span class="str">"---\n"</span><span class="op">;</span>
+<span class="cm"># sprintf into a variable; build a table</span>
+<span class="kw">my</span> <span class="var">@data</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="op">[</span><span class="str">"Widget A"</span><span class="op">,</span>  <span class="num">1024</span><span class="op">,</span>   <span class="num">9.99</span><span class="op">]</span><span class="op">,</span>
+    <span class="op">[</span><span class="str">"Gadget B"</span><span class="op">,</span>   <span class="num">357</span><span class="op">,</span>  <span class="num">24.50</span><span class="op">]</span><span class="op">,</span>
+    <span class="op">[</span><span class="str">"Doohickey"</span><span class="op">,</span>   <span class="num">89</span><span class="op">,</span> <span class="num">149.00</span><span class="op">]</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="fn">printf</span> <span class="str">"%-12s %6s %9s %12s\n"</span><span class="op">,</span>
+    <span class="str">"Item"</span><span class="op">,</span> <span class="str">"Units"</span><span class="op">,</span> <span class="str">"Price"</span><span class="op">,</span> <span class="str">"Total"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"-"</span> <span class="op">x</span> <span class="num">44</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$grand</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span>
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$row</span> <span class="op">(</span><span class="var">@data</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="op">(</span><span class="var">$name</span><span class="op">,</span> <span class="var">$qty</span><span class="op">,</span> <span class="var">$price</span><span class="op">)</span> <span class="op">=</span> <span class="var">@$row</span><span class="op">;</span>
+    <span class="kw">my</span> <span class="var">$total</span> <span class="op">=</span> <span class="var">$qty</span> <span class="op">*</span> <span class="var">$price</span><span class="op">;</span>
+    <span class="var">$grand</span>  <span class="op">+=</span> <span class="var">$total</span><span class="op">;</span>
+    <span class="fn">printf</span> <span class="str">"%-12s %6d %9.2f %12.2f\n"</span><span class="op">,</span>
+        <span class="var">$name</span><span class="op">,</span> <span class="var">$qty</span><span class="op">,</span> <span class="var">$price</span><span class="op">,</span> <span class="var">$total</span><span class="op">;</span>
+<span class="op">}</span>
+<span class="fn">print</span> <span class="str">"-"</span> <span class="op">x</span> <span class="num">44</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="fn">printf</span> <span class="str">"%-12s %17s %12.2f\n"</span><span class="op">,</span> <span class="str">"TOTAL"</span><span class="op">,</span> <span class="str">""</span><span class="op">,</span> <span class="var">$grand</span><span class="op">;</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>42
+      42
+42      |
+00000042
++42  -3
+---
+3.14
+     3.142
+1.234568e+05
+0.0001
+1e-05
+---
+hello and world     |
+hex=0x00FF  oct=0377  bin=11111111
+---
+Item          Units     Price        Total
+--------------------------------------------
+Widget A       1024      9.99     10229.76
+Gadget B        357     24.50      8746.50
+Doohickey        89    149.00     13261.00
+--------------------------------------------
+TOTAL                              32237.26</pre>
+  </div>
+</section>
+
+<!-- 8. Moose OOP -->
+<section class="example" id="ex8">
+  <div class="ex-head">
+    <span class="ex-num">08</span>
+    <span class="ex-title">Moose — modern object-oriented Perl</span>
+    <div class="ex-tags">
+      <span class="tag tg-b">moose</span>
+      <span class="tag tg-e">oop</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    <code>Moose</code> is the standard OOP framework for modern Perl. It provides declarative attributes with types and defaults, roles (like interfaces + mixins), method modifiers (<code>before</code>/<code>after</code>/<code>around</code>), and more — eliminating boilerplate <code>bless</code>/<code>accessor</code> code.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm">### --- Role: anything printable ---</span>
+<span class="kw">package</span> <span class="pkg">Printable</span><span class="op">;</span>
+<span class="kw">use Moose::Role</span><span class="op">;</span>
+
+<span class="fn">requires</span> <span class="str">'to_string'</span><span class="op">;</span>   <span class="cm"># classes that use this role must implement it</span>
+
+<span class="kw">sub</span> <span class="fn">print_self</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="fn">print</span> <span class="var">$self</span><span class="op">-&gt;</span><span class="fn">to_string</span><span class="op">()</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm">### --- Base class: Animal ---</span>
+<span class="kw">package</span> <span class="pkg">Animal</span><span class="op">;</span>
+<span class="kw">use Moose</span><span class="op">;</span>
+<span class="kw">with</span> <span class="str">'Printable'</span><span class="op">;</span>
+
+<span class="cm"># Attribute: name — required, read-only string</span>
+<span class="fn">has</span> <span class="str">'name'</span> <span class="op">=&gt;</span> <span class="op">(</span>
+    <span class="str">is</span>       <span class="op">=&gt;</span> <span class="str">'ro'</span><span class="op">,</span>
+    <span class="str">isa</span>      <span class="op">=&gt;</span> <span class="str">'Str'</span><span class="op">,</span>
+    <span class="str">required</span> <span class="op">=&gt;</span> <span class="num">1</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Attribute: sound — has a default value</span>
+<span class="fn">has</span> <span class="str">'sound'</span> <span class="op">=&gt;</span> <span class="op">(</span>
+    <span class="str">is</span>      <span class="op">=&gt;</span> <span class="str">'rw'</span><span class="op">,</span>
+    <span class="str">isa</span>     <span class="op">=&gt;</span> <span class="str">'Str'</span><span class="op">,</span>
+    <span class="str">default</span> <span class="op">=&gt;</span> <span class="str">'...'</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="kw">sub</span> <span class="fn">speak</span>     <span class="op">{</span> <span class="kw">my</span> <span class="var">$s</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span> <span class="fn">print</span> <span class="var">$s</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">.</span><span class="str">" says: "</span><span class="op">.</span><span class="var">$s</span><span class="op">-&gt;</span><span class="fn">sound</span><span class="op">.</span><span class="str">"\n"</span> <span class="op">}</span>
+<span class="kw">sub</span> <span class="fn">to_string</span> <span class="op">{</span> <span class="kw">my</span> <span class="var">$s</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span> <span class="kw">return</span> <span class="str">"Animal["</span><span class="op">.</span><span class="var">$s</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">.</span><span class="str">"]"</span> <span class="op">}</span>
+
+<span class="cm">### --- Subclass: Dog ---</span>
+<span class="kw">package</span> <span class="pkg">Dog</span><span class="op">;</span>
+<span class="kw">use Moose</span><span class="op">;</span>
+<span class="kw">extends</span> <span class="str">'Animal'</span><span class="op">;</span>
+
+<span class="cm"># Override default for sound</span>
+<span class="fn">has</span> <span class="str">'+sound'</span> <span class="op">=&gt;</span> <span class="op">(</span> <span class="str">default</span> <span class="op">=&gt;</span> <span class="str">'Woof!'</span> <span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Extra attribute with type constraint</span>
+<span class="fn">has</span> <span class="str">'breed'</span> <span class="op">=&gt;</span> <span class="op">(</span>
+    <span class="str">is</span>      <span class="op">=&gt;</span> <span class="str">'ro'</span><span class="op">,</span>
+    <span class="str">isa</span>     <span class="op">=&gt;</span> <span class="str">'Str'</span><span class="op">,</span>
+    <span class="str">default</span> <span class="op">=&gt;</span> <span class="str">'Mixed'</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="cm"># Method modifier: runs BEFORE speak()</span>
+<span class="fn">before</span> <span class="str">'speak'</span> <span class="op">=&gt;</span> <span class="kw">sub</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$self</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="fn">print</span> <span class="str">"[Dog wags tail]\n"</span><span class="op">;</span>
+<span class="op">};</span>
+
+<span class="kw">sub</span> <span class="fn">to_string</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$s</span> <span class="op">=</span> <span class="fn">shift</span><span class="op">;</span>
+    <span class="kw">return</span> <span class="str">"Dog["</span><span class="op">.</span><span class="var">$s</span><span class="op">-&gt;</span><span class="fn">name</span><span class="op">.</span><span class="str">", "</span><span class="op">.</span><span class="var">$s</span><span class="op">-&gt;</span><span class="fn">breed</span><span class="op">.</span><span class="str">"]"</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm">### --- main ---</span>
+<span class="kw">package</span> <span class="pkg">main</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$a</span> <span class="op">=</span> <span class="pkg">Animal</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">name</span> <span class="op">=&gt;</span> <span class="str">'Parrot'</span><span class="op">,</span> <span class="str">sound</span> <span class="op">=&gt;</span> <span class="str">'Squawk!'</span><span class="op">);</span>
+<span class="kw">my</span> <span class="var">$d</span> <span class="op">=</span> <span class="pkg">Dog</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">(</span><span class="str">name</span> <span class="op">=&gt;</span> <span class="str">'Rex'</span><span class="op">,</span> <span class="str">breed</span> <span class="op">=&gt;</span> <span class="str">'Labrador'</span><span class="op">);</span>
+
+<span class="var">$a</span><span class="op">-&gt;</span><span class="fn">speak</span><span class="op">();</span>
+<span class="var">$a</span><span class="op">-&gt;</span><span class="fn">print_self</span><span class="op">();</span>    <span class="cm"># from the Printable role</span>
+<span class="var">$d</span><span class="op">-&gt;</span><span class="fn">speak</span><span class="op">();</span>         <span class="cm"># triggers 'before' modifier first</span>
+<span class="var">$d</span><span class="op">-&gt;</span><span class="fn">print_self</span><span class="op">();</span>
+
+<span class="cm"># Type checking — this would die: Dog->new(name => 42)</span>
+<span class="fn">print</span> <span class="str">"Rex isa Dog:    "</span> <span class="op">.</span> <span class="op">(</span><span class="var">$d</span><span class="op">-&gt;</span><span class="fn">isa</span><span class="op">(</span><span class="str">'Dog'</span><span class="op">)</span>    <span class="op">?</span> <span class="str">"yes"</span> <span class="op">:</span> <span class="str">"no"</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"Rex isa Animal: "</span> <span class="op">.</span> <span class="op">(</span><span class="var">$d</span><span class="op">-&gt;</span><span class="fn">isa</span><span class="op">(</span><span class="str">'Animal'</span><span class="op">)</span> <span class="op">?</span> <span class="str">"yes"</span> <span class="op">:</span> <span class="str">"no"</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>Parrot says: Squawk!
+Animal[Parrot]
+[Dog wags tail]
+Rex says: Woof!
+Dog[Rex, Labrador]
+Rex isa Dog:    yes
+Rex isa Animal: yes</pre>
+  </div>
+</section>
+
+<!-- SECTION: PRACTICAL -->
+<div class="section-label"><span>Practical &amp; Real-World</span></div>
+
+<!-- 9. JSON -->
+<section class="example" id="ex9">
+  <div class="ex-head">
+    <span class="ex-num">09</span>
+    <span class="ex-title">JSON::PP — parse and generate JSON</span>
+    <div class="ex-tags">
+      <span class="tag tg-c">json</span>
+      <span class="tag tg-f">modules</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    <code>JSON::PP</code> is a pure-Perl JSON module included in Perl's core since 5.14. Use <code>JSON::XS</code> for performance-critical code. This shows encoding, decoding, pretty-printing, and working with nested structures.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use JSON::PP</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$json</span> <span class="op">=</span> <span class="fn">JSON::PP</span><span class="op">-&gt;</span><span class="fn">new</span><span class="op">-&gt;</span><span class="fn">utf8</span><span class="op">-&gt;</span><span class="fn">pretty</span><span class="op">-&gt;</span><span class="fn">canonical</span><span class="op">;</span>
+<span class="cm"># utf8: encode/decode UTF-8 bytes</span>
+<span class="cm"># pretty: formatted output</span>
+<span class="cm"># canonical: sort hash keys (reproducible output)</span>
+
+<span class="cm"># --- Encode: Perl structure → JSON string ---</span>
+<span class="kw">my</span> <span class="var">%config</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="str">app</span>     <span class="op">=&gt;</span> <span class="str">"MyApp"</span><span class="op">,</span>
+    <span class="str">version</span> <span class="op">=&gt;</span> <span class="str">"2.1.0"</span><span class="op">,</span>
+    <span class="str">debug</span>   <span class="op">=&gt;</span> <span class="fn">JSON::PP::true</span><span class="op">,</span>    <span class="cm"># JSON true/false/null</span>
+    <span class="str">timeout</span> <span class="op">=&gt;</span> <span class="fn">JSON::PP::null</span><span class="op">,</span>
+    <span class="str">ports</span>   <span class="op">=&gt;</span> <span class="op">[</span><span class="num">8080</span><span class="op">,</span> <span class="num">8443</span><span class="op">]</span><span class="op">,</span>
+    <span class="str">db</span>      <span class="op">=&gt;</span> <span class="op">{</span> <span class="str">host</span> <span class="op">=&gt;</span> <span class="str">"localhost"</span><span class="op">,</span> <span class="str">port</span> <span class="op">=&gt;</span> <span class="num">5432</span> <span class="op">}</span><span class="op">,</span>
+<span class="op">)</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$json_str</span> <span class="op">=</span> <span class="var">$json</span><span class="op">-&gt;</span><span class="fn">encode</span><span class="op">(\</span><span class="var">%config</span><span class="op">);</span>
+<span class="fn">print</span> <span class="str">"Encoded:\n$json_str\n"</span><span class="op">;</span>
+
+<span class="cm"># --- Decode: JSON string → Perl structure ---</span>
+<span class="kw">my</span> <span class="var">$raw</span> <span class="op">=</span> <span class="str">'{"users":[{"id":1,"name":"Alice","active":true},{"id":2,"name":"Bob","active":false}]}'</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$data</span> <span class="op">=</span> <span class="var">$json</span><span class="op">-&gt;</span><span class="fn">decode</span><span class="op">(</span><span class="var">$raw</span><span class="op">);</span>
+
+<span class="cm"># Traverse the decoded structure</span>
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$user</span> <span class="op">(</span><span class="var">@{</span> <span class="var">$data</span><span class="op">-&gt;{</span><span class="str">users</span><span class="op">}</span> <span class="var">}</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$status</span> <span class="op">=</span> <span class="var">$user</span><span class="op">-&gt;{</span><span class="str">active</span><span class="op">}</span> <span class="op">?</span> <span class="str">"active"</span> <span class="op">:</span> <span class="str">"inactive"</span><span class="op">;</span>
+    <span class="fn">printf</span> <span class="str">"  id=%-2d  %-8s  %s\n"</span><span class="op">,</span>
+        <span class="var">$user</span><span class="op">-&gt;{</span><span class="str">id</span><span class="op">}</span><span class="op">,</span> <span class="var">$user</span><span class="op">-&gt;{</span><span class="str">name</span><span class="op">}</span><span class="op">,</span> <span class="var">$status</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Safe decode with eval</span>
+<span class="kw">my</span> <span class="var">$parsed</span> <span class="op">=</span> <span class="kw">eval</span> <span class="op">{</span> <span class="var">$json</span><span class="op">-&gt;</span><span class="fn">decode</span><span class="op">(</span><span class="str">'{"bad": json}'</span><span class="op">) }</span><span class="op">;</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">$@</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Parse error caught: invalid JSON\n"</span><span class="op">;</span>
+<span class="op">}</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>Encoded:
+{
+   "app" : "MyApp",
+   "db" : { "host" : "localhost", "port" : 5432 },
+   "debug" : true,
+   "ports" : [ 8080, 8443 ],
+   "timeout" : null,
+   "version" : "2.1.0"
+}
+
+  id=1   Alice     active
+  id=2   Bob       inactive
+Parse error caught: invalid JSON</pre>
+  </div>
+</section>
+
+<!-- 10. Getopt::Long -->
+<section class="example" id="ex10">
+  <div class="ex-head">
+    <span class="ex-num">10</span>
+    <span class="ex-title">Getopt::Long — command-line argument parsing</span>
+    <div class="ex-tags">
+      <span class="tag tg-d">cli</span>
+      <span class="tag tg-c">modules</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    <code>Getopt::Long</code> (core) parses <code>--long-option</code> style arguments with full support for types, defaults, required args, and auto-help. Essential for any command-line script.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use Getopt::Long</span><span class="op">;</span>
+<span class="kw">use Pod::Usage</span><span class="op">;</span>
+
+<span class="cm"># Declare option variables with defaults</span>
+<span class="kw">my</span> <span class="var">$input</span>   <span class="op">=</span> <span class="str">'-'</span><span class="op">;</span>     <span class="cm"># stdin by default</span>
+<span class="kw">my</span> <span class="var">$output</span>  <span class="op">=</span> <span class="str">'-'</span><span class="op">;</span>     <span class="cm"># stdout by default</span>
+<span class="kw">my</span> <span class="var">$verbose</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">$count</span>   <span class="op">=</span> <span class="num">10</span><span class="op">;</span>
+<span class="kw">my</span> <span class="var">@tags</span><span class="op">;</span>             <span class="cm"># accumulate: --tag a --tag b</span>
+<span class="kw">my</span> <span class="var">$help</span>    <span class="op">=</span> <span class="num">0</span><span class="op">;</span>
+
+<span class="cm"># Simulate command-line args (normally come from @ARGV)</span>
+<span class="kw">local</span> <span class="var">@ARGV</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="str">'--input'</span><span class="op">,</span>   <span class="str">'data.csv'</span><span class="op">,</span>
+    <span class="str">'--output'</span><span class="op">,</span>  <span class="str">'out.txt'</span><span class="op">,</span>
+    <span class="str">'--count'</span><span class="op">,</span>   <span class="str">'25'</span><span class="op">,</span>
+    <span class="str">'--tag'</span><span class="op">,</span>     <span class="str">'perl'</span><span class="op">,</span>
+    <span class="str">'--tag'</span><span class="op">,</span>     <span class="str">'scripting'</span><span class="op">,</span>
+    <span class="str">'--verbose'</span><span class="op">,</span>
+<span class="op">);</span>
+
+<span class="fn">GetOptions</span><span class="op">(</span>
+    <span class="str">'input=s'</span>   <span class="op">=&gt;</span> <span class="op">\</span><span class="var">$input</span><span class="op">,</span>    <span class="cm"># =s  string</span>
+    <span class="str">'output=s'</span>  <span class="op">=&gt;</span> <span class="op">\</span><span class="var">$output</span><span class="op">,</span>
+    <span class="str">'count=i'</span>   <span class="op">=&gt;</span> <span class="op">\</span><span class="var">$count</span><span class="op">,</span>     <span class="cm"># =i  integer</span>
+    <span class="str">'tag=s'</span>     <span class="op">=&gt;</span> <span class="op">\</span><span class="var">@tags</span><span class="op">,</span>      <span class="cm"># accumulate into array</span>
+    <span class="str">'verbose|v'</span> <span class="op">=&gt;</span> <span class="op">\</span><span class="var">$verbose</span><span class="op">,</span>   <span class="cm"># boolean flag (--verbose or -v)</span>
+    <span class="str">'help|h'</span>    <span class="op">=&gt;</span> <span class="op">\</span><span class="var">$help</span><span class="op">,</span>
+<span class="op">)</span> <span class="kw">or die</span> <span class="str">"Usage error. Try --help\n"</span><span class="op">;</span>
+
+<span class="cm"># pod2usage would print --help text from POD; we just print manually here</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">$help</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">print</span> <span class="str">"Usage: script.pl --input FILE --output FILE [--count N] [--tag TAG...]\n"</span><span class="op">;</span>
+    <span class="fn">exit</span> <span class="num">0</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Use the parsed values</span>
+<span class="fn">printf</span> <span class="str">"input:   %s\n"</span><span class="op">,</span> <span class="var">$input</span><span class="op">;</span>
+<span class="fn">printf</span> <span class="str">"output:  %s\n"</span><span class="op">,</span> <span class="var">$output</span><span class="op">;</span>
+<span class="fn">printf</span> <span class="str">"count:   %d\n"</span><span class="op">,</span> <span class="var">$count</span><span class="op">;</span>
+<span class="fn">printf</span> <span class="str">"verbose: %s\n"</span><span class="op">,</span> <span class="var">$verbose</span> <span class="op">?</span> <span class="str">"yes"</span> <span class="op">:</span> <span class="str">"no"</span><span class="op">;</span>
+<span class="fn">printf</span> <span class="str">"tags:    %s\n"</span><span class="op">,</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@tags</span><span class="op">);</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>input:   data.csv
+output:  out.txt
+count:   25
+verbose: yes
+tags:    perl, scripting</pre>
+  </div>
+</section>
+
+<!-- 11. Advanced Regex -->
+<section class="example" id="ex11">
+  <div class="ex-head">
+    <span class="ex-num">11</span>
+    <span class="ex-title">Advanced regular expressions</span>
+    <div class="ex-tags">
+      <span class="tag tg-f">regex</span>
+      <span class="tag tg-a">advanced</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    Lookahead/lookbehind, non-greedy quantifiers, backreferences, <code>tr///</code> (transliteration), split with limits, and building dynamic patterns with <code>qr//</code>. These separate intermediate Perl from beginner Perl.
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+
+<span class="cm"># --- Lookahead / lookbehind (zero-width assertions) ---</span>
+<span class="kw">my</span> <span class="var">$text</span> <span class="op">=</span> <span class="str">"100USD 200EUR 350GBP 75USD"</span><span class="op">;</span>
+
+<span class="cm"># Positive lookahead: numbers followed by USD</span>
+<span class="kw">my</span> <span class="var">@usd</span> <span class="op">=</span> <span class="op">(</span><span class="var">$text</span> <span class="op">=~</span> <span class="rx">/(\d+)(?=USD)/g</span><span class="op">);</span>
+<span class="fn">print</span> <span class="str">"USD amounts: "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@usd</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># Positive lookbehind: currency code preceded by digits</span>
+<span class="kw">my</span> <span class="var">@currencies</span> <span class="op">=</span> <span class="op">(</span><span class="var">$text</span> <span class="op">=~</span> <span class="rx">/(?&lt;=\d)([A-Z]{3})/g</span><span class="op">);</span>
+<span class="fn">print</span> <span class="str">"Currencies:  "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">", "</span><span class="op">,</span> <span class="var">@currencies</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># --- Non-greedy quantifiers ---</span>
+<span class="kw">my</span> <span class="var">$html</span> <span class="op">=</span> <span class="str">"&lt;b&gt;bold&lt;/b&gt; and &lt;i&gt;italic&lt;/i&gt;"</span><span class="op">;</span>
+
+<span class="cm"># Greedy: matches from first &lt; to last &gt;</span>
+<span class="var">$html</span> <span class="op">=~</span> <span class="rx">/(&lt;.+&gt;)/</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"Greedy:     $1\n"</span><span class="op">;</span>
+
+<span class="cm"># Non-greedy +? : shortest match</span>
+<span class="kw">my</span> <span class="var">@tags</span> <span class="op">=</span> <span class="op">(</span><span class="var">$html</span> <span class="op">=~</span> <span class="rx">/(&lt;.+?&gt;)/g</span><span class="op">);</span>
+<span class="fn">print</span> <span class="str">"Non-greedy: "</span> <span class="op">.</span> <span class="fn">join</span><span class="op">(</span><span class="str">" "</span><span class="op">,</span> <span class="var">@tags</span><span class="op">)</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># --- Backreferences: match repeated words ---</span>
+<span class="kw">my</span> <span class="var">$sentence</span> <span class="op">=</span> <span class="str">"the the quick brown fox fox jumped"</span><span class="op">;</span>
+<span class="op">(</span><span class="kw">my</span> <span class="var">$fixed</span> <span class="op">=</span> <span class="var">$sentence</span><span class="op">)</span> <span class="op">=~</span> <span class="rx">s/\b(\w+)\s+\1\b/$1/gi</span><span class="op">;</span>
+<span class="fn">print</span> <span class="str">"Deduped: $fixed\n"</span><span class="op">;</span>
+
+<span class="cm"># --- tr/// (transliteration) ---</span>
+<span class="kw">my</span> <span class="var">$str</span> <span class="op">=</span> <span class="str">"Hello, World! 123"</span><span class="op">;</span>
+<span class="op">(</span><span class="kw">my</span> <span class="var">$roted</span> <span class="op">=</span> <span class="var">$str</span><span class="op">)</span> <span class="op">=~</span> <span class="fn">tr/A-Za-z/N-ZA-Mn-za-m/</span><span class="op">;</span>   <span class="cm"># ROT13</span>
+<span class="fn">print</span> <span class="str">"ROT13:   $roted\n"</span><span class="op">;</span>
+
+<span class="kw">my</span> <span class="var">$digit_count</span> <span class="op">=</span> <span class="op">(</span><span class="var">$str</span> <span class="op">=~</span> <span class="fn">tr/0-9//</span><span class="op">);</span>             <span class="cm"># tr returns count</span>
+<span class="fn">print</span> <span class="str">"Digits:  $digit_count\n"</span><span class="op">;</span>
+
+<span class="cm"># --- qr// compiled regex as a value ---</span>
+<span class="kw">my</span> <span class="var">@patterns</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="rx">qr/^\d+$/</span><span class="op">,</span>           <span class="cm"># all digits</span>
+    <span class="rx">qr/^[a-z]+$/i</span><span class="op">,</span>       <span class="cm"># all alpha</span>
+    <span class="rx">qr/^\w+\@\w+\.\w+$/</span><span class="op">,</span> <span class="cm"># simple email</span>
+<span class="op">);</span>
+
+<span class="kw">for</span> <span class="kw">my</span> <span class="var">$candidate</span> <span class="op">(</span><span class="str">"42"</span><span class="op">,</span> <span class="str">"hello"</span><span class="op">,</span> <span class="str">"user\@x.com"</span><span class="op">,</span> <span class="str">"mixed123"</span><span class="op">)</span> <span class="op">{</span>
+    <span class="kw">my</span> <span class="var">$match</span> <span class="op">=</span> <span class="op">(</span><span class="fn">grep</span> <span class="op">{</span> <span class="var">$candidate</span> <span class="op">=~</span> <span class="var">$_</span> <span class="op">}</span> <span class="var">@patterns</span><span class="op">)[</span><span class="num">0</span><span class="op">]</span> <span class="op">//</span> <span class="str">"none"</span><span class="op">;</span>
+    <span class="fn">printf</span> <span class="str">"  %-12s matched: %s\n"</span><span class="op">,</span> <span class="var">$candidate</span><span class="op">,</span> <span class="var">$match</span><span class="op">;</span>
+<span class="op">}</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>USD amounts: 100, 75
+Currencies:  USD, EUR, GBP, USD
+Greedy:     &lt;b&gt;bold&lt;/b&gt; and &lt;i&gt;italic&lt;/i&gt;
+Non-greedy: &lt;b&gt; &lt;/b&gt; &lt;i&gt; &lt;/i&gt;
+Deduped: the quick brown fox jumped
+ROT13:   Uryyb, Jbeyq! 123
+Digits:  3
+  42           matched: (?^:^\d+$)
+  hello        matched: (?^i:^[a-z]+$)
+  user@x.com   matched: (?^:^\w+@\w+\.\w+$)
+  mixed123     matched: none</pre>
+  </div>
+</section>
+
+<!-- 12. DBI -->
+<section class="example" id="ex12">
+  <div class="ex-head">
+    <span class="ex-num">12</span>
+    <span class="ex-title">DBI — database access</span>
+    <div class="ex-tags">
+      <span class="tag tg-d">DBI</span>
+      <span class="tag tg-e">databases</span>
+    </div>
+  </div>
+  <div class="ex-desc">
+    <code>DBI</code> (DataBase Interface) is the standard Perl database abstraction layer. This shows the complete pattern: connect, prepare, bind params, execute, fetch rows, transactions, and placeholders (which prevent SQL injection).
+  </div>
+  <pre><span class="kw">use strict</span><span class="op">;</span>
+<span class="kw">use warnings</span><span class="op">;</span>
+<span class="kw">use DBI</span><span class="op">;</span>
+
+<span class="cm"># Connect to SQLite (in-memory — requires DBD::SQLite)</span>
+<span class="kw">my</span> <span class="var">$dbh</span> <span class="op">=</span> <span class="fn">DBI</span><span class="op">-&gt;</span><span class="fn">connect</span><span class="op">(</span>
+    <span class="str">'dbi:SQLite:dbname=:memory:'</span><span class="op">,</span>
+    <span class="str">''</span><span class="op">,</span> <span class="str">''</span><span class="op">,</span>
+    <span class="op">{</span>
+        <span class="str">RaiseError</span> <span class="op">=&gt;</span> <span class="num">1</span><span class="op">,</span>        <span class="cm"># die on errors (don't check $dbh->err)</span>
+        <span class="str">AutoCommit</span> <span class="op">=&gt;</span> <span class="num">1</span><span class="op">,</span>        <span class="cm"># auto-commit each statement</span>
+        <span class="str">PrintError</span> <span class="op">=&gt;</span> <span class="num">0</span><span class="op">,</span>
+    <span class="op">}</span>
+<span class="op">)</span> <span class="kw">or die</span> <span class="fn">DBI</span><span class="op">-&gt;</span><span class="fn">errstr</span><span class="op">;</span>
+
+<span class="cm"># Create table</span>
+<span class="var">$dbh</span><span class="op">-&gt;</span><span class="fn">do</span><span class="op">(</span><span class="str">'CREATE TABLE employees (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    name   TEXT    NOT NULL,
+    dept   TEXT,
+    salary REAL
+)'</span><span class="op">);</span>
+
+<span class="cm"># Prepare + execute with placeholders (safe — prevents SQL injection)</span>
+<span class="kw">my</span> <span class="var">$ins</span> <span class="op">=</span> <span class="var">$dbh</span><span class="op">-&gt;</span><span class="fn">prepare</span><span class="op">(</span>
+    <span class="str">'INSERT INTO employees (name, dept, salary) VALUES (?, ?, ?)'</span>
+<span class="op">);</span>
+
+<span class="kw">my</span> <span class="var">@staff</span> <span class="op">=</span> <span class="op">(</span>
+    <span class="op">[</span><span class="str">'Alice'</span><span class="op">,</span>  <span class="str">'Eng'</span><span class="op">,</span> <span class="num">95000</span><span class="op">]</span><span class="op">,</span>
+    <span class="op">[</span><span class="str">'Bob'</span><span class="op">,</span>    <span class="str">'HR'</span><span class="op">,</span>  <span class="num">62000</span><span class="op">]</span><span class="op">,</span>
+    <span class="op">[</span><span class="str">'Carol'</span><span class="op">,</span>  <span class="str">'Eng'</span><span class="op">,</span> <span class="num">105000</span><span class="op">]</span><span class="op">,</span>
+    <span class="op">[</span><span class="str">'Dave'</span><span class="op">,</span>   <span class="str">'HR'</span><span class="op">,</span>  <span class="num">68000</span><span class="op">]</span><span class="op">,</span>
+<span class="op">);</span>
+
+<span class="cm"># Transaction: all-or-nothing batch insert</span>
+<span class="kw">eval</span> <span class="op">{</span>
+    <span class="var">$dbh</span><span class="op">-&gt;{</span><span class="str">AutoCommit</span><span class="op">}</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span>
+    <span class="var">$ins</span><span class="op">-&gt;</span><span class="fn">execute</span><span class="op">(</span><span class="var">@$_</span><span class="op">)</span> <span class="kw">for</span> <span class="var">@staff</span><span class="op">;</span>
+    <span class="var">$dbh</span><span class="op">-&gt;</span><span class="fn">commit</span><span class="op">;</span>
+<span class="op">};</span>
+<span class="kw">if</span> <span class="op">(</span><span class="var">$@</span><span class="op">)</span> <span class="op">{</span> <span class="var">$dbh</span><span class="op">-&gt;</span><span class="fn">rollback</span><span class="op">;</span> <span class="kw">die</span> <span class="str">"Insert failed: $@"</span> <span class="op">}</span>
+<span class="var">$dbh</span><span class="op">-&gt;{</span><span class="str">AutoCommit</span><span class="op">}</span> <span class="op">=</span> <span class="num">1</span><span class="op">;</span>
+
+<span class="cm"># SELECT with a placeholder filter</span>
+<span class="kw">my</span> <span class="var">$sth</span> <span class="op">=</span> <span class="var">$dbh</span><span class="op">-&gt;</span><span class="fn">prepare</span><span class="op">(</span>
+    <span class="str">'SELECT name, dept, salary FROM employees WHERE salary &gt; ? ORDER BY salary DESC'</span>
+<span class="op">);</span>
+<span class="var">$sth</span><span class="op">-&gt;</span><span class="fn">execute</span><span class="op">(</span><span class="num">60000</span><span class="op">);</span>
+
+<span class="fn">printf</span> <span class="str">"%-10s %-6s %8s\n"</span><span class="op">,</span> <span class="str">"Name"</span><span class="op">,</span> <span class="str">"Dept"</span><span class="op">,</span> <span class="str">"Salary"</span><span class="op">;</span>
+<span class="fn">print</span>  <span class="str">"-"</span> <span class="op">x</span> <span class="num">28</span> <span class="op">.</span> <span class="str">"\n"</span><span class="op">;</span>
+
+<span class="cm"># fetchrow_hashref — each row as a hash ref</span>
+<span class="kw">while</span> <span class="op">(</span><span class="kw">my</span> <span class="var">$row</span> <span class="op">=</span> <span class="var">$sth</span><span class="op">-&gt;</span><span class="fn">fetchrow_hashref</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fn">printf</span> <span class="str">"%-10s %-6s %8.0f\n"</span><span class="op">,</span>
+        <span class="var">$row</span><span class="op">-&gt;{</span><span class="str">name</span><span class="op">}</span><span class="op">,</span> <span class="var">$row</span><span class="op">-&gt;{</span><span class="str">dept</span><span class="op">}</span><span class="op">,</span> <span class="var">$row</span><span class="op">-&gt;{</span><span class="str">salary</span><span class="op">}</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="cm"># Aggregate query</span>
+<span class="kw">my</span> <span class="op">(</span><span class="var">$count</span><span class="op">,</span> <span class="var">$avg</span><span class="op">)</span> <span class="op">=</span> <span class="var">$dbh</span><span class="op">-&gt;</span><span class="fn">selectrow_array</span><span class="op">(</span>
+    <span class="str">'SELECT COUNT(*), AVG(salary) FROM employees'</span>
+<span class="op">);</span>
+<span class="fn">printf</span> <span class="str">"\n%d employees, avg salary: \$%.0f\n"</span><span class="op">,</span> <span class="var">$count</span><span class="op">,</span> <span class="var">$avg</span><span class="op">;</span>
+
+<span class="var">$dbh</span><span class="op">-&gt;</span><span class="fn">disconnect</span><span class="op">;</span></pre>
+  <div class="ex-out">
+    <div class="out-label">Output</div>
+    <pre>Name       Dept     Salary
+----------------------------
+Carol      Eng      105000
+Alice      Eng       95000
+Dave       HR        68000
+Bob        HR        62000
+
+4 employees, avg salary: $82500</pre>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

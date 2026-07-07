@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Algorithms: From Basics to Proofs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['\\(','\\)'], ['$', '$']]},
+  svg: {fontCache: 'global'}
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #0b0f14; --bg-elev: #121821; --card: #111827; --text: #e5e7eb; --text-dim: #9ca3af;
+  --accent: #7dd3fc; --accent-2: #a78bfa; --border: #1f2937; --ok: #34d399; --warn: #fbbf24; --danger: #f87171;
+  --shadow: 0 10px 30px rgba(0,0,0,.35); --radius: 16px;
+}
+[data-theme="light"] {
+  --bg: #f8fafc; --bg-elev: #ffffff; --card: #ffffff; --text: #0f172a; --text-dim: #475569;
+  --accent: #0ea5e9; --accent-2: #7c3aed; --border: #e2e8f0; --shadow: 0 10px 30px rgba(2,6,23,.08);
+}
+* { box-sizing: border-box }
+html,body { height:100% }
+body {
+  margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+}
+a { color: var(--accent); text-decoration: none }
+a:hover { text-decoration: underline }
+header.hero {
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(125,211,252,.25), transparent),
+              radial-gradient(1000px 500px at 90% 0%, rgba(167,139,250,.25), transparent),
+              linear-gradient(135deg, #0ea5e9 0%, #7c3aed 100%);
+  color: white; padding: 64px 24px 48px; position: relative; overflow: hidden;
+}
+.hero-inner { max-width: 1200px; margin: 0 auto; display: grid; gap: 16px }
+.hero h1 { font-size: clamp(28px, 4vw, 48px); margin: 0; letter-spacing: -.02em }
+.hero p { font-size: clamp(16px, 2vw, 20px); opacity: .95; margin: 0 }
+.hero .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+.badge { background: rgba(0,0,0,.25); backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,.2); padding:6px 10px; border-radius:999px; font-size:12px }
+.topbar { position: sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; background: color-mix(in oklab, var(--bg) 85%, transparent); backdrop-filter: blur(10px); border-bottom:1px solid var(--border) }
+.topbar .left { display:flex; align-items:center; gap:10px }
+.btn { background: var(--bg-elev); border:1px solid var(--border); color: var(--text); padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600 }
+.btn:hover { border-color: var(--accent) }
+.btn.ghost { background: transparent }
+.layout { max-width: 1200px; margin: 0 auto; display:grid; grid-template-columns: 280px 1fr; gap: 24px; padding: 24px }
+nav#sidebar { position: sticky; top:64px; align-self:start; height: calc(100vh - 80px); overflow:auto; padding:12px; background: var(--bg-elev); border:1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow) }
+nav h3 { margin:12px 8px; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim) }
+nav a { display:block; padding:8px 10px; border-radius:8px; color:var(--text-dim) }
+nav a:hover, nav a.active { background: color-mix(in oklab, var(--accent) 15%, transparent); color: var(--text); text-decoration:none }
+main { min-width:0 }
+.card { background: var(--card); border:1px solid var(--border); border-radius: var(--radius); padding:24px; margin-bottom:28px; box-shadow: var(--shadow) }
+.card h2 { margin-top:0; font-size:28px }
+.card h3 { margin-top:24px }
+.why { background: color-mix(in oklab, var(--accent-2) 12%, transparent); border:1px dashed color-mix(in oklab, var(--accent-2) 40%, var(--border)); padding:12px 14px; border-radius:12px; margin:12px 0 20px }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px }
+@media (max-width: 900px){
+  .layout { grid-template-columns: 1fr; padding:16px }
+  nav#sidebar { position: fixed; left:12px; right:12px; top:60px; height:auto; max-height:70vh; transform: translateY(-120%); transition:.25s; z-index:40 }
+  nav#sidebar.open { transform: translateY(0) }
+  .grid-2 { grid-template-columns:1fr }
+}
+table { width:100%; border-collapse: collapse; overflow:hidden; border-radius:12px; border:1px solid var(--border) }
+th, td { padding:10px 12px; border-bottom:1px solid var(--border); text-align:left; font-size:14px }
+th { background: color-mix(in oklab, var(--bg-elev) 70%, var(--accent) 5%); color: var(--text) }
+tr:last-child td { border-bottom:none }
+pre { position:relative; background:#0a0f1a !important; border:1px solid var(--border); border-radius:12px; padding:14px 12px; overflow:auto }
+[data-theme="light"] pre { background:#0b1020 !important }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:13.5px }
+.copy-btn { position:absolute; top:8px; right:8px; font-size:12px; padding:4px 8px; border-radius:8px; border:1px solid var(--border); background: var(--bg-elev); color:var(--text); cursor:pointer; opacity:.9 }
+.copy-btn:hover { border-color: var(--accent) }
+.kicker { color: var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:.08em }
+.pill { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); font-size:12px; color:var(--text-dim) }
+.demo-card { background: var(--bg-elev); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:12px }
+.controls { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 }
+.controls .btn { padding:6px 10px; font-size:13px }
+canvas { width:100%; height:260px; background: #0a1220; border-radius:10px; border:1px solid var(--border) }
+[data-theme="light"] canvas { background:#f1f5f9 }
+.stat { font-variant-numeric: tabular-nums; color: var(--text-dim) }
+.arr { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 }
+.cell-arr { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--border); border-radius:8px; background: var(--bg-elev); font-weight:700 }
+.cell-arr.low { outline:2px solid var(--warn) }
+.cell-arr.mid { outline:2px solid var(--accent) }
+.cell-arr.high { outline:2px solid var(--accent-2) }
+.cell-arr.hit { background: color-mix(in oklab, var(--ok) 30%, var(--bg-elev)) }
+.grid { display:grid; grid-template-columns: repeat(20, 1fr); gap:2px; user-select:none; touch-action:none }
+.tile { aspect-ratio:1; background: var(--bg-elev); border:1px solid var(--border); border-radius:4px }
+.tile.wall { background:#334155 }
+.tile.start { background:#22c55e }
+.tile.end { background:#ef4444 }
+.tile.visited { background: color-mix(in oklab, var(--accent) 35%, var(--bg-elev)) }
+.tile.path { background: var(--ok) }
+footer { padding:40px 24px; color:var(--text-dim); text-align:center }
+hr.sep { border:none; border-top:1px solid var(--border); margin:24px 0 }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="kicker">Single-file textbook</div>
+    <h1>Python Algorithms: From Basics to Proofs</h1>
+    <p>Useful Python algorithms with proofs you can actually read</p>
+    <div class="badges">
+      <span class="badge">Python 3.11+</span>
+      <span class="badge">Big-O + Proofs</span>
+      <span class="badge">Interactive Demos</span>
+      <span class="badge">Offline Ready</span>
+    </div>
+  </div>
+</header>
+
+<div class="topbar">
+  <div class="left">
+    <button class="btn ghost" id="menuToggle" aria-label="Menu">☰ Chapters</button>
+    <span class="pill">Dark mode default</span>
+  </div>
+  <div class="right">
+    <button class="btn" id="themeToggle" title="Toggle theme">☀️</button>
+  </div>
+</div>
+
+<div class="layout">
+  <nav id="sidebar">
+    <h3>Contents</h3>
+    <a href="#ch1">1. Foundations</a>
+    <a href="#ch2">2. Sorting</a>
+    <a href="#ch3">3. Searching</a>
+    <a href="#ch4">4. Recursion & D&C</a>
+    <a href="#ch5">5. Dynamic Programming</a>
+    <a href="#ch6">6. Graph Algorithms</a>
+    <a href="#ch7">7. Greedy Algorithms</a>
+    <a href="#ch8">8. Pythonic Toolbox</a>
+    <h3>Demos</h3>
+    <a href="#demo-sort">Sorting Visualizer</a>
+    <a href="#demo-bs">Binary Search Stepper</a>
+    <a href="#demo-path">Pathfinding Playground</a>
+  </nav>
+
+  <main>
+    <section class="card" id="ch1">
+      <h2>1. Foundations</h2>
+      <div class="why"><strong>Why it matters:</strong> When you're processing 2M delivery events in Batumi, the difference between \(O(n \log n)\) and \(O(n^2)\) is minutes vs. hours. Big-O gives you a budget before you write code.</div>
+      <div class="grid-2">
+        <div>
+          <h3>Big-O Table</h3>
+          <table>
+            <thead><tr><th>Complexity</th><th>Name</th><th>Python example</th></tr></thead>
+            <tbody>
+              <tr><td>\(O(1)\)</td><td>Constant</td><td>dict lookup</td></tr>
+              <tr><td>\(O(\log n)\)</td><td>Logarithmic</td><td>binary search</td></tr>
+              <tr><td>\(O(n)\)</td><td>Linear</td><td>scan list</td></tr>
+              <tr><td>\(O(n \log n)\)</td><td>Linearithmic</td><td>sorted(), merge sort</td></tr>
+              <tr><td>\(O(n^2)\)</td><td>Quadratic</td><td>bubble sort</td></tr>
+              <tr><td>\(O(2^n)\)</td><td>Exponential</td><td>naive TSP</td></tr>
+              <tr><td>\(O(n!)\)</td><td>Factorial</td><td>permute all</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>Proof Techniques</h3>
+          <p><strong>Loop invariant:</strong> Property true before/after each iteration. Example for insertion sort: after i iterations, \(a[0..i]\) is sorted.</p>
+          <p><strong>Induction:</strong> Base \(P(1)\), step \(P(k) \Rightarrow P(k+1)\). Sum proof: \(\sum_{i=1}^{n} i = n(n+1)/2\).</p>
+          <p><strong>Exchange argument:</strong> Swap an optimal solution element with greedy choice without worsening cost – used in activity selection, Huffman.</p>
+        </div>
+      </div>
+      <p>We use \(\tilde{O}\) to hide log factors. Master theorem in Ch.4 handles recurrences like \(T(n)=2T(n/2)+O(n) \Rightarrow O(n\log n)\).</p>
+    </section>
+
+    <section class="card" id="ch2">
+      <h2>2. Sorting</h2>
+      <div class="why"><strong>Why it matters:</strong> Sorting powers everything from reports to joins. Python's Timsort is stable and adaptive – know when to trust it vs. roll your own heap.</div>
+
+      <h3>Bubble Sort — \(O(n^2)\), stable</h3>
+      <p><em>Invariant:</em> after k passes, last k elements are in final position.</p>
+<pre><code class="language-python">def bubble_sort(a):
+    n = len(a)
+    for i in range(n):
+        swapped = False
+        for j in range(0, n - i - 1):
+            if a[j] > a[j+1]:
+                a[j], a[j+1] = a[j+1], a[j]
+                swapped = True
+        if not swapped:
+            break
+    return a</code></pre>
+
+      <h3>Insertion Sort — \(O(n^2)\) worst, \(O(n)\) best, stable</h3>
+      <p><em>Proof sketch:</em> Invariant keeps prefix sorted; inserting preserves order.</p>
+<pre><code class="language-python">def insertion_sort(a):
+    for i in range(1, len(a)):
+        key = a[i]
+        j = i - 1
+        while j >= 0 and a[j] > key:
+            a[j+1] = a[j]
+            j -= 1
+        a[j+1] = key
+    return a</code></pre>
+
+      <h3>Selection Sort — \(O(n^2)\), not stable</h3>
+<pre><code class="language-python">def selection_sort(a):
+    n = len(a)
+    for i in range(n):
+        min_i = i
+        for j in range(i+1, n):
+            if a[j] &lt; a[min_i]:
+                min_i = j
+        a[i], a[min_i] = a[min_i], a[i]
+    return a</code></pre>
+
+      <h3>Merge Sort — \(O(n \log n)\), stable</h3>
+      <p><em>Correctness:</em> merge combines two sorted lists; induction on size.</p>
+<pre><code class="language-python">def merge_sort(a):
+    if len(a) &lt;= 1:
+        return a
+    mid = len(a)//2
+    left = merge_sort(a[:mid])
+    right = merge_sort(a[mid:])
+    return merge(left, right)
+
+def merge(l, r):
+    i = j = 0
+    out = []
+    while i &lt; len(l) and j &lt; len(r):
+        if l[i] &lt;= r[j]:
+            out.append(l[i]); i += 1
+        else:
+            out.append(r[j]); j += 1
+    out.extend(l[i:]); out.extend(r[j:])
+    return out</code></pre>
+
+      <h3>Quicksort — \(O(n \log n)\) avg, \(O(n^2)\) worst, not stable</h3>
+<pre><code class="language-python">def quicksort(a):
+    if len(a) &lt;= 1:
+        return a
+    pivot = a[len(a)//2]
+    left = [x for x in a if x &lt; pivot]
+    mid = [x for x in a if x == pivot]
+    right = [x for x in a if x > pivot]
+    return quicksort(left) + mid + quicksort(right)</code></pre>
+
+      <h3>Heap Sort — \(O(n \log n)\), not stable</h3>
+<pre><code class="language-python">import heapq
+
+def heap_sort(a):
+    h = a[:]
+    heapq.heapify(h)
+    return [heapq.heappop(h) for _ in range(len(h))]</code></pre>
+
+      <h3>Python's Timsort</h3>
+<pre><code class="language-python"># sorted() and list.sort() use Timsort: stable, O(n log n) worst, O(n) best
+data = [{"city":"Tbilisi","t":21},{"city":"Kutaisi","t":19}]
+by_temp = sorted(data, key=lambda d: d["t"])  # stable</code></pre>
+      <p><strong>Stability:</strong> equal keys keep original order. Needed for multi-pass sorts.</p>
+    </section>
+
+    <section class="card" id="ch3">
+      <h2>3. Searching</h2>
+      <div class="why"><strong>Why it matters:</strong> Binary search turns a 10M-row lookup from 10M checks to ~24.</div>
+      <h3>Linear Search — \(O(n)\)</h3>
+<pre><code class="language-python">def linear_search(a, x):
+    for i, v in enumerate(a):
+        if v == x:
+            return i
+    return -1</code></pre>
+      <h3>Binary Search — \(O(\log n)\)</h3>
+      <p><em>Proof of \(O(\log n)\):</em> each step halves interval size \(n \to n/2 \to n/4 \dots\) After \(k\) steps \(n/2^k \le 1 \Rightarrow k \ge \log_2 n\).</p>
+<pre><code class="language-python">def binary_search(a, x):
+    lo, hi = 0, len(a)-1
+    while lo &lt;= hi:
+        mid = (lo + hi)//2
+        if a[mid] == x: return mid
+        elif a[mid] &lt; x: lo = mid + 1
+        else: hi = mid - 1
+    return -1
+
+def binary_search_rec(a, x, lo=0, hi=None):
+    if hi is None: hi = len(a)-1
+    if lo > hi: return -1
+    mid = (lo+hi)//2
+    if a[mid] == x: return mid
+    return binary_search_rec(a, x, mid+1, hi) if a[mid] &lt; x else binary_search_rec(a, x, lo, mid-1)</code></pre>
+    </section>
+
+    <section class="card" id="ch4">
+      <h2>4. Recursion and Divide & Conquer</h2>
+      <div class="why"><strong>Why it matters:</strong> D&C splits hard problems. Memoization turns exponential Fibonacci into linear.</div>
+<pre><code class="language-python">def fact(n): 
+    return 1 if n &lt;= 1 else n * fact(n-1)</code></pre>
+      <h3>Fibonacci: three ways</h3>
+<pre><code class="language-python">def fib_naive(n):
+    return n if n &lt; 2 else fib_naive(n-1) + fib_naive(n-2)  # O(2^n)
+
+from functools import lru_cache
+
+@lru_cache(maxsize=None)
+def fib_memo(n):
+    return n if n &lt; 2 else fib_memo(n-1) + fib_memo(n-2)  # O(n)
+
+def fib_iter(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a  # O(n), O(1) space</code></pre>
+      <h3>Master Theorem</h3>
+      <p>For \(T(n)=aT(n/b)+f(n)\): if \(f(n)=O(n^{\log_b a - \epsilon})\) then \(T(n)=\Theta(n^{\log_b a})\). Merge sort: \(a=2,b=2,f(n)=O(n) \Rightarrow T(n)=\Theta(n\log n)\).</p>
+    </section>
+
+    <section class="card" id="ch5">
+      <h2>5. Dynamic Programming</h2>
+      <div class="why"><strong>Why it matters:</strong> DP replaces recomputation with tables – perfect for knapsack packing trucks or planning budgets.</div>
+      <p><em>Optimal substructure:</em> optimal solution contains optimal subsolutions. <em>Overlapping subproblems:</em> reuse results.</p>
+      <h3>0/1 Knapsack — bottom-up</h3>
+<pre><code class="language-python">def knapsack(W, wt, val):
+    n = len(wt)
+    dp = [[0]*(W+1) for _ in range(n+1)]
+    for i in range(1, n+1):
+        for w in range(W+1):
+            if wt[i-1] &lt;= w:
+                dp[i][w] = max(val[i-1] + dp[i-1][w-wt[i-1]], dp[i-1][w])
+            else:
+                dp[i][w] = dp[i-1][w]
+    return dp[n][W]</code></pre>
+      <h3>Longest Common Subsequence</h3>
+<pre><code class="language-python">def lcs(a, b):
+    n, m = len(a), len(b)
+    dp = [[0]*(m+1) for _ in range(n+1)]
+    for i in range(1, n+1):
+        for j in range(1, m+1):
+            if a[i-1] == b[j-1]:
+                dp[i][j] = dp[i-1][j-1] + 1
+            else:
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+    return dp[n][m]</code></pre>
+      <h3>Coin Change (min coins)</h3>
+<pre><code class="language-python">def coin_change(coins, amount):
+    INF = amount + 1
+    dp = [INF]*(amount+1)
+    dp[0] = 0
+    for c in coins:
+        for x in range(c, amount+1):
+            dp[x] = min(dp[x], dp[x-c] + 1)
+    return dp[amount] if dp[amount] != INF else -1</code></pre>
+    </section>
+
+    <section class="card" id="ch6">
+      <h2>6. Graph Algorithms</h2>
+      <div class="why"><strong>Why it matters:</strong> Routing deliveries from Tbilisi to Batumi, dependency builds, social graphs – all graphs.</div>
+<pre><code class="language-python">from collections import deque
+import heapq
+
+def bfs(graph, start):
+    q = deque([start]); visited = {start}; parent = {start: None}
+    order = []
+    while q:
+        u = q.popleft(); order.append(u)
+        for v in graph.get(u, []):
+            if v not in visited:
+                visited.add(v); parent[v] = u; q.append(v)
+    return order, parent
+
+def dfs(graph, start):
+    stack = [start]; visited = set(); order=[]
+    while stack:
+        u = stack.pop()
+        if u in visited: continue
+        visited.add(u); order.append(u)
+        for v in reversed(graph.get(u, [])):
+            if v not in visited: stack.append(v)
+    return order</code></pre>
+      <h3>Dijkstra — \(O((V+E)\log V)\)</h3>
+      <p><em>Greedy proof sketch:</em> when node u is extracted with smallest distance, any alternative path must go through a node with distance ≥ dist[u], so cannot improve.</p>
+<pre><code class="language-python">def dijkstra(graph, start):
+    # graph: {u: [(v,w), ...]}
+    dist = {start: 0}
+    pq = [(0, start)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d != dist[u]: continue
+        for v, w in graph.get(u, []):
+            nd = d + w
+            if nd &lt; dist.get(v, float('inf')):
+                dist[v] = nd
+                heapq.heappush(pq, (nd, v))
+    return dist</code></pre>
+      <h3>A* Search</h3>
+<pre><code class="language-python">def astar(graph, start, goal, h):
+    # h(u) admissible heuristic
+    pq = [(h(start), 0, start)]
+    g = {start:0}; parent={start:None}
+    while pq:
+        _, d, u = heapq.heappop(pq)
+        if u == goal: break
+        for v, w in graph.get(u, []):
+            nd = d + w
+            if nd &lt; g.get(v, float('inf')):
+                g[v] = nd
+                parent[v] = u
+                heapq.heappush(pq, (nd + h(v), nd, v))
+    return g, parent</code></pre>
+    </section>
+
+    <section class="card" id="ch7">
+      <h2>7. Greedy Algorithms</h2>
+      <div class="why"><strong>Why it matters:</strong> Greedy works when local optimal equals global – scheduling meetings, compressing logs.</div>
+      <h3>Activity Selection</h3>
+<pre><code class="language-python">def activity_selection(intervals):
+    # intervals: list of (start, end)
+    intervals = sorted(intervals, key=lambda x: x[1])
+    chosen = []; last_end = -float('inf')
+    for s, e in intervals:
+        if s >= last_end:
+            chosen.append((s,e)); last_end = e
+    return chosen  # max size set of non-overlapping</code></pre>
+      <p><em>Exchange proof:</em> Let G be greedy pick with earliest finish. Any optimal O can replace its first activity with G without losing feasibility, then induct.</p>
+      <h3>Huffman Coding</h3>
+<pre><code class="language-python">import heapq
+from collections import Counter
+
+def huffman(freq):
+    pq = [[w, [ch, ""]] for ch, w in freq.items()]
+    heapq.heapify(pq)
+    while len(pq) > 1:
+        lo = heapq.heappop(pq); hi = heapq.heappop(pq)
+        for pair in lo[1:]: pair[1] = '0' + pair[1]
+        for pair in hi[1:]: pair[1] = '1' + pair[1]
+        heapq.heappush(pq, [lo[0]+hi[0]] + lo[1:] + hi[1:])
+    return dict(heapq.heappop(pq)[1:])
+
+# example
+freq = Counter("abracadabra")
+codes = huffman(freq)</code></pre>
+    </section>
+
+    <section class="card" id="ch8">
+      <h2>8. Pythonic Toolbox</h2>
+      <div class="why"><strong>Why it matters:</strong> The stdlib is cheat codes. Use them and write 5 lines instead of 50.</div>
+<pre><code class="language-python">from bisect import bisect_left, bisect_right
+import heapq
+from collections import Counter, defaultdict, deque
+import itertools
+
+# 1) bisect – maintain sorted list
+nums = [10,20,30]
+i = bisect_left(nums, 25)  # 2
+nums.insert(i, 25)
+
+# 2) heapq – top-k
+top3 = heapq.nlargest(3, [5,1,9,3,7])
+
+# 3) Counter – frequencies
+c = Counter(["tbilisi","batumi","tbilisi"])
+most = c.most_common(1)
+
+# 4) defaultdict – grouping
+by_city = defaultdict(list)
+for rec in [{"city":"Tbilisi"},{"city":"Batumi"}]:
+    by_city[rec["city"]].append(rec)
+
+# 5) itertools – combos/perms
+pairs = list(itertools.combinations([1,2,3,4], 2))
+
+# 6) sorting with key, stable multi-sort
+people = [{"name":"Nino","age":44},{"name":"Giorgi","age":44},{"name":"Ana","age":30}]
+people.sort(key=lambda p: p["name"])  # secondary
+people.sort(key=lambda p: p["age"])   # primary – stable keeps name order for ties</code></pre>
+    </section>
+
+    <section class="card" id="demo-sort">
+      <h2>Interactive Demo A — Sorting Visualizer</h2>
+      <div class="demo-card">
+        <canvas id="sortCanvas" width="900" height="260"></canvas>
+        <div class="controls">
+          <button class="btn" data-sort="bubble">Bubble</button>
+          <button class="btn" data-sort="insertion">Insertion</button>
+          <button class="btn" data-sort="merge">Merge</button>
+          <button class="btn" data-sort="quick">Quick</button>
+          <button class="btn" id="shuffleBtn">Reset</button>
+          <button class="btn" id="pauseBtn">Pause</button>
+          <label class="stat">Speed <input type="range" id="speed" min="1" max="100" value="65"></label>
+        </div>
+        <div class="stat">Comparisons: <span id="comp">0</span> · Swaps: <span id="swaps">0</span></div>
+      </div>
+    </section>
+
+    <section class="card" id="demo-bs">
+      <h2>Interactive Demo B — Binary Search Stepper</h2>
+      <div class="demo-card">
+        <div class="controls">
+          <input id="arrInput" class="btn" style="min-width:260px" value="2,5,8,12,16,23,38,45,56,67,78">
+          <button class="btn" id="genArr">Random</button>
+          <input id="targetInput" class="btn" style="width:100px" value="23">
+          <button class="btn" id="stepBtn">Step</button>
+          <button class="btn" id="resetBs">Reset</button>
+        </div>
+        <div id="arrViz" class="arr"></div>
+        <div class="stat" id="bsInfo">low=0, high=n-1</div>
+<pre><code class="language-python">lo, hi = 0, len(a)-1
+while lo &lt;= hi:
+    mid = (lo+hi)//2
+    if a[mid] == x: return mid
+    elif a[mid] &lt; x: lo = mid+1
+    else: hi = mid-1</code></pre>
+      </div>
+    </section>
+
+    <section class="card" id="demo-path">
+      <h2>Interactive Demo C — Pathfinding Playground (20×20)</h2>
+      <div class="demo-card">
+        <div class="controls">
+          <button class="btn" id="runBFS">BFS</button>
+          <button class="btn" id="runDijkstra">Dijkstra</button>
+          <button class="btn" id="runAstar">A*</button>
+          <button class="btn" id="clearPath">Clear Walls</button>
+          <span class="stat">Click/drag to draw walls. Drag green/red to move start/end.</span>
+        </div>
+        <div id="grid" class="grid" aria-label="Pathfinding grid"></div>
+<pre><code class="language-python"># BFS core (Python)
+from collections import deque
+def bfs(grid, start, goal):
+    q = deque([start]); parent = {start: None}; visited = {start}
+    while q:
+        u = q.popleft()
+        if u == goal: break
+        for v in neighbors(grid, u):
+            if v not in visited and not wall(grid, v):
+                visited.add(v); parent[v]=u; q.append(v)
+    return parent</code></pre>
+      </div>
+    </section>
+
+    <hr class="sep">
+    <footer>
+      Tip: Save this page as HTML to keep offline — File → Save As… · Built for practical use in Georgia 🇬🇪
+    </footer>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+// Theme
+const themeToggle = document.getElementById('themeToggle');
+const saved = localStorage.getItem('theme');
+if(saved) document.documentElement.setAttribute('data-theme', saved);
+themeToggle.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+themeToggle.onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+};
+// Sidebar mobile
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+menuToggle.onclick = () => sidebar.classList.toggle('open');
+document.querySelectorAll('#sidebar a').forEach(a=>a.onclick=()=>sidebar.classList.remove('open'));
+
+// Copy buttons
+document.querySelectorAll('pre').forEach(pre=>{
+  const btn = document.createElement('button');
+  btn.className='copy-btn'; btn.textContent='Copy';
+  pre.appendChild(btn);
+  btn.onclick = async () => {
+    const code = pre.querySelector('code').innerText;
+    try { await navigator.clipboard.writeText(code); btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy',1200);} catch(e){ btn.textContent='Error' }
+  };
+});
+
+// --- Sorting Visualizer ---
+const canvas = document.getElementById('sortCanvas');
+const ctx = canvas.getContext('2d');
+let arr = [], comp=0, swaps=0, running=false, paused=false;
+const compEl = document.getElementById('comp'), swapsEl = document.getElementById('swaps');
+const speedEl = document.getElementById('speed');
+function genArray(n=60){ arr = Array.from({length:n}, ()=>Math.floor(Math.random()*90)+10); comp=swaps=0; updateStats(); draw(); }
+function updateStats(){ compEl.textContent=comp; swapsEl.textContent=swaps; }
+function draw(high={}){
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const bw = w/arr.length;
+  for(let i=0;i<arr.length;i++){
+    const x = i*bw, y = h - arr[i]*2;
+    ctx.fillStyle = high[i] || '#60a5fa';
+    ctx.fillRect(x+1, y, bw-2, arr[i]*2);
+  }
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+async function maybePause(){ while(paused) await sleep(50); }
+
+async function bubbleSort(){
+  running=true; for(let i=0;i<arr.length-1;i++){
+    for(let j=0;j<arr.length-i-1;j++){ await maybePause(); comp++; updateStats(); draw({[j]:'#f87171',[j+1]:'#fbbf24'});
+      await sleep(101 - speedEl.value);
+      if(arr[j] > arr[j+1]){ [arr[j],arr[j+1]]=[arr[j+1],arr[j]]; swaps++; updateStats(); }
+    }
+  } draw(); running=false;
+}
+async function insertionSort(){
+  running=true;
+  for(let i=1;i<arr.length;i++){ let key=arr[i], j=i-1; await maybePause();
+    while(j>=0 && arr[j]>key){ comp++; arr[j+1]=arr[j]; j--; swaps++; updateStats(); draw({[j+1]:'#fbbf24'}); await sleep(101-speedEl.value); }
+    arr[j+1]=key; draw({[j+1]:'#34d399'}); await sleep(20);
+  } running=false;
+}
+async function mergeSort(){
+  running=true;
+  async function merge(l,m,r){
+    let left=arr.slice(l,m+1), right=arr.slice(m+1,r+1), i=0,j=0,k=l;
+    while(i<left.length && j<right.length){ await maybePause(); comp++; 
+      if(left[i]<=right[j]) arr[k++]=left[i++]; else arr[k++]=right[j++];
+      swaps++; updateStats(); draw({[k-1]:'#a78bfa'}); await sleep(101-speedEl.value);
+    }
+    while(i<left.length){ arr[k++]=left[i++]; draw(); await sleep(20); }
+    while(j<right.length){ arr[k++]=right[j++]; draw(); await sleep(20); }
+  }
+  async function ms(l,r){ if(l>=r) return; const m=(l+r>>1); await ms(l,m); await ms(m+1,r); await merge(l,m,r); }
+  await ms(0,arr.length-1); draw(); running=false;
+}
+async function quickSort(low=0, high=arr.length-1){
+  if(!running) running=true;
+  if(low<high){ const p=await partition(low,high); await quickSort(low,p-1); await quickSort(p+1,high); }
+  if(low===0 && high===arr.length-1){ draw(); running=false; }
+}
+async function partition(low,high){
+  const pivot=arr[high]; let i=low;
+  for(let j=low;j<high;j++){ await maybePause(); comp++; updateStats(); draw({[j]:'#fbbf24',[high]:'#f87171'}); await sleep(101-speedEl.value);
+    if(arr[j]<pivot){ [arr[i],arr[j]]=[arr[j],arr[i]]; swaps++; updateStats(); i++; }
+  }
+  [arr[i],arr[high]]=[arr[high],arr[i]]; swaps++; return i;
+}
+document.querySelectorAll('[data-sort]').forEach(b=>{
+  b.onclick=()=>{ if(running) return; const t=b.dataset.sort; if(t==='bubble') bubbleSort(); if(t==='insertion') insertionSort(); if(t==='merge') mergeSort(); if(t==='quick') quickSort(); };
+});
+document.getElementById('shuffleBtn').onclick=()=>{ if(!running) genArray(); };
+document.getElementById('pauseBtn').onclick=()=>{ paused=!paused; document.getElementById('pauseBtn').textContent = paused?'Resume':'Pause'; };
+genArray();
+
+// --- Binary Search Stepper ---
+const arrInput = document.getElementById('arrInput');
+const targetInput = document.getElementById('targetInput');
+const arrViz = document.getElementById('arrViz');
+const bsInfo = document.getElementById('bsInfo');
+let bsArr=[], lo=0, hi=0, step=0, found=-1;
+function parseArr(){ bsArr = arrInput.value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)).sort((a,b)=>a-b); arrInput.value = bsArr.join(','); }
+function renderBS(high={}){
+  arrViz.innerHTML='';
+  bsArr.forEach((v,i)=>{
+    const d=document.createElement('div'); d.className='cell-arr'; d.textContent=v;
+    if(i===high.low) d.classList.add('low');
+    if(i===high.high) d.classList.add('high');
+    if(i===high.mid) d.classList.add('mid');
+    if(i===found) d.classList.add('hit');
+    arrViz.appendChild(d);
+  });
+  bsInfo.textContent = `low=${lo}, high=${hi}, steps=${step}` + (found>=0?` · found at ${found}`:'');
+}
+function resetBS(){ parseArr(); lo=0; hi=bsArr.length-1; step=0; found=-1; renderBS(); }
+document.getElementById('genArr').onclick=()=>{ const n=15; const set=new Set(); while(set.size<n) set.add(Math.floor(Math.random()*90)+5); bsArr=[...set].sort((a,b)=>a-b); arrInput.value=bsArr.join(','); resetBS(); };
+document.getElementById('resetBs').onclick=resetBS;
+document.getElementById('stepBtn').onclick=()=>{
+  if(lo>hi || found>=0) return;
+  const mid = (lo+hi>>1); step++; renderBS({low:lo,high:hi,mid});
+  const target = parseInt(targetInput.value);
+  setTimeout(()=>{
+    if(bsArr[mid]===target){ found=mid; }
+    else if(bsArr[mid]<target){ lo=mid+1; } else { hi=mid-1; }
+    renderBS({low:lo,high:hi,mid});
+  }, 250);
+};
+resetBS();
+
+// --- Pathfinding ---
+const gridEl = document.getElementById('grid');
+const W=20, H=20;
+let grid, start={x:2,y:2}, end={x:17,y:17}, drawing=false, dragMode=null;
+function initGrid(){
+  grid = Array.from({length:H},()=>Array(W).fill(0));
+  gridEl.innerHTML='';
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const t=document.createElement('div'); t.className='tile'; t.dataset.x=x; t.dataset.y=y;
+    t.onmousedown = e=>{ e.preventDefault(); handleDown(x,y); };
+    t.onmouseenter = ()=>{ if(drawing) toggleWall(x,y); if(dragMode) moveSpecial(x,y); };
+    t.ontouchstart = e=>{ e.preventDefault(); handleDown(x,y); };
+    gridEl.appendChild(t);
+  }
+  renderGrid();
+}
+function renderGrid(){
+  [...gridEl.children].forEach((t,i)=>{
+    const x=i%W, y=i/W|0; t.className='tile';
+    if(grid[y][x]===1) t.classList.add('wall');
+    if(x===start.x && y===start.y) t.classList.add('start');
+    if(x===end.x && y===end.y) t.classList.add('end');
+  });
+}
+function handleDown(x,y){
+  if(x===start.x && y===start.y){ dragMode='start'; return; }
+  if(x===end.x && y===end.y){ dragMode='end'; return; }
+  drawing=true; toggleWall(x,y);
+}
+function toggleWall(x,y){ if((x===start.x&&y===start.y)||(x===end.x&&y===end.y)) return; grid[y][x]=grid[y][x]?0:1; renderGrid(); }
+function moveSpecial(x,y){ if(dragMode==='start'){ start={x,y}; } else if(dragMode==='end'){ end={x,y}; } renderGrid(); }
+window.onmouseup=()=>{ drawing=false; dragMode=null; };
+window.ontouchend=()=>{ drawing=false; dragMode=null; };
+
+function neighbors(x,y){ const dirs=[[1,0],[-1,0],[0,1],[0,-1]]; const out=[]; for(const [dx,dy] of dirs){ const nx=x+dx, ny=y+dy; if(nx>=0&&nx<W&&ny>=0&&ny<H && grid[ny][nx]===0) out.push({x:nx,y:ny}); } return out; }
+function clearMarks(){ [...gridEl.children].forEach(t=>t.classList.remove('visited','path')); }
+async function visualize(visitOrder, path){
+  clearMarks();
+  for(const p of visitOrder){ const idx=p.y*W+p.x; const t=gridEl.children[idx]; if(!t.classList.contains('start')&&!t.classList.contains('end')) t.classList.add('visited'); await sleep(5); }
+  for(const p of path){ const idx=p.y*W+p.x; const t=gridEl.children[idx]; if(!t.classList.contains('start')&&!t.classList.contains('end')) t.classList.add('path'); await sleep(12); }
+}
+async function runBFS(){
+  clearMarks(); const q=[start]; const seen=Array.from({length:H},()=>Array(W).fill(false)); const parent=Array.from({length:H},()=>Array(W).fill(null));
+  seen[start.y][start.x]=true; const order=[];
+  while(q.length){ const {x,y}=q.shift(); order.push({x,y}); if(x===end.x&&y===end.y) break;
+    for(const nb of neighbors(x,y)){ if(!seen[nb.y][nb.x]){ seen[nb.y][nb.x]=true; parent[nb.y][nb.x]={x,y}; q.push(nb); } }
+  }
+  const path=[]; let cur=end; while(cur){ path.push(cur); cur=parent[cur.y][cur.x]; } path.reverse(); await visualize(order, path);
+}
+async function runDijkstra(){
+  // uniform weight, same as BFS but using heap structure
+  clearMarks(); const dist=Array.from({length:H},()=>Array(W).fill(Infinity)); const parent=Array.from({length:H},()=>Array(W).fill(null));
+  const pq=[]; function push(item){ pq.push(item); pq.sort((a,b)=>a.d-b.d); }
+  dist[start.y][start.x]=0; push({d:0,x:start.x,y:start.y}); const order=[];
+  while(pq.length){ const {x,y}=pq.shift(); order.push({x,y}); if(x===end.x&&y===end.y) break;
+    for(const nb of neighbors(x,y)){ const nd=dist[y][x]+1; if(nd<dist[nb.y][nb.x]){ dist[nb.y][nb.x]=nd; parent[nb.y][nb.x]={x,y}; push({d:nd,x:nb.x,y:nb.y}); } }
+  }
+  const path=[]; let cur=end; while(cur){ path.push(cur); cur=parent[cur.y][cur.x]; } path.reverse(); await visualize(order, path);
+}
+async function runAstar(){
+  clearMarks(); const h=(x,y)=>Math.abs(x-end.x)+Math.abs(y-end.y);
+  const g=Array.from({length:H},()=>Array(W).fill(Infinity)); const parent=Array.from({length:H},()=>Array(W).fill(null));
+  const pq=[]; function push(it){ pq.push(it); pq.sort((a,b)=>a.f-b.f); }
+  g[start.y][start.x]=0; push({f:h(start.x,start.y), d:0, x:start.x, y:start.y}); const order=[]; const seen=new Set();
+  while(pq.length){ const {x,y,d}=pq.shift(); const key=y*W+x; if(seen.has(key)) continue; seen.add(key); order.push({x,y}); if(x===end.x&&y===end.y) break;
+    for(const nb of neighbors(x,y)){ const nd=d+1; if(nd<g[nb.y][nb.x]){ g[nb.y][nb.x]=nd; parent[nb.y][nb.x]={x,y}; push({f:nd+h(nb.x,nb.y), d:nd, x:nb.x, y:nb.y}); } }
+  }
+  const path=[]; let cur=end; while(cur){ path.push(cur); cur=parent[cur.y][cur.x]; } path.reverse(); await visualize(order, path);
+}
+document.getElementById('runBFS').onclick=runBFS;
+document.getElementById('runDijkstra').onclick=runDijkstra;
+document.getElementById('runAstar').onclick=runAstar;
+document.getElementById('clearPath').onclick=()=>{ initGrid(); };
+initGrid();
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+</body>
+</html>

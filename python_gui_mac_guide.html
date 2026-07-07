@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Python GUI on Mac — A Complete Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #0f0e0d;
+      --surface:   #1a1917;
+      --border:    #2e2c29;
+      --text:      #e8e4dc;
+      --muted:     #8a8070;
+      --accent:    #e8a045;
+      --accent2:   #5db8a0;
+      --accent3:   #c97b7b;
+      --code-bg:   #141311;
+      --tag-bg:    #26231f;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-weight: 300;
+      line-height: 1.75;
+      font-size: 17px;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: var(--accent);
+    }
+    .header-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.6rem, 7vw, 5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    h1 span { color: var(--accent); }
+    .header-sub {
+      margin-top: 1.2rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-style: italic;
+    }
+    .header-badges {
+      margin-top: 2rem;
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.3rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--muted);
+      background: var(--tag-bg);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Layout ── */
+    .wrapper {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      max-width: 1100px;
+      margin: 0 auto;
+      gap: 0;
+    }
+
+    /* ── Sidebar TOC ── */
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 2.5rem 1.5rem 2.5rem 2rem;
+      border-right: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+    aside::-webkit-scrollbar { display: none; }
+    .toc-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+    }
+    .toc-list { list-style: none; }
+    .toc-list li { margin-bottom: 0.1rem; }
+    .toc-list a {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.28rem 0.5rem;
+      border-radius: 3px;
+      border-left: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      font-family: 'Source Serif 4', serif;
+    }
+    .toc-list a:hover {
+      color: var(--text);
+      border-left-color: var(--accent);
+      background: var(--tag-bg);
+    }
+    .toc-list .toc-sub a {
+      padding-left: 1.2rem;
+      font-size: 0.76rem;
+    }
+
+    /* ── Main content ── */
+    main {
+      padding: 3rem 3.5rem 5rem 3rem;
+      max-width: 780px;
+    }
+
+    /* ── Sections ── */
+    section {
+      margin-bottom: 4rem;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    section:nth-child(1)  { animation-delay: 0.05s; }
+    section:nth-child(2)  { animation-delay: 0.1s; }
+    section:nth-child(3)  { animation-delay: 0.15s; }
+    section:nth-child(4)  { animation-delay: 0.2s; }
+    section:nth-child(5)  { animation-delay: 0.25s; }
+    section:nth-child(6)  { animation-delay: 0.3s; }
+    section:nth-child(7)  { animation-delay: 0.35s; }
+    section:nth-child(8)  { animation-delay: 0.4s; }
+    section:nth-child(9)  { animation-delay: 0.45s; }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: none; }
+    }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.2rem;
+      line-height: 1.2;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.6rem;
+    }
+    h2 .num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.1em;
+    }
+
+    h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 1.8rem 0 0.7rem;
+    }
+    h3 .tag {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 2px;
+      margin-left: 0.6rem;
+      vertical-align: middle;
+      position: relative;
+      top: -2px;
+    }
+    .tag-builtin  { background: rgba(93,184,160,0.18); color: var(--accent2); border: 1px solid rgba(93,184,160,0.35); }
+    .tag-popular  { background: rgba(232,160,69,0.18);  color: var(--accent);  border: 1px solid rgba(232,160,69,0.35); }
+    .tag-advanced { background: rgba(201,123,123,0.18); color: var(--accent3); border: 1px solid rgba(201,123,123,0.35); }
+
+    p { margin-bottom: 1rem; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 1.3rem 1.4rem;
+      margin: 1.2rem 0 1.5rem;
+      overflow-x: auto;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      position: relative;
+    }
+    pre .lang-label {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.8rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    code { font-family: 'IBM Plex Mono', monospace; font-size: 0.88em; }
+    p code, li code {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.1em 0.45em;
+      color: var(--accent2);
+    }
+
+    /* Syntax colors */
+    .kw  { color: #c9a7e8; }
+    .fn  { color: #82c8e8; }
+    .st  { color: #8bc8a0; }
+    .cm  { color: #6a6050; font-style: italic; }
+    .nb  { color: var(--accent); }
+    .nu  { color: #e8c878; }
+
+    /* ── Callout boxes ── */
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.3rem;
+      margin: 1.4rem 0;
+      font-size: 0.9rem;
+    }
+    .callout-icon {
+      font-size: 1rem;
+      margin-right: 0.4rem;
+    }
+    .callout.tip    { border-left: 3px solid var(--accent2); background: rgba(93,184,160,0.06); }
+    .callout.warn   { border-left: 3px solid var(--accent);  background: rgba(232,160,69,0.06);  }
+    .callout.note   { border-left: 3px solid #8888cc;       background: rgba(136,136,204,0.06); }
+    .callout strong { font-weight: 600; }
+
+    /* ── Comparison table ── */
+    .table-wrap { overflow-x: auto; margin: 1.3rem 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    thead th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border-bottom: 2px solid var(--border);
+      padding: 0.65rem 0.8rem;
+      text-align: left;
+    }
+    tbody td {
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+    tbody tr:hover td { background: var(--tag-bg); }
+    .dot-good  { color: var(--accent2); }
+    .dot-ok    { color: var(--accent); }
+    .dot-bad   { color: var(--accent3); }
+
+    /* ── Step list ── */
+    .steps { list-style: none; counter-reset: steps; margin: 1.2rem 0; }
+    .steps li {
+      counter-increment: steps;
+      padding: 0.8rem 1rem 0.8rem 3.4rem;
+      margin-bottom: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+      position: relative;
+      font-size: 0.92rem;
+    }
+    .steps li::before {
+      content: counter(steps);
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(232,160,69,0.1);
+      border: 1px solid rgba(232,160,69,0.3);
+      width: 1.7rem;
+      height: 1.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+    }
+
+    /* ── Framework cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1.2rem;
+    }
+    .card-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .card-name.c1 { color: var(--accent2); }
+    .card-name.c2 { color: var(--accent); }
+    .card-name.c3 { color: var(--accent3); }
+    .card-name.c4 { color: #82c8e8; }
+    .card p { font-size: 0.83rem; color: var(--muted); margin: 0; }
+
+    /* ── Widget showcase ── */
+    .widget-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      margin: 1.2rem 0;
+    }
+    .widget-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.8rem;
+      font-size: 0.8rem;
+    }
+    .widget-item .w-name {
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--accent2);
+      font-size: 0.78rem;
+      margin-bottom: 0.2rem;
+    }
+    .widget-item .w-desc { color: var(--muted); font-size: 0.77rem; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 2.5rem 2rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 800px) {
+      .wrapper { grid-template-columns: 1fr; }
+      aside {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem 2rem;
+      }
+      main { padding: 2rem 1.5rem 4rem; }
+      .cards, .widget-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-eyebrow">Complete Developer Guide</p>
+  <h1>Python <span>GUI</span> on Mac</h1>
+  <p class="header-sub">From tkinter to PyQt — building native desktop apps with Python on macOS</p>
+  <div class="header-badges">
+    <span class="badge">macOS 12 +</span>
+    <span class="badge">Python 3.10 +</span>
+    <span class="badge">tkinter</span>
+    <span class="badge">PyQt6</span>
+    <span class="badge">wxPython</span>
+    <span class="badge">Kivy</span>
+  </div>
+</header>
+
+<div class="wrapper">
+
+  <!-- ── Sidebar ── -->
+  <aside>
+    <p class="toc-title">Contents</p>
+    <ul class="toc-list">
+      <li><a href="#intro">What Is a Python GUI?</a></li>
+      <li><a href="#frameworks">Framework Overview</a></li>
+      <li><a href="#setup">Mac Setup</a></li>
+      <li><a href="#tkinter">tkinter — Built-in</a>
+        <ul class="toc-sub toc-list">
+          <li><a href="#tk-hello">Hello Window</a></li>
+          <li><a href="#tk-widgets">Common Widgets</a></li>
+          <li><a href="#tk-layout">Layout Managers</a></li>
+          <li><a href="#tk-app">Full App Example</a></li>
+        </ul>
+      </li>
+      <li><a href="#pyqt">PyQt6 — Professional</a>
+        <ul class="toc-sub toc-list">
+          <li><a href="#qt-install">Installation</a></li>
+          <li><a href="#qt-hello">Hello Window</a></li>
+          <li><a href="#qt-app">Full App Example</a></li>
+        </ul>
+      </li>
+      <li><a href="#wxpython">wxPython — Native Look</a></li>
+      <li><a href="#kivy">Kivy — Touch / Modern</a></li>
+      <li><a href="#patterns">Design Patterns</a></li>
+      <li><a href="#tips">Mac-Specific Tips</a></li>
+      <li><a href="#comparison">Framework Comparison</a></li>
+    </ul>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- 1. Intro -->
+    <section id="intro">
+      <h2><span class="num">01 —</span>What Is a Python GUI?</h2>
+      <p>A <strong>Graphical User Interface (GUI)</strong> allows users to interact with your Python program through visual elements — windows, buttons, text fields, menus — instead of a command-line terminal. On macOS, Python GUIs can integrate tightly with the operating system's look-and-feel, giving your app a polished, native appearance.</p>
+      <p>Python offers several mature GUI toolkits. Each is a <em>binding</em> to an underlying C or C++ library that handles the actual drawing and event processing. Your Python code describes <em>what</em> the interface looks like and <em>what happens</em> when the user interacts with it.</p>
+      <div class="callout tip">
+        <span class="callout-icon">💡</span><strong>Core Concepts:</strong> Every GUI framework revolves around the same ideas — a <em>main window</em>, <em>widgets</em> (buttons, labels, inputs), an <em>event loop</em> that listens for user actions, and <em>callbacks</em> (functions that run when events happen).
+      </div>
+    </section>
+
+    <!-- 2. Frameworks -->
+    <section id="frameworks">
+      <h2><span class="num">02 —</span>Framework Overview</h2>
+      <p>Here's a quick map of the landscape before diving deep:</p>
+      <div class="cards">
+        <div class="card">
+          <div class="card-name c1">tkinter</div>
+          <p>Ships with Python. Zero install. Old-school but capable. Best for learning and simple tools.</p>
+        </div>
+        <div class="card">
+          <div class="card-name c2">PyQt6 / PySide6</div>
+          <p>Bindings for the Qt framework. Polished, feature-rich, professional-grade. The industry standard for Python GUIs.</p>
+        </div>
+        <div class="card">
+          <div class="card-name c3">wxPython</div>
+          <p>Uses native macOS AppKit controls. Your windows look exactly like real Mac apps.</p>
+        </div>
+        <div class="card">
+          <div class="card-name c4">Kivy</div>
+          <p>Modern, touch-friendly UI. Custom OpenGL rendering. Great for unconventional or tablet-like interfaces.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Setup -->
+    <section id="setup">
+      <h2><span class="num">03 —</span>Mac Setup</h2>
+      <p>Before writing any GUI code, ensure your Mac environment is ready.</p>
+      <ol class="steps">
+        <li>Install <strong>Homebrew</strong> (if not present): <code>/bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"</code></li>
+        <li>Install <strong>Python 3</strong> via Homebrew: <code>brew install python</code></li>
+        <li>Verify: <code>python3 --version</code> → should show 3.10 or newer</li>
+        <li>Create a <strong>virtual environment</strong> for each project: <code>python3 -m venv .venv &amp;&amp; source .venv/bin/activate</code></li>
+        <li>Upgrade pip: <code>pip install --upgrade pip</code></li>
+      </ol>
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span><strong>macOS System Python:</strong> Avoid using <code>/usr/bin/python3</code> (the system Python). Always use the Homebrew-installed version or a virtual environment to prevent conflicts with macOS internals.
+      </div>
+    </section>
+
+    <!-- 4. tkinter -->
+    <section id="tkinter">
+      <h2><span class="num">04 —</span>tkinter <span style="font-size:0.9rem;font-weight:400;color:var(--muted)">— The Built-in Toolkit</span></h2>
+      <p><code>tkinter</code> is Python's standard GUI library. It's pre-installed — no pip install needed. It wraps the <em>Tk</em> GUI toolkit. On modern macOS it uses an Aqua-themed Tk, so windows look reasonably native.</p>
+
+      <h3 id="tk-hello">Hello Window <span class="tag tag-builtin">no install</span></h3>
+      <pre><span class="kw">import</span> tkinter <span class="kw">as</span> tk
+
+<span class="cm"># Create the main application window</span>
+app = tk.<span class="fn">Tk</span>()
+app.<span class="fn">title</span>(<span class="st">"My First GUI"</span>)
+app.<span class="fn">geometry</span>(<span class="st">"400x300"</span>)       <span class="cm"># width x height in pixels</span>
+
+<span class="cm"># A simple label widget</span>
+label = tk.<span class="fn">Label</span>(app, text=<span class="st">"Hello, Mac!"</span>, font=(<span class="st">"SF Pro Display"</span>, <span class="nu">20</span>))
+label.<span class="fn">pack</span>(pady=<span class="nu">40</span>)               <span class="cm"># pack() places it in the window</span>
+
+<span class="cm"># Start the event loop — this keeps the window open</span>
+app.<span class="fn">mainloop</span>()
+<span class="lang-label">python</span></pre>
+
+      <h3 id="tk-widgets">Common Widgets</h3>
+      <div class="widget-grid">
+        <div class="widget-item"><div class="w-name">tk.Label</div><div class="w-desc">Display static text or images</div></div>
+        <div class="widget-item"><div class="w-name">tk.Button</div><div class="w-desc">Clickable button with callback</div></div>
+        <div class="widget-item"><div class="w-name">tk.Entry</div><div class="w-desc">Single-line text input</div></div>
+        <div class="widget-item"><div class="w-name">tk.Text</div><div class="w-desc">Multi-line text editor</div></div>
+        <div class="widget-item"><div class="w-name">tk.Frame</div><div class="w-desc">Container to group widgets</div></div>
+        <div class="widget-item"><div class="w-name">tk.Checkbutton</div><div class="w-desc">Checkbox (on/off toggle)</div></div>
+        <div class="widget-item"><div class="w-name">tk.Radiobutton</div><div class="w-desc">Mutually exclusive option</div></div>
+        <div class="widget-item"><div class="w-name">tk.Listbox</div><div class="w-desc">Scrollable list of items</div></div>
+        <div class="widget-item"><div class="w-name">tk.Canvas</div><div class="w-desc">Draw shapes, images, charts</div></div>
+        <div class="widget-item"><div class="w-name">ttk.Combobox</div><div class="w-desc">Drop-down selector</div></div>
+        <div class="widget-item"><div class="w-name">ttk.Progressbar</div><div class="w-desc">Progress / loading bar</div></div>
+        <div class="widget-item"><div class="w-name">ttk.Notebook</div><div class="w-desc">Tab-based interface</div></div>
+      </div>
+
+      <h3 id="tk-layout">Layout Managers</h3>
+      <p>tkinter has three ways to position widgets:</p>
+      <pre><span class="cm"># --- pack() — stack widgets vertically or horizontally ---</span>
+btn.<span class="fn">pack</span>(side=<span class="st">"left"</span>, padx=<span class="nu">10</span>, pady=<span class="nu">5</span>)
+
+<span class="cm"># --- grid() — spreadsheet-style rows & columns ---</span>
+label.<span class="fn">grid</span>(row=<span class="nu">0</span>, column=<span class="nu">0</span>, sticky=<span class="st">"w"</span>, padx=<span class="nu">8</span>)
+entry.<span class="fn">grid</span>(row=<span class="nu">0</span>, column=<span class="nu">1</span>, padx=<span class="nu">8</span>)
+
+<span class="cm"># --- place() — absolute pixel coordinates (use sparingly) ---</span>
+btn.<span class="fn">place</span>(x=<span class="nu">150</span>, y=<span class="nu">200</span>)
+<span class="lang-label">python</span></pre>
+      <div class="callout tip">
+        <span class="callout-icon">💡</span><strong>Best Practice:</strong> Use <code>grid()</code> for forms and structured layouts. Use <code>pack()</code> for simple vertical or horizontal stacks. Avoid mixing <code>pack()</code> and <code>grid()</code> inside the same container — it causes errors.
+      </div>
+
+      <h3 id="tk-app">Full Application Example — Unit Converter</h3>
+      <pre><span class="kw">import</span> tkinter <span class="kw">as</span> tk
+<span class="kw">from</span> tkinter <span class="kw">import</span> ttk, messagebox
+
+<span class="kw">class</span> <span class="fn">ConverterApp</span>(tk.Tk):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        <span class="fn">super</span>().__init__()
+        self.<span class="fn">title</span>(<span class="st">"Unit Converter"</span>)
+        self.<span class="fn">geometry</span>(<span class="st">"360x220"</span>)
+        self.<span class="fn">resizable</span>(<span class="nb">False</span>, <span class="nb">False</span>)
+        self.<span class="fn">_build_ui</span>()
+
+    <span class="kw">def</span> <span class="fn">_build_ui</span>(self):
+        pad = {<span class="st">"padx"</span>: <span class="nu">12</span>, <span class="st">"pady"</span>: <span class="nu">8</span>}
+
+        <span class="cm"># Input row</span>
+        tk.<span class="fn">Label</span>(self, text=<span class="st">"Miles:"</span>).<span class="fn">grid</span>(row=<span class="nu">0</span>, column=<span class="nu">0</span>, sticky=<span class="st">"e"</span>, **pad)
+        self.miles_var = tk.<span class="fn">StringVar</span>()
+        tk.<span class="fn">Entry</span>(self, textvariable=self.miles_var, width=<span class="nu">18</span>).<span class="fn">grid</span>(row=<span class="nu">0</span>, column=<span class="nu">1</span>, **pad)
+
+        <span class="cm"># Convert button</span>
+        ttk.<span class="fn">Button</span>(self, text=<span class="st">"Convert →"</span>, command=self.<span class="fn">convert</span>).<span class="fn">grid</span>(
+            row=<span class="nu">1</span>, column=<span class="nu">0</span>, columnspan=<span class="nu">2</span>, pady=<span class="nu">4</span>)
+
+        <span class="cm"># Result label</span>
+        self.result_label = tk.<span class="fn">Label</span>(self, text=<span class="st">""</span>, font=(<span class="st">"SF Pro Display"</span>, <span class="nu">14</span>), fg=<span class="st">"#2a8a6a"</span>)
+        self.result_label.<span class="fn">grid</span>(row=<span class="nu">2</span>, column=<span class="nu">0</span>, columnspan=<span class="nu">2</span>, pady=<span class="nu">12</span>)
+
+    <span class="kw">def</span> <span class="fn">convert</span>(self):
+        <span class="kw">try</span>:
+            miles = <span class="fn">float</span>(self.miles_var.<span class="fn">get</span>())
+            km = miles * <span class="nu">1.60934</span>
+            self.result_label.<span class="fn">config</span>(text=<span class="nb">f</span><span class="st">"{miles} mi = {km:.2f} km"</span>)
+        <span class="kw">except</span> ValueError:
+            messagebox.<span class="fn">showerror</span>(<span class="st">"Error"</span>, <span class="st">"Please enter a valid number."</span>)
+
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    <span class="fn">ConverterApp</span>().<span class="fn">mainloop</span>()
+<span class="lang-label">python</span></pre>
+    </section>
+
+    <!-- 5. PyQt6 -->
+    <section id="pyqt">
+      <h2><span class="num">05 —</span>PyQt6 <span style="font-size:0.9rem;font-weight:400;color:var(--muted)">— Professional Toolkit</span></h2>
+      <p>PyQt6 binds to the <strong>Qt 6</strong> framework, a mature C++ GUI library used in KDE, VLC, Maya, and thousands of professional applications. It offers an enormous widget library, stylesheets, threading utilities, database connectors, and more.</p>
+
+      <h3 id="qt-install">Installation <span class="tag tag-popular">pip install</span></h3>
+      <pre><span class="cm"># Activate your virtual environment first, then:</span>
+pip install PyQt6
+<span class="lang-label">shell</span></pre>
+      <div class="callout note">
+        <span class="callout-icon">📝</span><strong>PySide6</strong> is the official Qt binding from The Qt Company and is nearly identical to PyQt6 in API. For open-source projects, either works. PySide6 has a slightly more permissive LGPL license.
+      </div>
+
+      <h3 id="qt-hello">Hello Window</h3>
+      <pre><span class="kw">import</span> sys
+<span class="kw">from</span> PyQt6.QtWidgets <span class="kw">import</span> QApplication, QLabel, QMainWindow
+<span class="kw">from</span> PyQt6.QtCore <span class="kw">import</span> Qt
+
+<span class="kw">class</span> <span class="fn">MainWindow</span>(QMainWindow):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        <span class="fn">super</span>().__init__()
+        self.<span class="fn">setWindowTitle</span>(<span class="st">"PyQt6 on Mac"</span>)
+        self.<span class="fn">setFixedSize</span>(<span class="nu">400</span>, <span class="nu">280</span>)
+
+        label = <span class="fn">QLabel</span>(<span class="st">"Hello from PyQt6!"</span>, self)
+        label.<span class="fn">setAlignment</span>(Qt.AlignmentFlag.AlignCenter)
+        self.<span class="fn">setCentralWidget</span>(label)
+
+app = <span class="fn">QApplication</span>(sys.argv)
+window = <span class="fn">MainWindow</span>()
+window.<span class="fn">show</span>()
+sys.<span class="fn">exit</span>(app.<span class="fn">exec</span>())
+<span class="lang-label">python</span></pre>
+
+      <h3 id="qt-app">Full App — Text Editor with Menubar</h3>
+      <pre><span class="kw">import</span> sys
+<span class="kw">from</span> PyQt6.QtWidgets <span class="kw">import</span> (
+    QApplication, QMainWindow, QTextEdit,
+    QFileDialog, QMessageBox
+)
+<span class="kw">from</span> PyQt6.QtGui <span class="kw">import</span> QAction
+
+<span class="kw">class</span> <span class="fn">TextEditor</span>(QMainWindow):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        <span class="fn">super</span>().__init__()
+        self.<span class="fn">setWindowTitle</span>(<span class="st">"Simple Editor"</span>)
+        self.<span class="fn">resize</span>(<span class="nu">700</span>, <span class="nu">500</span>)
+        self.editor = <span class="fn">QTextEdit</span>()
+        self.<span class="fn">setCentralWidget</span>(self.editor)
+        self.<span class="fn">_create_menu</span>()
+
+    <span class="kw">def</span> <span class="fn">_create_menu</span>(self):
+        menubar = self.<span class="fn">menuBar</span>()
+        file_menu = menubar.<span class="fn">addMenu</span>(<span class="st">"File"</span>)
+
+        <span class="cm"># Open action</span>
+        open_act = <span class="fn">QAction</span>(<span class="st">"Open…"</span>, self)
+        open_act.setShortcut(<span class="st">"Ctrl+O"</span>)
+        open_act.triggered.<span class="fn">connect</span>(self.<span class="fn">open_file</span>)
+        file_menu.<span class="fn">addAction</span>(open_act)
+
+        <span class="cm"># Save action</span>
+        save_act = <span class="fn">QAction</span>(<span class="st">"Save…"</span>, self)
+        save_act.setShortcut(<span class="st">"Ctrl+S"</span>)
+        save_act.triggered.<span class="fn">connect</span>(self.<span class="fn">save_file</span>)
+        file_menu.<span class="fn">addAction</span>(save_act)
+
+    <span class="kw">def</span> <span class="fn">open_file</span>(self):
+        path, _ = QFileDialog.<span class="fn">getOpenFileName</span>(self, <span class="st">"Open File"</span>, <span class="st">""</span>, <span class="st">"Text Files (*.txt)"</span>)
+        <span class="kw">if</span> path:
+            <span class="kw">with</span> <span class="fn">open</span>(path) <span class="kw">as</span> f:
+                self.editor.<span class="fn">setPlainText</span>(f.<span class="fn">read</span>())
+
+    <span class="kw">def</span> <span class="fn">save_file</span>(self):
+        path, _ = QFileDialog.<span class="fn">getSaveFileName</span>(self, <span class="st">"Save File"</span>, <span class="st">""</span>, <span class="st">"Text Files (*.txt)"</span>)
+        <span class="kw">if</span> path:
+            <span class="kw">with</span> <span class="fn">open</span>(path, <span class="st">"w"</span>) <span class="kw">as</span> f:
+                f.<span class="fn">write</span>(self.editor.<span class="fn">toPlainText</span>())
+
+app = <span class="fn">QApplication</span>(sys.argv)
+window = <span class="fn">TextEditor</span>()
+window.<span class="fn">show</span>()
+sys.<span class="fn">exit</span>(app.<span class="fn">exec</span>())
+<span class="lang-label">python</span></pre>
+    </section>
+
+    <!-- 6. wxPython -->
+    <section id="wxpython">
+      <h2><span class="num">06 —</span>wxPython <span style="font-size:0.9rem;font-weight:400;color:var(--muted)">— Native Mac Look</span></h2>
+      <p>wxPython wraps <strong>wxWidgets</strong>, which uses the actual native macOS controls (AppKit/Cocoa). Your app's buttons, dialogs, and menus look <em>exactly</em> like native Mac applications — because they are.</p>
+      <pre><span class="cm"># Installation</span>
+pip install wxPython
+<span class="lang-label">shell</span></pre>
+      <pre><span class="kw">import</span> wx
+
+<span class="kw">class</span> <span class="fn">MyFrame</span>(wx.Frame):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        <span class="fn">super</span>().__init__(parent=<span class="nb">None</span>, title=<span class="st">"wxPython on Mac"</span>, size=(<span class="nu">400</span>, <span class="nu">280</span>))
+        panel = wx.<span class="fn">Panel</span>(self)
+        vbox = wx.<span class="fn">BoxSizer</span>(wx.VERTICAL)
+
+        self.text = wx.<span class="fn">StaticText</span>(panel, label=<span class="st">"Enter your name:"</span>)
+        self.entry = wx.<span class="fn">TextCtrl</span>(panel)
+        self.btn   = wx.<span class="fn">Button</span>(panel, label=<span class="st">"Greet Me"</span>)
+        self.result = wx.<span class="fn">StaticText</span>(panel, label=<span class="st">""</span>)
+
+        <span class="kw">for</span> w <span class="kw">in</span> [self.text, self.entry, self.btn, self.result]:
+            vbox.<span class="fn">Add</span>(w, flag=wx.EXPAND | wx.ALL, border=<span class="nu">10</span>)
+
+        panel.<span class="fn">SetSizer</span>(vbox)
+        self.btn.<span class="fn">Bind</span>(wx.EVT_BUTTON, self.<span class="fn">on_greet</span>)
+        self.<span class="fn">Show</span>()
+
+    <span class="kw">def</span> <span class="fn">on_greet</span>(self, event):
+        name = self.entry.<span class="fn">GetValue</span>()
+        self.result.<span class="fn">SetLabel</span>(<span class="nb">f</span><span class="st">"Hello, {name}! 👋"</span>)
+
+app = wx.<span class="fn">App</span>()
+<span class="fn">MyFrame</span>()
+app.<span class="fn">MainLoop</span>()
+<span class="lang-label">python</span></pre>
+    </section>
+
+    <!-- 7. Kivy -->
+    <section id="kivy">
+      <h2><span class="num">07 —</span>Kivy <span style="font-size:0.9rem;font-weight:400;color:var(--muted)">— Modern &amp; Touch-Friendly</span></h2>
+      <p>Kivy renders its own widgets using <strong>OpenGL ES 2</strong>, giving you a bold, distinctive visual style independent of the platform. It's ideal for touchscreen-style interfaces, games, or when you want a highly custom look.</p>
+      <pre><span class="cm"># Installation</span>
+pip install kivy
+<span class="lang-label">shell</span></pre>
+      <pre><span class="kw">from</span> kivy.app <span class="kw">import</span> App
+<span class="kw">from</span> kivy.uix.boxlayout <span class="kw">import</span> BoxLayout
+<span class="kw">from</span> kivy.uix.button <span class="kw">import</span> Button
+<span class="kw">from</span> kivy.uix.label <span class="kw">import</span> Label
+
+<span class="kw">class</span> <span class="fn">MyLayout</span>(BoxLayout):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, **kwargs):
+        <span class="fn">super</span>().__init__(orientation=<span class="st">"vertical"</span>, **kwargs)
+        self.label = <span class="fn">Label</span>(text=<span class="st">"Press the button!"</span>, font_size=<span class="st">"22sp"</span>)
+        self.btn   = <span class="fn">Button</span>(text=<span class="st">"Click me"</span>, size_hint_y=<span class="nb">None</span>, height=<span class="st">"60dp"</span>)
+        self.btn.<span class="fn">bind</span>(on_press=self.<span class="fn">on_press</span>)
+        self.<span class="fn">add_widget</span>(self.label)
+        self.<span class="fn">add_widget</span>(self.btn)
+
+    <span class="kw">def</span> <span class="fn">on_press</span>(self, instance):
+        self.label.text = <span class="st">"Hello from Kivy! 🎉"</span>
+
+<span class="kw">class</span> <span class="fn">KivyApp</span>(App):
+    <span class="kw">def</span> <span class="fn">build</span>(self):
+        <span class="kw">return</span> <span class="fn">MyLayout</span>()
+
+<span class="fn">KivyApp</span>().<span class="fn">run</span>()
+<span class="lang-label">python</span></pre>
+    </section>
+
+    <!-- 8. Patterns -->
+    <section id="patterns">
+      <h2><span class="num">08 —</span>Design Patterns for GUI Apps</h2>
+
+      <h3>Model-View Separation</h3>
+      <p>Always keep your <em>data logic</em> (model) separate from your <em>interface code</em> (view). This makes apps easier to test and maintain.</p>
+      <pre><span class="cm"># model.py — pure data, no GUI imports</span>
+<span class="kw">class</span> <span class="fn">TodoModel</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.items = []
+
+    <span class="kw">def</span> <span class="fn">add</span>(self, text):
+        self.items.<span class="fn">append</span>({<span class="st">"text"</span>: text, <span class="st">"done"</span>: <span class="nb">False</span>})
+
+    <span class="kw">def</span> <span class="fn">complete</span>(self, index):
+        self.items[index][<span class="st">"done"</span>] = <span class="nb">True</span>
+
+<span class="cm"># view.py — GUI code calls model methods</span>
+<span class="kw">class</span> <span class="fn">TodoApp</span>(tk.Tk):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        <span class="fn">super</span>().__init__()
+        self.model = <span class="fn">TodoModel</span>()    <span class="cm"># inject the model</span>
+        self.<span class="fn">_build_ui</span>()
+<span class="lang-label">python</span></pre>
+
+      <h3>Threading for Long Tasks</h3>
+      <p>GUI event loops are single-threaded. Running a slow task (network request, file read) on the main thread <em>freezes the window</em>. Use Python's <code>threading</code> module:</p>
+      <pre><span class="kw">import</span> threading, tkinter <span class="kw">as</span> tk
+
+<span class="kw">def</span> <span class="fn">slow_task</span>(label):
+    <span class="kw">import</span> time; time.<span class="fn">sleep</span>(<span class="nu">3</span>)             <span class="cm"># simulate work</span>
+    label.<span class="fn">config</span>(text=<span class="st">"Done!"</span>)             <span class="cm"># safe: label.config is thread-safe in tk</span>
+
+<span class="kw">def</span> <span class="fn">on_click</span>():
+    label.<span class="fn">config</span>(text=<span class="st">"Working…"</span>)
+    t = threading.<span class="fn">Thread</span>(target=slow_task, args=(label,), daemon=<span class="nb">True</span>)
+    t.<span class="fn">start</span>()                               <span class="cm"># window stays responsive</span>
+<span class="lang-label">python</span></pre>
+
+      <h3>Using StringVar / IntVar in tkinter</h3>
+      <p>tkinter's <em>variable classes</em> let widgets auto-update when data changes — no manual refresh needed:</p>
+      <pre>name_var = tk.<span class="fn">StringVar</span>(value=<span class="st">"Alice"</span>)
+tk.<span class="fn">Entry</span>(app, textvariable=name_var).<span class="fn">pack</span>()
+tk.<span class="fn">Label</span>(app, textvariable=name_var).<span class="fn">pack</span>()  <span class="cm"># auto-mirrors the Entry</span>
+<span class="lang-label">python</span></pre>
+    </section>
+
+    <!-- 9. Mac Tips -->
+    <section id="tips">
+      <h2><span class="num">09 —</span>Mac-Specific Tips</h2>
+
+      <h3>Retina Display (HiDPI)</h3>
+      <p>On Retina Macs, tkinter may appear blurry. Force crisp rendering:</p>
+      <pre><span class="cm"># Add near the top of your tkinter script</span>
+<span class="kw">from</span> ctypes <span class="kw">import</span> cdll
+<span class="kw">try</span>:
+    cdll.<span class="fn">LoadLibrary</span>(<span class="st">"libtk8.6.dylib"</span>)
+<span class="kw">except</span>:
+    <span class="kw">pass</span>
+<span class="cm"># Or use PyQt6/PySide6 which handles HiDPI automatically</span>
+<span class="lang-label">python</span></pre>
+
+      <h3>macOS Menu Bar Integration (PyQt6)</h3>
+      <pre><span class="cm"># Qt on macOS puts the menu in the global Mac menu bar automatically.</span>
+<span class="cm"># Use this to set the app name shown in the bar:</span>
+app = <span class="fn">QApplication</span>(sys.argv)
+app.<span class="fn">setApplicationName</span>(<span class="st">"My App"</span>)
+app.<span class="fn">setOrganizationName</span>(<span class="st">"My Company"</span>)
+<span class="lang-label">python</span></pre>
+
+      <h3>Packaging Your App as a .app Bundle</h3>
+      <p>Use <strong>py2app</strong> to distribute a standalone Mac app:</p>
+      <pre>pip install py2app
+py2applet --make-setup main.py
+python setup.py py2app
+<span class="cm"># Your .app bundle appears in dist/</span>
+<span class="lang-label">shell</span></pre>
+      <div class="callout tip">
+        <span class="callout-icon">💡</span><strong>Alternative:</strong> <code>PyInstaller</code> also works cross-platform (<code>pip install pyinstaller</code>, then <code>pyinstaller --windowed main.py</code>).
+      </div>
+
+      <h3>Dark Mode Support</h3>
+      <pre><span class="cm"># tkinter — respects system Dark Mode automatically in newer Tk builds</span>
+
+<span class="cm"># PyQt6 — enable platform-native style:</span>
+<span class="kw">from</span> PyQt6.QtWidgets <span class="kw">import</span> QApplication
+<span class="kw">import</span> sys
+app = <span class="fn">QApplication</span>(sys.argv)
+app.<span class="fn">setStyle</span>(<span class="st">"macos"</span>)   <span class="cm"># uses native macOS styling</span>
+<span class="lang-label">python</span></pre>
+    </section>
+
+    <!-- 10. Comparison -->
+    <section id="comparison">
+      <h2><span class="num">10 —</span>Framework Comparison</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Framework</th>
+              <th>Install</th>
+              <th>Native Look</th>
+              <th>Widgets</th>
+              <th>Learning Curve</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>tkinter</code></td>
+              <td><span class="dot-good">●</span> None</td>
+              <td><span class="dot-ok">●</span> Partial</td>
+              <td><span class="dot-ok">●</span> Basic</td>
+              <td><span class="dot-good">●</span> Easy</td>
+              <td>Learning, quick tools</td>
+            </tr>
+            <tr>
+              <td><code>PyQt6</code></td>
+              <td><span class="dot-ok">●</span> pip</td>
+              <td><span class="dot-ok">●</span> Good</td>
+              <td><span class="dot-good">●</span> Extensive</td>
+              <td><span class="dot-ok">●</span> Medium</td>
+              <td>Professional apps</td>
+            </tr>
+            <tr>
+              <td><code>PySide6</code></td>
+              <td><span class="dot-ok">●</span> pip</td>
+              <td><span class="dot-ok">●</span> Good</td>
+              <td><span class="dot-good">●</span> Extensive</td>
+              <td><span class="dot-ok">●</span> Medium</td>
+              <td>Open-source projects</td>
+            </tr>
+            <tr>
+              <td><code>wxPython</code></td>
+              <td><span class="dot-ok">●</span> pip</td>
+              <td><span class="dot-good">●</span> Excellent</td>
+              <td><span class="dot-good">●</span> Rich</td>
+              <td><span class="dot-ok">●</span> Medium</td>
+              <td>True-native Mac feel</td>
+            </tr>
+            <tr>
+              <td><code>Kivy</code></td>
+              <td><span class="dot-ok">●</span> pip</td>
+              <td><span class="dot-bad">●</span> Custom</td>
+              <td><span class="dot-ok">●</span> Modern</td>
+              <td><span class="dot-bad">●</span> Steep</td>
+              <td>Touch / custom UIs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:1rem;font-size:0.85rem;color:var(--muted)"><span class="dot-good">●</span> Strong &nbsp;|&nbsp; <span class="dot-ok">●</span> Good &nbsp;|&nbsp; <span class="dot-bad">●</span> Limited</p>
+
+      <div class="callout warn" style="margin-top:2rem">
+        <span class="callout-icon">🏁</span><strong>Recommendation:</strong> Start with <code>tkinter</code> to learn the fundamentals. Graduate to <code>PyQt6</code> for any serious project. Use <code>wxPython</code> if a pixel-perfect Mac appearance matters most.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Python GUI on Mac — A Complete Guide &nbsp;·&nbsp; All examples require Python 3.10+ &nbsp;·&nbsp; macOS 12 Monterey or newer recommended
+</footer>
+
+</body>
+</html>

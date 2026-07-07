@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Comprehensive Perl Programming Guide — Including macOS GUI with Perl/Tk</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root {
+  --bg:        #09090f;
+  --bg-side:   #05050a;
+  --bg-card:   #0f0f1c;
+  --bg-code:   #0c0c18;
+  --border:    #1e1e30;
+  --amber:     #f0a030;
+  --amber-dim: #b87820;
+  --amber-glow:#f0a03022;
+  --text:      #e2d9c8;
+  --text-dim:  #9b9380;
+  --text-muted:#5a5448;
+  --accent:    #4db8ff;
+  --green:     #6fcf97;
+  --red:       #eb5757;
+  --sidebar-w: 270px;
+  --content-max:860px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 16.5px;
+  line-height: 1.75;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ──────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg-side);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  padding-bottom: 40px;
+}
+
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sidebar-logo {
+  padding: 28px 20px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .logo-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+.sidebar-logo .logo-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+}
+
+.sidebar-part {
+  padding: 18px 20px 6px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.14em;
+  color: var(--amber);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 20px;
+  text-decoration: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-family: 'Source Serif 4', serif;
+  font-weight: 300;
+  transition: color .15s, background .15s;
+  border-left: 2px solid transparent;
+}
+.sidebar-link:hover { color: var(--text); background: var(--bg-card); }
+.sidebar-link.active { color: var(--amber); border-left-color: var(--amber); background: var(--amber-glow); }
+.sidebar-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  min-width: 18px;
+}
+
+/* ── Main Content ─────────────────────────────────────── */
+#main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+}
+
+#content {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 60px 48px 100px;
+}
+
+/* ── Hero ─────────────────────────────────────────────── */
+.hero {
+  padding: 60px 0 50px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 60px;
+}
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--amber);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 5vw, 54px);
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--amber);
+}
+.hero-sub {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--text-dim);
+  font-weight: 300;
+  margin-bottom: 28px;
+}
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.badge {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+.badge.amber { border-color: var(--amber-dim); color: var(--amber); }
+
+/* ── Part Dividers ────────────────────────────────────── */
+.part-header {
+  margin: 70px 0 40px;
+  padding: 24px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--amber);
+  position: relative;
+  overflow: hidden;
+}
+.part-header::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 200px; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--amber-glow));
+  pointer-events: none;
+}
+.part-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--amber);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.part-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ── Sections ─────────────────────────────────────────── */
+.section {
+  margin-bottom: 64px;
+  scroll-margin-top: 24px;
+}
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--amber-dim);
+  font-weight: 500;
+  min-width: 28px;
+  letter-spacing: 0.06em;
+}
+.section-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--amber);
+  margin: 32px 0 12px;
+  letter-spacing: 0.01em;
+}
+h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 24px 0 10px;
+}
+
+p { margin-bottom: 14px; }
+p:last-child { margin-bottom: 0; }
+
+strong { color: var(--text); font-weight: 600; }
+em { color: var(--amber); font-style: italic; }
+
+a { color: var(--amber); text-decoration: none; border-bottom: 1px solid var(--amber-dim); transition: border-color .15s; }
+a:hover { border-color: var(--amber); }
+
+/* ── Code ─────────────────────────────────────────────── */
+.code-block {
+  position: relative;
+  margin: 20px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-code);
+}
+.code-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+  background: #0a0a15;
+  border-bottom: 1px solid var(--border);
+}
+.code-lang {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--amber);
+  text-transform: uppercase;
+}
+.copy-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: 0.06em;
+}
+.copy-btn:hover { color: var(--amber); border-color: var(--amber-dim); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+.code-block pre[class*="language-"] {
+  margin: 0;
+  padding: 18px 20px;
+  background: transparent !important;
+  font-size: 13.5px;
+  line-height: 1.65;
+  overflow-x: auto;
+}
+.code-block code[class*="language-"] {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: inherit;
+}
+
+/* Override Prism tomorrow theme with amber palette */
+.token.comment, .token.prolog, .token.doctype, .token.cdata { color: #6a7a5a !important; font-style: italic; }
+.token.keyword { color: #f0a030 !important; font-weight: 500; }
+.token.string, .token.char { color: #a8d8a0 !important; }
+.token.number { color: #a8c4e0 !important; }
+.token.operator { color: #d4c090 !important; }
+.token.function { color: #8fbce0 !important; }
+.token.variable { color: #e0b87a !important; }
+.token.regex { color: #d4a0c8 !important; }
+.token.punctuation { color: #6a7080 !important; }
+.token.class-name { color: #f0a030 !important; }
+
+code:not([class]) {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--bg-card);
+  color: var(--amber);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* ── Tables ───────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 20px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+thead tr { background: var(--bg-card); border-bottom: 2px solid var(--amber-dim); }
+th {
+  text-align: left;
+  padding: 10px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+td code { font-size: 12.5px; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--bg-card); }
+
+/* ── Lists ────────────────────────────────────────────── */
+ul, ol { padding-left: 24px; margin: 12px 0; }
+li { margin-bottom: 6px; }
+ul li::marker { color: var(--amber-dim); }
+ol li::marker { color: var(--amber-dim); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+/* ── Callout boxes ────────────────────────────────────── */
+.callout {
+  padding: 16px 20px;
+  border-radius: 4px;
+  border-left: 3px solid;
+  margin: 20px 0;
+  font-size: 15px;
+}
+.callout.note { background: #0a1020; border-color: var(--accent); color: #a8c8e0; }
+.callout.tip  { background: #081510; border-color: var(--green);  color: #90c890; }
+.callout.warn { background: #130c04; border-color: var(--amber);  color: #c8a060; }
+.callout.rule { background: #100a0a; border-color: var(--red);    color: #c88080; }
+.callout strong { color: inherit; opacity: 0.9; }
+
+/* ── Quick ref card ───────────────────────────────────── */
+.ref-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--amber);
+  padding: 24px;
+  margin: 28px 0;
+  border-radius: 0 0 4px 4px;
+}
+.ref-card h3 { margin-top: 0; font-size: 15px; letter-spacing: 0.08em; }
+
+/* ── Install steps ────────────────────────────────────── */
+.install-step {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+.step-num {
+  background: var(--amber);
+  color: var(--bg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.step-content { flex: 1; }
+.step-content strong { display: block; color: var(--text); font-family: 'Playfair Display', serif; font-size: 16px; margin-bottom: 6px; }
+
+/* ── Widget table ─────────────────────────────────────── */
+.widget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+.widget-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  border-radius: 4px;
+  transition: border-color .15s;
+}
+.widget-card:hover { border-color: var(--amber-dim); }
+.widget-name { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--amber); margin-bottom: 4px; }
+.widget-desc { font-size: 13px; color: var(--text-dim); }
+
+/* ── Best practice checklist ──────────────────────────── */
+.checklist { list-style: none; padding: 0; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 15px;
+  border-bottom: 1px solid var(--border);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-icon { font-size: 14px; margin-top: 2px; flex-shrink: 0; }
+
+/* ── Tutorial nav ─────────────────────────────────────── */
+.tut-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 28px 0;
+}
+.tut-link {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-dim) !important;
+  border-bottom: none !important;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all .15s;
+  text-decoration: none;
+}
+.tut-link:hover { border-color: var(--amber-dim) !important; color: var(--amber) !important; background: var(--amber-glow); }
+
+/* ── Scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 900px) {
+  #sidebar { transform: translateX(-100%); transition: transform .2s; }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  #content { padding: 40px 24px 80px; }
+  #menu-toggle { display: flex; }
+}
+#menu-toggle {
+  display: none;
+  position: fixed; top: 14px; left: 14px; z-index: 200;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--amber); padding: 8px 12px; border-radius: 4px; cursor: pointer;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ Menu</button>
+
+<!-- ═══════════════════════════════════════════════════════════ SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">The Perl Guide</div>
+    <div class="logo-sub">perl + perl/tk + macos</div>
+  </div>
+
+  <div class="sidebar-part">Part I — Language</div>
+  <a class="sidebar-link" href="#s1"><span class="sidebar-num">01</span>Introduction</a>
+  <a class="sidebar-link" href="#s2"><span class="sidebar-num">02</span>Running Perl</a>
+  <a class="sidebar-link" href="#s3"><span class="sidebar-num">03</span>Scalars</a>
+  <a class="sidebar-link" href="#s4"><span class="sidebar-num">04</span>Strings</a>
+  <a class="sidebar-link" href="#s5"><span class="sidebar-num">05</span>Numbers</a>
+  <a class="sidebar-link" href="#s6"><span class="sidebar-num">06</span>Arrays</a>
+  <a class="sidebar-link" href="#s7"><span class="sidebar-num">07</span>Hashes</a>
+  <a class="sidebar-link" href="#s8"><span class="sidebar-num">08</span>Control Flow</a>
+  <a class="sidebar-link" href="#s9"><span class="sidebar-num">09</span>Loops</a>
+  <a class="sidebar-link" href="#s10"><span class="sidebar-num">10</span>Regex</a>
+  <a class="sidebar-link" href="#s11"><span class="sidebar-num">11</span>Subroutines</a>
+  <a class="sidebar-link" href="#s12"><span class="sidebar-num">12</span>References</a>
+  <a class="sidebar-link" href="#s13"><span class="sidebar-num">13</span>File I/O</a>
+  <a class="sidebar-link" href="#s14"><span class="sidebar-num">14</span>Modules</a>
+  <a class="sidebar-link" href="#s15"><span class="sidebar-num">15</span>Error Handling</a>
+  <a class="sidebar-link" href="#s16"><span class="sidebar-num">16</span>OOP</a>
+  <a class="sidebar-link" href="#s17"><span class="sidebar-num">17</span>Built-ins</a>
+  <a class="sidebar-link" href="#s18"><span class="sidebar-num">18</span>CLI Args</a>
+  <a class="sidebar-link" href="#s19"><span class="sidebar-num">19</span>Best Practices</a>
+
+  <div class="sidebar-part">Part II — macOS GUI</div>
+  <a class="sidebar-link" href="#s20"><span class="sidebar-num">20</span>GUI Overview</a>
+  <a class="sidebar-link" href="#s21"><span class="sidebar-num">21</span>Installing Tk</a>
+  <a class="sidebar-link" href="#s22"><span class="sidebar-num">22</span>Core Concepts</a>
+  <a class="sidebar-link" href="#s23"><span class="sidebar-num">23</span>Widgets</a>
+  <a class="sidebar-link" href="#s24"><span class="sidebar-num">24</span>Layout Managers</a>
+  <a class="sidebar-link" href="#s25"><span class="sidebar-num">25</span>Events &amp; Bindings</a>
+  <a class="sidebar-link" href="#s26"><span class="sidebar-num">26</span>Menus &amp; Dialogs</a>
+  <a class="sidebar-link" href="#s27"><span class="sidebar-num">27</span>Canvas Widget</a>
+  <a class="sidebar-link" href="#s28"><span class="sidebar-num">28</span>Complete App</a>
+  <a class="sidebar-link" href="#s29"><span class="sidebar-num">29</span>macOS Tips</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════ MAIN -->
+<main id="main">
+<div id="content">
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-eyebrow">The Comprehensive Reference</div>
+  <h1>The <em>Perl</em> Programming Guide</h1>
+  <p class="hero-sub">Including macOS GUI Development with Perl/Tk</p>
+  <div class="hero-badges">
+    <span class="badge amber">Perl 5.36+</span>
+    <span class="badge">Part I: Language</span>
+    <span class="badge">Part II: Perl/Tk GUI</span>
+    <span class="badge">macOS / Apple Silicon</span>
+  </div>
+</header>
+
+<div class="callout note">
+  <strong>How to use this guide:</strong> Read each section, then run the matching tutorial file.
+  <code>perl perl_tutorial.pl</code> for core language · <code>perl perl_gui_01_basics.pl</code> and onwards for GUI.
+</div>
+
+<div class="tut-nav">
+  <a class="tut-link" href="perl_tutorial.html">01 · Core Tutorial</a>
+  <a class="tut-link" href="perl_gui_01_basics.html">02 · GUI Basics</a>
+  <a class="tut-link" href="perl_gui_02_widgets.html">03 · Widgets</a>
+  <a class="tut-link" href="perl_gui_03_events_canvas.html">04 · Events &amp; Canvas</a>
+  <a class="tut-link" href="perl_gui_04_app.html">05 · Complete App</a>
+</div>
+
+<!-- ══════════════════════════════════════════════════ PART I -->
+<div class="part-header" id="part1">
+  <div class="part-label">Part I</div>
+  <h2>The Perl Language</h2>
+</div>
+
+<!-- §1 -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">§01</span>
+    <h2>Introduction to Perl</h2>
+  </div>
+  <p><strong>Perl</strong> (Practical Extraction and Report Language) was created by Larry Wall in 1987. It excels at text processing and pattern matching, system administration scripting, web/CGI development, rapid prototyping, and GUI applications via Perl/Tk and other toolkits.</p>
+  <p>Perl's motto: <em>"There's More Than One Way To Do It"</em> (TMTOWTDI)</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>Interpreted</td><td>Runs via the Perl interpreter — no compilation step</td></tr>
+      <tr><td>Dynamically typed</td><td>Variables need no type declarations</td></tr>
+      <tr><td>Garbage collected</td><td>Automatic memory management</td></tr>
+      <tr><td>CPAN</td><td>25,000+ reusable modules available on CPAN</td></tr>
+      <tr><td>Tk integration</td><td>Mature GUI toolkit, tightly bound to Perl</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- §2 -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">§02</span>
+    <h2>Running Perl Programs</h2>
+  </div>
+  <h3>The Shebang Line</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">#!/usr/bin/perl
+# On macOS with Homebrew Perl (recommended):
+#!/usr/bin/env perl</code></pre></div>
+
+  <h3>Always Use These — Rule #1</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">use strict;
+use warnings;</code></pre></div>
+  <div class="callout rule"><strong>Rule #1:</strong> <code>use strict</code> forces you to declare all variables and catches typos. <code>use warnings</code> prints diagnostic messages for common mistakes. Every Perl file you write must start with these two lines.</div>
+
+  <h3>Running Scripts</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash">perl myscript.pl               # Run normally
+perl -c myscript.pl            # Syntax check only (does not run)
+perl -w myscript.pl            # Enable warnings from command line
+perl -e 'print "Hello\n";'     # One-liner</code></pre></div>
+
+  <h3>Comments</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Single-line comment — the only comment syntax in Perl
+
+=pod
+Multi-line POD (Plain Old Documentation) block.
+Acts as a block comment and can also generate documentation.
+=cut</code></pre></div>
+</section>
+
+<!-- §3 -->
+<section class="section" id="s3">
+  <div class="section-header"><span class="section-num">§03</span><h2>Scalars — The Basic Variable</h2></div>
+  <p>A <strong>scalar</strong> holds one value: a number, string, or reference. All scalar names begin with <code>$</code>.</p>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $name    = "Alice";       # String
+my $age     = 30;            # Integer
+my $pi      = 3.14159;       # Float
+my $flag    = 1;             # Boolean-like (1 = true, 0/"" = false)
+my $nothing = undef;         # Undefined value</code></pre></div>
+  <p><code>my</code> declares a <strong>lexically scoped</strong> (block-local) variable. Always use <code>my</code> under <code>strict</code>.</p>
+
+  <h3>Variable Interpolation</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $city = "San Francisco";
+print "Welcome to $city!\n";        # Interpolates → Welcome to San Francisco!
+print 'No interpolation: $city\n';  # Literal → No interpolation: $city\n</code></pre></div>
+  <p>Double-quoted strings interpolate variables and escape sequences. Single-quoted strings are fully literal.</p>
+
+  <h3>Escape Sequences</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Sequence</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>\n</code></td><td>Newline</td></tr>
+      <tr><td><code>\t</code></td><td>Tab</td></tr>
+      <tr><td><code>\\</code></td><td>Literal backslash</td></tr>
+      <tr><td><code>\"</code></td><td>Literal double-quote</td></tr>
+      <tr><td><code>\$</code></td><td>Literal dollar sign (suppresses interpolation)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Checking Defined vs. Undef</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">if (defined $nothing) { print "defined\n" }
+else                  { print "undef\n"   }</code></pre></div>
+</section>
+
+<!-- §4 -->
+<section class="section" id="s4">
+  <div class="section-header"><span class="section-num">§04</span><h2>Strings &amp; String Operators</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $full = "Hello" . ", " . "World!";   # Concatenation with .
+my $line = "-" x 40;                     # Repetition with x
+my $arr  = (0) x 5;                      # Array of five zeros</code></pre></div>
+
+  <h3>Key String Functions</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Function</th><th>Description</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>length($s)</code></td><td>Character count</td><td><code>length("hello")</code> → 5</td></tr>
+      <tr><td><code>uc($s)</code> / <code>lc($s)</code></td><td>Upper / lower case</td><td><code>uc("hi")</code> → "HI"</td></tr>
+      <tr><td><code>ucfirst($s)</code></td><td>Capitalize first char</td><td><code>ucfirst("perl")</code> → "Perl"</td></tr>
+      <tr><td><code>substr($s,$off,$len)</code></td><td>Extract substring</td><td><code>substr("Hello",1,3)</code> → "ell"</td></tr>
+      <tr><td><code>index($s,$sub)</code></td><td>Find position</td><td><code>index("Hello","ll")</code> → 2</td></tr>
+      <tr><td><code>chomp($s)</code></td><td>Remove trailing newline</td><td>modifies in-place</td></tr>
+      <tr><td><code>reverse($s)</code></td><td>Reverse string</td><td><code>scalar reverse("abc")</code> → "cba"</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>String Comparison Operators</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Operator</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>eq</code> / <code>ne</code></td><td>Equal / not equal</td></tr>
+      <tr><td><code>lt</code> / <code>gt</code></td><td>Less than / greater than</td></tr>
+      <tr><td><code>le</code> / <code>ge</code></td><td>Less-or-equal / greater-or-equal</td></tr>
+      <tr><td><code>cmp</code></td><td>Returns −1, 0, or 1</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>sprintf Format Specifiers</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Spec</th><th>Type</th><th>Example output</th></tr></thead>
+    <tbody>
+      <tr><td><code>%s</code></td><td>String</td><td><code>"hello"</code></td></tr>
+      <tr><td><code>%d</code></td><td>Integer</td><td><code>42</code></td></tr>
+      <tr><td><code>%f</code></td><td>Float</td><td><code>3.14</code></td></tr>
+      <tr><td><code>%08d</code></td><td>Zero-padded 8-wide</td><td><code>00000042</code></td></tr>
+      <tr><td><code>%-10s</code></td><td>Left-justified 10-wide</td><td><code>"hello     "</code></td></tr>
+      <tr><td><code>%x</code> / <code>%b</code></td><td>Hex / Binary</td><td><code>ff</code> / <code>1010</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Here-Docs</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $text = &lt;&lt;END;
+Line one
+Line two
+Line three
+END</code></pre></div>
+</section>
+
+<!-- §5 -->
+<section class="section" id="s5">
+  <div class="section-header"><span class="section-num">§05</span><h2>Numbers &amp; Numeric Operators</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $hex = 0xFF;        # 255 — hexadecimal
+my $oct = 0755;        # 493 — octal
+my $bin = 0b1010;      # 10  — binary
+my $big = 1_000_000;   # Underscores for readability</code></pre></div>
+
+  <h3>Arithmetic Operators</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Op</th><th>Meaning</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>+</code> <code>-</code> <code>*</code> <code>/</code></td><td>Basic arithmetic</td><td><code>5 + 3</code> → 8</td></tr>
+      <tr><td><code>%</code></td><td>Modulus (remainder)</td><td><code>10 % 3</code> → 1</td></tr>
+      <tr><td><code>**</code></td><td>Exponentiation</td><td><code>2 ** 8</code> → 256</td></tr>
+      <tr><td><code>++</code> / <code>--</code></td><td>Increment / decrement</td><td><code>$n++</code>, <code>--$n</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Numeric Comparison</h3>
+  <p><code>==</code> <code>!=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> <code>&lt;=&gt;</code> (spaceship: returns −1, 0, or 1)</p>
+
+  <h3>Math Functions</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">use POSIX qw(floor ceil);
+abs(-5)       # 5
+int(3.9)      # 3  (truncates toward zero)
+sqrt(16)      # 4
+floor(3.7)    # 3
+ceil(3.2)     # 4
+log(exp(1))   # 1  (natural log)
+
+srand(42);                    # Seed the random number generator
+my $roll = int(rand(6)) + 1;  # Die roll: 1–6</code></pre></div>
+</section>
+
+<!-- §6 -->
+<section class="section" id="s6">
+  <div class="section-header"><span class="section-num">§06</span><h2>Arrays</h2></div>
+  <p>Ordered lists of scalars. Names begin with <code>@</code>. Elements accessed with <code>$arr[index]</code> (0-based).</p>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my @colors = ("red", "green", "blue");
+my @range  = (1..10);               # Range operator
+my @words  = qw(one two three);     # Quote-words shorthand
+
+$colors[0]      # "red"
+$colors[-1]     # "blue"  (negative = from end)
+scalar @colors  # 3       (element count)
+$#colors        # 2       (last index)</code></pre></div>
+
+  <h3>Modifying Arrays</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">push    @arr, $val;      # Add to end
+my $v = pop  @arr;       # Remove from end
+unshift @arr, $val;      # Add to front
+my $v = shift @arr;      # Remove from front
+splice(@arr, $idx, $n);  # Remove n elements at index</code></pre></div>
+
+  <h3>Functional Operations</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># grep — filter (returns elements where block is true)
+my @evens = grep { $_ % 2 == 0 } @nums;
+
+# map — transform (returns one result per element)
+my @doubled = map { $_ * 2 } @nums;
+
+# sort — alphabetical by default
+my @alpha = sort @words;
+my @numsort = sort { $a &lt;=&gt; $b } @nums;   # Numeric
+my @bylen   = sort { length($a) &lt;=&gt; length($b) } @words;
+
+# join and split
+my $csv   = join(",", @words);
+my @parts = split(/,/, $csv);</code></pre></div>
+  <div class="callout warn"><strong>$_ — The Default Variable:</strong> Many Perl operations use <code>$_</code> as an implicit loop variable when none is specified. <code>grep { /foo/ } @arr</code> tests each element as <code>$_</code>.</div>
+</section>
+
+<!-- §7 -->
+<section class="section" id="s7">
+  <div class="section-header"><span class="section-num">§07</span><h2>Hashes</h2></div>
+  <p>Key-value stores. Names begin with <code>%</code>. Elements accessed with <code>$hash{key}</code>.</p>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my %person = (
+    name  =&gt; "Bob",      # fat comma auto-quotes the left side
+    age   =&gt; 25,
+    city  =&gt; "Austin",
+);
+
+$person{email} = "b@x.com";   # Add key
+delete $person{city};           # Remove key
+exists $person{name};           # Check if key present (boolean)
+defined $person{age};           # Check if value is defined
+
+# Iterate sorted
+foreach my $key (sort keys %person) {
+    print "$key: $person{$key}\n";
+}</code></pre></div>
+
+  <h3>Hash Slices and qw()</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my @info = @person{qw(name city)};        # Get multiple values at once
+@person{qw(x y)} = (10, 20);             # Set multiple values
+
+# qw() — Quote Words: creates a list without commas or quotes
+my @days = qw(Mon Tue Wed Thu Fri Sat Sun);</code></pre></div>
+
+  <h3>Common Hash Patterns</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Frequency count
+my %freq;
+$freq{$_}++ for @data;
+
+# Unique elements (preserving order)
+my %seen;
+my @unique = grep { !$seen{$_}++ } @data;
+
+# Group-by
+my %by_city;
+push @{ $by_city{$_-&gt;{city}} }, $_ for @people;</code></pre></div>
+</section>
+
+<!-- §8 -->
+<section class="section" id="s8">
+  <div class="section-header"><span class="section-num">§08</span><h2>Control Flow</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># if / elsif / else
+if    ($score &gt;= 90) { print "A\n" }
+elsif ($score &gt;= 80) { print "B\n" }
+elsif ($score &gt;= 70) { print "C\n" }
+else                 { print "F\n" }
+
+# unless — runs when condition is FALSE
+unless ($logged_in) { die "Access denied\n" }
+
+# Postfix (statement modifier) form
+print "positive\n" if $n &gt; 0;
+print "not zero\n" unless $n == 0;
+
+# Ternary operator
+my $label = ($n &gt; 0) ? "positive" : "non-positive";
+
+# Defined-or — use $input if defined, else use "default"
+my $val = $input // "default";
+
+# Short-circuit control flow
+open(my $fh, "&lt;", $file) or die "Cannot open: $!";</code></pre></div>
+
+  <h3>Logical Operators</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Symbol</th><th>Word form</th><th>Precedence</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>&amp;&amp;</code></td><td><code>and</code></td><td>High / Low</td><td>Logic conditions / flow control</td></tr>
+      <tr><td><code>||</code></td><td><code>or</code></td><td>High / Low</td><td>Logic conditions / flow control</td></tr>
+      <tr><td><code>!</code></td><td><code>not</code></td><td>High / Low</td><td>Negate</td></tr>
+      <tr><td><code>//</code></td><td>—</td><td>High</td><td>Defined-or (test defined, not just truth)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- §9 -->
+<section class="section" id="s9">
+  <div class="section-header"><span class="section-num">§09</span><h2>Loops</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># while — runs while condition is true
+while ($i &lt; 10) { $i++ }
+
+# until — runs while condition is FALSE
+until ($done) { do_work() }
+
+# C-style for
+for (my $i = 0; $i &lt; 10; $i++) { print "$i\n" }
+
+# foreach — iterate over a list
+foreach my $item (@array) { print "$item\n" }
+
+# Postfix (one-liner)
+print "$_\n" for @array;
+
+# do...while — runs body at least once
+do { $attempts++ } while ($attempts &lt; 3);</code></pre></div>
+
+  <h3>Loop Control</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Statement</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>next</code></td><td>Skip to next iteration (like <code>continue</code> in other languages)</td></tr>
+      <tr><td><code>last</code></td><td>Exit the loop (like <code>break</code>)</td></tr>
+      <tr><td><code>redo</code></td><td>Restart current iteration without re-evaluating condition</td></tr>
+      <tr><td><code>next OUTER</code></td><td>Jump to outer loop using a label</td></tr>
+    </tbody>
+  </table></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">for my $n (1..20) {
+    next if $n % 2 == 0;    # Skip even numbers
+    last if $n &gt; 9;          # Stop after 9
+    print "$n ";             # Prints: 1 3 5 7 9
+}
+
+# Loop labels for nested loop control
+OUTER: for my $i (1..3) {
+    for my $j (1..3) {
+        next OUTER if $j == 2;   # Jump to outer loop
+        print "($i,$j) ";
+    }
+}</code></pre></div>
+</section>
+
+<!-- §10 -->
+<section class="section" id="s10">
+  <div class="section-header"><span class="section-num">§10</span><h2>Regular Expressions</h2></div>
+  <p>Perl's regex engine is one of the most powerful in any language and is widely emulated by other languages.</p>
+
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Match operator m//
+if ($str =~ /pattern/)  { ... }    # Does $str match?
+if ($str !~ /pattern/)  { ... }    # Does $str NOT match?
+
+# Substitution operator s///
+$str =~ s/old/new/;       # Replace first occurrence
+$str =~ s/old/new/g;      # Replace all (global)
+$str =~ s/old/new/gi;     # Global + case-insensitive
+
+# Transliteration tr///
+$str =~ tr/a-z/A-Z/;      # Convert all lowercase to uppercase
+my $n = ($str =~ tr/e//); # Count occurrences of 'e'</code></pre></div>
+
+  <h3>Modifiers</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Mod</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>i</code></td><td>Case-insensitive</td></tr>
+      <tr><td><code>g</code></td><td>Global (find all matches)</td></tr>
+      <tr><td><code>m</code></td><td>Multi-line: <code>^</code> and <code>$</code> match line boundaries</td></tr>
+      <tr><td><code>s</code></td><td>Single-line: <code>.</code> matches newline too</td></tr>
+      <tr><td><code>x</code></td><td>Extended: whitespace ignored, comments allowed</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Character Classes &amp; Anchors</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Pattern</th><th>Matches</th></tr></thead>
+    <tbody>
+      <tr><td><code>.</code></td><td>Any char except newline</td></tr>
+      <tr><td><code>\d</code> / <code>\D</code></td><td>Digit / non-digit</td></tr>
+      <tr><td><code>\w</code> / <code>\W</code></td><td>Word char [a-zA-Z0-9_] / non-word</td></tr>
+      <tr><td><code>\s</code> / <code>\S</code></td><td>Whitespace / non-whitespace</td></tr>
+      <tr><td><code>^</code> / <code>$</code></td><td>Start / end of string</td></tr>
+      <tr><td><code>\b</code></td><td>Word boundary</td></tr>
+      <tr><td><code>*</code> / <code>+</code> / <code>?</code></td><td>0+, 1+, 0 or 1</td></tr>
+      <tr><td><code>{n,m}</code></td><td>Between n and m times</td></tr>
+      <tr><td><code>*?</code> / <code>+?</code></td><td>Non-greedy versions</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Capturing Groups</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Numbered captures — $1, $2, $3 ...
+if ("2024-05-04" =~ /(\d{4})-(\d{2})-(\d{2})/) {
+    my ($year, $month, $day) = ($1, $2, $3);
+}
+
+# Named captures — $+{name}
+if ($str =~ /(?&lt;year&gt;\d{4})-(?&lt;month&gt;\d{2})/) {
+    print $+{year};
+}
+
+# Global match in list context — finds ALL matches
+my @dates = ($text =~ /(\d{4}-\d{2}-\d{2})/g);
+
+# Extended /x mode — add whitespace and comments for readability
+my $valid = $email =~ /
+    ^           # Start of string
+    [\w.+\-]+   # Local part
+    @           # At sign
+    [\w\-]+     # Domain name
+    (\.\w+)+    # One or more extensions
+    $           # End of string
+/x;</code></pre></div>
+</section>
+
+<!-- §11 -->
+<section class="section" id="s11">
+  <div class="section-header"><span class="section-num">§11</span><h2>Subroutines (Functions)</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Basic subroutine — arguments arrive in @_
+sub greet {
+    my ($name, $greeting) = @_;    # Always unpack @_ with my
+    $greeting //= "Hello";         # Default value
+    return "$greeting, $name!";
+}
+
+# Multiple return values
+sub minmax {
+    my @sorted = sort { $a &lt;=&gt; $b } @_;
+    return ($sorted[0], $sorted[-1]);
+}
+my ($min, $max) = minmax(5, 2, 8, 1, 9);
+
+# Named parameters via hash (best for 3+ args)
+sub create_user {
+    my (%args) = @_;
+    my $name = $args{name} // "Anonymous";
+    my $role = $args{role} // "user";
+    return { name =&gt; $name, role =&gt; $role };
+}
+create_user(name =&gt; "Carol", role =&gt; "admin");</code></pre></div>
+
+  <h3>Anonymous Subroutines &amp; Closures</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Anonymous sub stored in a scalar
+my $square = sub { return $_[0] ** 2 };
+print $square-&gt;(5);    # 25
+
+# Closure — captures outer variable $factor
+sub make_multiplier {
+    my ($factor) = @_;
+    return sub { $_[0] * $factor };     # $factor is "closed over"
+}
+my $double = make_multiplier(2);
+my $triple = make_multiplier(3);
+print $double-&gt;(7);   # 14
+print $triple-&gt;(7);   # 21
+
+# Dispatch table — hash of code refs
+my %ops = (
+    add =&gt; sub { $_[0] + $_[1] },
+    sub =&gt; sub { $_[0] - $_[1] },
+    mul =&gt; sub { $_[0] * $_[1] },
+);
+print $ops{add}-&gt;(10, 3);   # 13</code></pre></div>
+</section>
+
+<!-- §12 -->
+<section class="section" id="s12">
+  <div class="section-header"><span class="section-num">§12</span><h2>References &amp; Complex Data Structures</h2></div>
+  <p>A <strong>reference</strong> is a scalar that points to another variable, enabling nested data structures.</p>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Create references
+my $aref = \@array;        # Ref to existing array
+my $href = \%hash;         # Ref to existing hash
+my $aref = [1, 2, 3];     # Anonymous array ref (most common)
+my $href = {a =&gt; 1};      # Anonymous hash ref
+
+# Arrow notation to dereference (preferred style)
+$aref-&gt;[0]                 # Array element
+$href-&gt;{key}               # Hash value
+$cref-&gt;()                  # Call subroutine ref</code></pre></div>
+
+  <h3>Array of Hashes — Record Lists</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my @team = (
+    { name =&gt; "Alice", role =&gt; "dev", level =&gt; 5 },
+    { name =&gt; "Bob",   role =&gt; "ops", level =&gt; 3 },
+);
+
+# Iterate
+foreach my $member (@team) {
+    printf "%-8s %s\n", $member-&gt;{name}, $member-&gt;{role};
+}
+
+# Sort, filter, transform
+my @by_level = sort { $b-&gt;{level} &lt;=&gt; $a-&gt;{level} } @team;
+my @devs     = grep { $_-&gt;{role} eq "dev" } @team;
+my @names    = map  { $_-&gt;{name} } @team;</code></pre></div>
+
+  <h3>Hash of Arrays &amp; Nested Structures</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Hash of arrays
+my %by_role;
+push @{ $by_role{$_-&gt;{role}} }, $_-&gt;{name} for @team;
+
+# Deep nested — access with chained arrows
+my $company = {
+    depts =&gt; {
+        eng =&gt; { head =&gt; "Alice", staff =&gt; [qw(Bob Carol)] },
+    },
+};
+print $company-&gt;{depts}{eng}{head};          # Alice
+push @{ $company-&gt;{depts}{eng}{staff} }, "Dave";</code></pre></div>
+
+  <div class="callout tip"><strong>Debug tip:</strong> Use <code>use Data::Dumper; print Dumper(\@complex_structure);</code> to inspect any data structure at runtime.</div>
+</section>
+
+<!-- §13 -->
+<section class="section" id="s13">
+  <div class="section-header"><span class="section-num">§13</span><h2>File I/O</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Always use three-argument open
+open(my $fh, "&lt;",  $file) or die "Cannot open: $!";   # Read
+open(my $fh, "&gt;",  $file) or die "Cannot open: $!";   # Write
+open(my $fh, "&gt;&gt;", $file) or die "Cannot open: $!";   # Append
+
+# $! contains the OS error message on failure
+
+# Read line by line (memory efficient)
+while (my $line = &lt;$fh&gt;) {
+    chomp $line;     # Remove trailing newline
+    # process $line
+}
+
+# Slurp entire file into a string
+my $content = do { local $/; &lt;$fh&gt; };
+
+# Write
+print $fh "Hello, file!\n";
+printf $fh "Value: %05d\n", 42;
+close($fh);
+
+# File test operators
+-e $f   # Exists?
+-f $f   # Regular file?
+-d $f   # Directory?
+-r $f   # Readable?
+-w $f   # Writable?
+-s $f   # Size in bytes</code></pre></div>
+</section>
+
+<!-- §14 -->
+<section class="section" id="s14">
+  <div class="section-header"><span class="section-num">§14</span><h2>Modules &amp; Packages</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">use ModuleName;                        # Import all defaults
+use ModuleName qw(func1 func2);       # Import specific functions
+use ModuleName ();                     # Load but import nothing</code></pre></div>
+
+  <h3>Key Standard Modules</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Module</th><th>Key Exports</th></tr></thead>
+    <tbody>
+      <tr><td><code>List::Util</code></td><td><code>sum min max first any all reduce</code></td></tr>
+      <tr><td><code>Scalar::Util</code></td><td><code>looks_like_number blessed weaken</code></td></tr>
+      <tr><td><code>POSIX</code></td><td><code>floor ceil</code></td></tr>
+      <tr><td><code>Data::Dumper</code></td><td><code>Dumper</code> — debug complex structures</td></tr>
+      <tr><td><code>Carp</code></td><td><code>carp croak confess cluck</code></td></tr>
+      <tr><td><code>File::Basename</code></td><td><code>basename dirname</code></td></tr>
+      <tr><td><code>Getopt::Long</code></td><td>Parse command-line flags</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Creating Your Own Module</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># File: MyMath.pm
+package MyMath;
+use strict;
+use warnings;
+use Exporter qw(import);
+
+our @EXPORT_OK = qw(square cube);
+
+sub square { return $_[0] ** 2 }
+sub cube   { return $_[0] ** 3 }
+
+1;   # Must end with a true value!
+
+# Usage:
+use MyMath qw(square cube);
+print square(4);   # 16</code></pre></div>
+
+  <h3>CPAN — Installing Modules on macOS</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash">cpanm Module::Name        # With cpanminus (recommended)
+cpan Module::Name         # With the built-in cpan client</code></pre></div>
+</section>
+
+<!-- §15 -->
+<section class="section" id="s15">
+  <div class="section-header"><span class="section-num">§15</span><h2>Error Handling</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">die  "Fatal error\n";    # Terminates program, prints to STDERR
+warn "Warning\n";        # Prints to STDERR, continues
+
+# eval — catch exceptions (like try/catch)
+eval {
+    die "something failed!\n";
+};
+if ($@) {
+    print "Caught: $@";    # $@ contains the error from last eval
+}
+
+# die with a structured object
+eval {
+    die { code =&gt; 404, msg =&gt; "Not found" };
+};
+if (ref $@ eq 'HASH') {
+    printf "Error %d: %s\n", $@-&gt;{code}, $@-&gt;{msg};
+}
+
+# The or die pattern — most common file I/O idiom
+open(my $fh, "&lt;", $file) or die "Cannot open $file: $!";</code></pre></div>
+</section>
+
+<!-- §16 -->
+<section class="section" id="s16">
+  <div class="section-header"><span class="section-num">§16</span><h2>Object-Oriented Perl</h2></div>
+  <p>Perl's OO system is built on packages and references. A <strong>class</strong> is a package; an <strong>object</strong> is a blessed reference.</p>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">package Animal;
+use strict; use warnings;
+
+sub new {
+    my ($class, %args) = @_;
+    my $self = {
+        name  =&gt; $args{name}  // "Unknown",
+        sound =&gt; $args{sound} // "...",
+    };
+    return bless $self, $class;   # bless ties the hash to the class
+}
+
+# Accessor methods
+sub name  { $_[0]-&gt;{name}  }
+sub sound { $_[0]-&gt;{sound} }
+sub speak { printf "%s says: %s\n", $_[0]-&gt;name, $_[0]-&gt;sound }
+
+package Dog;
+use parent 'Animal';              # Inheritance
+
+sub new {
+    my ($class, %args) = @_;
+    $args{sound} = "Woof";
+    return $class-&gt;SUPER::new(%args);   # Call parent constructor
+}
+sub fetch { print "$_[0]-&gt;{name} fetches!\n" }
+
+# Usage
+package main;
+my $dog = Dog-&gt;new(name =&gt; "Rex");
+$dog-&gt;speak;             # Rex says: Woof
+$dog-&gt;fetch;             # Rex fetches!
+ref($dog);               # "Dog"
+$dog-&gt;isa("Animal");     # 1 (true)</code></pre></div>
+</section>
+
+<!-- §17 -->
+<section class="section" id="s17">
+  <div class="section-header"><span class="section-num">§17</span><h2>Useful Built-in Functions</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">use List::Util qw(sum min max first any all reduce);
+
+sum(1..10)                         # 55
+min(5, 2, 8, 1)                    # 1
+max(5, 2, 8, 1)                    # 8
+first { $_ &gt; 5 } @nums            # First element &gt; 5
+any   { $_ &lt; 0 } @nums            # True if any negative
+all   { $_ &gt; 0 } @nums            # True if all positive
+reduce { $a * $b } 1..5            # 120 (product)
+
+# Schwartzian Transform — efficient sort by computed key
+my @by_len = map  { $_-&gt;[0] }
+             sort { $a-&gt;[1] &lt;=&gt; $b-&gt;[1] }
+             map  { [$_, length($_)] }
+             @words;
+
+# Time
+time()                             # Unix timestamp (integer)
+scalar localtime()                 # Human-readable time string
+
+# System
+system("ls");                      # Run command; return exit code
+my $output = `ls -la`;             # Backtick: capture output
+exit(0);                           # Terminate with status</code></pre></div>
+</section>
+
+<!-- §18 -->
+<section class="section" id="s18">
+  <div class="section-header"><span class="section-num">§18</span><h2>Command-Line Arguments</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># @ARGV holds all command-line arguments
+# perl myscript.pl file.txt --count 3
+my $file  = $ARGV[0];
+my $count = $ARGV[1];
+
+# Getopt::Long — proper flag parsing
+use Getopt::Long;
+my ($verbose, $output, $count) = (0, "out.txt", 1);
+
+GetOptions(
+    "verbose|v"  =&gt; \$verbose,     # Boolean flag
+    "output|o=s" =&gt; \$output,      # =s: string required
+    "count|n=i"  =&gt; \$count,       # =i: integer required
+) or die "Usage: $0 [--verbose] [--output FILE] [--count N]\n";
+
+# Run as: perl script.pl --verbose --output results.txt -n 5</code></pre></div>
+</section>
+
+<!-- §19 -->
+<section class="section" id="s19">
+  <div class="section-header"><span class="section-num">§19</span><h2>Perl Best Practices</h2></div>
+  <ul class="checklist">
+    <li><span class="check-icon" style="color:var(--green)">✓</span> Always <code>use strict; use warnings;</code> at the top of every file</li>
+    <li><span class="check-icon" style="color:var(--green)">✓</span> Declare every variable with <code>my</code></li>
+    <li><span class="check-icon" style="color:var(--green)">✓</span> Use three-argument <code>open</code> with <code>or die</code></li>
+    <li><span class="check-icon" style="color:var(--green)">✓</span> <code>chomp</code> input from files and STDIN</li>
+    <li><span class="check-icon" style="color:var(--green)">✓</span> Use <code>//</code> (defined-or) for default values</li>
+    <li><span class="check-icon" style="color:var(--green)">✓</span> <code>Data::Dumper</code> for debugging complex structures</li>
+    <li><span class="check-icon" style="color:var(--accent)">→</span> Prefer <code>foreach</code> over C-style <code>for</code> for clarity</li>
+    <li><span class="check-icon" style="color:var(--accent)">→</span> Hash-based args for functions with 3+ parameters</li>
+    <li><span class="check-icon" style="color:var(--accent)">→</span> Schwartzian Transform for expensive key-based sorts</li>
+    <li><span class="check-icon" style="color:var(--red)">✗</span> Never declare <code>my $a</code> or <code>my $b</code> — they shadow sort's globals</li>
+    <li><span class="check-icon" style="color:var(--red)">✗</span> Avoid two-argument <code>open</code> (security risk with filenames)</li>
+    <li><span class="check-icon" style="color:var(--red)">✗</span> Don't mix <code>pack</code>, <code>grid</code>, and <code>place</code> in the same Tk container</li>
+  </ul>
+
+  <div class="ref-card">
+    <h3>⚡ Quick Reference Card</h3>
+    <div class="code-block" style="margin:0"><div class="code-label"><span class="code-lang">perl</span></div><pre><code class="language-perl">SIGILS:     $scalar   @array   %hash   &amp;sub   *typeglob
+COMPARE:    Strings: eq ne lt gt le ge cmp
+            Numbers: == != &lt; &gt; &lt;= &gt;= &lt;=&gt;
+REGEX:      m/pat/    s/old/new/g    tr/a/b/
+FILE I/O:   open(my $fh, "&lt;", $f) or die $!
+            while (&lt;$fh&gt;) { chomp; ... }
+REFS:       \@arr  \%hash  [1,2,3]  {a=&gt;1}
+            $ref-&gt;[0]  $ref-&gt;{key}
+SCOPE:      my (lexical)   our (package)   local (dynamic)</code></pre></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════ PART II -->
+<div class="part-header" id="part2">
+  <div class="part-label">Part II</div>
+  <h2>GUI Development on macOS</h2>
+</div>
+
+<!-- §20 -->
+<section class="section" id="s20">
+  <div class="section-header"><span class="section-num">§20</span><h2>GUI Overview &amp; Toolkit Choices on macOS</h2></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Toolkit</th><th>Module</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Perl/Tk</strong></td><td><code>Tk</code></td><td>Mature, huge documentation, cross-platform. <em>Best for learning.</em></td></tr>
+      <tr><td>Tkx</td><td><code>Tkx</code></td><td>Modern Tk binding, cleaner API</td></tr>
+      <tr><td>wxPerl</td><td><code>Wx</code></td><td>Native macOS look via wxWidgets</td></tr>
+      <tr><td>Prima</td><td><code>Prima</code></td><td>Full-featured, cross-platform</td></tr>
+      <tr><td>Gtk3</td><td><code>Gtk3</code></td><td>GTK3 via Homebrew, Linux-style look</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout tip"><strong>Recommendation:</strong> For learning, use <strong>Perl/Tk</strong>. It has the most documentation, tutorials, and examples available. It runs on Mac, Windows, and Linux without changes.</div>
+</section>
+
+<!-- §21 -->
+<section class="section" id="s21">
+  <div class="section-header"><span class="section-num">§21</span><h2>Installing Perl/Tk on macOS</h2></div>
+
+  <div class="install-step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <strong>Install Homebrew</strong>
+      <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre></div>
+    </div>
+  </div>
+  <div class="install-step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <strong>Install a Modern Perl (macOS system Perl is outdated)</strong>
+      <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash">brew install perl
+# Add to ~/.zshrc:
+export PATH="$(brew --prefix)/bin:$PATH"
+perl -v    # Verify: should show v5.36 or newer</code></pre></div>
+    </div>
+  </div>
+  <div class="install-step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <strong>Install cpanminus</strong>
+      <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash">brew install cpanminus</code></pre></div>
+    </div>
+  </div>
+  <div class="install-step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <strong>Install Perl/Tk</strong>
+      <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash">cpanm Tk
+# Apple Silicon (M1/M2/M3) — if errors:
+brew install tcl-tk
+cpanm --configure-args="INC=-I$(brew --prefix tcl-tk)/include" Tk</code></pre></div>
+    </div>
+  </div>
+  <div class="install-step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <strong>Test the Install</strong>
+      <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash">perl -e '
+    use Tk;
+    my $mw = MainWindow-&gt;new;
+    $mw-&gt;title("Tk Test");
+    $mw-&gt;Label(-text =&gt; "Hello from Perl/Tk!")-&gt;pack;
+    $mw-&gt;Button(-text =&gt; "Close", -command =&gt; sub { exit })-&gt;pack;
+    MainLoop;
+'</code></pre></div>
+      <p>A small window should appear. If it does, you're ready.</p>
+    </div>
+  </div>
+</section>
+
+<!-- §22 -->
+<section class="section" id="s22">
+  <div class="section-header"><span class="section-num">§22</span><h2>Perl/Tk Core Concepts</h2></div>
+  <h3>The Event Loop</h3>
+  <p>A GUI program differs fundamentally from a script. Instead of top-to-bottom execution, it:</p>
+  <ol>
+    <li>Builds all its widgets</li>
+    <li>Enters <code>MainLoop</code></li>
+    <li>Waits for events (mouse clicks, key presses, timers)</li>
+    <li>Calls your callback subroutines in response</li>
+    <li>Exits when the main window closes</li>
+  </ol>
+  <h3>Every Tk Program Has This Structure</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use Tk;
+
+# 1. Create the main window
+my $mw = MainWindow-&gt;new;
+$mw-&gt;title("My App");
+$mw-&gt;geometry("400x300");    # WxH in pixels (optional)
+
+# 2. Create widgets
+$mw-&gt;Label(-text =&gt; "Hello, Perl/Tk!")-&gt;pack;
+
+# 3. Enter the event loop — never returns until window closes
+MainLoop;</code></pre></div>
+
+  <h3>-textvariable — Live Data Binding</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $message = "Hello";
+$mw-&gt;Label(-textvariable =&gt; \$message)-&gt;pack;
+
+# Changing $message later automatically updates the label!
+$message = "World";    # Label immediately shows "World"</code></pre></div>
+
+  <h3>configure() and cget()</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $btn = $mw-&gt;Button(-text =&gt; "Click Me");
+$btn-&gt;pack;
+
+# Change options after creation
+$btn-&gt;configure(-text =&gt; "Updated", -foreground =&gt; "red");
+
+# Read the current value of an option
+my $current_text = $btn-&gt;cget(-text);</code></pre></div>
+</section>
+
+<!-- §23 -->
+<section class="section" id="s23">
+  <div class="section-header"><span class="section-num">§23</span><h2>Widgets — The Building Blocks</h2></div>
+  <div class="widget-grid">
+    <div class="widget-card"><div class="widget-name">Label</div><div class="widget-desc">Display static or dynamic text / images</div></div>
+    <div class="widget-card"><div class="widget-name">Button</div><div class="widget-desc">Clickable button with -command callback</div></div>
+    <div class="widget-card"><div class="widget-name">Entry</div><div class="widget-desc">Single-line text input field</div></div>
+    <div class="widget-card"><div class="widget-name">Text</div><div class="widget-desc">Multi-line text area with styled tags</div></div>
+    <div class="widget-card"><div class="widget-name">Frame</div><div class="widget-desc">Invisible container for grouping</div></div>
+    <div class="widget-card"><div class="widget-name">LabelFrame</div><div class="widget-desc">Frame with a visible border and title</div></div>
+    <div class="widget-card"><div class="widget-name">Checkbutton</div><div class="widget-desc">Toggle checkbox (on/off)</div></div>
+    <div class="widget-card"><div class="widget-name">Radiobutton</div><div class="widget-desc">Mutually exclusive option group</div></div>
+    <div class="widget-card"><div class="widget-name">Scale</div><div class="widget-desc">Slider for selecting a numeric range</div></div>
+    <div class="widget-card"><div class="widget-name">Listbox</div><div class="widget-desc">Scrollable list of selectable items</div></div>
+    <div class="widget-card"><div class="widget-name">BrowseEntry</div><div class="widget-desc">Entry with dropdown list (combo box)</div></div>
+    <div class="widget-card"><div class="widget-name">Canvas</div><div class="widget-desc">Free-form drawing and graphics surface</div></div>
+    <div class="widget-card"><div class="widget-name">Menu</div><div class="widget-desc">Menubar and popup/context menus</div></div>
+    <div class="widget-card"><div class="widget-name">Toplevel</div><div class="widget-desc">Additional independent window</div></div>
+    <div class="widget-card"><div class="widget-name">NoteBook</div><div class="widget-desc">Tabbed panel container</div></div>
+  </div>
+
+  <h3>Common Widget Options</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">$parent-&gt;Button(
+    -text             =&gt; "Submit",
+    -font             =&gt; "Helvetica 13 bold",
+    -foreground       =&gt; "#ffffff",
+    -background       =&gt; "#007aff",
+    -activebackground =&gt; "#0058cc",
+    -relief           =&gt; "flat",     # flat raised sunken groove ridge
+    -state            =&gt; "normal",   # normal active disabled
+    -width            =&gt; 12,
+    -padx             =&gt; 12,
+    -pady             =&gt; 6,
+    -command          =&gt; \&amp;on_submit,
+)-&gt;pack;</code></pre></div>
+</section>
+
+<!-- §24 -->
+<section class="section" id="s24">
+  <div class="section-header"><span class="section-num">§24</span><h2>Layout Managers: pack, grid, place</h2></div>
+  <div class="callout warn"><strong>Critical rule:</strong> Never mix <code>pack</code>, <code>grid</code>, and <code>place</code> in the same container widget. Each container must use exactly one geometry manager.</div>
+
+  <h3>pack — Flow Layout</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">$widget-&gt;pack(
+    -side   =&gt; "top",    # top (default) | bottom | left | right
+    -fill   =&gt; "x",      # x | y | both | none  — fill available space
+    -expand =&gt; 1,        # 1 = grow to fill extra space
+    -anchor =&gt; "w",      # n ne e se s sw w nw center
+    -padx   =&gt; 5,        # Horizontal outer padding
+    -pady   =&gt; 3,        # Vertical outer padding
+);</code></pre></div>
+
+  <h3>grid — Table Layout (Best for Forms)</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">$widget-&gt;grid(
+    -row        =&gt; 0,
+    -column     =&gt; 1,
+    -columnspan =&gt; 2,       # Span multiple columns
+    -sticky     =&gt; "nsew",  # Stick to all edges (stretch)
+    -padx       =&gt; 5,
+    -pady       =&gt; 3,
+);
+
+# Make column 1 stretch when window resizes
+$parent-&gt;gridColumnconfigure(1, -weight =&gt; 1);</code></pre></div>
+
+  <h3>place — Absolute Positioning</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">$widget-&gt;place(-x =&gt; 100, -y =&gt; 50, -width =&gt; 120, -height =&gt; 30);
+# or relative (0.0 to 1.0 of parent size):
+$widget-&gt;place(-relx =&gt; 0.5, -rely =&gt; 0.5, -anchor =&gt; "center");</code></pre></div>
+
+  <div class="callout note"><strong>When to use which:</strong> <code>grid</code> for forms and aligned content · <code>pack</code> for toolbars and stacked layouts · <code>place</code> for custom canvas-like UIs with exact positioning.</div>
+</section>
+
+<!-- §25 -->
+<section class="section" id="s25">
+  <div class="section-header"><span class="section-num">§25</span><h2>Events, Bindings &amp; Callbacks</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># bind() attaches a callback to an event
+$widget-&gt;bind("&lt;Button-1&gt;",  \&amp;on_left_click);   # Left mouse button
+$widget-&gt;bind("&lt;Button-3&gt;",  \&amp;on_right_click);  # Right click
+$widget-&gt;bind("&lt;Double-1&gt;",  \&amp;on_double_click); # Double-click
+$widget-&gt;bind("&lt;Return&gt;",    \&amp;on_enter_key);    # Enter key
+$widget-&gt;bind("&lt;Escape&gt;",    sub { exit });
+$widget-&gt;bind("&lt;Motion&gt;",    \&amp;on_mouse_move);   # Mouse movement
+
+# Accessing event coordinates
+$canvas-&gt;bind("&lt;Button-1&gt;", sub {
+    my $e = $canvas-&gt;XEvent;
+    printf "Clicked at %d, %d\n", $e-&gt;x, $e-&gt;y;
+});</code></pre></div>
+
+  <h3>Modifier Keys (macOS)</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># On macOS, Command key = Meta in Perl/Tk
+$mw-&gt;bind("&lt;Meta-s&gt;",      \&amp;save);      # Cmd+S
+$mw-&gt;bind("&lt;Meta-z&gt;",      \&amp;undo);      # Cmd+Z
+$mw-&gt;bind("&lt;Meta-q&gt;",      sub { exit }); # Cmd+Q
+$mw-&gt;bind("&lt;Control-a&gt;",   \&amp;select_all);
+$mw-&gt;bind("&lt;Shift-Return&gt;", \&amp;submit);</code></pre></div>
+
+  <h3>after() — Timers (Never use sleep()!)</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Run once after 2000ms
+$mw-&gt;after(2000, sub { print "2 seconds passed\n" });
+
+# Repeating timer — re-schedule inside the callback
+sub tick {
+    update_clock_display();
+    $mw-&gt;after(1000, \&amp;tick);    # Schedule next tick
+}
+tick();    # Start the clock</code></pre></div>
+</section>
+
+<!-- §26 -->
+<section class="section" id="s26">
+  <div class="section-header"><span class="section-num">§26</span><h2>Menus &amp; Dialogs</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># Menubar
+my $menu = $mw-&gt;Menu;
+$mw-&gt;configure(-menu =&gt; $menu);
+
+my $file = $menu-&gt;cascade(-label =&gt; "File", -tearoff =&gt; 0);
+$file-&gt;command(-label =&gt; "Open…", -accelerator =&gt; "Cmd+O", -command =&gt; \&amp;open_file);
+$file-&gt;separator;
+$file-&gt;command(-label =&gt; "Quit",  -accelerator =&gt; "Cmd+Q", -command =&gt; sub { exit });
+
+my $edit = $menu-&gt;cascade(-label =&gt; "Edit", -tearoff =&gt; 0);
+$edit-&gt;checkbutton(-label =&gt; "Word Wrap", -variable =&gt; \$wrap);
+$edit-&gt;radiobutton(-label =&gt; "Light",     -variable =&gt; \$theme, -value =&gt; "light");
+
+# Built-in dialogs
+my $ans = $mw-&gt;messageBox(
+    -title   =&gt; "Confirm",
+    -message =&gt; "Are you sure?",
+    -type    =&gt; "YesNo",         # YesNo  OKCancel  AbortRetryIgnore
+    -icon    =&gt; "question",      # question warning error info
+);
+
+# File chooser dialogs
+my $file = $mw-&gt;getOpenFile(-title =&gt; "Open", -filetypes =&gt; [
+    ["Text Files", ".txt"], ["All Files", "*"]
+]);
+my $file = $mw-&gt;getSaveFile(-title =&gt; "Save As", -initialfile =&gt; "untitled.txt");
+
+# Color chooser
+my $color = $mw-&gt;chooseColor(-title =&gt; "Pick Color", -initialcolor =&gt; "#ff0000");</code></pre></div>
+</section>
+
+<!-- §27 -->
+<section class="section" id="s27">
+  <div class="section-header"><span class="section-num">§27</span><h2>The Canvas Widget</h2></div>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">my $canvas = $mw-&gt;Canvas(
+    -width =&gt; 600, -height =&gt; 400, -background =&gt; "white"
+)-&gt;pack(-fill =&gt; "both", -expand =&gt; 1);
+
+# Draw shapes — each returns an item ID
+my $line = $canvas-&gt;createLine(10, 10, 200, 100,
+    -fill =&gt; "blue", -width =&gt; 2, -arrow =&gt; "last");
+
+my $rect = $canvas-&gt;createRectangle(50, 50, 200, 150,
+    -fill =&gt; "lightblue", -outline =&gt; "navy", -width =&gt; 2);
+
+my $oval = $canvas-&gt;createOval(250, 50, 400, 200,
+    -fill =&gt; "yellow", -outline =&gt; "orange");
+
+my $txt  = $canvas-&gt;createText(300, 250,
+    -text =&gt; "Hello Canvas!", -font =&gt; "Helvetica 16 bold", -fill =&gt; "darkgreen");
+
+# Modify items
+$canvas-&gt;move($rect, 10, 5);                          # Move by delta
+$canvas-&gt;itemconfigure($oval, -fill =&gt; "red");         # Change color
+$canvas-&gt;delete($line);                                # Remove one item
+$canvas-&gt;delete("all");                                # Clear everything
+
+# Canvas tags — group items for bulk operations
+$canvas-&gt;createOval(... -tags =&gt; ["ball", "moving"]);
+$canvas-&gt;move("moving", 5, 0);                         # Move all "moving"</code></pre></div>
+</section>
+
+<!-- §28 -->
+<section class="section" id="s28">
+  <div class="section-header"><span class="section-num">§28</span><h2>Building a Complete Application</h2></div>
+  <h3>Recommended Application Structure</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">#!/usr/bin/env perl
+use strict; use warnings; use Tk;
+
+# ── 1. State variables — ALL data here, not inside callbacks ──
+my $current_file = undef;
+my $modified     = 0;
+my $status_msg   = "Ready";
+
+# ── 2. Main window ────────────────────────────────────────────
+my $mw = MainWindow-&gt;new;
+$mw-&gt;title("My App");
+$mw-&gt;geometry("800x600");
+$mw-&gt;protocol("WM_DELETE_WINDOW", \&amp;on_quit);   # Intercept close button
+
+# ── 3. Build UI ───────────────────────────────────────────────
+build_menu($mw);
+build_toolbar($mw);
+build_body($mw);
+build_status($mw);
+
+# ── 4. Keyboard shortcuts ─────────────────────────────────────
+$mw-&gt;bind("&lt;Meta-s&gt;", \&amp;cmd_save);
+$mw-&gt;bind("&lt;Meta-q&gt;", \&amp;on_quit);
+
+# ── 5. Start event loop ───────────────────────────────────────
+MainLoop;
+
+# ── 6. All subroutines below ──────────────────────────────────
+sub on_quit {
+    if ($modified) {
+        my $ans = $mw-&gt;messageBox(-type =&gt; "YesNoCancel",
+            -message =&gt; "Save before quitting?");
+        return if $ans eq "Cancel";
+        cmd_save() if $ans eq "Yes";
+    }
+    exit;
+}</code></pre></div>
+
+  <h3>Architecture Rules</h3>
+  <ol>
+    <li><strong>Separate state from UI</strong> — Keep data in plain variables, not mixed into widget callbacks</li>
+    <li><strong>Use -textvariable</strong> to bind display to data — updates automatically</li>
+    <li><strong>One MainLoop per program</strong> — Never nest or call it twice</li>
+    <li><strong>Avoid sleep() in callbacks</strong> — Use <code>after()</code> timers instead so the UI stays responsive</li>
+    <li><strong>WM_DELETE_WINDOW</strong> — Always intercept the close button for unsaved-data prompts</li>
+  </ol>
+</section>
+
+<!-- §29 -->
+<section class="section" id="s29">
+  <div class="section-header"><span class="section-num">§29</span><h2>macOS-Specific Tips &amp; Best Practices</h2></div>
+  <h3>Command Key Bindings</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># On macOS, the Command (⌘) key maps to Meta in Perl/Tk
+$mw-&gt;bind("&lt;Meta-n&gt;", \&amp;new_file);   # ⌘N
+$mw-&gt;bind("&lt;Meta-o&gt;", \&amp;open_file);  # ⌘O
+$mw-&gt;bind("&lt;Meta-s&gt;", \&amp;save_file);  # ⌘S
+$mw-&gt;bind("&lt;Meta-w&gt;", sub { $mw-&gt;destroy }); # ⌘W
+$mw-&gt;bind("&lt;Meta-q&gt;", sub { exit });  # ⌘Q</code></pre></div>
+
+  <h3>macOS-Friendly Fonts</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl"># These fonts look native on macOS:
+-font =&gt; "Helvetica 13"          # Clean system-like sans-serif
+-font =&gt; "Helvetica 13 bold"
+-font =&gt; "Courier 12"             # Monospace
+-font =&gt; "Monaco 12"              # macOS native monospace</code></pre></div>
+
+  <h3>macOS-Friendly Colors</h3>
+  <div class="code-block"><div class="code-label"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-perl">-background =&gt; "#f5f5f5"    # Light gray (like macOS panels)
+-foreground =&gt; "#1a1a1a"    # Near-black text
+-background =&gt; "#007aff"    # macOS blue
+-background =&gt; "#34c759"    # macOS green
+-background =&gt; "#ff3b30"    # macOS red</code></pre></div>
+
+  <h3>Packaging as a macOS .app Bundle</h3>
+  <p>Perl/Tk apps do not automatically integrate with the macOS Dock. To package as a proper <code>.app</code> bundle with a Dock icon and full macOS integration, use <strong>Platypus</strong>:</p>
+  <div class="code-block"><div class="code-label"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div><pre><code class="language-bash"># Install Platypus from: https://sveinbjorn.org/platypus
+# Platypus wraps any Perl script into a native macOS .app bundle
+# with a Dock icon, menu bar name, and all standard macOS behaviors.</code></pre></div>
+
+  <div class="ref-card">
+    <h3>⚡ Tk Quick Reference</h3>
+    <div class="code-block" style="margin:0"><div class="code-label"><span class="code-lang">perl</span></div><pre><code class="language-perl">PACK:    -side top/bottom/left/right   -fill x/y/both   -expand 0/1
+GRID:    -row N   -column N   -sticky nsew   -columnspan N
+PLACE:   -x N   -y N   -relx 0.0-1.0   -rely 0.0-1.0
+
+COMMON:  -text  -textvariable  -font  -foreground  -background
+         -width  -height  -relief  -state  -anchor  -padx  -pady
+
+EVENTS:  &lt;Button-1&gt;  &lt;Button-3&gt;  &lt;Double-1&gt;  &lt;Return&gt;  &lt;Escape&gt;
+         &lt;KeyPress&gt;  &lt;Motion&gt;  &lt;Meta-x&gt;  &lt;Control-x&gt;  &lt;Shift-x&gt;</code></pre></div>
+  </div>
+</section>
+
+</div><!-- /content -->
+</main><!-- /main -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-perl.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script>
+// Copy button
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+// Active sidebar link on scroll
+const sections = document.querySelectorAll('section.section');
+const links = document.querySelectorAll('.sidebar-link');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const id = e.target.id.replace('s','');
+      const active = document.querySelector(`.sidebar-link[href="#s${id}"]`);
+      if (active) {
+        active.classList.add('active');
+        active.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

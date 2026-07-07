@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Virtual Hosts — macOS Golden Gate 27</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090b;--s1:#111113;--s2:#18181b;--s3:#27272a;
+  --bd:#3f3f46;--bd2:#52525b;
+  --txt:#fafafa;--mu:#a1a1aa;--fa:#71717a;
+  --gold:#f59e0b;--gold2:#fcd34d;--gold3:#fef3c7;--gold-d:#78350f;
+  --blue:#3b82f6;--blue-p:#eff6ff;
+  --green:#22c55e;--green-p:#f0fdf4;
+  --red:#ef4444;--red-p:#fef2f2;
+  --purple:#a855f7;--purple-p:#faf5ff;
+  --teal:#14b8a6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.7}
+
+/* NAV */
+nav{background:rgba(9,9,11,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--s3);padding:12px 28px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:99}
+.nav-l{font-family:'Space Mono',monospace;font-size:11px;color:var(--fa);letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+.nav-l::before{content:'◈';color:var(--gold);font-size:14px}
+.nav-r{display:flex;gap:6px}
+.chip{font-family:'Space Mono',monospace;font-size:9px;color:var(--fa);background:var(--s2);border:1px solid var(--s3);padding:3px 9px;border-radius:99px;letter-spacing:.06em}
+.chip.active{color:var(--gold);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
+
+/* HERO */
+.hero{background:linear-gradient(160deg,#1c1400 0%,#0f0900 40%,var(--bg) 100%);border-bottom:1px solid var(--s3);padding:60px 28px 72px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:400px;height:400px;background:radial-gradient(circle,rgba(245,158,11,.12),transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.hi{max-width:840px;margin:0 auto;position:relative;z-index:1}
+.hi-os{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--gold2);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;border-radius:4px;margin-bottom:20px}
+.hi-os::before{content:'◆';font-size:9px;animation:pulse 2s ease infinite}
+.hi h1{font-size:clamp(2rem,5vw,3.6rem);font-weight:700;line-height:1.08;letter-spacing:-.03em;margin-bottom:16px;color:var(--txt)}
+.hi h1 .gold{color:var(--gold)}
+.hi h1 .dim{color:var(--mu);font-weight:300}
+.hi-sub{font-size:14px;color:var(--mu);max-width:500px;font-weight:300;line-height:1.8}
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--s3);border:1px solid var(--s3);border-radius:8px;overflow:hidden;margin-top:28px}
+.hg-cell{background:var(--s1);padding:16px 18px}
+.hg-icon{font-size:20px;margin-bottom:8px}
+.hg-t{font-size:12px;font-weight:600;color:var(--txt);margin-bottom:4px}
+.hg-d{font-size:11px;color:var(--fa);line-height:1.5;font-weight:300}
+
+/* CONCEPT BOX */
+.concept{max-width:840px;margin:0 auto;padding:36px 28px 0}
+.concept-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--fa);letter-spacing:.18em;text-transform:uppercase;margin-bottom:12px}
+.concept-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cc{background:var(--s1);border:1px solid var(--s3);border-radius:8px;padding:16px 18px;position:relative;overflow:hidden}
+.cc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.cc.type-name::before{background:var(--gold)}
+.cc.type-ip::before{background:var(--blue)}
+.cc.type-port::before{background:var(--purple)}
+.cc-t{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:6px}
+.cc-d{font-size:11.5px;color:var(--fa);line-height:1.55;font-weight:300}
+.cc-eg{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);margin-top:8px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);padding:4px 8px;border-radius:3px;display:inline-block}
+
+/* MAIN */
+.wrap{max-width:840px;margin:0 auto;padding:44px 28px 100px}
+
+/* SECTIONS */
+section{margin-bottom:56px}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--s3)}
+.sn{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--gold);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);padding:3px 9px;border-radius:3px;letter-spacing:.08em;flex-shrink:0}
+h2{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--txt)}
+h3{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.16em;text-transform:uppercase;margin:26px 0 10px}
+p{font-size:13.5px;color:var(--mu);margin-bottom:12px;line-height:1.8;font-weight:300}
+p strong{color:var(--txt);font-weight:600}
+p code,li code,td code{font-family:'Space Mono',monospace;font-size:11.5px;background:rgba(245,158,11,.08);color:var(--gold2);padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,.15)}
+
+/* CODE BLOCKS */
+.cb{background:#050505;border:1px solid var(--s3);border-radius:8px;overflow:hidden;margin:10px 0;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.ct{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--s2);border-bottom:1px solid var(--s3)}
+.cl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--fa);letter-spacing:.1em;text-transform:uppercase}
+.cp{font-family:'Space Mono',monospace;font-size:10px;color:var(--fa);background:transparent;border:1px solid var(--s3);padding:2px 8px;border-radius:3px;cursor:pointer;transition:all .15s}
+.cp:hover{color:var(--gold);border-color:rgba(245,158,11,.4)}
+pre{padding:16px 18px;overflow-x:auto;font-family:'Space Mono',monospace;font-size:12.5px;line-height:2}
+.g{color:#4ade80}.b{color:#60a5fa}.o{color:#fb923c}.y{color:#facc15;font-weight:700}
+.v{color:#c4b5fd}.x{color:#3f3f46;font-style:italic}.r{color:#f87171}.t{color:#d4d4d4}
+.w{color:#fbbf24}
+
+/* CALLOUTS */
+.ca{display:flex;gap:11px;padding:13px 16px;border-radius:6px;margin:12px 0;font-size:13px;line-height:1.7;font-weight:300}
+.ci{flex-shrink:0;font-size:15px}
+.ca p{color:inherit;margin:0;font-size:13px;font-weight:300}
+.ca p strong{font-weight:600}
+.ca.i{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);color:#93c5fd}
+.ca.w{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);color:var(--gold2)}
+.ca.ok{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);color:#86efac}
+.ca.r{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
+.ca.p{background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.2);color:#d8b4fe}
+
+/* STEPS */
+.sf{display:flex;flex-direction:column}
+.st{display:flex}
+.sl{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0}
+.sd{width:30px;height:30px;border-radius:6px;background:var(--gold);color:#000;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;box-shadow:0 0 12px rgba(245,158,11,.3)}
+.sln{width:2px;flex:1;background:var(--s3);min-height:20px}
+.st:last-child .sln{display:none}
+.sb2{flex:1;padding:3px 0 28px 14px}
+.st2{font-weight:600;font-size:14px;color:var(--txt);margin-bottom:8px;line-height:1.3}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:12px 0;background:var(--s1);border:1px solid var(--s3);border-radius:6px;overflow:hidden}
+th{background:var(--s2);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:var(--fa);letter-spacing:.15em;text-transform:uppercase;padding:9px 14px;text-align:left;border-bottom:1px solid var(--s3)}
+td{padding:10px 14px;border-bottom:1px solid var(--s3);color:var(--mu);font-weight:300;vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(245,158,11,.03)}
+
+/* VHOST ANATOMY */
+.anatomy{background:#050505;border:1px solid var(--s3);border-radius:8px;overflow:hidden;margin:14px 0}
+.an-top{background:var(--s2);border-bottom:1px solid var(--s3);padding:9px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--fa);letter-spacing:.1em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.an-body{padding:0}
+.an-row{display:grid;grid-template-columns:2fr 1fr;gap:0;border-bottom:1px solid rgba(63,63,70,.4)}
+.an-row:last-child{border-bottom:none}
+.an-code{padding:10px 16px;font-family:'Space Mono',monospace;font-size:12px;color:var(--mu);border-right:1px solid rgba(63,63,70,.4)}
+.an-code .kw{color:#f87171}.an-code .vv{color:#fbbf24}.an-code .cm{color:var(--s3);font-style:italic}
+.an-desc{padding:10px 14px;font-size:11.5px;color:var(--fa);font-weight:300;line-height:1.5}
+.an-desc strong{color:var(--txt);font-size:12px;display:block;margin-bottom:2px}
+
+/* FLOW DIAGRAM */
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.fl-node{background:var(--s2);border:1px solid var(--s3);border-radius:6px;padding:10px 14px;font-size:12px;font-weight:500;color:var(--txt);flex-shrink:0;text-align:center;min-width:100px}
+.fl-node.gold{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:var(--gold)}
+.fl-node.green{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);color:#4ade80}
+.fl-arr{color:var(--s3);font-size:18px;padding:0 6px;flex-shrink:0}
+.fl-sub{font-size:10px;color:var(--fa);margin-top:3px;font-family:'Space Mono',monospace}
+
+/* FOOTER */
+footer{background:var(--s1);border-top:1px solid var(--s3);padding:20px 28px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-family:'Space Mono',monospace;font-size:10px;color:var(--fa);letter-spacing:.06em}
+
+/* LISTS */
+ul,ol{padding-left:20px;color:var(--mu);font-size:13.5px;font-weight:300;line-height:1.9;margin-bottom:12px}
+ul li::marker{color:var(--gold)}
+ol li::marker{font-family:'Space Mono',monospace;font-size:11px;color:var(--gold);font-weight:700}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media(max-width:640px){.hero-grid,.concept-cards{grid-template-columns:1fr}.wrap{padding:28px 14px 80px}.flow{gap:4px 0}}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-l">Apache Virtual Hosts · macOS Golden Gate 27 · M4</span>
+  <div class="nav-r">
+    <span class="chip active">macOS 27</span>
+    <span class="chip">Apache 2.4</span>
+    <span class="chip">M4</span>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hi">
+    <div class="hi-os">◆ macOS 27 Golden Gate — Developer Beta</div>
+    <h1>Apache <span class="gold">Virtual Hosts</span><br><span class="dim">Complete Guide</span></h1>
+    <p class="hi-sub">Run multiple local websites on a single Apache server — each with its own domain name, directory, and SSL certificate — on your MacBook Air M4 running macOS Golden Gate.</p>
+    <div class="hero-grid">
+      <div class="hg-cell"><div class="hg-icon">🌐</div><div class="hg-t">What is a Virtual Host?</div><div class="hg-d">Maps a custom domain (myapp.test) to a specific folder on your Mac, just like a production server.</div></div>
+      <div class="hg-cell"><div class="hg-icon">📁</div><div class="hg-t">Config location</div><div class="hg-d">/etc/apache2/extra/httpd-vhosts.conf — same path as Tahoe and Sequoia.</div></div>
+      <div class="hg-cell"><div class="hg-icon">✅</div><div class="hg-t">M4 Compatible</div><div class="hg-d">macOS 27 requires Apple Silicon — your M4 is fully supported and optimized.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="concept">
+  <div class="concept-label">// Three types of virtual hosts</div>
+  <div class="concept-cards">
+    <div class="cc type-name">
+      <div class="cc-t">Name-based</div>
+      <div class="cc-d">Multiple sites share one IP. Apache reads the Host header to decide which site to serve. Most common for local dev.</div>
+      <div class="cc-eg">myapp.test → /Users/you/Sites/myapp</div>
+    </div>
+    <div class="cc type-ip">
+      <div class="cc-t">IP-based</div>
+      <div class="cc-d">Each site gets its own IP address. Rarely used locally but required when SNI is not available.</div>
+      <div class="cc-eg">192.168.1.10 → site-a</div>
+    </div>
+    <div class="cc type-port">
+      <div class="cc-t">Port-based</div>
+      <div class="cc-d">Different sites on different ports of the same server. Useful for separating HTTP/HTTPS or multiple apps.</div>
+      <div class="cc-eg">:8080 → site-a, :8081 → site-b</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- REQUEST FLOW -->
+  <section>
+    <div class="sh"><span class="sn">CONCEPT</span><h2>How Virtual Hosts Work</h2></div>
+    <p>When your browser requests <code>myapp.test</code>, here is the chain of events that gets it to your project folder:</p>
+    <div class="flow">
+      <div class="fl-node gold">Browser<div class="fl-sub">myapp.test</div></div>
+      <div class="fl-arr">→</div>
+      <div class="fl-node">/etc/hosts<div class="fl-sub">DNS resolution</div></div>
+      <div class="fl-arr">→</div>
+      <div class="fl-node">127.0.0.1:80<div class="fl-sub">Apache port</div></div>
+      <div class="fl-arr">→</div>
+      <div class="fl-node">VirtualHost block<div class="fl-sub">ServerName match</div></div>
+      <div class="fl-arr">→</div>
+      <div class="fl-node green">DocumentRoot<div class="fl-sub">~/Sites/myapp</div></div>
+    </div>
+    <p style="margin-top:12px">Apache reads the <code>Host:</code> header from the request, matches it against your <code>ServerName</code> directives in order, and serves files from the matching <code>DocumentRoot</code>. The <code>/etc/hosts</code> file (or dnsmasq) maps your custom domain to <code>127.0.0.1</code> so your Mac knows where to send the request.</p>
+  </section>
+
+  <!-- KEY FILE PATHS -->
+  <section>
+    <div class="sh"><span class="sn">PATHS</span><h2>Key File Locations on Golden Gate</h2></div>
+    <p>These paths are identical on macOS 27 Golden Gate as on macOS 26 Tahoe. The built-in Apache config has not moved.</p>
+    <table>
+      <thead><tr><th>File / Directory</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>/etc/apache2/httpd.conf</code></td><td>Main Apache config — enable modules and includes here</td></tr>
+        <tr><td><code>/etc/apache2/extra/httpd-vhosts.conf</code></td><td>Virtual host definitions — add your sites here</td></tr>
+        <tr><td><code>/etc/apache2/extra/httpd-ssl.conf</code></td><td>SSL/HTTPS virtual host config</td></tr>
+        <tr><td><code>/etc/apache2/users/</code></td><td>Per-user config files for ~/Sites access</td></tr>
+        <tr><td><code>/Library/WebServer/Documents/</code></td><td>Default document root (localhost)</td></tr>
+        <tr><td><code>~/Sites/</code></td><td>Your personal web projects folder</td></tr>
+        <tr><td><code>/etc/hosts</code></td><td>Local DNS — maps .test domains to 127.0.0.1</td></tr>
+        <tr><td><code>/private/var/log/apache2/error_log</code></td><td>Apache error log</td></tr>
+        <tr><td><code>/private/var/log/apache2/access_log</code></td><td>Apache access log</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- STEP 1: ENABLE -->
+  <section>
+    <div class="sh"><span class="sn">STEP 01</span><h2>Enable Virtual Hosts in httpd.conf</h2></div>
+    <p>Virtual hosts are disabled by default. You need to uncomment two lines in <code>httpd.conf</code> — one to enable name-based virtual hosts and one to include the vhosts config file.</p>
+    <div class="sf">
+
+      <div class="st">
+        <div class="sl"><div class="sd">1</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Back up and open httpd.conf</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># Always back up before editing</span>
+<span class="g">sudo cp</span> <span class="o">/etc/apache2/httpd.conf</span> <span class="o">/etc/apache2/httpd.conf.bak</span>
+<span class="g">sudo nano</span> <span class="o">/etc/apache2/httpd.conf</span></pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">2</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Uncomment mod_rewrite (needed for most modern sites)</div>
+          <div class="cb"><div class="ct"><span class="cl">httpd.conf — find and uncomment</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># Remove the # from this line:</span>
+<span class="r">LoadModule</span> <span class="v">rewrite_module</span> libexec/apache2/mod_rewrite.so</pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">3</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Uncomment the vhosts include</div>
+          <div class="cb"><div class="ct"><span class="cl">httpd.conf — find and uncomment</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># Remove the # from this line:</span>
+<span class="r">Include</span> /private/etc/apache2/extra/httpd-vhosts.conf</pre></div>
+          <div class="ca p" style="margin-top:8px"><span class="ci">💡</span><p>In nano: use <strong>Ctrl+W</strong> to search for <code>httpd-vhosts</code>. Remove the <code>#</code> at the start of the line. <strong>Ctrl+O</strong> saves, <strong>Ctrl+X</strong> exits.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VHOST ANATOMY -->
+  <section>
+    <div class="sh"><span class="sn">ANATOMY</span><h2>Understanding a VirtualHost Block</h2></div>
+    <p>Every virtual host is a <code>&lt;VirtualHost&gt;</code> block inside <code>httpd-vhosts.conf</code>. Here is what each directive does:</p>
+    <div class="anatomy">
+      <div class="an-top"><span>httpd-vhosts.conf — annotated</span></div>
+      <div class="an-body">
+        <div class="an-row">
+          <div class="an-code"><span class="kw">&lt;VirtualHost</span> <span class="vv">*:80</span><span class="kw">&gt;</span></div>
+          <div class="an-desc"><strong>VirtualHost declaration</strong>*:80 = match any IP on port 80. Use *:443 for HTTPS.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">    <span class="kw">ServerName</span>   <span class="vv">myapp.test</span></div>
+          <div class="an-desc"><strong>ServerName</strong>The domain this block responds to. Must match your /etc/hosts entry.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">    <span class="kw">ServerAlias</span>  <span class="vv">www.myapp.test</span></div>
+          <div class="an-desc"><strong>ServerAlias</strong>Additional names for the same site. Optional.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">    <span class="kw">DocumentRoot</span> <span class="vv">"/Users/you/Sites/myapp"</span></div>
+          <div class="an-desc"><strong>DocumentRoot</strong>Folder Apache serves files from. Must exist on disk.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">    <span class="kw">ErrorLog</span>     <span class="vv">"/var/log/apache2/myapp-error.log"</span></div>
+          <div class="an-desc"><strong>ErrorLog</strong>Separate error log per site. Makes debugging much easier.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">    <span class="kw">CustomLog</span>    <span class="vv">"/var/log/apache2/myapp-access.log"</span> combined</div>
+          <div class="an-desc"><strong>CustomLog</strong>Access log per site. "combined" format includes IP, time, request, status.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">    <span class="kw">&lt;Directory</span> <span class="vv">"/Users/you/Sites/myapp"</span><span class="kw">&gt;</span></div>
+          <div class="an-desc"><strong>Directory block</strong>Sets permissions and options for the document root folder.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">        <span class="kw">Options</span>       <span class="vv">Indexes FollowSymLinks</span></div>
+          <div class="an-desc"><strong>Options</strong>Indexes = show file listing if no index.html. FollowSymLinks = allow symlinks.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">        <span class="kw">AllowOverride</span> <span class="vv">All</span></div>
+          <div class="an-desc"><strong>AllowOverride</strong>"All" lets .htaccess files override config. Required for WordPress, Laravel, etc.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">        <span class="kw">Require</span>       <span class="vv">all granted</span></div>
+          <div class="an-desc"><strong>Require</strong>Grants access to everyone. Use "Require local" to restrict to localhost only.</div>
+        </div>
+        <div class="an-row">
+          <div class="an-code">    <span class="kw">&lt;/Directory&gt;</span></div>
+          <div class="an-desc"></div>
+        </div>
+        <div class="an-row">
+          <div class="an-code"><span class="kw">&lt;/VirtualHost&gt;</span></div>
+          <div class="an-desc">Closes the VirtualHost block.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: FIRST VHOST -->
+  <section>
+    <div class="sh"><span class="sn">STEP 02</span><h2>Set Up Your First Virtual Host</h2></div>
+    <p>Open the vhosts config file and add your site. <strong>Always keep a default catch-all as the first block</strong> — if no ServerName matches the request, Apache falls through to the first VirtualHost defined.</p>
+
+    <div class="sf">
+
+      <div class="st">
+        <div class="sl"><div class="sd">1</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Create your project folder</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># Create the Sites directory if it doesn't exist</span>
+<span class="g">mkdir</span> <span class="b">-p</span> <span class="o">~/Sites/myapp</span>
+
+<span class="x"># Create a quick test page</span>
+<span class="g">echo</span> <span class="t">'&lt;h1&gt;myapp.test is working on Golden Gate!&lt;/h1&gt;'</span> > <span class="o">~/Sites/myapp/index.html</span>
+
+<span class="x"># Find your actual username</span>
+<span class="g">whoami</span></pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">2</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Edit httpd-vhosts.conf</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># Back up first</span>
+<span class="g">sudo cp</span> <span class="o">/etc/apache2/extra/httpd-vhosts.conf</span> <span class="o">/etc/apache2/extra/httpd-vhosts.conf.bak</span>
+<span class="g">sudo nano</span> <span class="o">/etc/apache2/extra/httpd-vhosts.conf</span></pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">3</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Replace the file contents with this config</div>
+          <div class="cb"><div class="ct"><span class="cl">/etc/apache2/extra/httpd-vhosts.conf</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># ── Default catch-all (MUST be first) ────────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   localhost
+    <span class="r">DocumentRoot</span> <span class="t">"/Library/WebServer/Documents"</span>
+    <span class="r">&lt;Directory</span>   <span class="t">"/Library/WebServer/Documents"</span><span class="r">&gt;</span>
+        <span class="r">Options</span>       Indexes FollowSymLinks
+        <span class="r">AllowOverride</span> All
+        <span class="r">Require</span>       all granted
+    <span class="r">&lt;/Directory&gt;</span>
+<span class="r">&lt;/VirtualHost&gt;</span>
+
+<span class="x"># ── My First Project ─────────────────────────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   myapp.test
+    <span class="r">ServerAlias</span>  www.myapp.test
+    <span class="r">DocumentRoot</span> <span class="t">"/Users/YOUR_USERNAME/Sites/myapp"</span>
+    <span class="r">ErrorLog</span>     <span class="t">"/private/var/log/apache2/myapp-error.log"</span>
+    <span class="r">CustomLog</span>    <span class="t">"/private/var/log/apache2/myapp-access.log"</span> combined
+    <span class="r">&lt;Directory</span>   <span class="t">"/Users/YOUR_USERNAME/Sites/myapp"</span><span class="r">&gt;</span>
+        <span class="r">Options</span>       Indexes FollowSymLinks MultiViews
+        <span class="r">AllowOverride</span> All
+        <span class="r">Require</span>       all granted
+    <span class="r">&lt;/Directory&gt;</span>
+<span class="r">&lt;/VirtualHost&gt;</span></pre></div>
+          <div class="ca w" style="margin-top:8px"><span class="ci">⚠️</span><p>Replace <strong>YOUR_USERNAME</strong> with your actual macOS username (from <code>whoami</code>). The path must match exactly what's on disk.</p></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">4</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Add the domain to /etc/hosts</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="g">sudo nano</span> <span class="o">/etc/hosts</span>
+
+<span class="x"># Add this line at the very bottom of the file:</span>
+<span class="w">127.0.0.1    myapp.test</span>
+<span class="w">127.0.0.1    www.myapp.test</span></pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">5</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Flush DNS cache and restart Apache</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="x"># Test config for syntax errors first</span>
+<span class="g">sudo apachectl</span> configtest
+<span class="x"># Must say "Syntax OK"</span>
+
+<span class="x"># Flush macOS DNS cache</span>
+<span class="g">sudo dscacheutil</span> -flushcache
+<span class="g">sudo killall</span> <span class="b">-HUP</span> mDNSResponder
+
+<span class="x"># Graceful restart</span>
+<span class="g">sudo apachectl</span> graceful
+
+<span class="x"># Test it</span>
+<span class="g">open</span> <span class="t">http://myapp.test</span></pre></div>
+          <div class="ca ok" style="margin-top:8px"><span class="ci">🎉</span><p>You should see your test page at <code>http://myapp.test</code>. Add more projects by repeating steps 1–5 with a new ServerName and DocumentRoot.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MULTIPLE SITES -->
+  <section>
+    <div class="sh"><span class="sn">STEP 03</span><h2>Running Multiple Sites</h2></div>
+    <p>Add as many <code>&lt;VirtualHost&gt;</code> blocks as you need — one per project. Apache matches them top to bottom so the default catch-all must always remain first.</p>
+    <div class="cb"><div class="ct"><span class="cl">httpd-vhosts.conf — multiple sites example</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># ── 1. Default catch-all (always first) ──────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   localhost
+    <span class="r">DocumentRoot</span> <span class="t">"/Library/WebServer/Documents"</span>
+<span class="r">&lt;/VirtualHost&gt;</span>
+
+<span class="x"># ── 2. Main app ───────────────────────────────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   myapp.test
+    <span class="r">DocumentRoot</span> <span class="t">"/Users/YOU/Sites/myapp"</span>
+    <span class="r">ErrorLog</span>     <span class="t">"/private/var/log/apache2/myapp-error.log"</span>
+    <span class="r">CustomLog</span>    <span class="t">"/private/var/log/apache2/myapp-access.log"</span> combined
+    <span class="r">&lt;Directory</span> <span class="t">"/Users/YOU/Sites/myapp"</span><span class="r">&gt;</span>
+        <span class="r">AllowOverride</span> All
+        <span class="r">Require</span> all granted
+    <span class="r">&lt;/Directory&gt;</span>
+<span class="r">&lt;/VirtualHost&gt;</span>
+
+<span class="x"># ── 3. Client site ────────────────────────────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   client.test
+    <span class="r">DocumentRoot</span> <span class="t">"/Users/YOU/Sites/client"</span>
+    <span class="r">ErrorLog</span>     <span class="t">"/private/var/log/apache2/client-error.log"</span>
+    <span class="r">CustomLog</span>    <span class="t">"/private/var/log/apache2/client-access.log"</span> combined
+    <span class="r">&lt;Directory</span> <span class="t">"/Users/YOU/Sites/client"</span><span class="r">&gt;</span>
+        <span class="r">AllowOverride</span> All
+        <span class="r">Require</span> all granted
+    <span class="r">&lt;/Directory&gt;</span>
+<span class="r">&lt;/VirtualHost&gt;</span>
+
+<span class="x"># ── 4. WordPress site ─────────────────────────────────────</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   wordpress.test
+    <span class="r">DocumentRoot</span> <span class="t">"/Users/YOU/Sites/wordpress"</span>
+    <span class="r">ErrorLog</span>     <span class="t">"/private/var/log/apache2/wp-error.log"</span>
+    <span class="r">&lt;Directory</span> <span class="t">"/Users/YOU/Sites/wordpress"</span><span class="r">&gt;</span>
+        <span class="r">Options</span>       FollowSymLinks
+        <span class="r">AllowOverride</span> All
+        <span class="r">Require</span>       all granted
+    <span class="r">&lt;/Directory&gt;</span>
+<span class="r">&lt;/VirtualHost&gt;</span></pre></div>
+    <h3>// Add all domains to /etc/hosts in one go</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="g">sudo nano</span> <span class="o">/etc/hosts</span>
+
+<span class="x"># Add all your local domains at the bottom:</span>
+<span class="w">127.0.0.1    myapp.test</span>
+<span class="w">127.0.0.1    client.test</span>
+<span class="w">127.0.0.1    wordpress.test</span></pre></div>
+  </section>
+
+  <!-- SSL VHOSTS -->
+  <section>
+    <div class="sh"><span class="sn">STEP 04</span><h2>HTTPS Virtual Hosts</h2></div>
+    <p>Add a second <code>&lt;VirtualHost *:443&gt;</code> block for each site that needs HTTPS. First generate a trusted cert with mkcert (see the HTTPS guide), then mirror your HTTP block with SSL directives added.</p>
+    <div class="ca i"><span class="ci">ℹ️</span><p>Generate one mkcert certificate covering all your local domains at once: <code>sudo mkcert myapp.test client.test wordpress.test localhost 127.0.0.1</code></p></div>
+    <div class="cb"><div class="ct"><span class="cl">httpd-vhosts.conf — HTTPS block for one site</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># HTTP block (port 80) — redirects to HTTPS</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:80</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>  myapp.test
+    <span class="r">Redirect</span>    permanent / https://myapp.test/
+<span class="r">&lt;/VirtualHost&gt;</span>
+
+<span class="x"># HTTPS block (port 443)</span>
+<span class="r">&lt;VirtualHost</span> <span class="v">*:443</span><span class="r">&gt;</span>
+    <span class="r">ServerName</span>   myapp.test
+    <span class="r">DocumentRoot</span> <span class="t">"/Users/YOU/Sites/myapp"</span>
+    <span class="r">ErrorLog</span>     <span class="t">"/private/var/log/apache2/myapp-error.log"</span>
+    <span class="r">CustomLog</span>    <span class="t">"/private/var/log/apache2/myapp-access.log"</span> combined
+
+    <span class="x">## SSL</span>
+    <span class="r">SSLEngine</span>             on
+    <span class="r">SSLCertificateFile</span>    <span class="t">"/etc/apache2/ssl/myapp.test.pem"</span>
+    <span class="r">SSLCertificateKeyFile</span> <span class="t">"/etc/apache2/ssl/myapp.test-key.pem"</span>
+
+    <span class="r">&lt;Directory</span> <span class="t">"/Users/YOU/Sites/myapp"</span><span class="r">&gt;</span>
+        <span class="r">Options</span>       Indexes FollowSymLinks
+        <span class="r">AllowOverride</span> All
+        <span class="r">Require</span>       all granted
+    <span class="r">&lt;/Directory&gt;</span>
+<span class="r">&lt;/VirtualHost&gt;</span></pre></div>
+    <h3>// Generate mkcert certificate for a custom domain</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># First: install and set up mkcert if you haven't</span>
+<span class="g">brew</span> install mkcert nss
+<span class="g">mkcert</span> <span class="b">-install</span>
+
+<span class="x"># Generate a cert for your virtual host domain</span>
+<span class="g">sudo mkcert</span> <span class="b">-cert-file</span> <span class="o">/etc/apache2/ssl/myapp.test.pem</span> \
+            <span class="b">-key-file</span>  <span class="o">/etc/apache2/ssl/myapp.test-key.pem</span> \
+            myapp.test www.myapp.test localhost</pre></div>
+  </section>
+
+  <!-- DNSMASQ -->
+  <section>
+    <div class="sh"><span class="sn">BONUS</span><h2>Auto DNS with dnsmasq (No More /etc/hosts Edits)</h2></div>
+    <p>Instead of adding every new domain to <code>/etc/hosts</code> manually, <strong>dnsmasq</strong> automatically resolves every <code>*.test</code> domain to <code>127.0.0.1</code>. Add a project, visit the domain — it just works.</p>
+    <div class="sf">
+
+      <div class="st">
+        <div class="sl"><div class="sd">1</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Install and configure dnsmasq</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="g">brew</span> install dnsmasq
+
+<span class="x"># Route all *.test domains to localhost</span>
+<span class="g">echo</span> <span class="t">'address=/.test/127.0.0.1'</span> >> /opt/homebrew/etc/dnsmasq.conf
+
+<span class="x"># Start dnsmasq as a system service</span>
+<span class="g">sudo brew</span> services start dnsmasq</pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">2</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Tell macOS to use dnsmasq for .test domains</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="g">sudo mkdir</span> <span class="b">-p</span> /etc/resolver
+<span class="g">echo</span> <span class="t">'nameserver 127.0.0.1'</span> | <span class="g">sudo tee</span> /etc/resolver/test
+
+<span class="x"># Flush DNS to activate</span>
+<span class="g">sudo dscacheutil</span> -flushcache
+<span class="g">sudo killall</span> <span class="b">-HUP</span> mDNSResponder</pre></div>
+        </div>
+      </div>
+
+      <div class="st">
+        <div class="sl"><div class="sd">3</div><div class="sln"></div></div>
+        <div class="sb2">
+          <div class="st2">Verify dnsmasq is resolving .test correctly</div>
+          <div class="cb"><div class="ct"><span class="cl">Terminal</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+          <pre><span class="g">ping</span> <span class="b">-c 1</span> anything.test
+<span class="x"># Should reply from 127.0.0.1 — no /etc/hosts entry needed!</span>
+
+<span class="g">ping</span> <span class="b">-c 1</span> newproject.test
+<span class="x"># Also 127.0.0.1 — any subdomain works automatically</span></pre></div>
+          <div class="ca ok" style="margin-top:8px"><span class="ci">✅</span><p>Now when you add a new VirtualHost with <code>ServerName newproject.test</code>, you only need to create the folder and config — DNS resolves automatically. No more <code>/etc/hosts</code> edits needed.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TROUBLESHOOTING -->
+  <section>
+    <div class="sh"><span class="sn">DEBUG</span><h2>Troubleshooting Virtual Hosts</h2></div>
+    <table>
+      <thead><tr><th>Problem</th><th>Cause</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Domain loads wrong site</strong></td><td>Default catch-all not first, or ServerName typo</td><td>Check block order in vhosts.conf. Default must be first. Check ServerName matches /etc/hosts exactly.</td></tr>
+        <tr><td><strong>403 Forbidden</strong></td><td>Directory permissions wrong</td><td>Confirm <code>Require all granted</code> is inside the &lt;Directory&gt; block. Check the folder actually exists.</td></tr>
+        <tr><td><strong>404 Not Found</strong></td><td>DocumentRoot path wrong or file missing</td><td>Run <code>ls -la /path/to/your/docroot</code> to verify the path and that index.html exists.</td></tr>
+        <tr><td><strong>Domain doesn't resolve</strong></td><td>Missing /etc/hosts entry or DNS cache stale</td><td>Add <code>127.0.0.1 yourdomain.test</code> to /etc/hosts. Flush DNS: <code>sudo dscacheutil -flushcache</code>.</td></tr>
+        <tr><td><strong>"It works!" always shows</strong></td><td>vhosts include not uncommented in httpd.conf</td><td>Check <code>Include /private/etc/apache2/extra/httpd-vhosts.conf</code> is not commented out.</td></tr>
+        <tr><td><strong>Apache won't start</strong></td><td>Syntax error in config</td><td>Run <code>sudo apachectl configtest</code> — it will show the exact line number.</td></tr>
+        <tr><td><strong>.htaccess not working</strong></td><td>mod_rewrite not loaded or AllowOverride None</td><td>Uncomment mod_rewrite in httpd.conf. Set <code>AllowOverride All</code> in the Directory block.</td></tr>
+        <tr><td><strong>Changes not reflected</strong></td><td>Apache not restarted</td><td>Run <code>sudo apachectl graceful</code> after every config change.</td></tr>
+      </tbody>
+    </table>
+    <h3>// Essential diagnostic commands</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal — diagnose virtual host issues</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="x"># Check config syntax</span>
+<span class="g">sudo apachectl</span> configtest
+
+<span class="x"># See which vhost Apache would use for a domain</span>
+<span class="g">sudo apachectl</span> <span class="b">-t</span> <span class="b">-D</span> DUMP_VHOSTS
+
+<span class="x"># See all active virtual hosts</span>
+<span class="g">sudo httpd</span> <span class="b">-t</span> <span class="b">-D</span> DUMP_VHOSTS <span class="t">2>&amp;1</span>
+
+<span class="x"># Watch error log in real time</span>
+<span class="g">tail</span> <span class="b">-f</span> <span class="o">/private/var/log/apache2/error_log</span>
+
+<span class="x"># Watch a site-specific error log</span>
+<span class="g">tail</span> <span class="b">-f</span> <span class="o">/private/var/log/apache2/myapp-error.log</span>
+
+<span class="x"># Verify /etc/hosts entry is correct</span>
+<span class="g">grep</span> <span class="t">myapp.test</span> /etc/hosts
+
+<span class="x"># Test DNS resolution</span>
+<span class="g">ping</span> <span class="b">-c 1</span> myapp.test
+
+<span class="x"># Graceful restart (picks up all config changes)</span>
+<span class="g">sudo apachectl</span> graceful</pre></div>
+
+    <h3>// View all configured virtual hosts at a glance</h3>
+    <div class="cb"><div class="ct"><span class="cl">Terminal — DUMP_VHOSTS output example</span><button class="cp" onclick="copyCode(this)">COPY</button></div>
+    <pre><span class="g">sudo apachectl</span> <span class="b">-t</span> <span class="b">-D</span> DUMP_VHOSTS
+
+<span class="x"># Example output:</span>
+<span class="t">VirtualHost configuration:
+*:80            localhost (/etc/apache2/extra/httpd-vhosts.conf:3)
+*:80            myapp.test (/etc/apache2/extra/httpd-vhosts.conf:14)
+*:80            client.test (/etc/apache2/extra/httpd-vhosts.conf:26)</span></pre></div>
+  </section>
+
+  <!-- QUICK REFERENCE -->
+  <section>
+    <div class="sh"><span class="sn">REFERENCE</span><h2>Quick Command Reference</h2></div>
+    <table>
+      <thead><tr><th>Task</th><th>Command</th></tr></thead>
+      <tbody>
+        <tr><td>Start Apache</td><td><code>sudo apachectl start</code></td></tr>
+        <tr><td>Stop Apache</td><td><code>sudo apachectl stop</code></td></tr>
+        <tr><td>Graceful restart (apply config changes)</td><td><code>sudo apachectl graceful</code></td></tr>
+        <tr><td>Test config for errors</td><td><code>sudo apachectl configtest</code></td></tr>
+        <tr><td>See all active virtual hosts</td><td><code>sudo apachectl -t -D DUMP_VHOSTS</code></td></tr>
+        <tr><td>Edit main config</td><td><code>sudo nano /etc/apache2/httpd.conf</code></td></tr>
+        <tr><td>Edit virtual hosts</td><td><code>sudo nano /etc/apache2/extra/httpd-vhosts.conf</code></td></tr>
+        <tr><td>Edit /etc/hosts</td><td><code>sudo nano /etc/hosts</code></td></tr>
+        <tr><td>Flush DNS cache</td><td><code>sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder</code></td></tr>
+        <tr><td>Watch error log live</td><td><code>tail -f /private/var/log/apache2/error_log</code></td></tr>
+        <tr><td>Watch access log live</td><td><code>tail -f /private/var/log/apache2/access_log</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  <span>APACHE VIRTUAL HOSTS · MACOS 27 GOLDEN GATE · MACBOOK AIR M4</span>
+  <span>July 2026 · Generated with Claude</span>
+</footer>
+
+<script>
+function copyCode(btn){
+  const pre=btn.closest('.cb').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(()=>{
+    const o=btn.textContent;
+    btn.textContent='COPIED';
+    btn.style.color='#4ade80';
+    btn.style.borderColor='rgba(74,222,128,.4)';
+    setTimeout(()=>{btn.textContent=o;btn.style.color='';btn.style.borderColor='';},1800);
+  });
+}
+</script>
+</body>
+</html>

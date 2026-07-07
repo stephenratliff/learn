@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emacs on macOS — Comprehensive Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sidebar-bg: #1e1540;
+    --sidebar-width: 260px;
+    --accent-violet: #8b5cf6;
+    --accent-cyan: #22d3ee;
+    --accent-amber: #fbbf24;
+    --page-bg: #f7f4ef;
+    --card-bg: #ffffff;
+    --text-main: #1c1a2e;
+    --text-muted: #6b6880;
+    --text-sidebar: #c4bfe0;
+    --border: #e2ddd8;
+    --code-bg: #13111f;
+    --code-text: #a5f3fc;
+    --tip-bg: #fffbeb;
+    --tip-border: #fbbf24;
+    --warn-bg: #fff1f2;
+    --warn-border: #fb7185;
+    --mac-bg: #eff6ff;
+    --mac-border: #93c5fd;
+    --section-marker: #8b5cf6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--page-bg);
+    color: var(--text-main);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 0 0 2rem;
+    scrollbar-width: thin;
+    scrollbar-color: #3d3562 transparent;
+  }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: #3d3562; border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid #2e2857;
+    position: sticky;
+    top: 0;
+    background: var(--sidebar-bg);
+    z-index: 10;
+  }
+  .sidebar-header .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-cyan);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .sidebar-header h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    color: #f0ecff;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .sidebar-nav { padding: 0.75rem 0; }
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: #5a5380;
+    padding: 0.75rem 1.25rem 0.3rem;
+  }
+  .sidebar-nav a {
+    display: block;
+    padding: 0.3rem 1.25rem;
+    color: var(--text-sidebar);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .sidebar-nav a:hover {
+    color: #f0ecff;
+    background: rgba(139,92,246,0.15);
+    border-left-color: var(--accent-violet);
+  }
+  .sidebar-version {
+    font-size: 11px;
+    color: #5a5380;
+    padding: 1.25rem 1.25rem 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── MAIN CONTENT ─────────────────────────────────── */
+  #main {
+    flex: 1;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #1e1540 0%, #2d1f6e 40%, #1a2d5a 100%);
+    padding: 4rem 3.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: 'M-x emacs';
+    position: absolute;
+    right: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 72px;
+    font-weight: 500;
+    color: rgba(139,92,246,0.12);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(34,211,238,0.15);
+    color: var(--accent-cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(34,211,238,0.3);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    max-width: 520px;
+  }
+  .hero p {
+    color: rgba(255,255,255,0.65);
+    font-size: 16px;
+    max-width: 480px;
+    line-height: 1.65;
+  }
+  .hero-meta {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .hero-meta strong { color: rgba(255,255,255,0.85); }
+
+  /* CONTENT AREA */
+  .content {
+    padding: 2.5rem 3.5rem;
+    max-width: 860px;
+  }
+
+  /* SECTIONS */
+  .section { margin-bottom: 3.5rem; }
+
+  h2.section-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 27px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--section-marker);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  h2.section-title .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent-violet);
+    font-weight: 500;
+    background: rgba(139,92,246,0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 1.75rem 0 0.6rem;
+  }
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 1.25rem 0 0.5rem;
+  }
+  p { margin-bottom: 0.85rem; color: #2d2a42; }
+
+  /* ── KEYBOARD KEYS ────────────────────────────────── */
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 24px;
+    padding: 0 7px;
+    background: #ffffff;
+    border: 1px solid #c4bdd8;
+    border-bottom: 3px solid #9d92bc;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #2c1f5e;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+    vertical-align: middle;
+    line-height: 1;
+  }
+  .key-combo { display: inline-flex; align-items: center; gap: 3px; flex-wrap: nowrap; }
+  .key-sep { color: #a0a0b0; font-size: 11px; font-family: monospace; margin: 0 1px; }
+
+  /* ── CODE BLOCKS ──────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    color: #e2d9f3;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 1rem 0 1.25rem;
+    border: 1px solid #2d2357;
+    position: relative;
+  }
+  pre .c-comment { color: #6b6880; font-style: italic; }
+  pre .c-string  { color: #a5f3fc; }
+  pre .c-keyword { color: #c084fc; }
+  pre .c-fn      { color: #86efac; }
+  pre .c-number  { color: #fde68a; }
+  pre .c-prompt  { color: #22d3ee; }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: rgba(139,92,246,0.1);
+    color: #7c3aed;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; font-size: inherit; }
+
+  /* ── CALLOUT BOXES ────────────────────────────────── */
+  .callout {
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    border-left: 4px solid;
+  }
+  .callout-tip   { background: var(--tip-bg);  border-color: var(--tip-border);  }
+  .callout-warn  { background: var(--warn-bg); border-color: var(--warn-border); }
+  .callout-mac   { background: var(--mac-bg);  border-color: var(--mac-border);  }
+  .callout-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.35rem;
+  }
+  .callout-tip  .callout-title  { color: #b45309; }
+  .callout-warn .callout-title  { color: #be123c; }
+  .callout-mac  .callout-title  { color: #1d4ed8; }
+  .callout p { margin: 0; font-size: 14px; line-height: 1.6; }
+  .callout p + p { margin-top: 0.5rem; }
+
+  /* ── KEYBINDING TABLES ────────────────────────────── */
+  .kb-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0 1.25rem;
+    font-size: 14px;
+  }
+  .kb-table thead tr {
+    background: #f0ecff;
+    border-bottom: 2px solid #d1c4f7;
+  }
+  .kb-table thead th {
+    padding: 0.6rem 0.9rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: #5b21b6;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+  .kb-table tbody tr {
+    border-bottom: 1px solid var(--border);
+  }
+  .kb-table tbody tr:last-child { border-bottom: none; }
+  .kb-table tbody tr:hover { background: #faf9ff; }
+  .kb-table td { padding: 0.55rem 0.9rem; vertical-align: middle; }
+  .kb-table td:first-child { width: 48%; }
+  .kb-table td:last-child { color: #4a4560; font-size: 13.5px; }
+
+  /* ── INSTALL STEPS ────────────────────────────────── */
+  .steps { counter-reset: step; list-style: none; margin: 1rem 0; }
+  .steps li {
+    counter-increment: step;
+    padding: 0.85rem 1rem 0.85rem 3.2rem;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: var(--accent-violet);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .steps li p { margin: 0; }
+
+  /* ── CONCEPT CARDS ────────────────────────────────── */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .concept-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem;
+    border-top: 3px solid var(--accent-violet);
+  }
+  .concept-card h4 {
+    color: var(--accent-violet);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 15px;
+    margin: 0 0 0.35rem;
+  }
+  .concept-card p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+
+  /* ── PACKAGE CARDS ────────────────────────────────── */
+  .pkg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .pkg-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem;
+  }
+  .pkg-card .pkg-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--code-bg);
+    background: rgba(139,92,246,0.08);
+    border: 1px solid rgba(139,92,246,0.2);
+    padding: 3px 9px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  .pkg-card p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+  .pkg-card .pkg-tag {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 11px;
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    padding: 1px 8px;
+    font-weight: 500;
+  }
+
+  /* ── INLINE UTILS ─────────────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 680px) {
+    .two-col { grid-template-columns: 1fr; }
+    .hero { padding: 2.5rem 1.5rem; }
+    .hero::before { display: none; }
+    .content { padding: 2rem 1.5rem; }
+    #sidebar { display: none; }
+  }
+
+  ul, ol { padding-left: 1.5rem; }
+  li { margin-bottom: 0.3rem; font-size: 14.5px; color: #2d2a42; }
+  li code { font-size: 12.5px; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  .emacs-mode-line {
+    background: var(--code-bg);
+    color: #22d3ee;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    margin: 0.5rem 0 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .emacs-mode-line .ml-item { opacity: 0.7; }
+  .emacs-mode-line .ml-item.active { opacity: 1; color: #a5f3fc; }
+  .emacs-mode-line .ml-sep { opacity: 0.3; }
+
+  .back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--accent-violet);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(139,92,246,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+  }
+  .back-to-top:hover { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════ -->
+<nav id="sidebar" aria-label="Table of contents">
+  <div class="sidebar-header">
+    <div class="logo">GNU · macOS</div>
+    <h2>Emacs<br>Reference Guide</h2>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="#s1">1. What is Emacs?</a>
+    <a href="#s2">2. Installation</a>
+    <a href="#s3">3. First Launch</a>
+    <a href="#s4">4. Core Concepts</a>
+    <a href="#s5">5. Key Notation</a>
+
+    <div class="nav-section-label">Essential Skills</div>
+    <a href="#s6">6. Navigation</a>
+    <a href="#s7">7. Editing</a>
+    <a href="#s8">8. Files &amp; Buffers</a>
+    <a href="#s9">9. Windows &amp; Frames</a>
+    <a href="#s10">10. Search &amp; Replace</a>
+    <a href="#s11">11. The Help System</a>
+    <a href="#s12">12. Undo &amp; Marks</a>
+
+    <div class="nav-section-label">Configuration</div>
+    <a href="#s13">13. init.el Setup</a>
+    <a href="#s14">14. Package Management</a>
+    <a href="#s15">15. Popular Packages</a>
+
+    <div class="nav-section-label">Advanced</div>
+    <a href="#s16">16. Org-mode</a>
+    <a href="#s17">17. Magit (Git)</a>
+    <a href="#s18">18. Emacs Lisp</a>
+    <a href="#s19">19. macOS Tips</a>
+    <a href="#s20">20. Quick Reference</a>
+  </div>
+  <div class="sidebar-version">
+    Covers Emacs 29+ &amp; macOS 14+
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══════════════════════════════════════════ -->
+<main id="main">
+  <!-- HERO -->
+  <div class="hero" id="top">
+    <div class="hero-tag">Comprehensive Reference</div>
+    <h1>Emacs on macOS</h1>
+    <p>Everything you need to install, configure, and master GNU Emacs on a Mac — from first launch to advanced Lisp customization.</p>
+    <div class="hero-meta">
+      <span><strong>20 Sections</strong> · full coverage</span>
+      <span><strong>Emacs 29+</strong></span>
+      <span><strong>macOS Sonoma / Sequoia</strong></span>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 1 — WHAT IS EMACS
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s1">
+    <h2 class="section-title"><span class="section-num">01</span> What is Emacs?</h2>
+
+    <p>GNU Emacs is a self-documenting, extensible, customizable text editor — and much more. Originally written by Richard Stallman in the 1970s, it is one of the oldest continuously maintained programs in existence. On a Mac, Emacs functions as a full-featured editor, IDE, file manager, email client, calendar, shell, and anything else you can build with Emacs Lisp.</p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h4>Editor</h4>
+        <p>World-class text editing with syntax highlighting, completion, and language modes for every language.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Extensible</h4>
+        <p>Everything is customizable in Emacs Lisp — keybindings, UI, behavior. If it doesn't exist, write it.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Self-documenting</h4>
+        <p>Every function, variable, and keybinding is discoverable at runtime via the built-in help system.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Long-running</h4>
+        <p>Emacs is designed to run for weeks or months. Your state persists across files and sessions.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Why Emacs on Mac?</div>
+      <p>macOS is a UNIX-based system that pairs naturally with Emacs' terminal heritage. Native Emacs builds leverage macOS features: Retina display support, native full-screen, smooth scrolling, macOS spell-check, system pasteboard integration, and the macOS font rendering stack.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 2 — INSTALLATION
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s2">
+    <h2 class="section-title"><span class="section-num">02</span> Installation</h2>
+
+    <p>There are three main ways to install Emacs on macOS. Each has different trade-offs between macOS native integration and build freshness.</p>
+
+    <h3>Option A — Emacs for Mac OS X (Recommended for beginners)</h3>
+    <p>A pre-built native macOS application with no dependencies. Download the <code>.dmg</code> from <strong>emacsformacosx.com</strong> — drag it to your Applications folder and launch it like any Mac app.</p>
+
+    <div class="callout callout-mac">
+      <div class="callout-title">🍎 macOS Note</div>
+      <p>After downloading, macOS Gatekeeper may warn you about an unidentified developer. Open <strong>System Settings → Privacy &amp; Security</strong> and click <em>Open Anyway</em>. This is safe — Emacs is open-source.</p>
+    </div>
+
+    <h3>Option B — Homebrew (Recommended for developers)</h3>
+    <p>Homebrew gives you a current build with the most control. First <a href="https://brew.sh" target="_blank">install Homebrew</a> if you haven't, then choose one of:</p>
+
+<pre><span class="c-comment"># Standard Emacs (no native macOS GUI frame features)</span>
+<span class="c-prompt">$</span> brew install emacs
+
+<span class="c-comment"># Emacs with full macOS native features (recommended)</span>
+<span class="c-prompt">$</span> brew install --cask emacs
+
+<span class="c-comment"># emacs-mac: native port with best macOS integration</span>
+<span class="c-prompt">$</span> brew tap railwaycat/emacsmacport
+<span class="c-prompt">$</span> brew install emacs-mac --with-natural-title-bar</pre>
+
+    <h3>Option C — Emacs Plus (feature-rich Homebrew formula)</h3>
+<pre><span class="c-prompt">$</span> brew tap d12frosted/emacs-plus
+<span class="c-prompt">$</span> brew install emacs-plus@29 \
+    --with-xwidgets \
+    --with-imagemagick \
+    --with-native-comp \
+    --with-modern-doom3-icon</pre>
+
+    <h3>Verifying the installation</h3>
+<pre><span class="c-prompt">$</span> emacs --version
+<span class="c-comment"># GNU Emacs 29.4</span>
+
+<span class="c-prompt">$</span> which emacs
+<span class="c-comment"># /opt/homebrew/bin/emacs   (Apple Silicon)</span>
+<span class="c-comment"># /usr/local/bin/emacs      (Intel Mac)</span></pre>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 PATH setup</div>
+      <p>If <code>emacs</code> isn't found in your terminal, add Homebrew to your PATH. In your <code>~/.zshrc</code>: <code>export PATH="/opt/homebrew/bin:$PATH"</code> (Apple Silicon) or <code>export PATH="/usr/local/bin:$PATH"</code> (Intel). Then restart your terminal or run <code>source ~/.zshrc</code>.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 3 — FIRST LAUNCH
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s3">
+    <h2 class="section-title"><span class="section-num">03</span> First Launch</h2>
+
+    <p>Launch Emacs from your Applications folder, Spotlight (<kbd>⌘</kbd><kbd>Space</kbd>), or from the terminal:</p>
+
+<pre><span class="c-comment"># Open Emacs GUI from terminal</span>
+<span class="c-prompt">$</span> open -a Emacs
+
+<span class="c-comment"># Open a specific file in GUI Emacs</span>
+<span class="c-prompt">$</span> emacs myfile.txt &
+
+<span class="c-comment"># Open Emacs in the terminal (no GUI)</span>
+<span class="c-prompt">$</span> emacs -nw myfile.txt</pre>
+
+    <p>When Emacs opens for the first time you'll see the <strong>splash screen</strong>. Press <kbd>q</kbd> to dismiss it or any key to begin editing.</p>
+
+    <h3>Understanding what you see</h3>
+    <div class="emacs-mode-line">
+      <span class="ml-item active">U:---</span>
+      <span class="ml-item active">*scratch*</span>
+      <span class="ml-sep">|</span>
+      <span class="ml-item">All L1</span>
+      <span class="ml-sep">|</span>
+      <span class="ml-item active">Lisp Interaction</span>
+      <span class="ml-item">line 1</span>
+      <span class="ml-sep">|</span>
+      <span class="ml-item">Col 0</span>
+    </div>
+    <p>The <strong>mode line</strong> (the line above the status bar) shows: file status, buffer name, cursor position, and active major/minor modes. The bottom area is the <strong>minibuffer</strong> — Emacs' command line for input and messages.</p>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ Most important fact</div>
+      <p>To quit Emacs: <kbd>C-x</kbd> <kbd>C-c</kbd> (hold Control, press x, then hold Control, press c). If you're stuck in a command, press <kbd>C-g</kbd> to cancel. These two keys will save you endlessly as a beginner.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 4 — CORE CONCEPTS
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s4">
+    <h2 class="section-title"><span class="section-num">04</span> Core Concepts</h2>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h4>Buffer</h4>
+        <p>A buffer holds text in memory. Every file you open becomes a buffer, but buffers can also hold output, help, or scratch text without a file.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Window</h4>
+        <p>A pane displaying a buffer inside the Emacs frame. You can split windows horizontally or vertically. Multiple windows can show the same buffer.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Frame</h4>
+        <p>What macOS calls a "window" — the OS-level window. Emacs can have multiple frames, each with multiple windows.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Minibuffer</h4>
+        <p>The single-line input area at the bottom of each frame. Used for commands, file names, search terms, and Emacs messages.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Mode</h4>
+        <p>Every buffer has one <em>major mode</em> (e.g. <code>python-mode</code>) and any number of <em>minor modes</em> that add features (e.g. <code>auto-save-mode</code>).</p>
+      </div>
+      <div class="concept-card">
+        <h4>Point &amp; Mark</h4>
+        <p>The <em>point</em> is the cursor position. The <em>mark</em> is a saved position. The region between point and mark is the <em>active region</em> (selection).</p>
+      </div>
+      <div class="concept-card">
+        <h4>Kill Ring</h4>
+        <p>Emacs' clipboard history. Killed (cut) or copied text is pushed onto the kill ring. You can yank (paste) any previous entry.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Prefix Arguments</h4>
+        <p><kbd>C-u</kbd> followed by a number before a command repeats it N times. <kbd>C-u</kbd> alone multiplies by 4 (default).</p>
+      </div>
+    </div>
+
+    <h3>The *scratch* buffer</h3>
+    <p>When Emacs starts, it shows the <code>*scratch*</code> buffer in <code>lisp-interaction-mode</code>. This is a live Lisp REPL — you can type any Emacs Lisp expression, press <kbd>C-j</kbd> to evaluate it and see the result below, or <kbd>C-x C-e</kbd> to evaluate and show in the minibuffer.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 5 — KEY NOTATION
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s5">
+    <h2 class="section-title"><span class="section-num">05</span> Key Notation</h2>
+
+    <p>Emacs uses a compact notation for its key bindings. On macOS the physical keys are:</p>
+
+    <table class="kb-table">
+      <thead><tr><th>Emacs Notation</th><th>Mac Key</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-</kbd></span></td><td><kbd>⌃ Control</kbd></td><td>Hold Control while pressing the next key</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-</kbd></span></td><td><kbd>⌥ Option</kbd> or <kbd>ESC</kbd></td><td>Option is Meta on Mac; ESC is an alternative</td></tr>
+        <tr><td><span class="key-combo"><kbd>s-</kbd></span></td><td><kbd>⌘ Command</kbd></td><td>Super key — macOS-specific bindings</td></tr>
+        <tr><td><span class="key-combo"><kbd>S-</kbd></span></td><td><kbd>⇧ Shift</kbd></td><td>Used in combinations: <kbd>C-S-f</kbd></td></tr>
+        <tr><td><span class="key-combo"><kbd>RET</kbd></span></td><td><kbd>⏎ Return</kbd></td><td>Enter/Return key</td></tr>
+        <tr><td><span class="key-combo"><kbd>SPC</kbd></span></td><td>Space bar</td><td>Space character</td></tr>
+        <tr><td><span class="key-combo"><kbd>DEL</kbd></span></td><td><kbd>⌫ Delete</kbd></td><td>Backspace (deletes backward)</td></tr>
+        <tr><td><span class="key-combo"><kbd>TAB</kbd></span></td><td><kbd>⇥ Tab</kbd></td><td>Tab key (indent or complete)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Reading key sequences</h3>
+    <p>A sequence like <code>C-x C-f</code> means: hold <kbd>⌃</kbd> and press <kbd>x</kbd>, release, then hold <kbd>⌃</kbd> and press <kbd>f</kbd>. A sequence like <code>C-x b</code> means: hold <kbd>⌃</kbd> and press <kbd>x</kbd>, release both, then press <kbd>b</kbd> alone.</p>
+
+    <div class="callout callout-mac">
+      <div class="callout-title">🍎 macOS Option Key setup</div>
+      <p>By default, Terminal.app may not send Option as Meta. Fix this: in <strong>Terminal → Settings → Profiles → Keyboard</strong>, check <em>"Use Option as Meta key"</em>. In iTerm2: <strong>Preferences → Profiles → Keys</strong>, set Left/Right Option Key to <em>Esc+</em>. In the GUI Emacs app, Option works as Meta automatically.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 6 — NAVIGATION
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s6">
+    <h2 class="section-title"><span class="section-num">06</span> Navigation</h2>
+
+    <h3>Character &amp; word movement</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-f</kbd></span></td><td>Forward one character →</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-b</kbd></span></td><td>Backward one character ←</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-f</kbd></span></td><td>Forward one word</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-b</kbd></span></td><td>Backward one word</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-n</kbd></span></td><td>Next line ↓</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-p</kbd></span></td><td>Previous line ↑</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-a</kbd></span></td><td>Beginning of line</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-e</kbd></span></td><td>End of line</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sentence &amp; paragraph</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>M-a</kbd></span></td><td>Beginning of sentence</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-e</kbd></span></td><td>End of sentence</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-{</kbd></span></td><td>Beginning of paragraph</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-}</kbd></span></td><td>End of paragraph</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Buffer-level navigation</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>M-&lt;</kbd></span></td><td>Go to beginning of buffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-&gt;</kbd></span></td><td>Go to end of buffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-g</kbd> <kbd>g</kbd></span></td><td>Go to line number (prompts)</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-g</kbd> <kbd>c</kbd></span></td><td>Go to character position</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-v</kbd></span></td><td>Scroll down one screenful</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-v</kbd></span></td><td>Scroll up one screenful</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-l</kbd></span></td><td>Recentre cursor (top/middle/bottom)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Repeat any motion</div>
+      <p>Prefix a movement with <kbd>C-u</kbd> + a number to repeat it. For example, <kbd>C-u 10 C-n</kbd> moves down 10 lines. <kbd>C-u 5 M-f</kbd> moves forward 5 words.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 7 — EDITING
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s7">
+    <h2 class="section-title"><span class="section-num">07</span> Editing</h2>
+
+    <h3>Deleting text</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>DEL</kbd></span></td><td>Delete character before point (backspace)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-d</kbd></span></td><td>Delete character after point (forward delete)</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-DEL</kbd></span></td><td>Kill (cut) word before point</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-d</kbd></span></td><td>Kill word after point</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-k</kbd></span></td><td>Kill to end of line</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-k</kbd></span></td><td>Kill to end of sentence</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-S-DEL</kbd></span></td><td>Kill entire current line</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Kill ring (cut, copy, paste)</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-w</kbd></span></td><td>Kill (cut) the selected region</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-w</kbd></span></td><td>Copy the selected region (save without killing)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-y</kbd></span></td><td>Yank (paste) most recent kill</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-y</kbd></span></td><td>After <kbd>C-y</kbd>, cycle through kill ring history</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-mac">
+      <div class="callout-title">🍎 macOS Clipboard interop</div>
+      <p>In a native Emacs GUI build, <kbd>⌘ C</kbd>, <kbd>⌘ V</kbd>, and <kbd>⌘ X</kbd> work as standard Mac clipboard shortcuts and are synced with the system clipboard. The Emacs kill ring and the macOS clipboard are separate; Emacs automatically syncs the most recent kill to the system clipboard.</p>
+    </div>
+
+    <h3>Transposing</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-t</kbd></span></td><td>Transpose characters around point</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-t</kbd></span></td><td>Transpose words around point</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x C-t</kbd></span></td><td>Transpose current and previous lines</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Case changing</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>M-u</kbd></span></td><td>Uppercase word</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-l</kbd></span></td><td>Lowercase word</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-c</kbd></span></td><td>Capitalize word (first letter uppercase)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x C-u</kbd></span></td><td>Uppercase the selected region</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x C-l</kbd></span></td><td>Lowercase the selected region</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Indentation &amp; filling</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>TAB</kbd></span></td><td>Indent current line (context-aware)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-M-\</kbd></span></td><td>Indent selected region</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-q</kbd></span></td><td>Re-fill paragraph to fill-column width</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x f</kbd></span></td><td>Set fill column width</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 8 — FILES & BUFFERS
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s8">
+    <h2 class="section-title"><span class="section-num">08</span> Files &amp; Buffers</h2>
+
+    <h3>File operations</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>C-f</kbd></span></td><td>Find file (open or create)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>C-s</kbd></span></td><td>Save current buffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>C-w</kbd></span></td><td>Save as (write to new name)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>s</kbd></span></td><td>Save all modified buffers (prompts each)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>C-r</kbd></span></td><td>Open file read-only</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>C-q</kbd></span></td><td>Toggle read-only on current buffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>i</kbd></span></td><td>Insert a file at point</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Buffer operations</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>b</kbd></span></td><td>Switch to buffer (prompts for name)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>C-b</kbd></span></td><td>List all open buffers</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>k</kbd></span></td><td>Kill (close) a buffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>Left</kbd></span></td><td>Previous buffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>Right</kbd></span></td><td>Next buffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x revert-buffer</kbd></span></td><td>Reload file from disk</td></tr>
+      </tbody>
+    </table>
+
+    <h3>The Buffer Menu (<code>*Buffer List*</code>)</h3>
+    <p>When you open the buffer list with <kbd>C-x C-b</kbd>, you can manage all buffers in that window:</p>
+    <ul>
+      <li><kbd>d</kbd> — mark buffer for deletion</li>
+      <li><kbd>x</kbd> — execute deletions</li>
+      <li><kbd>s</kbd> — save buffer</li>
+      <li><kbd>o</kbd> — open buffer in other window</li>
+      <li><kbd>g</kbd> — refresh the list</li>
+      <li><kbd>q</kbd> — quit the buffer list</li>
+    </ul>
+
+    <h3>Dired — the built-in file manager</h3>
+    <p>Open a directory with <kbd>C-x C-f</kbd> to launch Dired. Navigate and manipulate files:</p>
+<pre><span class="c-comment">;; Open current directory in Dired</span>
+<span class="c-prompt">M-x</span> dired RET ~ RET    <span class="c-comment">; opens home directory</span></pre>
+
+    <table class="kb-table">
+      <thead><tr><th>Key in Dired</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>n</kbd> / <kbd>p</kbd></span></td><td>Next / previous file</td></tr>
+        <tr><td><span class="key-combo"><kbd>RET</kbd></span></td><td>Open file or directory</td></tr>
+        <tr><td><span class="key-combo"><kbd>d</kbd></span></td><td>Mark for deletion</td></tr>
+        <tr><td><span class="key-combo"><kbd>R</kbd></span></td><td>Rename / move file</td></tr>
+        <tr><td><span class="key-combo"><kbd>C</kbd></span></td><td>Copy file</td></tr>
+        <tr><td><span class="key-combo"><kbd>+</kbd></span></td><td>Create new directory</td></tr>
+        <tr><td><span class="key-combo"><kbd>x</kbd></span></td><td>Execute marked actions</td></tr>
+        <tr><td><span class="key-combo"><kbd>q</kbd></span></td><td>Quit Dired</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 9 — WINDOWS & FRAMES
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s9">
+    <h2 class="section-title"><span class="section-num">09</span> Windows &amp; Frames</h2>
+
+    <h3>Window splitting</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>2</kbd></span></td><td>Split window horizontally (top/bottom)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>3</kbd></span></td><td>Split window vertically (left/right)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>0</kbd></span></td><td>Delete current window</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>1</kbd></span></td><td>Delete all other windows (maximize current)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>o</kbd></span></td><td>Move to other window</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>^</kbd></span></td><td>Enlarge window vertically</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>}</kbd></span></td><td>Widen window horizontally</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>{</kbd></span></td><td>Narrow window horizontally</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Frame operations</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>5</kbd> <kbd>2</kbd></span></td><td>Create a new frame (macOS window)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>5</kbd> <kbd>0</kbd></span></td><td>Delete current frame</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>5</kbd> <kbd>o</kbd></span></td><td>Switch to other frame</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x</kbd> <kbd>5</kbd> <kbd>f</kbd></span></td><td>Find file in new frame</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-mac">
+      <div class="callout-title">🍎 macOS Full Screen</div>
+      <p>Use <kbd>⌘ ⌃ F</kbd> to toggle native macOS full-screen mode (or the green maximize button). With <code>emacs-mac</code> port, each frame can individually enter full-screen — great for distraction-free writing.</p>
+    </div>
+
+    <h3>Window configuration recall</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-x r w</kbd> <kbd>r</kbd></span></td><td>Save window config to register r</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x r j</kbd> <kbd>r</kbd></span></td><td>Restore window config from register r</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 10 — SEARCH & REPLACE
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s10">
+    <h2 class="section-title"><span class="section-num">10</span> Search &amp; Replace</h2>
+
+    <h3>Incremental search</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-s</kbd></span></td><td>Incremental search forward (type to search)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-r</kbd></span></td><td>Incremental search backward</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-s</kbd> again</span></td><td>Find next match (during search)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-r</kbd> again</span></td><td>Find previous match</td></tr>
+        <tr><td><span class="key-combo"><kbd>RET</kbd></span></td><td>End search, stay at current match</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-g</kbd></span></td><td>Cancel search, return to start</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-s o</kbd></span></td><td>occur — list all lines matching pattern</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Regexp search</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-M-s</kbd></span></td><td>Regexp incremental search forward</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-M-r</kbd></span></td><td>Regexp incremental search backward</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x re-search-forward</kbd></span></td><td>Non-incremental regexp search</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Replace</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>M-%</kbd></span></td><td>Query-replace (prompts for old and new text)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-M-%</kbd></span></td><td>Query-replace with regexp</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x replace-string</kbd></span></td><td>Replace all occurrences (no prompting)</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x replace-regexp</kbd></span></td><td>Replace regexp (no prompting)</td></tr>
+      </tbody>
+    </table>
+
+    <h4>During query-replace, press:</h4>
+    <ul>
+      <li><kbd>y</kbd> or <kbd>SPC</kbd> — replace this occurrence</li>
+      <li><kbd>n</kbd> or <kbd>DEL</kbd> — skip this occurrence</li>
+      <li><kbd>!</kbd> — replace all remaining without asking</li>
+      <li><kbd>q</kbd> or <kbd>RET</kbd> — quit query-replace</li>
+      <li><kbd>.</kbd> — replace this one, then quit</li>
+      <li><kbd>^</kbd> — go back to previous occurrence</li>
+      <li><kbd>e</kbd> — edit the replacement string</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 11 — HELP SYSTEM
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s11">
+    <h2 class="section-title"><span class="section-num">11</span> The Help System</h2>
+
+    <p>Emacs is entirely self-documenting. Every key, function, and variable has documentation you can access instantly.</p>
+
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>t</kbd></span></td><td>Open the interactive Emacs tutorial (start here!)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>k</kbd></span></td><td>Describe a key: press the key to see what it does</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>f</kbd></span></td><td>Describe a function by name</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>v</kbd></span></td><td>Describe a variable by name</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>m</kbd></span></td><td>Describe current major and minor modes</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>a</kbd></span></td><td>Apropos — search for commands matching a pattern</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>i</kbd></span></td><td>Open the Info documentation browser (full manual)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>r</kbd></span></td><td>Open the Emacs manual directly</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>?</kbd></span></td><td>Show all available help commands</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>l</kbd></span></td><td>View recent keystrokes (last 300)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-h</kbd> <kbd>w</kbd></span></td><td>Which key invokes a given function</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Pro tip: describe-key</div>
+      <p>Press <kbd>C-h k</kbd> then any key or key sequence and Emacs shows you the function it calls, with full documentation. This is the fastest way to learn what any binding does. Press <kbd>C-h f</kbd> on the function name shown to dive deeper into the source code.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 12 — UNDO & MARKS
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s12">
+    <h2 class="section-title"><span class="section-num">12</span> Undo, Marks &amp; Registers</h2>
+
+    <h3>Undo</h3>
+    <p>Emacs has an unusual undo system — there is no separate redo. Instead, undo itself becomes undoable.</p>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-/</kbd></span></td><td>Undo last change</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-_</kbd></span></td><td>Undo (alternate binding)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x u</kbd></span></td><td>Undo (visual buffer indicator)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-g</kbd> then <kbd>C-/</kbd></span></td><td>Redo (cancel undo direction, start redoing)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Mark &amp; Region</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-SPC</kbd></span></td><td>Set mark at point (start selection)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x C-x</kbd></span></td><td>Swap point and mark</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-h</kbd></span></td><td>Mark paragraph</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x h</kbd></span></td><td>Mark entire buffer (select all)</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-@</kbd></span></td><td>Mark next word</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Registers — named positions &amp; text</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-x r SPC</kbd> <kbd>r</kbd></span></td><td>Save position to register r</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x r j</kbd> <kbd>r</kbd></span></td><td>Jump to position in register r</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x r s</kbd> <kbd>r</kbd></span></td><td>Save region text to register r</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-x r i</kbd> <kbd>r</kbd></span></td><td>Insert text from register r</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 13 — INIT.EL SETUP
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s13">
+    <h2 class="section-title"><span class="section-num">13</span> init.el — Configuration File</h2>
+
+    <p>Emacs reads its configuration from <code>~/.config/emacs/init.el</code> (Emacs 29+) or <code>~/.emacs.d/init.el</code> (older convention). Create this file to customize your Emacs environment. Configuration is written in Emacs Lisp.</p>
+
+<pre><span class="c-comment">;; ~/.config/emacs/init.el — macOS starter config</span>
+
+<span class="c-comment">;; ── PERFORMANCE ──────────────────────────────────────</span>
+<span class="c-comment">;; Increase GC threshold to speed up startup</span>
+(<span class="c-fn">setq</span> gc-cons-threshold <span class="c-number">100000000</span>)
+(<span class="c-fn">setq</span> read-process-output-max (* <span class="c-number">1024 1024</span>)) <span class="c-comment">; 1MB</span>
+
+<span class="c-comment">;; ── UI BASICS ────────────────────────────────────────</span>
+(<span class="c-fn">setq</span> inhibit-startup-message <span class="c-keyword">t</span>)           <span class="c-comment">; no splash screen</span>
+(<span class="c-fn">scroll-bar-mode</span> -1)                        <span class="c-comment">; hide scrollbar</span>
+(<span class="c-fn">tool-bar-mode</span> -1)                          <span class="c-comment">; hide toolbar</span>
+(<span class="c-fn">menu-bar-mode</span> <span class="c-number">1</span>)                           <span class="c-comment">; keep menu bar on Mac</span>
+(<span class="c-fn">global-display-line-numbers-mode</span> <span class="c-keyword">t</span>)        <span class="c-comment">; line numbers</span>
+(<span class="c-fn">column-number-mode</span> <span class="c-keyword">t</span>)                     <span class="c-comment">; column in mode line</span>
+(<span class="c-fn">global-hl-line-mode</span> <span class="c-keyword">t</span>)                    <span class="c-comment">; highlight current line</span>
+
+<span class="c-comment">;; ── FONT (pick a Retina-friendly font) ──────────────</span>
+(<span class="c-fn">set-face-attribute</span> 'default <span class="c-keyword">nil</span>
+  :family <span class="c-string">"JetBrains Mono"</span>
+  :height <span class="c-number">140</span>                              <span class="c-comment">; 14pt (units are 1/10pt)</span>
+  :weight 'regular)
+
+<span class="c-comment">;; ── macOS SPECIFIC ──────────────────────────────────</span>
+(<span class="c-fn">setq</span> mac-option-modifier  'meta)          <span class="c-comment">; ⌥ = Meta</span>
+(<span class="c-fn">setq</span> mac-command-modifier 'super)         <span class="c-comment">; ⌘ = Super</span>
+(<span class="c-fn">setq</span> mac-right-option-modifier 'none)     <span class="c-comment">; right ⌥ = normal (for accents)</span>
+(<span class="c-fn">setq</span> ns-use-native-fullscreen <span class="c-keyword">t</span>)          <span class="c-comment">; use macOS full screen</span>
+
+<span class="c-comment">;; macOS-style ⌘ shortcuts</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-c"</span>) 'kill-ring-save)  <span class="c-comment">; ⌘C copy</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-v"</span>) 'yank)            <span class="c-comment">; ⌘V paste</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-x"</span>) 'kill-region)     <span class="c-comment">; ⌘X cut</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-z"</span>) 'undo)            <span class="c-comment">; ⌘Z undo</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-a"</span>) 'mark-whole-buffer) <span class="c-comment">; ⌘A select all</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-s"</span>) 'save-buffer)     <span class="c-comment">; ⌘S save</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-f"</span>) 'isearch-forward)  <span class="c-comment">; ⌘F find</span>
+
+<span class="c-comment">;; ── EDITING DEFAULTS ────────────────────────────────</span>
+(<span class="c-fn">setq-default</span>
+  tab-width <span class="c-number">4</span>
+  indent-tabs-mode <span class="c-keyword">nil</span>                      <span class="c-comment">; use spaces, not tabs</span>
+  fill-column <span class="c-number">80</span>)
+(<span class="c-fn">electric-pair-mode</span> <span class="c-number">1</span>)                      <span class="c-comment">; auto-close parens/brackets</span>
+(<span class="c-fn">show-paren-mode</span> <span class="c-number">1</span>)                         <span class="c-comment">; highlight matching parens</span>
+(<span class="c-fn">delete-selection-mode</span> <span class="c-number">1</span>)                   <span class="c-comment">; typing replaces selection</span>
+
+<span class="c-comment">;; ── BACKUPS ─────────────────────────────────────────</span>
+<span class="c-comment">;; Keep backup files in one place instead of scattered everywhere</span>
+(<span class="c-fn">setq</span> backup-directory-alist
+      \`((<span class="c-string">"."</span> . ,(concat user-emacs-directory <span class="c-string">"backups"</span>))))
+(<span class="c-fn">setq</span> auto-save-file-name-transforms
+      \`((<span class="c-string">".*"</span> ,(concat user-emacs-directory <span class="c-string">"auto-saves/"</span>) <span class="c-keyword">t</span>)))</pre>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Reload init.el without restarting</div>
+      <p>After editing your init file, apply changes with <kbd>M-x eval-buffer</kbd> (if init.el is open) or <kbd>M-x load-file RET ~/.config/emacs/init.el RET</kbd>.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 14 — PACKAGE MANAGEMENT
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s14">
+    <h2 class="section-title"><span class="section-num">14</span> Package Management</h2>
+
+    <h3>Built-in package.el</h3>
+    <p>Emacs has a built-in package manager. The most important repository is <strong>MELPA</strong> (Milkypostman's Emacs Lisp Package Archive), which hosts thousands of community packages.</p>
+
+<pre><span class="c-comment">;; Add MELPA to package archives in init.el</span>
+(<span class="c-fn">require</span> 'package)
+(<span class="c-fn">add-to-list</span> 'package-archives
+             '(<span class="c-string">"melpa"</span> . <span class="c-string">"https://melpa.org/packages/"</span>) <span class="c-keyword">t</span>)
+(<span class="c-fn">package-initialize</span>)</pre>
+
+    <p>Then: <kbd>M-x package-refresh-contents</kbd> to update the package list, and <kbd>M-x package-install</kbd> to install packages.</p>
+
+    <h3>use-package (recommended)</h3>
+    <p><code>use-package</code> is built into Emacs 29+ and provides a clean, declarative way to configure packages. It handles lazy loading (packages are loaded only when needed), reducing startup time.</p>
+
+<pre><span class="c-comment">;; Bootstrap use-package (Emacs 29 has it built-in)</span>
+(<span class="c-fn">unless</span> (package-installed-p 'use-package)
+  (<span class="c-fn">package-install</span> 'use-package))
+(<span class="c-fn">require</span> 'use-package)
+(<span class="c-fn">setq</span> use-package-always-ensure <span class="c-keyword">t</span>)  <span class="c-comment">; auto-install if missing</span>
+
+<span class="c-comment">;; Example: install and configure a theme</span>
+(<span class="c-fn">use-package</span> doom-themes
+  :config
+  (<span class="c-fn">load-theme</span> 'doom-one <span class="c-keyword">t</span>))
+
+<span class="c-comment">;; Example: install with lazy loading on a command</span>
+(<span class="c-fn">use-package</span> magit
+  :bind (<span class="c-string">"C-x g"</span> . magit-status))
+
+<span class="c-comment">;; Example: install with mode-specific activation</span>
+(<span class="c-fn">use-package</span> company
+  :hook (prog-mode . company-mode)
+  :custom
+  (company-idle-delay <span class="c-number">0.2</span>)
+  (company-minimum-prefix-length <span class="c-number">2</span>))</pre>
+
+    <h3>Package management commands</h3>
+    <table class="kb-table">
+      <thead><tr><th>Command</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><code>M-x package-list-packages</code></td><td>Browse all available packages</td></tr>
+        <tr><td><code>M-x package-install</code></td><td>Install a specific package by name</td></tr>
+        <tr><td><code>M-x package-delete</code></td><td>Remove an installed package</td></tr>
+        <tr><td><code>M-x package-upgrade-all</code></td><td>Upgrade all installed packages (Emacs 29+)</td></tr>
+        <tr><td><code>M-x package-refresh-contents</code></td><td>Sync the package archive list</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 15 — POPULAR PACKAGES
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s15">
+    <h2 class="section-title"><span class="section-num">15</span> Popular Packages</h2>
+
+    <h3>Themes</h3>
+    <div class="pkg-grid">
+      <div class="pkg-card">
+        <div class="pkg-name">doom-themes</div>
+        <p>Dozens of beautiful themes from the Doom Emacs project. The most popular Emacs theme collection.</p>
+        <span class="pkg-tag">Visual</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">modus-themes</div>
+        <p>Accessible, WCAG-compliant themes by Protesilaos Stavrou. Built into Emacs 28+. Excellent readability.</p>
+        <span class="pkg-tag">Built-in 28+</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">ef-themes</div>
+        <p>A newer accessible theme collection. High contrast and colorblind-friendly variants.</p>
+        <span class="pkg-tag">Visual</span>
+      </div>
+    </div>
+
+    <h3>Completion frameworks</h3>
+    <div class="pkg-grid">
+      <div class="pkg-card">
+        <div class="pkg-name">vertico</div>
+        <p>Vertical interactive completion for the minibuffer. Lightweight and composable. Works beautifully with <code>marginalia</code> and <code>consult</code>.</p>
+        <span class="pkg-tag">UI</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">helm</div>
+        <p>A comprehensive completion and selection framework. Heavier than Vertico but extremely powerful, with fuzzy matching and persistent history.</p>
+        <span class="pkg-tag">UI</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">ivy / counsel</div>
+        <p>A leaner completion alternative to Helm. <code>counsel</code> replaces built-in commands with Ivy-enhanced versions.</p>
+        <span class="pkg-tag">UI</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">orderless</div>
+        <p>Space-separated completion style — type any words in any order and Emacs finds the match.</p>
+        <span class="pkg-tag">Completion</span>
+      </div>
+    </div>
+
+    <h3>Code editing</h3>
+    <div class="pkg-grid">
+      <div class="pkg-card">
+        <div class="pkg-name">company</div>
+        <p>Complete Anything — in-buffer text and code completion with popup menus. Works with many backends.</p>
+        <span class="pkg-tag">Code</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">lsp-mode</div>
+        <p>Language Server Protocol client. Brings IDE features (go-to-definition, refactoring, diagnostics) to Emacs for any language with an LSP server.</p>
+        <span class="pkg-tag">Code</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">eglot</div>
+        <p>Minimalist built-in LSP client (Emacs 29+). Less configuration than lsp-mode; excellent for simpler setups.</p>
+        <span class="pkg-tag">Built-in 29+</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">flycheck</div>
+        <p>Syntax checking and linting on the fly. Shows errors and warnings in the margin as you type.</p>
+        <span class="pkg-tag">Code</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">treesitter</div>
+        <p>Parser-based syntax highlighting and navigation. Built into Emacs 29+ with <code>treesit</code>. Dramatically better than regex-based highlighting.</p>
+        <span class="pkg-tag">Built-in 29+</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">projectile</div>
+        <p>Project navigation and management — quickly jump between files in a project, grep project-wide, run tests.</p>
+        <span class="pkg-tag">Code</span>
+      </div>
+    </div>
+
+    <h3>Utilities</h3>
+    <div class="pkg-grid">
+      <div class="pkg-card">
+        <div class="pkg-name">which-key</div>
+        <p>Shows available key bindings as you type a prefix. After pressing <kbd>C-x</kbd>, shows all valid next keys in a popup. Essential for learners.</p>
+        <span class="pkg-tag">Essential</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">doom-modeline</div>
+        <p>A beautiful, icon-rich mode line. Shows Git branch, LSP status, and more in a compact design.</p>
+        <span class="pkg-tag">UI</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">multiple-cursors</div>
+        <p>Edit multiple locations simultaneously — like VS Code's multi-cursor mode, but in Emacs.</p>
+        <span class="pkg-tag">Editing</span>
+      </div>
+      <div class="pkg-card">
+        <div class="pkg-name">expand-region</div>
+        <p>Incrementally expand selection by semantic units: word → string → statement → block → function.</p>
+        <span class="pkg-tag">Editing</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 16 — ORG-MODE
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s16">
+    <h2 class="section-title"><span class="section-num">16</span> Org-mode</h2>
+
+    <p>Org-mode is one of Emacs' most beloved features — a plain-text system for notes, to-do lists, project planning, literate programming, and document export. Files use the <code>.org</code> extension.</p>
+
+    <h3>Basic structure</h3>
+<pre><span class="c-comment">* Heading level 1
+** Heading level 2
+*** Heading level 3
+
+Text flows freely under headings.
+
+- Bullet list item
+  - Nested item
+  
+1. Numbered list item
+2. Second item</span></pre>
+
+    <h3>Navigation &amp; visibility</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>TAB</kbd></span></td><td>Cycle visibility of current heading's subtree</td></tr>
+        <tr><td><span class="key-combo"><kbd>S-TAB</kbd></span></td><td>Cycle global visibility (all headings)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c C-n</kbd></span></td><td>Next heading</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c C-p</kbd></span></td><td>Previous heading</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c C-f</kbd></span></td><td>Next heading at same level</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c C-b</kbd></span></td><td>Previous heading at same level</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c C-u</kbd></span></td><td>Go to parent heading</td></tr>
+      </tbody>
+    </table>
+
+    <h3>TODO items</h3>
+<pre><span class="c-comment">* TODO Write the project proposal
+* DONE Review the code
+** TODO [#A] High priority task  [#B] = medium, [#C] = low
+DEADLINE: &lt;2025-01-15 Wed&gt;
+SCHEDULED: &lt;2025-01-10 Fri&gt;</span></pre>
+
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-c C-t</kbd></span></td><td>Cycle TODO state (TODO → DONE → none)</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c C-d</kbd></span></td><td>Set a DEADLINE date</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c C-s</kbd></span></td><td>Schedule a task</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c ,</kbd></span></td><td>Set priority</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c a t</kbd></span></td><td>Show global TODO list</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c a a</kbd></span></td><td>Open agenda view</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Tables</h3>
+    <p>Org-mode tables are created and maintained automatically. Type a <code>|</code>-separated row and press <kbd>TAB</kbd>:</p>
+<pre><span class="c-comment">| Name    | Age | Role        |
+|---------|-----|-------------|
+| Alice   |  30 | Engineer    |
+| Bob     |  25 | Designer    |</span></pre>
+
+    <table class="kb-table">
+      <thead><tr><th>Key in table</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>TAB</kbd></span></td><td>Move to next cell (auto-aligns)</td></tr>
+        <tr><td><span class="key-combo"><kbd>S-TAB</kbd></span></td><td>Move to previous cell</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-c |</kbd></span></td><td>Create table from selected region</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-Left/Right</kbd></span></td><td>Move column left / right</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-Up/Down</kbd></span></td><td>Move row up / down</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Export</h3>
+    <p>Press <kbd>C-c C-e</kbd> to open the export dispatcher. You can export to HTML, PDF (via LaTeX), Markdown, plain text, ODT, and more with a single keypress.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 17 — MAGIT
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s17">
+    <h2 class="section-title"><span class="section-num">17</span> Magit — Git inside Emacs</h2>
+
+    <p>Magit is widely considered the best Git interface in existence. It makes Git operations visual, composable, and extremely fast. Install it with <code>(use-package magit :bind ("C-x g" . magit-status))</code>.</p>
+
+    <h3>Basic workflow</h3>
+<pre><span class="c-comment">C-x g          ; Open Magit status buffer
+               ; Press ? for help at any point</span></pre>
+
+    <table class="kb-table">
+      <thead><tr><th>Key in Magit</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>s</kbd></span></td><td>Stage file / hunk under cursor</td></tr>
+        <tr><td><span class="key-combo"><kbd>u</kbd></span></td><td>Unstage file / hunk</td></tr>
+        <tr><td><span class="key-combo"><kbd>S</kbd></span></td><td>Stage all changes</td></tr>
+        <tr><td><span class="key-combo"><kbd>c c</kbd></span></td><td>Commit staged changes (opens commit message buffer)</td></tr>
+        <tr><td><span class="key-combo"><kbd>c a</kbd></span></td><td>Amend last commit</td></tr>
+        <tr><td><span class="key-combo"><kbd>P p</kbd></span></td><td>Push to remote</td></tr>
+        <tr><td><span class="key-combo"><kbd>F p</kbd></span></td><td>Pull from remote (fetch + merge)</td></tr>
+        <tr><td><span class="key-combo"><kbd>b b</kbd></span></td><td>Switch branch</td></tr>
+        <tr><td><span class="key-combo"><kbd>b c</kbd></span></td><td>Create and checkout new branch</td></tr>
+        <tr><td><span class="key-combo"><kbd>l l</kbd></span></td><td>Show commit log</td></tr>
+        <tr><td><span class="key-combo"><kbd>d d</kbd></span></td><td>Show diff</td></tr>
+        <tr><td><span class="key-combo"><kbd>z z</kbd></span></td><td>Stash working changes</td></tr>
+        <tr><td><span class="key-combo"><kbd>?</kbd></span></td><td>Show all available Magit commands</td></tr>
+        <tr><td><span class="key-combo"><kbd>q</kbd></span></td><td>Quit / bury Magit buffer</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Staging hunks</div>
+      <p>In the status buffer, expand a changed file with <kbd>TAB</kbd> to see individual hunks (diff sections). Press <kbd>s</kbd> on a hunk to stage just that portion of the file — without touching the rest. This is finer-grained control than <code>git add -p</code>.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 18 — EMACS LISP
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s18">
+    <h2 class="section-title"><span class="section-num">18</span> Emacs Lisp Basics</h2>
+
+    <p>Emacs is configured and extended in Emacs Lisp (elisp) — a dialect of Lisp. You don't need to become an expert, but understanding the basics lets you read, modify, and write your own customizations.</p>
+
+    <h3>Fundamental syntax</h3>
+<pre><span class="c-comment">;; Comments start with semicolons</span>
+
+<span class="c-comment">;; Function call: (function-name arguments...)</span>
+(<span class="c-fn">message</span> <span class="c-string">"Hello, Emacs!"</span>)          <span class="c-comment">; displays in minibuffer</span>
+(<span class="c-fn">+</span> <span class="c-number">2</span> <span class="c-number">3</span>)                          <span class="c-comment">; returns 5</span>
+(<span class="c-fn">concat</span> <span class="c-string">"Hello"</span> <span class="c-string">", world"</span>)        <span class="c-comment">; "Hello, world"</span>
+
+<span class="c-comment">;; Variables</span>
+(<span class="c-keyword">setq</span> my-name <span class="c-string">"Stephen"</span>)          <span class="c-comment">; set variable</span>
+(<span class="c-keyword">defvar</span> my-count <span class="c-number">0</span> <span class="c-string">"A counter."</span>) <span class="c-comment">; declare with docstring</span>
+
+<span class="c-comment">;; Defining functions</span>
+(<span class="c-keyword">defun</span> <span class="c-fn">greet</span> (name)
+  <span class="c-string">"Greet NAME with a message."</span>
+  (<span class="c-fn">message</span> (<span class="c-fn">format</span> <span class="c-string">"Hello, %s!"</span> name)))
+
+(<span class="c-fn">greet</span> <span class="c-string">"World"</span>)    <span class="c-comment">; call the function</span>
+
+<span class="c-comment">;; Conditionals</span>
+(<span class="c-keyword">if</span> (<span class="c-fn">&gt;</span> <span class="c-number">5</span> <span class="c-number">3</span>)
+    (<span class="c-fn">message</span> <span class="c-string">"Five is greater"</span>)
+  (<span class="c-fn">message</span> <span class="c-string">"Three is greater"</span>))
+
+(<span class="c-keyword">cond</span>
+  ((<span class="c-fn">=</span> x <span class="c-number">1</span>) (<span class="c-fn">message</span> <span class="c-string">"one"</span>))
+  ((<span class="c-fn">=</span> x <span class="c-number">2</span>) (<span class="c-fn">message</span> <span class="c-string">"two"</span>))
+  (<span class="c-keyword">t</span>       (<span class="c-fn">message</span> <span class="c-string">"other"</span>)))
+
+<span class="c-comment">;; Lists (the core data structure)</span>
+(<span class="c-keyword">setq</span> fruits '(apple banana cherry))
+(<span class="c-fn">car</span> fruits)    <span class="c-comment">; apple  (first element)</span>
+(<span class="c-fn">cdr</span> fruits)    <span class="c-comment">; (banana cherry)  (rest)</span>
+(<span class="c-fn">length</span> fruits) <span class="c-comment">; 3</span>
+
+<span class="c-comment">;; Interactive commands (callable with M-x)</span>
+(<span class="c-keyword">defun</span> <span class="c-fn">my-insert-date</span> ()
+  <span class="c-string">"Insert the current date at point."</span>
+  (<span class="c-keyword">interactive</span>)
+  (<span class="c-fn">insert</span> (<span class="c-fn">format-time-string</span> <span class="c-string">"%Y-%m-%d"</span>)))
+
+<span class="c-comment">;; Bind to a key</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"C-c d"</span>) '<span class="c-fn">my-insert-date</span>)</pre>
+
+    <h3>Useful evaluation commands</h3>
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>C-x C-e</kbd></span></td><td>Evaluate the expression before point</td></tr>
+        <tr><td><span class="key-combo"><kbd>C-j</kbd></span></td><td>Evaluate and insert result (in *scratch*)</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-:</kbd></span></td><td>Evaluate any expression typed in minibuffer</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x eval-buffer</kbd></span></td><td>Evaluate entire current buffer as Elisp</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x eval-region</kbd></span></td><td>Evaluate selected region</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x ielm</kbd></span></td><td>Open interactive Emacs Lisp REPL</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 19 — macOS TIPS
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s19">
+    <h2 class="section-title"><span class="section-num">19</span> macOS-Specific Tips &amp; Tweaks</h2>
+
+    <h3>Font rendering on Retina displays</h3>
+<pre><span class="c-comment">;; Use macOS's native font smoothing</span>
+(<span class="c-fn">setq</span> mac-allow-anti-aliasing <span class="c-keyword">t</span>)
+
+<span class="c-comment">;; Set a Retina-friendly font size (height = 1/10pt, so 160 = 16pt)</span>
+(<span class="c-fn">set-face-attribute</span> 'default <span class="c-keyword">nil</span>
+  :family <span class="c-string">"SF Mono"</span>
+  :height <span class="c-number">140</span>)
+
+<span class="c-comment">;; Or use the system monospace font</span>
+(<span class="c-fn">set-face-attribute</span> 'default <span class="c-keyword">nil</span>
+  :family <span class="c-string">"Menlo"</span>
+  :height <span class="c-number">140</span>)</pre>
+
+    <h3>Emoji and ligature support (Emacs 28+)</h3>
+<pre><span class="c-comment">;; Enable ligatures (requires a compatible font like Fira Code)</span>
+(<span class="c-fn">use-package</span> ligature
+  :config
+  (<span class="c-fn">ligature-set-ligatures</span> 'prog-mode
+    '(<span class="c-string">"-&gt;"</span> <span class="c-string">"=&gt;"</span> <span class="c-string">"!="</span> <span class="c-string">"=="</span> <span class="c-string">"&gt;="</span> <span class="c-string">"&lt;="</span> <span class="c-string">"::"</span> <span class="c-string">"..."</span>))
+  (<span class="c-fn">global-ligature-mode</span> <span class="c-keyword">t</span>))</pre>
+
+    <h3>Finder integration</h3>
+<pre><span class="c-comment">;; Open current file in Finder</span>
+(<span class="c-keyword">defun</span> <span class="c-fn">reveal-in-finder</span> ()
+  <span class="c-string">"Open current file's directory in macOS Finder."</span>
+  (<span class="c-keyword">interactive</span>)
+  (<span class="c-fn">shell-command</span>
+   (<span class="c-fn">format</span> <span class="c-string">"open -R %s"</span>
+           (<span class="c-fn">shell-quote-argument</span> (buffer-file-name)))))
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"C-c o f"</span>) '<span class="c-fn">reveal-in-finder</span>)
+
+<span class="c-comment">;; Open current file with default macOS app</span>
+(<span class="c-keyword">defun</span> <span class="c-fn">open-with-default-app</span> ()
+  <span class="c-string">"Open current file with the default macOS application."</span>
+  (<span class="c-keyword">interactive</span>)
+  (<span class="c-fn">shell-command</span>
+   (<span class="c-fn">format</span> <span class="c-string">"open %s"</span>
+           (<span class="c-fn">shell-quote-argument</span> (buffer-file-name)))))
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"C-c o o"</span>) '<span class="c-fn">open-with-default-app</span>)</pre>
+
+    <h3>Spell checking with macOS dictionary</h3>
+<pre><span class="c-comment">;; Use aspell or hunspell (install via Homebrew)</span>
+<span class="c-prompt">$</span> brew install aspell
+
+<span class="c-comment">;; In init.el:</span>
+(<span class="c-fn">setq</span> ispell-program-name <span class="c-string">"aspell"</span>)
+(<span class="c-fn">setq</span> ispell-extra-args '(<span class="c-string">"--sug-mode=ultra"</span> <span class="c-string">"--lang=en_US"</span>))</pre>
+
+    <table class="kb-table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="key-combo"><kbd>M-$</kbd></span></td><td>Check spelling of word at point</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x flyspell-mode</kbd></span></td><td>Enable live spell checking (highlights errors)</td></tr>
+        <tr><td><span class="key-combo"><kbd>M-x flyspell-buffer</kbd></span></td><td>Check entire buffer spelling</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Shell integration on macOS</h3>
+<pre><span class="c-comment">;; Fix PATH inside Emacs.app (doesn't inherit shell PATH by default)</span>
+(<span class="c-fn">use-package</span> exec-path-from-shell
+  :if (memq window-system '(mac ns x))
+  :config
+  (<span class="c-fn">exec-path-from-shell-initialize</span>))
+
+<span class="c-comment">;; Open a terminal shell inside Emacs</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"C-c t"</span>) '<span class="c-fn">term</span>)      <span class="c-comment">; built-in terminal</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"C-c v"</span>) '<span class="c-fn">vterm</span>)     <span class="c-comment">; vterm (better; install separately)</span></pre>
+
+    <div class="callout callout-mac">
+      <div class="callout-title">🍎 exec-path-from-shell is essential</div>
+      <p>When you launch Emacs.app from Spotlight or the Dock, it doesn't inherit your shell's PATH, so Homebrew tools like <code>git</code>, <code>node</code>, and <code>python</code> may not be found. The <code>exec-path-from-shell</code> package fixes this by reading your shell's PATH at startup. Install it with <code>M-x package-install RET exec-path-from-shell</code>.</p>
+    </div>
+
+    <h3>macOS system integration shortcuts</h3>
+<pre><span class="c-comment">;; Useful macOS keybindings to add to init.el</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-&lt;return&gt;"</span>) 'toggle-frame-fullscreen) <span class="c-comment">; ⌘⏎ fullscreen</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-="</span>) 'text-scale-increase)          <span class="c-comment">; ⌘= bigger text</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s--"</span>) 'text-scale-decrease)          <span class="c-comment">; ⌘- smaller text</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-`"</span>) 'other-frame)                  <span class="c-comment">; ⌘` next frame</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-w"</span>) 'delete-frame)                 <span class="c-comment">; ⌘W close frame</span>
+(<span class="c-fn">global-set-key</span> (kbd <span class="c-string">"s-n"</span>) 'make-frame-command)           <span class="c-comment">; ⌘N new frame</span></pre>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 20 — QUICK REFERENCE
+  ══════════════════════════════════════════════════ -->
+  <div class="section" id="s20">
+    <h2 class="section-title"><span class="section-num">20</span> Quick Reference Card</h2>
+
+    <div class="two-col">
+      <div>
+        <h3>Essential — learn these first</h3>
+        <table class="kb-table">
+          <thead><tr><th>Key</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><span class="key-combo"><kbd>C-g</kbd></span></td><td>Cancel current command</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x C-c</kbd></span></td><td>Quit Emacs</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x C-f</kbd></span></td><td>Open file</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x C-s</kbd></span></td><td>Save file</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-/</kbd></span></td><td>Undo</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-s</kbd></span></td><td>Search</td></tr>
+            <tr><td><span class="key-combo"><kbd>M-x</kbd></span></td><td>Run a command by name</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-h t</kbd></span></td><td>Open tutorial</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Frequently used</h3>
+        <table class="kb-table">
+          <thead><tr><th>Key</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><span class="key-combo"><kbd>M-x</kbd></span></td><td>Execute any command</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x b</kbd></span></td><td>Switch buffer</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x 2</kbd></span></td><td>Split horizontal</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x 3</kbd></span></td><td>Split vertical</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x 1</kbd></span></td><td>One window only</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-x o</kbd></span></td><td>Other window</td></tr>
+            <tr><td><span class="key-combo"><kbd>M-%</kbd></span></td><td>Query replace</td></tr>
+            <tr><td><span class="key-combo"><kbd>C-h k</kbd></span></td><td>Describe key</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3>M-x commands to know</h3>
+    <table class="kb-table">
+      <thead><tr><th>Command (after M-x)</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>customize</code></td><td>Open the GUI configuration interface</td></tr>
+        <tr><td><code>shell</code></td><td>Open a shell buffer inside Emacs</td></tr>
+        <tr><td><code>eshell</code></td><td>Open Emacs' built-in Lisp shell</td></tr>
+        <tr><td><code>calendar</code></td><td>Open the built-in calendar</td></tr>
+        <tr><td><code>tetris</code></td><td>Play Tetris (yes, really)</td></tr>
+        <tr><td><code>doctor</code></td><td>Talk to Emacs' psychotherapist (ELIZA)</td></tr>
+        <tr><td><code>artist-mode</code></td><td>Draw ASCII art</td></tr>
+        <tr><td><code>zone</code></td><td>Entertaining screen saver</td></tr>
+        <tr><td><code>text-scale-increase</code></td><td>Make text bigger (or use <kbd>C-x C-=</kbd>)</td></tr>
+        <tr><td><code>toggle-truncate-lines</code></td><td>Toggle line wrapping</td></tr>
+        <tr><td><code>whitespace-mode</code></td><td>Visualize whitespace characters</td></tr>
+        <tr><td><code>global-auto-revert-mode</code></td><td>Auto-reload files changed on disk</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Distro shortcuts: Doom Emacs &amp; Spacemacs</div>
+      <p>If you want a fully configured Emacs out of the box, consider <strong>Doom Emacs</strong> (<code>github.com/doomemacs/doomemacs</code>) or <strong>Spacemacs</strong> (<code>spacemacs.org</code>). Both provide curated package sets and keybindings, making Emacs immediately productive — at the cost of some abstraction over the underlying mechanics covered in this guide.</p>
+    </div>
+
+    <div class="callout callout-mac">
+      <div class="callout-title">🍎 Getting more help</div>
+      <p><strong>Built-in:</strong> <kbd>C-h r</kbd> for the Emacs manual. <kbd>C-h i</kbd> for Info browser.
+      <br><strong>Online:</strong> <em>emacs.stackexchange.com</em>, <em>reddit.com/r/emacs</em>, the <em>EmacsWiki</em> at emacswiki.org, and the official GNU Emacs manual at gnu.org/software/emacs/manual/.
+      <br><strong>Community:</strong> The Emacs subreddit and the Emacs IRC channel on Libera.Chat (#emacs) are welcoming to beginners.</p>
+    </div>
+  </div>
+
+  </div><!-- end .content -->
+</main>
+
+<a href="#top" class="back-to-top" title="Back to top" aria-label="Back to top">↑</a>
+
+<script>
+  // Smooth scroll for sidebar navigation links
+  document.querySelectorAll('#sidebar a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Highlight active sidebar link on scroll
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('#sidebar a[href^="#s"]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = '#' + entry.target.id;
+        navLinks.forEach(l => l.style.color = '');
+        navLinks.forEach(l => l.style.borderLeftColor = '');
+        const active = document.querySelector('#sidebar a[href="' + id + '"]');
+        if (active) {
+          active.style.color = '#f0ecff';
+          active.style.borderLeftColor = '#8b5cf6';
+          active.style.background = 'rgba(139,92,246,0.15)';
+        }
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Arduino UNO Q — Programming Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════
+   DESIGN TOKENS — deep-space editorial
+══════════════════════════════════════ */
+:root{
+  --bg:       #07090f;
+  --bg2:      #0c101c;
+  --bg3:      #111628;
+  --bg4:      #161d34;
+  --cyan:     #00d4ff;
+  --cyan-dim: #0090b8;
+  --cyan-faint:#001d2e;
+  --violet:   #7b61ff;
+  --amber:    #ffb340;
+  --red:      #ff4560;
+  --green:    #2af598;
+  --text:     #ccd6f6;
+  --text-dim: #5a6890;
+  --border:   #1c2540;
+  --border2:  #263050;
+  --mono:     'JetBrains Mono', monospace;
+  --body:     'DM Sans', sans-serif;
+  --display:  'Syne', sans-serif;
+  --radius:   8px;
+  --glow-c:   0 0 24px rgba(0,212,255,.25);
+  --glow-v:   0 0 24px rgba(123,97,255,.3);
+}
+
+/* ══════════════════════════════════════
+   RESET
+══════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.8;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:3px}
+
+/* ══════════════════════════════════════
+   NOISE GRAIN OVERLAY
+══════════════════════════════════════ */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.025;
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* ══════════════════════════════════════
+   NAV
+══════════════════════════════════════ */
+nav{
+  position:sticky;top:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 3rem;
+  background:rgba(7,9,15,.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{
+  font-family:var(--display);font-weight:800;font-size:.9rem;
+  letter-spacing:.05em;color:#fff;
+  display:flex;align-items:center;gap:.7rem;
+}
+.nav-brand .chip{
+  background:var(--cyan);color:#07090f;
+  font-size:.62rem;font-family:var(--mono);
+  padding:.2rem .55rem;border-radius:4px;letter-spacing:.1em;
+}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{
+  font-family:var(--mono);font-size:.72rem;color:var(--text-dim);
+  text-decoration:none;letter-spacing:.08em;
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--cyan)}
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero{
+  min-height:95vh;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  gap:3rem;
+  padding:5rem 3rem 4rem;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  top:-200px;right:-200px;
+  width:700px;height:700px;
+  background:radial-gradient(circle, rgba(0,212,255,.06) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero::after{display:none} /* override body::after for hero */
+
+.hero-left{position:relative;z-index:1}
+.hero-label{
+  font-family:var(--mono);font-size:.72rem;color:var(--cyan);
+  letter-spacing:.25em;text-transform:uppercase;margin-bottom:1.2rem;
+  display:flex;align-items:center;gap:.6rem;
+  opacity:0;animation:up .6s .1s forwards;
+}
+.hero-label::before{
+  content:'';width:24px;height:1px;background:var(--cyan);
+}
+h1{
+  font-family:var(--display);font-weight:800;
+  font-size:clamp(2.6rem,5.5vw,4.5rem);
+  line-height:1.0;color:#fff;
+  opacity:0;animation:up .7s .25s forwards;
+}
+h1 em{font-style:normal;color:var(--cyan);text-shadow:var(--glow-c)}
+h1 .sub-word{display:block;color:var(--text-dim);font-size:.55em;font-weight:400;letter-spacing:.04em;margin-top:.3rem}
+.hero-desc{
+  max-width:480px;
+  margin-top:1.5rem;color:var(--text-dim);font-size:1rem;
+  opacity:0;animation:up .7s .4s forwards;
+}
+.hero-tags{
+  display:flex;gap:.6rem;flex-wrap:wrap;margin-top:2rem;
+  opacity:0;animation:up .6s .55s forwards;
+}
+.tag{
+  font-family:var(--mono);font-size:.7rem;
+  padding:.3rem .8rem;border-radius:99px;
+  border:1px solid var(--border2);color:var(--text-dim);
+  letter-spacing:.06em;
+}
+.tag.c { border-color:rgba(0,212,255,.3);color:var(--cyan);background:rgba(0,212,255,.05)}
+.tag.v { border-color:rgba(123,97,255,.3);color:var(--violet);background:rgba(123,97,255,.05)}
+.tag.a { border-color:rgba(255,179,64,.3);color:var(--amber);background:rgba(255,179,64,.05)}
+.tag.g { border-color:rgba(42,245,152,.3);color:var(--green);background:rgba(42,245,152,.05)}
+
+.hero-cta{
+  display:flex;gap:1rem;margin-top:2.5rem;flex-wrap:wrap;
+  opacity:0;animation:up .6s .7s forwards;
+}
+.btn{
+  font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;
+  text-decoration:none;padding:.8rem 2rem;border-radius:var(--radius);
+  transition:all .22s;cursor:pointer;border:none;
+}
+.btn-primary{
+  background:var(--cyan);color:#07090f;
+  box-shadow:var(--glow-c);
+}
+.btn-primary:hover{background:transparent;color:var(--cyan);border:1px solid var(--cyan)}
+.btn-ghost{
+  background:transparent;color:var(--text);
+  border:1px solid var(--border2);
+}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* hero right — board diagram */
+.hero-right{
+  position:relative;z-index:1;
+  display:flex;justify-content:center;align-items:center;
+  opacity:0;animation:up .8s .5s forwards;
+}
+
+/* ══════════════════════════════════════
+   PROGRESS BAR
+══════════════════════════════════════ */
+.progress-wrap{
+  position:sticky;top:61px;z-index:100;
+  height:3px;background:var(--bg3);
+}
+.progress-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));
+  transition:width .1s;
+  box-shadow:0 0 10px var(--cyan);
+}
+
+/* ══════════════════════════════════════
+   MAIN WRAPPER
+══════════════════════════════════════ */
+.wrapper{
+  max-width:960px;margin:0 auto;
+  padding:0 2rem 6rem;
+}
+
+/* ══════════════════════════════════════
+   SECTION CHROME
+══════════════════════════════════════ */
+.sec-num{
+  font-family:var(--mono);font-size:.68rem;
+  color:var(--cyan-dim);letter-spacing:.2em;
+  text-transform:uppercase;margin-bottom:.5rem;
+}
+h2{
+  font-family:var(--display);font-weight:800;
+  font-size:clamp(1.5rem,3vw,2.2rem);color:#fff;
+  line-height:1.15;margin-bottom:1.2rem;
+}
+h3{
+  font-family:var(--display);font-weight:700;
+  font-size:1.05rem;color:var(--cyan);
+  margin:2rem 0 .7rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+h3::before{content:'▸';font-size:.7rem;color:var(--cyan-dim)}
+p{color:var(--text);margin-bottom:.9rem}
+strong{color:#fff}
+code{
+  font-family:var(--mono);font-size:.82em;
+  background:var(--bg4);border:1px solid var(--border2);
+  padding:.1em .4em;border-radius:4px;color:var(--cyan);
+}
+hr.div{border:none;border-top:1px solid var(--border);margin:4.5rem 0}
+
+/* ══════════════════════════════════════
+   DUAL-BRAIN EXPLAINER
+══════════════════════════════════════ */
+.dual-brain{
+  display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;
+  margin:2rem 0;
+}
+.brain-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:2rem;
+  position:relative;overflow:hidden;
+  transition:border-color .25s,transform .2s;
+}
+.brain-card:hover{transform:translateY(-3px)}
+.brain-card.mpu{border-top:3px solid var(--cyan)}
+.brain-card.mcu{border-top:3px solid var(--violet)}
+.brain-label{
+  font-family:var(--mono);font-size:.65rem;letter-spacing:.18em;
+  text-transform:uppercase;margin-bottom:.6rem;
+}
+.brain-card.mpu .brain-label{color:var(--cyan)}
+.brain-card.mcu .brain-label{color:var(--violet)}
+.brain-title{
+  font-family:var(--display);font-weight:800;
+  font-size:1.1rem;color:#fff;margin-bottom:.5rem;
+}
+.brain-sub{font-size:.85rem;color:var(--text-dim);margin-bottom:1rem}
+.brain-specs{list-style:none;font-family:var(--mono);font-size:.75rem;color:var(--text-dim)}
+.brain-specs li{padding:.3rem 0;border-bottom:1px solid var(--border)}
+.brain-specs li:last-child{border:none}
+.brain-specs li span{color:#fff}
+
+/* ══════════════════════════════════════
+   BRIDGE DIAGRAM
+══════════════════════════════════════ */
+.diagram-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:1.5rem;margin:1.5rem 0;
+  overflow:hidden;
+}
+
+/* ══════════════════════════════════════
+   CODE BLOCKS
+══════════════════════════════════════ */
+.code-block{
+  background:#050710;
+  border:1px solid var(--border);border-radius:var(--radius);
+  margin:1.2rem 0;overflow:hidden;
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.55rem 1rem;background:var(--bg3);border-bottom:1px solid var(--border);
+}
+.code-lang{font-family:var(--mono);font-size:.68rem;color:var(--cyan-dim);letter-spacing:.1em}
+.dots{display:flex;gap:.4rem}
+.dots span{width:10px;height:10px;border-radius:50%}
+.dots span:nth-child(1){background:#ff5f56}
+.dots span:nth-child(2){background:#ffbd2e}
+.dots span:nth-child(3){background:#27c93f}
+.code-block pre{
+  padding:1.3rem 1.5rem;
+  font-family:var(--mono);font-size:.8rem;
+  line-height:1.75;overflow-x:auto;color:var(--text);
+}
+
+/* syntax */
+.kw  {color:#89ddff}
+.fn  {color:#82aaff}
+.str {color:#c3e88d}
+.cm  {color:#384d65;font-style:italic}
+.num {color:var(--amber)}
+.cls {color:#ffcb6b}
+.var {color:#f07178}
+.op  {color:var(--cyan-dim)}
+.inc {color:#c792ea}
+
+/* ══════════════════════════════════════
+   CALLOUT BOXES
+══════════════════════════════════════ */
+.callout{
+  display:flex;gap:1rem;padding:1.1rem 1.3rem;
+  border-radius:var(--radius);margin:1.3rem 0;border-left:3px solid;
+}
+.callout.tip  {background:rgba(0,212,255,.05);border-color:var(--cyan)}
+.callout.warn {background:rgba(255,179,64,.05);border-color:var(--amber)}
+.callout.info {background:rgba(123,97,255,.06);border-color:var(--violet)}
+.callout.go   {background:rgba(42,245,152,.05);border-color:var(--green)}
+.callout-icon{font-size:1.1rem;flex-shrink:0;margin-top:.15rem}
+.callout p{margin:0;font-size:.9rem}
+
+/* ══════════════════════════════════════
+   STEP CARDS
+══════════════════════════════════════ */
+.steps{display:flex;flex-direction:column;gap:1.5rem;margin-top:1.5rem}
+.step{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:1.8rem 2rem;
+  position:relative;transition:border-color .2s;
+}
+.step:hover{border-color:var(--border2)}
+.step::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--cyan),transparent);
+}
+.step-n{
+  font-family:var(--mono);font-size:.65rem;
+  letter-spacing:.2em;color:var(--cyan-dim);margin-bottom:.35rem;
+}
+.step-t{
+  font-family:var(--display);font-weight:700;
+  font-size:1rem;color:#fff;margin-bottom:.8rem;
+}
+
+/* ══════════════════════════════════════
+   TABLES
+══════════════════════════════════════ */
+.table-wrap{overflow-x:auto;margin:1.2rem 0}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.78rem}
+th{
+  background:var(--bg3);color:var(--cyan);
+  padding:.65rem 1rem;text-align:left;
+  letter-spacing:.07em;border:1px solid var(--border);
+}
+td{padding:.55rem 1rem;border:1px solid var(--border);color:var(--text);vertical-align:top}
+tr:hover td{background:var(--cyan-faint)}
+
+/* ══════════════════════════════════════
+   LED MATRIX VIZ
+══════════════════════════════════════ */
+.led-matrix{
+  display:inline-grid;
+  grid-template-columns:repeat(13,1fr);
+  gap:5px;
+  padding:1.2rem;
+  background:var(--bg4);border-radius:8px;
+}
+.led-dot{
+  width:14px;height:14px;
+  border-radius:50%;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  transition:all .3s;
+}
+.led-dot.on{
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);
+  border-color:var(--cyan);
+}
+
+/* ══════════════════════════════════════
+   REVEAL ANIMATION
+══════════════════════════════════════ */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .6s,transform .6s}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+/* ══════════════════════════════════════
+   FOOTER
+══════════════════════════════════════ */
+footer{
+  position:relative;z-index:1;
+  border-top:1px solid var(--border);
+  padding:2.5rem 3rem;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:var(--mono);font-size:.72rem;color:var(--text-dim);
+}
+footer span{color:var(--cyan)}
+
+/* ══════════════════════════════════════
+   KEYFRAMES
+══════════════════════════════════════ */
+@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes ledcycle{
+  0%,100%{background:var(--bg3);box-shadow:none;border-color:var(--border2)}
+  50%{background:var(--cyan);box-shadow:0 0 8px var(--cyan);border-color:var(--cyan)}
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media(max-width:760px){
+  nav{padding:.8rem 1.2rem}
+  .nav-links{display:none}
+  .hero{grid-template-columns:1fr;padding:4rem 1.2rem 3rem;min-height:auto}
+  .hero-right{display:none}
+  .dual-brain{grid-template-columns:1fr}
+  .wrapper{padding:0 1.2rem 4rem}
+  footer{flex-direction:column;gap:.5rem;text-align:center;padding:2rem 1.2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ NAV ════════ -->
+<nav>
+  <div class="nav-brand">
+    Arduino UNO Q
+    <span class="chip">2025</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#what-is-it">The Board</a></li>
+    <li><a href="#setup">Setup</a></li>
+    <li><a href="#sketch">C++ Sketch</a></li>
+    <li><a href="#python">Python</a></li>
+    <li><a href="#bridge">Bridge</a></li>
+    <li><a href="#projects">Projects</a></li>
+  </ul>
+</nav>
+
+<!-- PROGRESS -->
+<div class="progress-wrap"><div class="progress-fill" id="prog"></div></div>
+
+<!-- ════════ HERO ════════ -->
+<section class="hero">
+  <div class="hero-left">
+    <p class="hero-label">Programming Tutorial</p>
+    <h1>
+      Arduino<br/><em>UNO Q</em>
+      <span class="sub-word">Dual-Brain · Linux + Real-Time MCU</span>
+    </h1>
+    <p class="hero-desc">
+      The UNO Q is unlike any Arduino before it. It combines a full Debian Linux computer
+      with a real-time microcontroller — all on a single board. This tutorial teaches you
+      how to program <strong>both sides</strong> using Python and C++.
+    </p>
+    <div class="hero-tags">
+      <span class="tag c">Python 3</span>
+      <span class="tag v">C++ Sketch</span>
+      <span class="tag a">Debian Linux</span>
+      <span class="tag g">Arduino Bridge</span>
+      <span class="tag c">App Lab IDE</span>
+    </div>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#what-is-it">Start Learning</a>
+      <a class="btn btn-ghost" href="#bridge">Skip to Bridge</a>
+    </div>
+  </div>
+
+  <!-- Board SVG Illustration -->
+  <div class="hero-right">
+    <svg viewBox="0 0 360 430" width="320" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">
+      <!-- Board body -->
+      <rect x="20" y="30" width="320" height="380" rx="14" fill="#0c1828" stroke="#1c3a5e" stroke-width="1.5"/>
+      <!-- Top header pins -->
+      <rect x="60" y="22" width="180" height="16" rx="3" fill="#162030" stroke="#1c3a5e" stroke-width="1"/>
+      <g fill="#2a4060">
+        <rect x="70" y="25" width="6" height="10" rx="1"/>
+        <rect x="82" y="25" width="6" height="10" rx="1"/>
+        <rect x="94" y="25" width="6" height="10" rx="1"/>
+        <rect x="106" y="25" width="6" height="10" rx="1"/>
+        <rect x="118" y="25" width="6" height="10" rx="1"/>
+        <rect x="130" y="25" width="6" height="10" rx="1"/>
+        <rect x="142" y="25" width="6" height="10" rx="1"/>
+        <rect x="154" y="25" width="6" height="10" rx="1"/>
+        <rect x="166" y="25" width="6" height="10" rx="1"/>
+        <rect x="178" y="25" width="6" height="10" rx="1"/>
+        <rect x="190" y="25" width="6" height="10" rx="1"/>
+        <rect x="202" y="25" width="6" height="10" rx="1"/>
+        <rect x="214" y="25" width="6" height="10" rx="1"/>
+        <rect x="226" y="25" width="6" height="10" rx="1"/>
+      </g>
+      <!-- Qualcomm SoC block -->
+      <rect x="50" y="60" width="160" height="110" rx="6" fill="#0a1620" stroke="#00d4ff" stroke-width="1.2"/>
+      <text x="130" y="103" fill="#00d4ff" font-size="9" text-anchor="middle">Qualcomm Dragonwing™</text>
+      <text x="130" y="117" fill="#00d4ff" font-size="9" text-anchor="middle">QRB2210 MPU</text>
+      <text x="130" y="135" fill="#5a6890" font-size="8" text-anchor="middle">Quad-Core Cortex-A53</text>
+      <text x="130" y="148" fill="#5a6890" font-size="8" text-anchor="middle">2.0 GHz · Debian Linux</text>
+      <text x="130" y="161" fill="#5a6890" font-size="8" text-anchor="middle">Adreno GPU · 2× ISP</text>
+      <!-- STM32 MCU block -->
+      <rect x="50" y="190" width="120" height="90" rx="6" fill="#0a1020" stroke="#7b61ff" stroke-width="1.2"/>
+      <text x="110" y="222" fill="#7b61ff" font-size="9" text-anchor="middle">STM32U585</text>
+      <text x="110" y="237" fill="#7b61ff" font-size="9" text-anchor="middle">MCU</text>
+      <text x="110" y="253" fill="#5a6890" font-size="8" text-anchor="middle">Cortex-M33</text>
+      <text x="110" y="266" fill="#5a6890" font-size="8" text-anchor="middle">Zephyr + Arduino</text>
+      <!-- Bridge arrow -->
+      <line x1="130" y1="170" x2="110" y2="190" stroke="#c792ea" stroke-width="1" stroke-dasharray="3 2"/>
+      <text x="153" y="183" fill="#c792ea" font-size="7">Bridge RPC</text>
+      <!-- RAM / eMMC -->
+      <rect x="195" y="190" width="85" height="40" rx="4" fill="#0a1620" stroke="#1c3a5e" stroke-width="1"/>
+      <text x="237" y="210" fill="#8892b0" font-size="8" text-anchor="middle">LPDDR4X RAM</text>
+      <text x="237" y="223" fill="#5a6890" font-size="7" text-anchor="middle">2 GB / 4 GB</text>
+      <rect x="195" y="238" width="85" height="40" rx="4" fill="#0a1620" stroke="#1c3a5e" stroke-width="1"/>
+      <text x="237" y="258" fill="#8892b0" font-size="8" text-anchor="middle">eMMC Storage</text>
+      <text x="237" y="271" fill="#5a6890" font-size="7" text-anchor="middle">16 GB / 32 GB</text>
+      <!-- Wi-Fi / BT chip -->
+      <rect x="195" y="285" width="85" height="40" rx="4" fill="#0a1620" stroke="#1c3a5e" stroke-width="1"/>
+      <text x="237" y="305" fill="#8892b0" font-size="8" text-anchor="middle">Wi-Fi 5 + BT 5.1</text>
+      <text x="237" y="318" fill="#5a6890" font-size="7" text-anchor="middle">Dual-band</text>
+      <!-- USB-C -->
+      <rect x="50" y="380" width="50" height="20" rx="3" fill="#162030" stroke="#00d4ff" stroke-width="1"/>
+      <text x="75" y="394" fill="#00d4ff" font-size="7" text-anchor="middle">USB-C</text>
+      <!-- Qwiic -->
+      <rect x="115" y="380" width="50" height="20" rx="3" fill="#162030" stroke="#ffb340" stroke-width="1"/>
+      <text x="140" y="394" fill="#ffb340" font-size="7" text-anchor="middle">Qwiic</text>
+      <!-- LED matrix hint -->
+      <rect x="50" y="330" width="130" height="40" rx="4" fill="#0a1620" stroke="#1c3a5e" stroke-width="1"/>
+      <text x="115" y="349" fill="#8892b0" font-size="8" text-anchor="middle">8×13 LED Matrix</text>
+      <text x="115" y="362" fill="#5a6890" font-size="7" text-anchor="middle">+ 4 RGB LEDs</text>
+      <!-- Power LED -->
+      <circle cx="310" cy="70" r="6" fill="#2af598" opacity=".9">
+        <animate attributeName="opacity" values=".9;.2;.9" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="310" y="90" fill="#5a6890" font-size="7" text-anchor="middle">PWR</text>
+      <!-- Bottom pins -->
+      <rect x="60" y="398" width="180" height="16" rx="3" fill="#162030" stroke="#1c3a5e" stroke-width="1"/>
+      <g fill="#2a4060">
+        <rect x="70" y="401" width="6" height="10" rx="1"/>
+        <rect x="82" y="401" width="6" height="10" rx="1"/>
+        <rect x="94" y="401" width="6" height="10" rx="1"/>
+        <rect x="106" y="401" width="6" height="10" rx="1"/>
+        <rect x="118" y="401" width="6" height="10" rx="1"/>
+        <rect x="130" y="401" width="6" height="10" rx="1"/>
+        <rect x="142" y="401" width="6" height="10" rx="1"/>
+        <rect x="154" y="401" width="6" height="10" rx="1"/>
+        <rect x="166" y="401" width="6" height="10" rx="1"/>
+        <rect x="178" y="401" width="6" height="10" rx="1"/>
+      </g>
+      <!-- Labels -->
+      <text x="350" y="65" fill="#5a6890" font-size="7" text-anchor="end">MPU →</text>
+      <text x="350" y="235" fill="#5a6890" font-size="7" text-anchor="end">MCU →</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════ WRAPPER ════════ -->
+<div class="wrapper">
+
+<!-- ────────────────────────────────────
+     SECTION 0 — WHAT IS THE UNO Q?
+──────────────────────────────────────── -->
+<section id="what-is-it" class="reveal">
+  <p class="sec-num">// 00 — The Board</p>
+  <h2>What Makes the UNO Q Different?</h2>
+  <p>
+    The Arduino UNO Q (released late 2025) is <strong>not</strong> a classic microcontroller board.
+    It packs two completely separate processors on one board, connected internally through
+    a software bridge. Understanding this "dual-brain" architecture is the first and most
+    important concept in UNO Q programming.
+  </p>
+
+  <div class="dual-brain">
+    <!-- MPU Card -->
+    <div class="brain-card mpu">
+      <p class="brain-label">Brain #1 — The Computer</p>
+      <p class="brain-title">Qualcomm Dragonwing™ QRB2210</p>
+      <p class="brain-sub">MPU · Runs Debian Linux</p>
+      <ul class="brain-specs">
+        <li>Architecture <span>Quad-Core ARM Cortex-A53</span></li>
+        <li>Clock speed <span>2.0 GHz</span></li>
+        <li>GPU <span>Adreno (AI/ML acceleration)</span></li>
+        <li>OS <span>Debian Linux</span></li>
+        <li>RAM <span>2 GB or 4 GB LPDDR4X</span></li>
+        <li>Storage <span>16 GB or 32 GB eMMC</span></li>
+        <li>Language <span>Python, any Linux app</span></li>
+      </ul>
+    </div>
+    <!-- MCU Card -->
+    <div class="brain-card mcu">
+      <p class="brain-label">Brain #2 — The Controller</p>
+      <p class="brain-title">STMicroelectronics STM32U585</p>
+      <p class="brain-sub">MCU · Runs Zephyr + Arduino Core</p>
+      <ul class="brain-specs">
+        <li>Architecture <span>ARM Cortex-M33</span></li>
+        <li>Analog pins <span>A0 – A5 (0–5 V, 12-bit ADC)</span></li>
+        <li>Digital pins <span>D0 – D13 (5 V logic)</span></li>
+        <li>PWM pins <span>D3, D5, D6, D9, D10, D11</span></li>
+        <li>OS <span>Zephyr RTOS</span></li>
+        <li>Language <span>C++ (Arduino sketches)</span></li>
+        <li>I²C / SPI / UART <span>Yes — standard headers</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <p>
+      <strong>Mental model:</strong> Think of the UNO Q as a Raspberry Pi (MPU) and an Arduino Uno (MCU) soldered onto
+      the same board and able to talk to each other. Python lives on the Pi side. C++ sketches live on the Arduino side.
+      The <strong>Bridge library</strong> lets them call each other's functions.
+    </p>
+  </div>
+
+  <h3>The Three Ways to Develop</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Mode</th><th>Tool</th><th>What Gets Programmed</th><th>Best For</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>App Lab (recommended)</td>
+          <td>Arduino App Lab IDE</td>
+          <td>Both MPU (Python) + MCU (C++) together</td>
+          <td>Full projects, beginners, AI features</td>
+        </tr>
+        <tr>
+          <td>PC-connected IDE</td>
+          <td>Arduino IDE 2.x via USB</td>
+          <td>MCU only (C++ sketch)</td>
+          <td>Classic Arduino workflows</td>
+        </tr>
+        <tr>
+          <td>Headless Linux</td>
+          <td>SSH + CLI (VS Code, vim…)</td>
+          <td>MPU only (Python / any language)</td>
+          <td>Servers, AI, networking</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ────────────────────────────────────
+     SECTION 1 — SETUP
+──────────────────────────────────────── -->
+<section id="setup" class="reveal">
+  <p class="sec-num">// 01 — Setup</p>
+  <h2>Getting Your UNO Q Ready</h2>
+
+  <div class="steps">
+
+    <div class="step reveal">
+      <p class="step-n">STEP 01</p>
+      <p class="step-t">Power Up the Board</p>
+      <p>Connect the UNO Q to your computer using a <strong>USB-C cable</strong>. This single cable handles power, programming, HDMI video output, and USB peripherals (via a dongle). A 5 V / 3 A power supply ensures stability when using multiple peripherals.</p>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <p>The first boot takes 1–2 minutes as the Debian OS initialises. The 8×13 LED matrix will display a startup animation — wait for it to settle before connecting from App Lab.</p>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <p class="step-n">STEP 02</p>
+      <p class="step-t">Install Arduino App Lab (Recommended IDE)</p>
+      <p>
+        App Lab is the official IDE for the UNO Q. It lets you write Python (MPU side) and C++ sketches
+        (MCU side) in one project, and deploy both with a single click. Download it at
+        <strong>app.arduino.cc</strong> — compatible with Windows 10+, macOS 11+, and Ubuntu 22.04+.
+        It also comes <strong>pre-installed</strong> on the UNO Q's own Debian OS if you use it as a standalone computer.
+      </p>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <p>
+          Prefer classic Arduino IDE 2.x? That still works — but it can only program the
+          <strong>MCU side</strong> (C++ sketches). You will not be able to deploy Python to the MPU from Arduino IDE.
+        </p>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <p class="step-n">STEP 03</p>
+      <p class="step-t">Select Your Board in App Lab</p>
+      <p>Open App Lab → New Project → choose <strong>Arduino UNO Q</strong> from the board selector. App Lab will auto-detect the board over USB and show both the MPU and MCU subsystems in the project explorer.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">BASH — Alternative: verify via SSH (headless mode)</span>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+        <pre><span class="cm"># The UNO Q runs an SSH server on its Debian OS by default.</span>
+<span class="cm"># Connect your PC and UNO Q to the same Wi-Fi network, then:</span>
+ssh arduino@arduino-uno-q.local
+
+<span class="cm"># Once in, verify the Linux environment:</span>
+uname -a
+<span class="cm"># Linux arduino-uno-q 6.x.x #1 SMP aarch64 GNU/Linux</span>
+
+python3 --version
+<span class="cm"># Python 3.11.x</span></pre>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <p class="step-n">STEP 04</p>
+      <p class="step-t">Understand the Project Structure in App Lab</p>
+      <p>A UNO Q project in App Lab contains three folders:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Folder</th><th>Runs On</th><th>Language</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>sketch/</code></td><td>STM32 MCU</td><td>C++ (.ino)</td><td>Real-time GPIO, sensors, motors</td></tr>
+            <tr><td><code>app/</code></td><td>Qualcomm MPU</td><td>Python (.py)</td><td>AI, networking, logic, UI</td></tr>
+            <tr><td><code>bricks/</code></td><td>Both</td><td>YAML config</td><td>Pre-built feature modules (Bricks)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ────────────────────────────────────
+     SECTION 2 — C++ SKETCH (MCU)
+──────────────────────────────────────── -->
+<section id="sketch" class="reveal">
+  <p class="sec-num">// 02 — C++ Sketch (STM32 MCU)</p>
+  <h2>Programming the Real-Time Controller</h2>
+  <p>
+    The MCU runs your C++ sketch via the <strong>Arduino Core on Zephyr OS</strong>.
+    Every sketch you already know works here — <code>pinMode()</code>, <code>digitalWrite()</code>,
+    <code>analogRead()</code> — but now the STM32U585 is much more capable than a classic Uno's ATmega328P.
+  </p>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <p><strong>Key difference from classic Uno:</strong> The sketch runs on the <em>MCU subsystem</em> — the STM32 chip. The GPIO headers (D0–D13, A0–A5) are connected to this MCU, NOT to the Qualcomm MPU. Always write pin control code in C++, not Python.</p>
+  </div>
+
+  <h3>Sketch Anatomy</h3>
+  <p>Every sketch has the same two required functions — nothing has changed here from classic Arduino:</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">C++ — sketch/sketch.ino — anatomy</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="cm">// sketch/sketch.ino
+// This file runs on the STM32U585 MCU</span>
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="cm">// Runs ONCE at power-on or reset.
+  // Configure pin modes, start Serial, initialise sensors.</span>
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="cm">// Runs FOREVER in a tight loop.
+  // Read sensors, drive outputs, respond to events.</span>
+}</pre>
+  </div>
+
+  <h3>Sketch 1 — Blink the Built-In LED</h3>
+  <p>The UNO Q has a built-in LED on pin 13 (connected to the MCU) plus an 8×13 LED matrix driven by the MPU side. Start with pin 13 to confirm your sketch uploads correctly.</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">C++ — sketch/blink.ino</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="cm">// Blink built-in LED — confirms MCU sketch is running</span>
+<span class="kw">const int</span> <span class="var">LED</span> = <span class="num">13</span>;        <span class="cm">// D13 → MCU GPIO</span>
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="var">LED</span>, OUTPUT);
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);    <span class="cm">// higher baud than classic Uno — STM32 is faster</span>
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"UNO Q MCU ready"</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="fn">digitalWrite</span>(<span class="var">LED</span>, HIGH);
+  <span class="fn">delay</span>(<span class="num">500</span>);
+  <span class="fn">digitalWrite</span>(<span class="var">LED</span>, LOW);
+  <span class="fn">delay</span>(<span class="num">500</span>);
+}</pre>
+  </div>
+
+  <h3>Sketch 2 — Read an Analog Sensor</h3>
+  <p>Wire a potentiometer (or any 0–5 V analog source) to pin <strong>A0</strong>. The STM32U585 has a 12-bit ADC — values range from <code>0</code> to <code>4095</code> (vs. 0–1023 on classic Uno).</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">C++ — sketch/analog_read.ino</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="cm">// Read A0 (12-bit: 0–4095) and print to Serial</span>
+<span class="kw">const int</span> <span class="var">SENSOR</span> = A0;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">analogReadResolution</span>(<span class="num">12</span>);  <span class="cm">// enable 12-bit mode (UNO Q specific!)</span>
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">int</span> <span class="var">raw</span> = <span class="fn">analogRead</span>(<span class="var">SENSOR</span>);
+  <span class="kw">float</span> <span class="var">volts</span> = <span class="var">raw</span> <span class="op">*</span> (<span class="num">5.0</span> <span class="op">/</span> <span class="num">4095.0</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Raw: "</span>); <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="var">raw</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"  Volts: "</span>); <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="var">volts</span>);
+  <span class="fn">delay</span>(<span class="num">200</span>);
+}</pre>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <p><strong>UNO Q gotcha:</strong> Always call <code>analogReadResolution(12)</code> in <code>setup()</code>. Without it, you may get 10-bit behaviour. Scale accordingly: 12-bit → divide by 4095, 10-bit → divide by 1023.</p>
+  </div>
+
+  <h3>Sketch 3 — PWM Output (LED Dimmer)</h3>
+  <p>PWM is available on pins <strong>D3, D5, D6, D9, D10, D11</strong> — the same pins marked with <code>~</code> on the UNO headers.</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">C++ — sketch/pwm_fade.ino</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="cm">// PWM fade on D9 — 0 to 255 and back</span>
+<span class="kw">const int</span> <span class="var">PWM_PIN</span> = <span class="num">9</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="var">PWM_PIN</span>, OUTPUT);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="cm">// Fade in</span>
+  <span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <span class="op">&lt;=</span> <span class="num">255</span>; <span class="var">i</span>++) {
+    <span class="fn">analogWrite</span>(<span class="var">PWM_PIN</span>, <span class="var">i</span>);
+    <span class="fn">delay</span>(<span class="num">8</span>);
+  }
+  <span class="cm">// Fade out</span>
+  <span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">255</span>; <span class="var">i</span> <span class="op">&gt;=</span> <span class="num">0</span>; <span class="var">i</span>--) {
+    <span class="fn">analogWrite</span>(<span class="var">PWM_PIN</span>, <span class="var">i</span>);
+    <span class="fn">delay</span>(<span class="num">8</span>);
+  }
+}</pre>
+  </div>
+
+  <h3>Pin Reference — MCU Side</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Pin</th><th>Mode</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>D0 (RX) / D1 (TX)</td><td>Digital / UART</td><td>Serial communication — avoid for GPIO if using Serial.print</td></tr>
+        <tr><td>D2</td><td>Digital / Interrupt</td><td>INT0 external interrupt</td></tr>
+        <tr><td>D3~</td><td>Digital / PWM / Interrupt</td><td>INT1 + 8-bit PWM</td></tr>
+        <tr><td>D4 – D8</td><td>Digital I/O</td><td>Standard GPIO, 5 V logic</td></tr>
+        <tr><td>D9~, D10~, D11~</td><td>Digital / PWM</td><td>8-bit PWM; D10/D11 also SPI CS/MOSI</td></tr>
+        <tr><td>D12, D13</td><td>Digital / SPI</td><td>D13 = built-in LED + SPI CLK</td></tr>
+        <tr><td>A0 – A5</td><td>Analog In / Digital</td><td>12-bit ADC (0–5 V); call analogReadResolution(12)</td></tr>
+        <tr><td>SDA (A4) / SCL (A5)</td><td>I²C</td><td>Use Wire library for I²C sensors</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ────────────────────────────────────
+     SECTION 3 — PYTHON (MPU)
+──────────────────────────────────────── -->
+<section id="python" class="reveal">
+  <p class="sec-num">// 03 — Python (Qualcomm MPU)</p>
+  <h2>Programming the Linux Side</h2>
+  <p>
+    The MPU runs full Debian Linux with Python 3 pre-installed. You write Python in the
+    <code>app/main.py</code> file inside your App Lab project.
+    This side handles everything high-level: networking, file I/O, AI models,
+    web servers, computer vision — anything you'd do on a Linux PC.
+  </p>
+
+  <h3>Python Hello World on the UNO Q</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PYTHON — app/main.py</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="cm"># app/main.py — runs on the Qualcomm MPU (Debian Linux)</span>
+<span class="kw">import</span> time
+
+<span class="fn">print</span>(<span class="str">"Hello from UNO Q Linux side!"</span>)
+<span class="fn">print</span>(<span class="str">f"Running on Debian, Python {__import__('sys').version}"</span>)
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="fn">print</span>(<span class="str">"MPU is alive..."</span>)
+    time.<span class="fn">sleep</span>(<span class="num">1</span>)</pre>
+  </div>
+
+  <h3>Controlling the Built-In 8×13 LED Matrix</h3>
+  <p>
+    The UNO Q has an 8-row × 13-column LED matrix and 4 RGB LEDs that are connected to the
+    <strong>MPU side</strong> (not the MCU). Control them in Python using the
+    <code>arduinoio</code> library (pre-installed on the board).
+  </p>
+
+  <!-- Interactive LED Matrix Demo -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:1.2rem 0;">
+    <p style="font-family:var(--mono);font-size:.72rem;color:var(--cyan-dim);margin-bottom:.8rem;letter-spacing:.1em;">LIVE DEMO — 8×13 LED Matrix (click to toggle)</p>
+    <div class="led-matrix" id="ledMatrix"></div>
+    <div style="display:flex;gap:.7rem;margin-top:1rem;flex-wrap:wrap">
+      <button onclick="matrixRandom()" style="font-family:var(--mono);font-size:.72rem;padding:.4rem 1rem;background:var(--bg4);border:1px solid var(--border2);color:var(--cyan);border-radius:4px;cursor:pointer">Random</button>
+      <button onclick="matrixClear()" style="font-family:var(--mono);font-size:.72rem;padding:.4rem 1rem;background:var(--bg4);border:1px solid var(--border2);color:var(--text-dim);border-radius:4px;cursor:pointer">Clear</button>
+      <button onclick="matrixAll()" style="font-family:var(--mono);font-size:.72rem;padding:.4rem 1rem;background:var(--bg4);border:1px solid var(--border2);color:var(--green);border-radius:4px;cursor:pointer">All On</button>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PYTHON — app/led_matrix.py</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="cm"># Control the 8x13 LED matrix from Python (MPU side)
+# Uses the arduinoio library pre-installed on Debian</span>
+<span class="kw">from</span> arduinoio <span class="kw">import</span> <span class="cls">LEDMatrix</span>
+<span class="kw">import</span> time
+
+<span class="var">matrix</span> = <span class="cls">LEDMatrix</span>()
+
+<span class="cm"># Turn on a single LED at row 0, column 0</span>
+<span class="var">matrix</span>.<span class="fn">set_pixel</span>(<span class="num">0</span>, <span class="num">0</span>, <span class="kw">True</span>)
+
+<span class="cm"># Write text scrolling across the matrix</span>
+<span class="var">matrix</span>.<span class="fn">print_text</span>(<span class="str">"UNO Q"</span>)
+
+<span class="cm"># Draw a pattern using a 2D list (8 rows x 13 cols)</span>
+<span class="var">pattern</span> = [
+    [<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>],  <span class="cm"># row 0</span>
+    [<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>],  <span class="cm"># row 1</span>
+    <span class="cm"># ... rows 2-7 ...</span>
+]
+<span class="var">matrix</span>.<span class="fn">set_pattern</span>(<span class="var">pattern</span>)
+time.<span class="fn">sleep</span>(<span class="num">3</span>)
+<span class="var">matrix</span>.<span class="fn">clear</span>()</pre>
+  </div>
+
+  <h3>Reading Sensors from Python via Bridge</h3>
+  <p>
+    You <em>cannot</em> call <code>analogRead()</code> directly from Python — that function belongs to the MCU.
+    Instead, you use the <strong>Bridge library</strong> to ask the MCU for sensor values.
+    See Section 04 — Bridge for the full explanation.
+  </p>
+
+  <h3>Python: Installing Libraries (Debian Linux)</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">BASH — SSH into UNO Q Linux side</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="cm"># The UNO Q runs full Debian — use standard apt and pip</span>
+sudo apt update
+sudo apt install python3-opencv    <span class="cm"># computer vision</span>
+sudo apt install python3-flask     <span class="cm"># web server</span>
+pip3 install numpy pandas          <span class="cm"># data science</span>
+
+<span class="cm"># Check what's pre-installed:</span>
+pip3 list | grep arduino
+<span class="cm"># arduinoio     1.x.x  ← the Bridge + hardware library</span></pre>
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ────────────────────────────────────
+     SECTION 4 — BRIDGE
+──────────────────────────────────────── -->
+<section id="bridge" class="reveal">
+  <p class="sec-num">// 04 — The Bridge Library</p>
+  <h2>Making Python and C++ Talk to Each Other</h2>
+  <p>
+    The <strong>Bridge</strong> is Arduino's RPC (Remote Procedure Call) library that lets your
+    Python app on the MPU call functions defined in your C++ sketch on the MCU — and vice versa.
+    This is the magic that makes the UNO Q unique.
+  </p>
+
+  <!-- Bridge Architecture Diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 760 200" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">
+      <defs>
+        <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3z" fill="#00d4ff"/>
+        </marker>
+        <marker id="arrv" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3z" fill="#7b61ff"/>
+        </marker>
+        <marker id="arrb" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3z" fill="#c792ea"/>
+        </marker>
+      </defs>
+      <!-- Python box -->
+      <rect x="20" y="50" width="180" height="100" rx="6" fill="#0c101c" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="110" y="84" fill="#00d4ff" font-size="10" text-anchor="middle" font-weight="bold">Python App</text>
+      <text x="110" y="100" fill="#5a6890" font-size="8.5" text-anchor="middle">app/main.py</text>
+      <text x="110" y="115" fill="#5a6890" font-size="8.5" text-anchor="middle">from arduinoio import Bridge</text>
+      <text x="110" y="132" fill="#5a6890" font-size="8" text-anchor="middle">Runs on Qualcomm MPU</text>
+
+      <!-- Bridge box -->
+      <rect x="270" y="60" width="220" height="80" rx="6" fill="#0a0e1a" stroke="#c792ea" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <text x="380" y="92" fill="#c792ea" font-size="10" text-anchor="middle" font-weight="bold">Arduino Bridge (RPC)</text>
+      <text x="380" y="110" fill="#5a6890" font-size="8.5" text-anchor="middle">Internal high-speed bus</text>
+      <text x="380" y="125" fill="#5a6890" font-size="8" text-anchor="middle">function calls ↔ data exchange</text>
+
+      <!-- C++ box -->
+      <rect x="560" y="50" width="180" height="100" rx="6" fill="#0c0c1c" stroke="#7b61ff" stroke-width="1.5"/>
+      <text x="650" y="84" fill="#7b61ff" font-size="10" text-anchor="middle" font-weight="bold">C++ Sketch</text>
+      <text x="650" y="100" fill="#5a6890" font-size="8.5" text-anchor="middle">sketch/sketch.ino</text>
+      <text x="650" y="115" fill="#5a6890" font-size="8.5" text-anchor="middle">#include &lt;Bridge.h&gt;</text>
+      <text x="650" y="132" fill="#5a6890" font-size="8" text-anchor="middle">Runs on STM32 MCU</text>
+
+      <!-- Arrows -->
+      <line x1="200" y1="100" x2="268" y2="100" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="490" y1="92" x2="558" y2="92" stroke="#c792ea" stroke-width="1.5" marker-end="url(#arrb)"/>
+      <line x1="558" y1="108" x2="490" y2="108" stroke="#7b61ff" stroke-width="1.5" marker-end="url(#arrv)"/>
+      <text x="235" y="92" fill="#00d4ff" font-size="7.5" text-anchor="middle">call()</text>
+      <text x="524" y="88" fill="#c792ea" font-size="7.5" text-anchor="middle">request</text>
+      <text x="524" y="122" fill="#7b61ff" font-size="7.5" text-anchor="middle">response</text>
+    </svg>
+  </div>
+
+  <h3>Bridge Example: Python Reads an MCU Sensor</h3>
+  <p>This is a <strong>complete two-file project</strong>. First the C++ sketch exposes a function via Bridge, then Python calls it.</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">C++ — sketch/sketch.ino — expose sensor via Bridge</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="inc">#include &lt;Bridge.h&gt;</span>
+
+<span class="kw">const int</span> <span class="var">SENSOR_PIN</span> = A0;
+
+<span class="cm">// This function is called by Python through the Bridge.</span>
+<span class="kw">void</span> <span class="fn">getSensorValue</span>(<span class="cls">BridgeClient</span>&amp; <span class="var">client</span>) {
+  <span class="fn">analogReadResolution</span>(<span class="num">12</span>);
+  <span class="kw">int</span> <span class="var">raw</span>    = <span class="fn">analogRead</span>(<span class="var">SENSOR_PIN</span>);
+  <span class="kw">float</span> <span class="var">volts</span> = <span class="var">raw</span> <span class="op">*</span> (<span class="num">5.0f</span> <span class="op">/</span> <span class="num">4095.0f</span>);
+  <span class="var">client</span>.<span class="fn">println</span>(<span class="var">volts</span>, <span class="num">3</span>);  <span class="cm">// send 3-decimal float back to Python</span>
+}
+
+<span class="cm">// Register the function so Python can find it by name.</span>
+<span class="cls">BridgeServer</span> <span class="var">server</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Bridge</span>.<span class="fn">begin</span>();
+  <span class="var">server</span>.<span class="fn">begin</span>();
+  <span class="var">server</span>.<span class="fn">addHandler</span>(<span class="str">"sensor"</span>, getSensorValue);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="var">server</span>.<span class="fn">process</span>();   <span class="cm">// keeps the Bridge running — must be in loop()</span>
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PYTHON — app/main.py — call MCU sensor via Bridge</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="kw">from</span> arduinoio <span class="kw">import</span> <span class="cls">Bridge</span>
+<span class="kw">import</span> time
+
+<span class="var">bridge</span> = <span class="cls">Bridge</span>()
+<span class="var">bridge</span>.<span class="fn">begin</span>()  <span class="cm"># connect to MCU over the internal bus</span>
+
+<span class="fn">print</span>(<span class="str">"Polling analog sensor from Python via Bridge..."</span>)
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="cm"># Call the "sensor" handler registered in the C++ sketch</span>
+    response = <span class="var">bridge</span>.<span class="fn">call</span>(<span class="str">"sensor"</span>)
+    voltage  = <span class="fn">float</span>(response.<span class="fn">strip</span>())
+
+    <span class="fn">print</span>(<span class="str">f"A0 voltage: {voltage:.3f} V"</span>)
+
+    <span class="kw">if</span> voltage <span class="op">&gt;</span> <span class="num">3.5</span>:
+        <span class="fn">print</span>(<span class="str">"  ⚡ High voltage detected — trigger Python-side alert!"</span>)
+
+    time.<span class="fn">sleep</span>(<span class="num">0.5</span>)</pre>
+  </div>
+
+  <div class="callout go">
+    <span class="callout-icon">✅</span>
+    <p>
+      <strong>The Bridge pattern in one sentence:</strong>
+      C++ sketch registers named handlers → Python calls them by name → MCU executes the GPIO
+      operation → returns data to Python. The two processors stay in sync without any manual
+      serial wiring.
+    </p>
+  </div>
+
+  <h3>Bridge: Python Controls MCU Output (LED via Python)</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">C++ — sketch/sketch.ino — LED control via Bridge</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="inc">#include &lt;Bridge.h&gt;</span>
+<span class="kw">const int</span> <span class="var">LED</span> = <span class="num">13</span>;
+
+<span class="kw">void</span> <span class="fn">setLED</span>(<span class="cls">BridgeClient</span>&amp; <span class="var">client</span>) {
+  <span class="cls">String</span> <span class="var">state</span> = <span class="var">client</span>.<span class="fn">readStringUntil</span>(<span class="str">'\n'</span>).<span class="fn">trim</span>();
+  <span class="fn">digitalWrite</span>(<span class="var">LED</span>, (<span class="var">state</span> == <span class="str">"1"</span>) ? HIGH : LOW);
+  <span class="var">client</span>.<span class="fn">println</span>(<span class="str">"OK"</span>);
+}
+
+<span class="cls">BridgeServer</span> <span class="var">server</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Bridge</span>.<span class="fn">begin</span>();
+  <span class="fn">pinMode</span>(<span class="var">LED</span>, OUTPUT);
+  <span class="var">server</span>.<span class="fn">begin</span>();
+  <span class="var">server</span>.<span class="fn">addHandler</span>(<span class="str">"led"</span>, setLED);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() { <span class="var">server</span>.<span class="fn">process</span>(); }</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PYTHON — app/main.py — toggle LED from Python</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <pre><span class="kw">from</span> arduinoio <span class="kw">import</span> <span class="cls">Bridge</span>
+<span class="kw">import</span> time
+
+<span class="var">bridge</span> = <span class="cls">Bridge</span>()
+<span class="var">bridge</span>.<span class="fn">begin</span>()
+
+<span class="fn">print</span>(<span class="str">"Python blinking D13 via Bridge..."</span>)
+
+<span class="kw">for</span> <span class="var">_</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+    <span class="var">bridge</span>.<span class="fn">call</span>(<span class="str">"led"</span>, <span class="str">"1"</span>)   <span class="cm"># LED on</span>
+    time.<span class="fn">sleep</span>(<span class="num">0.4</span>)
+    <span class="var">bridge</span>.<span class="fn">call</span>(<span class="str">"led"</span>, <span class="str">"0"</span>)   <span class="cm"># LED off</span>
+    time.<span class="fn">sleep</span>(<span class="num">0.4</span>)
+
+<span class="fn">print</span>(<span class="str">"Done."</span>)</pre>
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ────────────────────────────────────
+     SECTION 5 — PROJECTS
+──────────────────────────────────────── -->
+<section id="projects" class="reveal">
+  <p class="sec-num">// 05 — Projects</p>
+  <h2>Put It All Together</h2>
+
+  <div class="steps">
+
+    <div class="step reveal">
+      <p class="step-n">PROJECT A</p>
+      <p class="step-t">Smart Temperature Monitor</p>
+      <p>
+        Wire a DS18B20 or NTC thermistor to <code>A0</code>.
+        The <strong>C++ sketch</strong> reads the sensor and exposes it via Bridge.
+        The <strong>Python app</strong> polls it every second, logs to a CSV on the eMMC,
+        and hosts a live Flask web page on the local Wi-Fi network so you can see the graph from any device.
+      </p>
+      <div class="callout tip">
+        <span class="callout-icon">💡</span>
+        <p>
+          Use <code>pandas</code> and <code>matplotlib</code> on the Python side for analysis.
+          The UNO Q's 2 GHz quad-core makes data science libraries fast enough for real-time plotting.
+        </p>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <p class="step-n">PROJECT B</p>
+      <p class="step-t">Object Detection with a USB Camera</p>
+      <p>
+        Plug a USB webcam into the UNO Q USB-C port via a dongle.
+        Use <code>opencv-python</code> on the Python (MPU) side to run object detection.
+        When a target is detected, Python calls a Bridge function in the C++ sketch to
+        trigger an LED or buzzer on the GPIO pins — pure hardware response to a vision event.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">PYTHON — app/vision.py (key excerpt)</span>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+        <pre><span class="kw">import</span> cv2
+<span class="kw">from</span> arduinoio <span class="kw">import</span> <span class="cls">Bridge</span>
+
+<span class="var">bridge</span> = <span class="cls">Bridge</span>(); <span class="var">bridge</span>.<span class="fn">begin</span>()
+<span class="var">cap</span>    = cv2.<span class="fn">VideoCapture</span>(<span class="num">0</span>)  <span class="cm"># USB webcam</span>
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="var">ret</span>, <span class="var">frame</span> = <span class="var">cap</span>.<span class="fn">read</span>()
+    <span class="cm"># ... run detection model ...</span>
+    <span class="kw">if</span> <span class="var">person_detected</span>:
+        <span class="var">bridge</span>.<span class="fn">call</span>(<span class="str">"alert"</span>, <span class="str">"1"</span>)  <span class="cm"># buzzer ON via MCU</span></pre>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <p class="step-n">PROJECT C</p>
+      <p class="step-t">Qwiic / Modulino Sensor Chain</p>
+      <p>
+        The UNO Q has a <strong>Qwiic connector</strong> that speaks I²C. Snap in Modulino nodes
+        (no soldering!) for buttons, distance sensors, RGB LEDs, knobs, and more.
+        Control them from either the Python side (via <code>arduinoio</code>) or the C++ sketch
+        via the standard <code>Wire</code> library.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Modulino Node</th><th>Sensor/Actuator</th><th>Best Controlled From</th></tr></thead>
+          <tbody>
+            <tr><td>Modulino Pixels</td><td>8× RGB LED strip</td><td>Python (effects) or C++ (timing)</td></tr>
+            <tr><td>Modulino Buttons</td><td>3 tactile buttons</td><td>C++ (interrupt-driven) or Python</td></tr>
+            <tr><td>Modulino Distance</td><td>VL53L4CD ToF</td><td>C++ for low-latency robotics</td></tr>
+            <tr><td>Modulino Knob</td><td>Rotary encoder + LED</td><td>C++ (precise angle tracking)</td></tr>
+            <tr><td>Modulino Thermo</td><td>HS3003 temp + humidity</td><td>Python (CSV logging)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <p class="step-n">PROJECT D</p>
+      <p class="step-t">Wi-Fi Remote Control Dashboard</p>
+      <p>
+        Use Python's <code>Flask</code> to host a web app on the UNO Q's dual-band Wi-Fi.
+        Any browser on your network can toggle LEDs, read sensors, and stream the LED
+        matrix state — no extra hardware needed beyond the board itself.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">PYTHON — app/dashboard.py</span>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+        <pre><span class="kw">from</span> flask   <span class="kw">import</span> Flask, jsonify, request
+<span class="kw">from</span> arduinoio <span class="kw">import</span> <span class="cls">Bridge</span>
+<span class="kw">import</span> threading
+
+<span class="var">app</span>    = <span class="cls">Flask</span>(__name__)
+<span class="var">bridge</span> = <span class="cls">Bridge</span>(); <span class="var">bridge</span>.<span class="fn">begin</span>()
+<span class="var">lock</span>   = threading.<span class="cls">Lock</span>()
+
+<span class="var">@app</span>.route(<span class="str">"/led"</span>, methods=[<span class="str">"POST"</span>])
+<span class="kw">def</span> <span class="fn">led</span>():
+    <span class="var">state</span> = request.json.get(<span class="str">"state"</span>, <span class="str">"0"</span>)
+    <span class="kw">with</span> <span class="var">lock</span>:
+        <span class="var">bridge</span>.<span class="fn">call</span>(<span class="str">"led"</span>, <span class="var">state</span>)
+    <span class="kw">return</span> <span class="fn">jsonify</span>(ok=<span class="kw">True</span>)
+
+<span class="var">@app</span>.route(<span class="str">"/sensor"</span>)
+<span class="kw">def</span> <span class="fn">sensor</span>():
+    <span class="kw">with</span> <span class="var">lock</span>:
+        <span class="var">v</span> = <span class="fn">float</span>(<span class="var">bridge</span>.<span class="fn">call</span>(<span class="str">"sensor"</span>).<span class="fn">strip</span>())
+    <span class="kw">return</span> <span class="fn">jsonify</span>(voltage=<span class="var">v</span>)
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    <span class="var">app</span>.<span class="fn">run</span>(host=<span class="str">"0.0.0.0"</span>, port=<span class="num">5000</span>)
+<span class="cm"># Access at: http://arduino-uno-q.local:5000</span></pre>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ────────────────────────────────────
+     SECTION 6 — QUICK REFERENCE
+──────────────────────────────────────── -->
+<section class="reveal">
+  <p class="sec-num">// 06 — Quick Reference</p>
+  <h2>UNO Q Cheat Sheet</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Task</th><th>Language</th><th>Side</th><th>Key Function / Tool</th></tr></thead>
+      <tbody>
+        <tr><td>Read a pin (D2–D13)</td><td>C++</td><td>MCU</td><td><code>digitalRead(pin)</code></td></tr>
+        <tr><td>Write a pin</td><td>C++</td><td>MCU</td><td><code>digitalWrite(pin, HIGH/LOW)</code></td></tr>
+        <tr><td>Read analog sensor</td><td>C++</td><td>MCU</td><td><code>analogRead(A0..A5)</code> — set resolution first</td></tr>
+        <tr><td>PWM output</td><td>C++</td><td>MCU</td><td><code>analogWrite(pin, 0–255)</code> on ~pins</td></tr>
+        <tr><td>I²C sensor</td><td>C++</td><td>MCU</td><td><code>#include &lt;Wire.h&gt;</code></td></tr>
+        <tr><td>Expose data to Python</td><td>C++</td><td>MCU</td><td><code>Bridge.h</code> + <code>BridgeServer.addHandler()</code></td></tr>
+        <tr><td>Call MCU function</td><td>Python</td><td>MPU</td><td><code>bridge.call("handler_name")</code></td></tr>
+        <tr><td>LED matrix</td><td>Python</td><td>MPU</td><td><code>arduinoio.LEDMatrix</code></td></tr>
+        <tr><td>Wi-Fi / networking</td><td>Python</td><td>MPU</td><td>standard <code>socket</code>, <code>requests</code>, <code>flask</code></td></tr>
+        <tr><td>Computer vision</td><td>Python</td><td>MPU</td><td><code>cv2</code> (OpenCV) on Debian</td></tr>
+        <tr><td>AI inference</td><td>Python</td><td>MPU</td><td><code>tflite</code> / ONNX + Adreno GPU</td></tr>
+        <tr><td>Deploy full project</td><td>Both</td><td>Both</td><td>Arduino App Lab → Run button</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Common Beginner Mistakes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mistake</th><th>Why it Fails</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>Calling <code>analogRead()</code> in Python</td><td>Python runs on MPU; GPIO is MCU-only</td><td>Use Bridge to ask MCU for the value</td></tr>
+        <tr><td>Forgetting <code>analogReadResolution(12)</code></td><td>May default to 10-bit, wrong scale</td><td>Add to <code>setup()</code> in every sketch</td></tr>
+        <tr><td>Opening Serial Monitor in Arduino IDE while App Lab is running</td><td>Port conflict; both try to own the port</td><td>Use only one tool at a time</td></tr>
+        <tr><td>Forgetting <code>server.process()</code> in <code>loop()</code></td><td>Bridge never receives Python calls</td><td>Always put it in the loop</td></tr>
+        <tr><td>Expecting Wi-Fi from the MCU sketch</td><td>Wi-Fi is on the MPU side</td><td>All wireless code goes in Python</td></tr>
+        <tr><td>Using <code>delay()</code> in loop with Bridge active</td><td><code>delay()</code> blocks <code>server.process()</code></td><td>Use <code>millis()</code>-based non-blocking timing</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div><!-- /wrapper -->
+
+<!-- ════════ FOOTER ════════ -->
+<footer>
+  <span>Arduino UNO Q Tutorial</span> — HTML5 + CSS · Accurate to board rev. 2025
+  <span style="color:var(--text-dim)">Qualcomm QRB2210 MPU · STM32U585 MCU</span>
+</footer>
+
+<!-- ════════ SCRIPTS ════════ -->
+<script>
+// Reading progress bar
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.width = (window.scrollY / h * 100) + '%';
+});
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(e => e.forEach(el => {
+  if (el.isIntersecting) el.target.classList.add('vis');
+}), { threshold: 0.07 });
+reveals.forEach(el => obs.observe(el));
+
+// ── LED Matrix Demo ─────────────────────────
+const ROWS = 8, COLS = 13;
+const matrix = document.getElementById('ledMatrix');
+const state  = Array.from({length: ROWS}, () => Array(COLS).fill(false));
+const dots   = [];
+
+// Build grid
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const d = document.createElement('div');
+    d.className = 'led-dot';
+    d.addEventListener('click', () => {
+      state[r][c] = !state[r][c];
+      d.classList.toggle('on', state[r][c]);
+    });
+    matrix.appendChild(d);
+    dots.push({el: d, r, c});
+  }
+}
+
+function matrixRandom() {
+  dots.forEach(({el, r, c}) => {
+    state[r][c] = Math.random() > .5;
+    el.classList.toggle('on', state[r][c]);
+  });
+}
+function matrixClear() {
+  dots.forEach(({el, r, c}) => {
+    state[r][c] = false;
+    el.classList.remove('on');
+  });
+}
+function matrixAll() {
+  dots.forEach(({el, r, c}) => {
+    state[r][c] = true;
+    el.classList.add('on');
+  });
+}
+
+// Start with a decorative "U Q" pattern
+const uqPattern = [
+  [1,0,1,0,0,0,1,0,1,1,1,0,0],
+  [1,0,1,0,0,0,1,0,1,0,0,0,0],
+  [1,0,1,0,0,0,1,0,1,0,0,0,0],
+  [1,0,1,0,0,0,1,0,1,1,1,0,0],
+  [1,0,1,0,0,0,1,0,0,0,1,0,0],
+  [1,0,1,0,0,0,1,0,0,0,1,0,0],
+  [1,1,1,0,0,0,1,0,1,1,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0],
+];
+dots.forEach(({el, r, c}) => {
+  state[r][c] = !!uqPattern[r]?.[c];
+  el.classList.toggle('on', state[r][c]);
+});
+</script>
+</body>
+</html>

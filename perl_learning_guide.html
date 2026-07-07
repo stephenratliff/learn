@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Perl — A Comprehensive Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   RESET & TOKENS
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  /* palette */
+  --bg:        #0f0e0c;
+  --bg2:       #161410;
+  --bg3:       #1d1a14;
+  --panel:     #231f18;
+  --border:    #2e2920;
+  --border2:   #3d3828;
+
+  --ink:       #ede8df;
+  --ink2:      #b5ad9e;
+  --ink3:      #7a7265;
+  --ink4:      #4a4438;
+
+  --amber:     #d4943a;
+  --amber2:    #b87e2a;
+  --amber3:    #8c5e18;
+  --amber-glow:rgba(212,148,58,.08);
+
+  --green:     #78c87a;
+  --teal:      #5ec8c0;
+  --blue:      #78aee8;
+  --purple:    #c090e8;
+  --pink:      #e888b8;
+  --red:       #e87878;
+  --yellow:    #e8d060;
+
+  /* syntax */
+  --sk: #d4943a;  /* keyword */
+  --ss: #78c87a;  /* string */
+  --sn: #e09060;  /* number */
+  --sv: #78aee8;  /* variable */
+  --sf: #e8d060;  /* function */
+  --sr: #e888b8;  /* regex */
+  --so: #5ec8c0;  /* operator */
+  --sc: #4a5e48;  /* comment */
+  --sp: #887870;  /* punctuation */
+  --sw: #c8c0b0;  /* plain */
+
+  /* type */
+  --serif:  'Source Serif 4', Georgia, serif;
+  --display:'Playfair Display', Georgia, serif;
+  --mono:   'IBM Plex Mono', monospace;
+}
+
+html{scroll-behavior:smooth;font-size:15px}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-weight:300;
+  line-height:1.65;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════ */
+#sidebar{
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  position:sticky;top:0;
+  height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;
+  padding-bottom:32px;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border2) transparent;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
+
+.sb-brand{
+  padding:28px 24px 20px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:10;
+}
+.sb-brand-title{
+  font-family:var(--display);
+  font-size:16px;font-weight:700;
+  font-style:italic;
+  color:var(--amber);
+  line-height:1.25;
+}
+.sb-brand-sub{
+  font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink4);margin-top:4px;
+}
+
+/* progress bar */
+.sb-progress{
+  height:2px;background:var(--border);
+  margin:14px 24px 0;border-radius:1px;
+  overflow:hidden;
+}
+.sb-progress-fill{
+  height:100%;background:var(--amber);
+  width:0%;transition:width .3s;
+  border-radius:1px;
+}
+
+.sb-search{
+  margin:16px 16px 4px;
+  padding:7px 12px;
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:3px;
+  color:var(--ink2);
+  font-family:var(--mono);
+  font-size:11.5px;
+  outline:none;
+  width:calc(100% - 32px);
+  transition:border-color .2s;
+}
+.sb-search::placeholder{color:var(--ink4)}
+.sb-search:focus{border-color:var(--amber3)}
+
+.nav-group{padding:4px 0 2px}
+.nav-grp-label{
+  display:block;padding:10px 24px 3px;
+  font-size:9px;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink4);
+  font-weight:600;font-family:var(--mono);
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:5px 24px;
+  color:var(--ink3);font-size:12.5px;
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:all .15s;
+  cursor:pointer;
+}
+.nav-item:hover{color:var(--amber);border-left-color:var(--amber3);background:var(--amber-glow)}
+.nav-item.active{color:var(--amber);border-left-color:var(--amber);font-weight:600;background:var(--amber-glow)}
+.nav-item.hidden{display:none}
+.nav-num{
+  font-family:var(--mono);font-size:9px;
+  color:var(--ink4);min-width:20px;
+  letter-spacing:.04em;
+}
+.nav-badge{
+  margin-left:auto;font-family:var(--mono);
+  font-size:8.5px;padding:1px 5px;
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:2px;color:var(--ink4);
+  letter-spacing:.04em;
+}
+
+/* ═══════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════ */
+#content{max-width:880px;padding:0 60px 80px}
+
+/* ═══════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════ */
+.hero{
+  padding:60px 0 48px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:0;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;
+  top:-80px;right:-120px;
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(212,148,58,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:16px;
+}
+.hero h1{
+  font-family:var(--display);
+  font-size:52px;font-weight:900;
+  letter-spacing:-.02em;line-height:1;
+  color:#fff;
+}
+.hero h1 em{color:var(--amber);font-style:italic}
+.hero-tagline{
+  margin-top:18px;font-size:16px;
+  color:var(--ink2);max-width:580px;
+  line-height:1.8;font-weight:300;
+}
+.hero-chips{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;
+}
+.chip{
+  font-family:var(--mono);font-size:10px;
+  padding:3px 10px;
+  border:1px solid var(--border2);border-radius:2px;
+  color:var(--ink3);
+}
+
+/* ═══════════════════════════════════════════════
+   CHAPTER / SECTION
+═══════════════════════════════════════════════ */
+.chapter{
+  border-bottom:1px solid var(--border);
+  scroll-margin-top:16px;
+}
+
+.ch-header{
+  display:flex;align-items:center;gap:16px;
+  padding:28px 0 0;
+  cursor:pointer;user-select:none;
+}
+.ch-num{
+  font-family:var(--mono);font-size:11px;
+  color:var(--amber3);min-width:32px;
+  letter-spacing:.06em;
+}
+.ch-title{
+  font-family:var(--display);
+  font-size:24px;font-weight:700;
+  color:#fff;letter-spacing:-.01em;
+  font-style:italic;flex:1;
+}
+.ch-arrow{
+  color:var(--ink4);transition:transform .25s;
+  font-size:10px;margin-right:4px;
+}
+.chapter.open .ch-arrow{transform:rotate(90deg)}
+
+.ch-body{
+  display:none;
+  padding:20px 0 32px;
+}
+.chapter.open .ch-body{display:block}
+
+/* subsections */
+.sub{margin-bottom:28px}
+h3{
+  font-family:var(--mono);font-size:11px;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:var(--amber);margin-bottom:12px;
+  padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+}
+h4{
+  font-size:13px;font-weight:600;
+  color:var(--ink);margin:16px 0 8px;
+  font-family:var(--serif);
+}
+
+p{
+  color:var(--ink2);font-size:14px;
+  line-height:1.8;margin-bottom:12px;
+}
+p:last-child{margin-bottom:0}
+
+/* ═══════════════════════════════════════════════
+   CODE BLOCKS
+═══════════════════════════════════════════════ */
+.code{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:5px;
+  overflow:hidden;margin:12px 0 18px;
+}
+.code-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 14px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+}
+.code-file{
+  font-family:var(--mono);font-size:10px;
+  color:var(--ink4);
+}
+.code-lang{
+  font-family:var(--mono);font-size:8.5px;
+  text-transform:uppercase;letter-spacing:.1em;
+  padding:2px 7px;
+  background:rgba(212,148,58,.1);
+  color:var(--amber2);border-radius:2px;
+}
+.code pre{
+  padding:14px 18px;
+  font-family:var(--mono);font-size:12px;
+  line-height:1.9;overflow-x:auto;
+  white-space:pre;
+}
+
+/* syntax classes */
+.k {color:var(--sk)}
+.s {color:var(--ss)}
+.n {color:var(--sn)}
+.v {color:var(--sv)}
+.f {color:var(--sf)}
+.r {color:var(--sr)}
+.o {color:var(--so)}
+.c {color:var(--sc);font-style:italic}
+.p {color:var(--sp)}
+.w {color:var(--sw)}
+
+/* ═══════════════════════════════════════════════
+   CALLOUT BOXES
+═══════════════════════════════════════════════ */
+.note,.warn,.tip,.diff,.key-concept{
+  border-left:3px solid;
+  padding:10px 14px;margin:10px 0 18px;
+  border-radius:0 4px 4px 0;
+  font-size:13px;line-height:1.7;
+  color:var(--ink2);
+}
+.note{background:rgba(120,200,122,.06);border-color:#78c87a}
+.warn{background:rgba(232,208,96,.06);border-color:var(--yellow)}
+.tip {background:rgba(94,200,192,.06);border-color:var(--teal)}
+.diff{background:rgba(120,174,232,.06);border-color:var(--blue)}
+.key-concept{background:rgba(212,148,58,.07);border-color:var(--amber);padding:14px 16px}
+
+.note strong,.warn strong,.tip strong,.diff strong,.key-concept strong{
+  display:block;
+  font-family:var(--mono);font-size:9px;
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:4px;font-weight:600;
+}
+.note strong{color:var(--green)}
+.warn strong{color:var(--yellow)}
+.tip  strong{color:var(--teal)}
+.diff strong{color:var(--blue)}
+.key-concept strong{color:var(--amber)}
+
+/* ═══════════════════════════════════════════════
+   TABLES
+═══════════════════════════════════════════════ */
+.tbl-wrap{overflow-x:auto;margin:10px 0 20px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead tr{border-bottom:2px solid var(--border2)}
+th{
+  text-align:left;padding:7px 12px 9px;
+  font-family:var(--mono);font-size:9.5px;
+  text-transform:uppercase;letter-spacing:.09em;
+  color:var(--ink4);font-weight:600;
+}
+td{
+  padding:6px 12px;border-bottom:1px solid var(--border);
+  color:var(--ink2);vertical-align:top;line-height:1.6;
+}
+tr:last-child td{border-bottom:none}
+td:first-child,th:first-child{padding-left:0}
+td.mono{font-family:var(--mono);font-size:11.5px;color:var(--amber2);white-space:nowrap}
+td.mono2{font-family:var(--mono);font-size:11px;color:var(--teal)}
+tr:hover td{background:var(--amber-glow)}
+
+/* ═══════════════════════════════════════════════
+   TAG GRID
+═══════════════════════════════════════════════ */
+.tag-grid{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin:8px 0 16px;
+}
+.tg{
+  font-family:var(--mono);font-size:11px;
+  padding:3px 10px;
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:2px;color:var(--teal);
+}
+.tg.amber{color:var(--amber2)}
+.tg.purple{color:var(--purple)}
+.tg.pink{color:var(--pink)}
+.tg.green{color:var(--green)}
+
+/* ═══════════════════════════════════════════════
+   TWO-COL SPLIT
+═══════════════════════════════════════════════ */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0 18px}
+.two .code{margin:0}
+
+/* ═══════════════════════════════════════════════
+   INLINE CODE
+═══════════════════════════════════════════════ */
+code{
+  font-family:var(--mono);font-size:12px;
+  background:var(--panel);border:1px solid var(--border2);
+  padding:1px 5px;border-radius:2px;
+  color:var(--teal);
+}
+
+/* ═══════════════════════════════════════════════
+   OPERATOR PRECEDENCE SPECIAL TABLE
+═══════════════════════════════════════════════ */
+.prec-table{
+  display:grid;gap:2px;margin:10px 0 18px;
+}
+.prec-row{
+  display:grid;grid-template-columns:36px 1fr 1fr;
+  gap:12px;align-items:center;
+  padding:5px 8px;border-radius:3px;
+}
+.prec-row:hover{background:var(--panel)}
+.prec-level{
+  font-family:var(--mono);font-size:9px;
+  color:var(--ink4);text-align:center;
+}
+.prec-ops{font-family:var(--mono);font-size:12px;color:var(--amber2)}
+.prec-desc{font-size:12px;color:var(--ink3)}
+
+/* ═══════════════════════════════════════════════
+   SECTION DIVIDER
+═══════════════════════════════════════════════ */
+.div-line{
+  border:none;border-top:1px solid var(--border);
+  margin:24px 0;
+}
+
+/* ═══════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════ */
+.guide-footer{
+  margin-top:40px;padding:24px 0;
+  border-top:1px solid var(--border);
+  font-family:var(--mono);font-size:10.5px;
+  color:var(--ink4);
+  display:flex;justify-content:space-between;
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media(max-width:780px){
+  .shell{grid-template-columns:1fr}
+  #sidebar{display:none}
+  #content{padding:0 20px 60px}
+  .hero h1{font-size:34px}
+  .two{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════ -->
+<nav id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-title">Learning Perl</div>
+    <div class="sb-brand-sub">Comprehensive Guide</div>
+    <div class="sb-progress"><div class="sb-progress-fill" id="progressBar"></div></div>
+  </div>
+
+  <input class="sb-search" type="text" id="navSearch" placeholder="Filter sections…" autocomplete="off">
+
+  <div class="nav-group">
+    <span class="nav-grp-label">Foundations</span>
+    <a class="nav-item" data-target="ch1"><span class="nav-num">01</span>Introduction &amp; Philosophy<span class="nav-badge">core</span></a>
+    <a class="nav-item" data-target="ch2"><span class="nav-num">02</span>Program Structure</a>
+    <a class="nav-item" data-target="ch3"><span class="nav-num">03</span>Scalars &amp; Strings</a>
+    <a class="nav-item" data-target="ch4"><span class="nav-num">04</span>Numbers &amp; Operators</a>
+    <a class="nav-item" data-target="ch5"><span class="nav-num">05</span>Operator Precedence</a>
+  </div>
+
+  <div class="nav-group">
+    <span class="nav-grp-label">Data Structures</span>
+    <a class="nav-item" data-target="ch6"><span class="nav-num">06</span>Arrays</a>
+    <a class="nav-item" data-target="ch7"><span class="nav-num">07</span>Hashes</a>
+    <a class="nav-item" data-target="ch8"><span class="nav-num">08</span>References</a>
+    <a class="nav-item" data-target="ch9"><span class="nav-num">09</span>Complex Structures</a>
+  </div>
+
+  <div class="nav-group">
+    <span class="nav-grp-label">Control &amp; Functions</span>
+    <a class="nav-item" data-target="ch10"><span class="nav-num">10</span>Control Flow</a>
+    <a class="nav-item" data-target="ch11"><span class="nav-num">11</span>Loops</a>
+    <a class="nav-item" data-target="ch12"><span class="nav-num">12</span>Subroutines</a>
+    <a class="nav-item" data-target="ch13"><span class="nav-num">13</span>Scope &amp; Closures</a>
+  </div>
+
+  <div class="nav-group">
+    <span class="nav-grp-label">Power Features</span>
+    <a class="nav-item" data-target="ch14"><span class="nav-num">14</span>Regular Expressions<span class="nav-badge">★</span></a>
+    <a class="nav-item" data-target="ch15"><span class="nav-num">15</span>List Processing</a>
+    <a class="nav-item" data-target="ch16"><span class="nav-num">16</span>File I/O</a>
+    <a class="nav-item" data-target="ch17"><span class="nav-num">17</span>Error Handling</a>
+  </div>
+
+  <div class="nav-group">
+    <span class="nav-grp-label">Architecture</span>
+    <a class="nav-item" data-target="ch18"><span class="nav-num">18</span>Object-Oriented Perl</a>
+    <a class="nav-item" data-target="ch19"><span class="nav-num">19</span>Modules &amp; CPAN</a>
+    <a class="nav-item" data-target="ch20"><span class="nav-num">20</span>Special Variables</a>
+  </div>
+
+  <div class="nav-group">
+    <span class="nav-grp-label">Mastery</span>
+    <a class="nav-item" data-target="ch21"><span class="nav-num">21</span>Command-Line Perl</a>
+    <a class="nav-item" data-target="ch22"><span class="nav-num">22</span>Advanced Topics</a>
+    <a class="nav-item" data-target="ch23"><span class="nav-num">23</span>Best Practices</a>
+    <a class="nav-item" data-target="ch24"><span class="nav-num">24</span>Learning Roadmap</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════ -->
+<main id="content">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Complete Reference Guide</div>
+  <h1>Learning <em>Perl</em></h1>
+  <p class="hero-tagline">A comprehensive, structured outline of the Perl programming language — from first principles through advanced mastery. Every major feature, idiom, and best practice in one document.</p>
+  <div class="hero-chips">
+    <span class="chip">24 chapters</span>
+    <span class="chip">Perl 5.x</span>
+    <span class="chip">learning.perl · intermediate.perl · modern.perl</span>
+    <span class="chip">O'Reilly canon</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 01 — INTRODUCTION & PHILOSOPHY
+════════════════════════════════════════════ -->
+<div class="chapter open" id="ch1">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">01</span>
+    <span class="ch-title">Introduction &amp; Philosophy</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>What is Perl?</h3>
+      <p>Perl (Practical Extraction and Report Language) is a high-level, general-purpose, interpreted, dynamic programming language created by Larry Wall in 1987. It draws from C, shell scripting, awk, sed, Lisp, and natural language, combining them into a flexible tool especially suited for text manipulation, system administration, and rapid development.</p>
+      <div class="key-concept">
+        <strong>The TMTOWTDI Principle</strong>
+        "There's More Than One Way To Do It" — Perl's guiding philosophy. Unlike Python's "one obvious way," Perl gives programmers multiple equally valid approaches. This is both its great strength and the source of most criticism.
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Perl's Strengths</h3>
+      <div class="tag-grid">
+        <span class="tg green">Text processing</span>
+        <span class="tg green">System administration</span>
+        <span class="tg green">Regular expressions</span>
+        <span class="tg green">Rapid prototyping</span>
+        <span class="tg green">CPAN ecosystem</span>
+        <span class="tg green">Bioinformatics</span>
+        <span class="tg green">Web / CGI (legacy)</span>
+        <span class="tg green">Glue language</span>
+        <span class="tg green">One-liners</span>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Installing &amp; Running Perl</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">terminal</span><span class="code-lang">shell</span></div><pre><span class="w">perl --version              </span><span class="c"># check your version</span>
+<span class="w">perl script.pl              </span><span class="c"># run a script</span>
+<span class="w">perl -e 'say "Hello"'       </span><span class="c"># inline one-liner</span>
+<span class="w">perl -c script.pl           </span><span class="c"># syntax check only</span>
+<span class="w">perl -w script.pl           </span><span class="c"># enable warnings (old way)</span>
+<span class="w">perl -d script.pl           </span><span class="c"># interactive debugger</span>
+<span class="w">perl -de 42                 </span><span class="c"># REPL-like debugger session</span></pre></div>
+      <div class="tip"><strong>Tip</strong>Use <code>perlbrew</code> or <code>plenv</code> to manage multiple Perl versions on one machine without touching the system Perl.</div>
+    </div>
+
+    <div class="sub">
+      <h3>The Three Virtues of a Programmer (Larry Wall)</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Virtue</th><th>Meaning</th></tr></thead>
+        <tr><td class="mono">Laziness</td><td>Write less total work by automating; write code others can reuse</td></tr>
+        <tr><td class="mono">Impatience</td><td>Hate waiting; write programs that anticipate your needs</td></tr>
+        <tr><td class="mono">Hubris</td><td>Write code you won't be ashamed of; take ownership of quality</td></tr>
+      </table></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 02 — PROGRAM STRUCTURE
+════════════════════════════════════════════ -->
+<div class="chapter open" id="ch2">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">02</span>
+    <span class="ch-title">Program Structure</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Anatomy of a Perl Script</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">hello.pl</span><span class="code-lang">perl</span></div><pre><span class="p">#!/usr/bin/env perl</span>       <span class="c"># shebang — tells OS to run with Perl</span>
+
+<span class="k">use strict</span><span class="p">;</span>                <span class="c"># require all variables to be declared</span>
+<span class="k">use warnings</span><span class="p">;</span>             <span class="c"># warn about suspicious constructs</span>
+<span class="k">use</span> <span class="f">feature</span> <span class="s">'say'</span><span class="p">;</span>       <span class="c"># enable say(), state, etc.</span>
+<span class="k">use</span> <span class="f">utf8</span><span class="p">;</span>                 <span class="c"># source is UTF-8 encoded</span>
+<span class="k">use</span> <span class="f">open</span> <span class="s">':std'</span><span class="p">,</span> <span class="s">':utf8'</span><span class="p">;</span> <span class="c"># STDIN/OUT/ERR in UTF-8</span>
+
+<span class="k">my</span> <span class="v">$greeting</span> <span class="o">=</span> <span class="s">"Hello, world!"</span><span class="p">;</span>
+<span class="f">say</span> <span class="v">$greeting</span><span class="p">;</span>
+
+<span class="f">exit</span> <span class="n">0</span><span class="p">;</span>                   <span class="c"># explicit exit code (optional)</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Key Pragmas</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Pragma</th><th>Purpose</th><th>Essential?</th></tr></thead>
+        <tr><td class="mono">use strict</td><td>Enforce variable declarations; ban barewords and symbolic refs</td><td>Yes — always</td></tr>
+        <tr><td class="mono">use warnings</td><td>Warn about uninitialized vars, wrong types, deprecated usage</td><td>Yes — always</td></tr>
+        <tr><td class="mono">use feature 'say'</td><td>Enable <code>say</code> (print + newline), <code>state</code>, <code>switch</code></td><td>Recommended</td></tr>
+        <tr><td class="mono">use feature ':5.36'</td><td>Enable all features introduced by a specific Perl version</td><td>Modern style</td></tr>
+        <tr><td class="mono">use v5.36</td><td>Shorthand: declares minimum version + enables all its features</td><td>Modern style</td></tr>
+        <tr><td class="mono">use utf8</td><td>Source file uses UTF-8; allows Unicode identifiers</td><td>If using Unicode</td></tr>
+        <tr><td class="mono">use constant</td><td>Define compile-time constants (inlineable)</td><td>When needed</td></tr>
+        <tr><td class="mono">use English</td><td>Human-readable aliases for punctuation variables ($ARG, $OS_ERROR…)</td><td>Optional</td></tr>
+        <tr><td class="mono">use Carp</td><td>Better error messages that point to the caller, not the callee</td><td>In modules</td></tr>
+        <tr><td class="mono">use Data::Dumper</td><td>Pretty-print data structures for debugging</td><td>Debug only</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Statements, Blocks &amp; Comments</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">syntax</span><span class="code-lang">perl</span></div><pre><span class="c"># Single-line comment — everything after # is ignored</span>
+<span class="c"># (except inside strings)</span>
+
+<span class="k">my</span> <span class="v">$x</span> <span class="o">=</span> <span class="n">42</span><span class="p">;</span>                 <span class="c"># every statement ends with ;</span>
+<span class="k">my</span> <span class="v">$y</span> <span class="o">=</span> <span class="n">10</span><span class="p">;</span>
+
+<span class="p">{</span>                           <span class="c"># braces create a new lexical scope</span>
+    <span class="k">my</span> <span class="v">$local</span> <span class="o">=</span> <span class="v">$x</span> <span class="o">+</span> <span class="v">$y</span><span class="p">;</span>    <span class="c"># $local is only visible inside {}</span>
+    <span class="f">say</span> <span class="v">$local</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="c"># $local is gone here</span>
+
+<span class="c"># Multi-line "comment" using a heredoc trick:</span>
+<span class="s">=pod
+This block is POD documentation — ignored by the compiler.
+It ends with =cut.
+=cut</span></pre></div>
+      <div class="warn"><strong>Warning</strong>Unlike C, Perl requires curly braces even for single-statement <code>if</code> / <code>while</code> blocks. There is no braceless one-liner form.</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 03 — SCALARS & STRINGS
+════════════════════════════════════════════ -->
+<div class="chapter open" id="ch3">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">03</span>
+    <span class="ch-title">Scalars &amp; Strings</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Scalar Variables</h3>
+      <p>A scalar holds exactly one value: a string, number, reference, or <code>undef</code>. The <code>$</code> sigil always means "give me one thing." Perl converts between strings and numbers automatically based on context.</p>
+      <div class="code"><div class="code-hdr"><span class="code-file">scalars.pl</span><span class="code-lang">perl</span></div><pre><span class="k">my</span> <span class="v">$name</span>  <span class="o">=</span> <span class="s">"Alice"</span><span class="p">;</span>       <span class="c"># string</span>
+<span class="k">my</span> <span class="v">$age</span>   <span class="o">=</span> <span class="n">30</span><span class="p">;</span>             <span class="c"># number</span>
+<span class="k">my</span> <span class="v">$pi</span>    <span class="o">=</span> <span class="n">3.14159</span><span class="p">;</span>        <span class="c"># float</span>
+<span class="k">my</span> <span class="v">$empty</span> <span class="o">=</span> <span class="k">undef</span><span class="p">;</span>         <span class="c"># no value yet</span>
+<span class="k">my</span> <span class="v">$flag</span>  <span class="o">=</span> <span class="n">1</span><span class="p">;</span>              <span class="c"># true (no boolean type)</span>
+
+<span class="c"># Perl auto-converts based on context:</span>
+<span class="k">my</span> <span class="v">$s</span>  <span class="o">=</span> <span class="s">"42 items"</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">$n</span>  <span class="o">=</span> <span class="v">$s</span> <span class="o">+</span> <span class="n">1</span><span class="p">;</span>  <span class="c"># numeric context → 43 (uses "42" part)</span>
+<span class="k">my</span> <span class="v">$s2</span> <span class="o">=</span> <span class="v">$n</span> <span class="o">.</span> <span class="s">"!"</span><span class="p">;</span> <span class="c"># string context → "43!"</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>String Quoting</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Syntax</th><th>Interpolates?</th><th>Description</th></tr></thead>
+        <tr><td class="mono">'single'</td><td>No</td><td>Completely literal — only <code>\'</code> and <code>\\</code> are special</td></tr>
+        <tr><td class="mono">"double"</td><td>Yes</td><td>Variables and <code>\n \t \x{} \N{}</code> escape sequences expanded</td></tr>
+        <tr><td class="mono">q(text)</td><td>No</td><td>Same as single quotes; any delimiter: <code>q|..|</code> <code>q{..}</code></td></tr>
+        <tr><td class="mono">qq(text)</td><td>Yes</td><td>Same as double quotes; any delimiter: <code>qq|..|</code> <code>qq{..}</code></td></tr>
+        <tr><td class="mono">qw(a b c)</td><td>No</td><td>List of whitespace-separated words → <code>('a','b','c')</code></td></tr>
+        <tr><td class="mono">`command`</td><td>Yes</td><td>Backtick: runs shell command and returns its output</td></tr>
+        <tr><td class="mono">qx(command)</td><td>Yes</td><td>Same as backticks; safer with unusual chars in command</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>String Operators</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Operator</th><th>Meaning</th><th>Example</th></tr></thead>
+        <tr><td class="mono">.</td><td>Concatenate</td><td><code>"foo" . "bar"</code> → <code>"foobar"</code></td></tr>
+        <tr><td class="mono">x</td><td>Repeat</td><td><code>"ab" x 3</code> → <code>"ababab"</code></td></tr>
+        <tr><td class="mono">.=</td><td>Concatenate and assign</td><td><code>$s .= " more"</code></td></tr>
+        <tr><td class="mono">eq ne lt gt le ge cmp</td><td>String comparison</td><td><code>"foo" eq "foo"</code> → true</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>String Functions</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Function</th><th>Description</th></tr></thead>
+        <tr><td class="mono">length($str)</td><td>Number of characters</td></tr>
+        <tr><td class="mono">substr($str, $off, $len)</td><td>Extract substring; with 4th arg: replace in-place</td></tr>
+        <tr><td class="mono">index($str, $sub)</td><td>Position of first occurrence (-1 if not found)</td></tr>
+        <tr><td class="mono">rindex($str, $sub)</td><td>Position of last occurrence</td></tr>
+        <tr><td class="mono">uc($str) / lc($str)</td><td>Upper / lower case entire string</td></tr>
+        <tr><td class="mono">ucfirst / lcfirst</td><td>Change case of first character only</td></tr>
+        <tr><td class="mono">chomp($str)</td><td>Remove trailing <code>\n</code> (or <code>$/</code>); modifies in-place; returns count</td></tr>
+        <tr><td class="mono">chop($str)</td><td>Remove and return the last character</td></tr>
+        <tr><td class="mono">reverse($str)</td><td>In scalar context: reverses the string</td></tr>
+        <tr><td class="mono">sprintf($fmt, @args)</td><td>Format string without printing; same directives as C printf</td></tr>
+        <tr><td class="mono">split(/pat/, $str, $lim)</td><td>Split string on pattern → array</td></tr>
+        <tr><td class="mono">join($sep, @list)</td><td>Join array elements into a string with separator</td></tr>
+        <tr><td class="mono">pos($str)</td><td>Current match position after <code>/g</code> match</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Heredocs</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">heredoc.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Interpolating heredoc (like double quotes)</span>
+<span class="k">my</span> <span class="v">$name</span> <span class="o">=</span> <span class="s">"Alice"</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">$text</span> <span class="o">=</span> <span class="o">&lt;&lt;</span><span class="s">END</span><span class="p">;</span>
+Hello, <span class="v">$name</span>.
+Welcome to Perl.
+END
+
+<span class="c"># Non-interpolating (like single quotes) — quote the label</span>
+<span class="k">my</span> <span class="v">$raw</span> <span class="o">=</span> <span class="o">&lt;&lt;</span><span class="s">'END'</span><span class="p">;</span>
+Literal: $name is not expanded here.
+END
+
+<span class="c"># Indented heredoc (Perl 5.26+) — ~ strips leading whitespace</span>
+<span class="k">my</span> <span class="v">$indented</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="s">END</span><span class="p">;</span>
+    This content can be indented
+    to match surrounding code.
+    END</pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Truthiness in Perl</h3>
+      <div class="warn"><strong>Critical Rule</strong>These values are <strong>false</strong>: <code>undef</code>, <code>0</code>, <code>""</code> (empty string), <code>"0"</code>. <strong>Everything else is true</strong> — including <code>"00"</code>, <code>"0.0"</code>, and the string <code>"false"</code>.</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 04 — NUMBERS & OPERATORS
+════════════════════════════════════════════ -->
+<div class="chapter open" id="ch4">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">04</span>
+    <span class="ch-title">Numbers &amp; Operators</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Number Literals</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">numbers.pl</span><span class="code-lang">perl</span></div><pre><span class="n">42</span>           <span class="c"># integer</span>
+<span class="n">3.14</span>         <span class="c"># float</span>
+<span class="n">6.02e23</span>      <span class="c"># scientific notation</span>
+<span class="n">0xFF</span>         <span class="c"># hex (255)</span>
+<span class="n">0b1010</span>       <span class="c"># binary (10)</span>
+<span class="n">0777</span>         <span class="c"># octal (511)</span>
+<span class="n">1_000_000</span>    <span class="c"># underscores for readability</span>
+<span class="n">0x1F_A0</span>      <span class="c"># underscores in hex too</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Arithmetic Operators</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Op</th><th>Meaning</th><th>Notes</th></tr></thead>
+        <tr><td class="mono">+ - * /</td><td>Basic arithmetic</td><td>Standard, always numeric</td></tr>
+        <tr><td class="mono">%</td><td>Modulo</td><td>Remainder after integer division</td></tr>
+        <tr><td class="mono">**</td><td>Exponentiation</td><td><code>2 ** 10</code> = 1024. Not <code>^</code> (that's bitwise XOR)</td></tr>
+        <tr><td class="mono">++ --</td><td>Auto-increment/decrement</td><td>On strings: <code>"aa"+1</code> → <code>"ab"</code>; <code>"Az"+1</code> → <code>"Ba"</code></td></tr>
+        <tr><td class="mono">abs, int, sqrt</td><td>Built-in math</td><td><code>int</code> truncates (not rounds)</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Comparison Operators</h3>
+      <div class="warn"><strong>Two complete sets — never mix them</strong><code>==</code> converts both sides to numbers first. <code>eq</code> compares as strings. <code>"foo" == 0</code> is TRUE (both become 0). <code>"10" == "10.0"</code> is TRUE. <code>"10" eq "10.0"</code> is FALSE.</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Numeric</th><th>String</th><th>Returns</th></tr></thead>
+        <tr><td class="mono">==</td><td class="mono2">eq</td><td>Equal</td></tr>
+        <tr><td class="mono">!=</td><td class="mono2">ne</td><td>Not equal</td></tr>
+        <tr><td class="mono">&lt;</td><td class="mono2">lt</td><td>Less than</td></tr>
+        <tr><td class="mono">&gt;</td><td class="mono2">gt</td><td>Greater than</td></tr>
+        <tr><td class="mono">&lt;=</td><td class="mono2">le</td><td>Less than or equal</td></tr>
+        <tr><td class="mono">&gt;=</td><td class="mono2">ge</td><td>Greater than or equal</td></tr>
+        <tr><td class="mono">&lt;=&gt;</td><td class="mono2">cmp</td><td>-1, 0, or 1 (spaceship)</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Logical Operators — Two Syntaxes</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">logical.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Symbol forms — HIGH precedence (use in expressions)</span>
+<span class="v">$a</span> <span class="o">&amp;&amp;</span> <span class="v">$b</span>       <span class="c"># true if both are true</span>
+<span class="v">$a</span> <span class="o">||</span> <span class="v">$b</span>       <span class="c"># true if either is true</span>
+<span class="o">!</span><span class="v">$a</span>           <span class="c"># negation</span>
+
+<span class="c"># Word forms — LOW precedence (use at statement level)</span>
+<span class="v">$a</span> <span class="k">and</span> <span class="v">$b</span>     <span class="c"># same as &&, but lower precedence</span>
+<span class="v">$a</span> <span class="k">or</span> <span class="v">$b</span>      <span class="c"># same as ||, but lower precedence</span>
+<span class="k">not</span> <span class="v">$a</span>        <span class="c"># same as !, but lower precedence</span>
+
+<span class="c"># Defined-or (5.10+) — only checks definedness, not truth</span>
+<span class="v">$val</span> <span class="o">//</span> <span class="s">"default"</span>    <span class="c"># use "default" if $val is undef</span>
+<span class="v">$val</span> <span class="o">//=</span> <span class="s">"default"</span>   <span class="c"># assign default if undef</span>
+
+<span class="c"># Classic idioms</span>
+<span class="f">open</span> <span class="k">my</span> <span class="v">$fh</span><span class="p">,</span> <span class="s">'&lt;'</span><span class="p">,</span> <span class="v">$f</span> <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span>   <span class="c"># or-die</span>
+<span class="k">my</span> <span class="v">$x</span> <span class="o">=</span> <span class="v">$input</span> <span class="o">||</span> <span class="s">"fallback"</span><span class="p">;</span>    <span class="c"># or-default</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 05 — OPERATOR PRECEDENCE
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch5">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">05</span>
+    <span class="ch-title">Operator Precedence</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+    <p>Operators are listed from <strong>highest</strong> precedence (binds tightest) to <strong>lowest</strong>. When in doubt, add parentheses — it costs nothing and aids readability.</p>
+    <div class="prec-table">
+      <div class="prec-row"><span class="prec-level">22</span><span class="prec-ops">->  term  ()</span><span class="prec-desc">Method call, subscript, grouping (highest)</span></div>
+      <div class="prec-row"><span class="prec-level">21</span><span class="prec-ops">++  --</span><span class="prec-desc">Auto-increment / decrement</span></div>
+      <div class="prec-row"><span class="prec-level">20</span><span class="prec-ops">**</span><span class="prec-desc">Exponentiation (right-associative)</span></div>
+      <div class="prec-row"><span class="prec-level">19</span><span class="prec-ops">!  ~  \  +  -</span><span class="prec-desc">Unary not, bitwise complement, ref, unary plus/minus</span></div>
+      <div class="prec-row"><span class="prec-level">18</span><span class="prec-ops">=~  !~</span><span class="prec-desc">Regex binding</span></div>
+      <div class="prec-row"><span class="prec-level">17</span><span class="prec-ops">*  /  %  x</span><span class="prec-desc">Multiply, divide, modulo, string repeat</span></div>
+      <div class="prec-row"><span class="prec-level">16</span><span class="prec-ops">+  -  .</span><span class="prec-desc">Add, subtract, concatenate</span></div>
+      <div class="prec-row"><span class="prec-level">15</span><span class="prec-ops">&lt;&lt;  &gt;&gt;</span><span class="prec-desc">Bit shift left / right</span></div>
+      <div class="prec-row"><span class="prec-level">14</span><span class="prec-ops">named unary</span><span class="prec-desc"><code>-f</code> file tests, <code>chr</code>, <code>hex</code>, <code>lc</code>, etc.</span></div>
+      <div class="prec-row"><span class="prec-level">13</span><span class="prec-ops">&lt;  &gt;  &lt;=  &gt;=  lt gt le ge</span><span class="prec-desc">Numeric and string ordering</span></div>
+      <div class="prec-row"><span class="prec-level">12</span><span class="prec-ops">==  !=  &lt;=&gt;  eq  ne  cmp  ~~</span><span class="prec-desc">Equality and spaceship</span></div>
+      <div class="prec-row"><span class="prec-level">11</span><span class="prec-ops">&amp;</span><span class="prec-desc">Bitwise AND</span></div>
+      <div class="prec-row"><span class="prec-level">10</span><span class="prec-ops">|  ^</span><span class="prec-desc">Bitwise OR / XOR</span></div>
+      <div class="prec-row"><span class="prec-level">9</span><span class="prec-ops">&amp;&amp;</span><span class="prec-desc">Logical AND (short-circuit)</span></div>
+      <div class="prec-row"><span class="prec-level">8</span><span class="prec-ops">||  //</span><span class="prec-desc">Logical OR / defined-or (short-circuit)</span></div>
+      <div class="prec-row"><span class="prec-level">7</span><span class="prec-ops">..</span><span class="prec-desc">Range operator (list / flip-flop)</span></div>
+      <div class="prec-row"><span class="prec-level">6</span><span class="prec-ops">?:</span><span class="prec-desc">Ternary conditional (right-associative)</span></div>
+      <div class="prec-row"><span class="prec-level">5</span><span class="prec-ops">= += -= .= //= …</span><span class="prec-desc">Assignment (right-associative)</span></div>
+      <div class="prec-row"><span class="prec-level">4</span><span class="prec-ops">,  =></span><span class="prec-desc">Comma / fat comma</span></div>
+      <div class="prec-row"><span class="prec-level">3</span><span class="prec-ops">list operators (left side)</span><span class="prec-desc"><code>print</code>, <code>sort</code>, <code>die</code>, etc.</span></div>
+      <div class="prec-row"><span class="prec-level">2</span><span class="prec-ops">not</span><span class="prec-desc">Logical NOT (word form — very low)</span></div>
+      <div class="prec-row"><span class="prec-level">1</span><span class="prec-ops">and  or  xor</span><span class="prec-desc">Logical AND/OR/XOR (word form — lowest)</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 06 — ARRAYS
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch6">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">06</span>
+    <span class="ch-title">Arrays</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Declaration &amp; Basic Access</h3>
+      <div class="key-concept"><strong>Sigil Rule</strong>The array is <code>@arr</code>. One element is <code>$arr[i]</code> — sigil shifts to <code>$</code> because you're extracting a scalar. A slice is <code>@arr[1,3]</code> — sigil stays <code>@</code> because you're extracting a list.</div>
+      <div class="code"><div class="code-hdr"><span class="code-file">arrays.pl</span><span class="code-lang">perl</span></div><pre><span class="k">my</span> <span class="v">@fruits</span>  <span class="o">=</span> <span class="p">(</span><span class="s">"apple"</span><span class="p">,</span> <span class="s">"banana"</span><span class="p">,</span> <span class="s">"cherry"</span><span class="p">);</span>
+<span class="k">my</span> <span class="v">@words</span>   <span class="o">=</span> <span class="f">qw</span><span class="p">(</span>foo bar baz<span class="p">);</span>   <span class="c"># quote-words shorthand</span>
+<span class="k">my</span> <span class="v">@numbers</span> <span class="o">=</span> <span class="p">(</span><span class="n">1</span><span class="o">..</span><span class="n">10</span><span class="p">);</span>           <span class="c"># range operator</span>
+<span class="k">my</span> <span class="v">@empty</span>   <span class="o">=</span> <span class="p">();</span>               <span class="c"># empty array</span>
+
+<span class="v">$fruits</span><span class="p">[</span><span class="n">0</span><span class="p">]</span>      <span class="c"># "apple" — zero-indexed</span>
+<span class="v">$fruits</span><span class="p">[</span><span class="o">-</span><span class="n">1</span><span class="p">]</span>     <span class="c"># "cherry" — last element</span>
+<span class="v">$fruits</span><span class="p">[</span><span class="o">-</span><span class="n">2</span><span class="p">]</span>     <span class="c"># "banana" — second to last</span>
+<span class="v">$#fruits</span>        <span class="c"># 2 — index of last element</span>
+<span class="f">scalar</span> <span class="v">@fruits</span>  <span class="c"># 3 — element count (also: $n = @fruits)</span>
+
+<span class="c"># Slices</span>
+<span class="k">my</span> <span class="v">@first_two</span> <span class="o">=</span> <span class="v">@fruits</span><span class="p">[</span><span class="n">0</span><span class="p">,</span><span class="n">1</span><span class="p">];</span>     <span class="c"># explicit indices</span>
+<span class="k">my</span> <span class="v">@slice</span>     <span class="o">=</span> <span class="v">@fruits</span><span class="p">[</span><span class="n">0</span><span class="o">..</span><span class="n">1</span><span class="p">];</span>     <span class="c"># range slice</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Modifying Arrays</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Function</th><th>Effect</th><th>Returns</th></tr></thead>
+        <tr><td class="mono">push @a, @vals</td><td>Append one or more values to end</td><td>New element count</td></tr>
+        <tr><td class="mono">pop @a</td><td>Remove and return last element</td><td>Removed element</td></tr>
+        <tr><td class="mono">unshift @a, @vals</td><td>Prepend one or more values to front</td><td>New element count</td></tr>
+        <tr><td class="mono">shift @a</td><td>Remove and return first element</td><td>Removed element</td></tr>
+        <tr><td class="mono">splice(@a, $off, $len, @new)</td><td>Remove $len elements at offset, insert @new</td><td>Removed elements</td></tr>
+        <tr><td class="mono">delete $a[$i]</td><td>Replace element with undef (array length unchanged)</td><td>Deleted value</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Sorting</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">sorting.pl</span><span class="code-lang">perl</span></div><pre><span class="f">sort</span> <span class="v">@arr</span>                        <span class="c"># alphabetical (default)</span>
+<span class="f">sort</span> <span class="p">{</span> <span class="v">$a</span> <span class="o">&lt;=&gt;</span> <span class="v">$b</span> <span class="p">}</span> <span class="v">@arr</span>          <span class="c"># numeric ascending</span>
+<span class="f">sort</span> <span class="p">{</span> <span class="v">$b</span> <span class="o">&lt;=&gt;</span> <span class="v">$a</span> <span class="p">}</span> <span class="v">@arr</span>          <span class="c"># numeric descending</span>
+<span class="f">sort</span> <span class="p">{</span> <span class="f">lc</span><span class="p">(</span><span class="v">$a</span><span class="p">)</span> <span class="k">cmp</span> <span class="f">lc</span><span class="p">(</span><span class="v">$b</span><span class="p">)</span> <span class="p">}</span> <span class="v">@arr</span>  <span class="c"># case-insensitive string</span>
+<span class="f">reverse</span> <span class="f">sort</span> <span class="v">@arr</span>               <span class="c"># reverse alphabetical</span>
+
+<span class="c"># Schwartzian Transform: sort by expensive-to-compute key</span>
+<span class="k">my</span> <span class="v">@sorted</span> <span class="o">=</span> <span class="f">map</span>  <span class="p">{</span> <span class="v">$_</span><span class="o">-&gt;</span><span class="p">[</span><span class="n">0</span><span class="p">]</span> <span class="p">}</span>          <span class="c"># 3. strip key</span>
+             <span class="f">sort</span> <span class="p">{</span> <span class="v">$a</span><span class="o">-&gt;</span><span class="p">[</span><span class="n">1</span><span class="p">]</span> <span class="o">&lt;=&gt;</span> <span class="v">$b</span><span class="o">-&gt;</span><span class="p">[</span><span class="n">1</span><span class="p">]</span> <span class="p">}</span>  <span class="c"># 2. sort by key</span>
+             <span class="f">map</span>  <span class="p">{</span> <span class="p">[</span><span class="v">$_</span><span class="p">,</span> <span class="f">compute_key</span><span class="p">(</span><span class="v">$_</span><span class="p">)]</span> <span class="p">}</span>  <span class="c"># 1. attach key</span>
+             <span class="v">@arr</span><span class="p">;</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 07 — HASHES
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch7">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">07</span>
+    <span class="ch-title">Hashes</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Declaration &amp; Access</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">hashes.pl</span><span class="code-lang">perl</span></div><pre><span class="k">my</span> <span class="v">%person</span> <span class="o">=</span> <span class="p">(</span>
+    name  <span class="o">=&gt;</span> <span class="s">"Alice"</span><span class="p">,</span>    <span class="c"># => is "fat comma" — auto-quotes left side</span>
+    age   <span class="o">=&gt;</span> <span class="n">30</span><span class="p">,</span>
+    city  <span class="o">=&gt;</span> <span class="s">"Austin"</span><span class="p">,</span>
+<span class="p">);</span>
+
+<span class="v">$person</span><span class="p">{</span>name<span class="p">}</span>         <span class="c"># "Alice" — curly braces for hash access</span>
+<span class="v">$person</span><span class="p">{</span><span class="s">"my key"</span><span class="p">}</span>     <span class="c"># quoted key for non-bareword keys</span>
+<span class="v">$person</span><span class="p">{</span>missing<span class="p">}</span>      <span class="c"># undef (no warning by default)</span>
+
+<span class="c"># Hash slice</span>
+<span class="k">my</span> <span class="v">@vals</span> <span class="o">=</span> <span class="v">@person</span><span class="p">{</span><span class="f">qw</span><span class="p">(</span>name age<span class="p">)};</span>  <span class="c"># sigil = @ for slice</span>
+
+<span class="c"># Hash in list context = flattened k/v pairs</span>
+<span class="k">my</span> <span class="v">@pairs</span> <span class="o">=</span> <span class="v">%person</span><span class="p">;</span>   <span class="c"># ("name","Alice","age",30,...) — arbitrary order</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Hash Functions</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Function / Op</th><th>Description</th></tr></thead>
+        <tr><td class="mono">keys %h</td><td>List of all keys (arbitrary order — use <code>sort</code>)</td></tr>
+        <tr><td class="mono">values %h</td><td>List of all values (same order as <code>keys</code>)</td></tr>
+        <tr><td class="mono">each %h</td><td>Returns next (key, value) pair; use in <code>while</code> loop</td></tr>
+        <tr><td class="mono">exists $h{k}</td><td>True if key exists (even if value is undef)</td></tr>
+        <tr><td class="mono">defined $h{k}</td><td>True if value for key is not undef</td></tr>
+        <tr><td class="mono">delete $h{k}</td><td>Remove key/value pair; returns the deleted value</td></tr>
+        <tr><td class="mono">delete @h{@keys}</td><td>Delete a slice of keys at once</td></tr>
+        <tr><td class="mono">scalar %h</td><td>Number of key/value pairs (Perl 5.26+); older Perls: "X/Y"</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Common Hash Patterns</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">hash_patterns.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Counting occurrences</span>
+<span class="k">my</span> <span class="v">%count</span><span class="p">;</span>
+<span class="v">$count</span><span class="p">{</span><span class="v">$_</span><span class="p">}</span><span class="o">++</span> <span class="k">for</span> <span class="v">@words</span><span class="p">;</span>
+
+<span class="c"># Lookup set (membership test)</span>
+<span class="k">my</span> <span class="v">%is_valid</span> <span class="o">=</span> <span class="f">map</span> <span class="p">{</span> <span class="v">$_</span> <span class="o">=&gt;</span> <span class="n">1</span> <span class="p">}</span> <span class="f">qw</span><span class="p">(</span>red green blue<span class="p">);</span>
+<span class="f">say</span> <span class="s">"valid"</span> <span class="k">if</span> <span class="v">$is_valid</span><span class="p">{</span><span class="v">$color</span><span class="p">};</span>
+
+<span class="c"># Invert a hash (swap keys and values)</span>
+<span class="k">my</span> <span class="v">%reverse</span> <span class="o">=</span> <span class="f">reverse</span> <span class="v">%original</span><span class="p">;</span>
+
+<span class="c"># Merge two hashes (right-side wins on collision)</span>
+<span class="k">my</span> <span class="v">%merged</span> <span class="o">=</span> <span class="p">(</span><span class="v">%defaults</span><span class="p">,</span> <span class="v">%overrides</span><span class="p">);</span>
+
+<span class="c"># Iterate in sorted key order</span>
+<span class="k">for</span> <span class="k">my</span> <span class="v">$key</span> <span class="p">(</span><span class="f">sort</span> <span class="f">keys</span> <span class="v">%h</span><span class="p">)</span> <span class="p">{</span>
+    <span class="f">printf</span> <span class="s">"%-12s => %s\n"</span><span class="p">,</span> <span class="v">$key</span><span class="p">,</span> <span class="v">$h</span><span class="p">{</span><span class="v">$key</span><span class="p">};</span>
+<span class="p">}</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 08 — REFERENCES
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch8">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">08</span>
+    <span class="ch-title">References</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>What is a Reference?</h3>
+      <p>A reference is a scalar value that holds the memory address of another value — like a pointer in C. References are how you pass large data without copying, build nested structures, and store subroutines in variables.</p>
+    </div>
+
+    <div class="sub">
+      <h3>Creating References</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">refs.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># \ operator: reference to an existing variable</span>
+<span class="k">my</span> <span class="v">$sref</span> <span class="o">=</span> <span class="o">\</span><span class="v">$scalar</span><span class="p">;</span>    <span class="c"># scalar ref</span>
+<span class="k">my</span> <span class="v">$aref</span> <span class="o">=</span> <span class="o">\</span><span class="v">@array</span><span class="p">;</span>     <span class="c"># array ref</span>
+<span class="k">my</span> <span class="v">$href</span> <span class="o">=</span> <span class="o">\</span><span class="v">%hash</span><span class="p">;</span>      <span class="c"># hash ref</span>
+<span class="k">my</span> <span class="v">$cref</span> <span class="o">=</span> <span class="o">\&amp;</span><span class="f">mysub</span><span class="p">;</span>    <span class="c"># code ref</span>
+
+<span class="c"># Anonymous constructors: create data directly as a ref</span>
+<span class="k">my</span> <span class="v">$aref</span> <span class="o">=</span> <span class="p">[</span><span class="n">1</span><span class="p">,</span> <span class="n">2</span><span class="p">,</span> <span class="n">3</span><span class="p">];</span>            <span class="c"># anonymous arrayref</span>
+<span class="k">my</span> <span class="v">$href</span> <span class="o">=</span> <span class="p">{</span>name <span class="o">=&gt;</span> <span class="s">"Alice"</span><span class="p">};</span>     <span class="c"># anonymous hashref</span>
+<span class="k">my</span> <span class="v">$cref</span> <span class="o">=</span> <span class="k">sub</span> <span class="p">{</span> <span class="v">$_</span><span class="p">[</span><span class="n">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">2</span> <span class="p">};</span>     <span class="c"># anonymous sub (lambda)</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Dereferencing</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">deref.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Arrow notation — preferred for readability</span>
+<span class="v">$aref</span><span class="o">-&gt;</span><span class="p">[</span><span class="n">0</span><span class="p">]</span>           <span class="c"># array element via ref</span>
+<span class="v">$href</span><span class="o">-&gt;</span><span class="p">{</span>name<span class="p">}</span>         <span class="c"># hash value via ref</span>
+<span class="v">$cref</span><span class="o">-&gt;</span><span class="p">(</span><span class="v">@args</span><span class="p">)</span>        <span class="c"># call a code ref</span>
+<span class="v">$$sref</span>                <span class="c"># dereference scalar ref</span>
+
+<span class="c"># Block dereference — dereference to full structure</span>
+<span class="v">@{</span><span class="v">$aref</span><span class="v">}</span>             <span class="c"># whole array</span>
+<span class="v">%{</span><span class="v">$href</span><span class="v">}</span>             <span class="c"># whole hash</span>
+<span class="v">@{</span><span class="v">$aref</span><span class="v">}</span><span class="p">[</span><span class="n">1</span><span class="p">,</span><span class="n">3</span><span class="p">]</span>        <span class="c"># slice from arrayref</span>
+<span class="v">@{</span><span class="v">$href</span><span class="v">}</span><span class="p">{</span><span class="f">qw</span><span class="p">(</span>a b<span class="p">)}</span>    <span class="c"># slice from hashref</span>
+
+<span class="c"># Adjacent brackets: arrow is optional between brackets</span>
+<span class="v">$aref</span><span class="o">-&gt;</span><span class="p">[</span><span class="n">0</span><span class="p">]{</span>key<span class="p">}</span>        <span class="c"># same as $aref->[0]->{key}</span>
+
+<span class="c"># ref() — identify the type of a reference</span>
+<span class="f">ref</span><span class="p">(</span><span class="v">$aref</span><span class="p">)</span>    <span class="c"># "ARRAY"</span>
+<span class="f">ref</span><span class="p">(</span><span class="v">$href</span><span class="p">)</span>    <span class="c"># "HASH"</span>
+<span class="f">ref</span><span class="p">(</span><span class="v">$cref</span><span class="p">)</span>    <span class="c"># "CODE"</span>
+<span class="f">ref</span><span class="p">(</span><span class="v">$obj</span><span class="p">)</span>     <span class="c"># "ClassName" for blessed objects</span>
+<span class="f">ref</span><span class="p">(</span><span class="v">$plain</span><span class="p">)</span>  <span class="c"># "" (empty string) — not a reference</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Dispatch Tables</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">dispatch.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Hash of code refs — replaces long if/elsif chains</span>
+<span class="k">my</span> <span class="v">%actions</span> <span class="o">=</span> <span class="p">(</span>
+    add  <span class="o">=&gt;</span> <span class="k">sub</span> <span class="p">{</span> <span class="v">$_</span><span class="p">[</span><span class="n">0</span><span class="p">]</span> <span class="o">+</span> <span class="v">$_</span><span class="p">[</span><span class="n">1</span><span class="p">]</span> <span class="p">},</span>
+    sub  <span class="o">=&gt;</span> <span class="k">sub</span> <span class="p">{</span> <span class="v">$_</span><span class="p">[</span><span class="n">0</span><span class="p">]</span> <span class="o">-</span> <span class="v">$_</span><span class="p">[</span><span class="n">1</span><span class="p">]</span> <span class="p">},</span>
+    mul  <span class="o">=&gt;</span> <span class="k">sub</span> <span class="p">{</span> <span class="v">$_</span><span class="p">[</span><span class="n">0</span><span class="p">]</span> <span class="o">*</span> <span class="v">$_</span><span class="p">[</span><span class="n">1</span><span class="p">]</span> <span class="p">},</span>
+<span class="p">);</span>
+<span class="k">my</span> <span class="v">$result</span> <span class="o">=</span> <span class="v">$actions</span><span class="p">{</span><span class="v">$op</span><span class="p">}</span><span class="o">-&gt;</span><span class="p">(</span><span class="v">$a</span><span class="p">,</span> <span class="v">$b</span><span class="p">);</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 09 — COMPLEX DATA STRUCTURES
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch9">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">09</span>
+    <span class="ch-title">Complex Data Structures</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Common Patterns</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">data_structures.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Array of Hashrefs (AoH) — the most common pattern</span>
+<span class="k">my</span> <span class="v">@people</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span> name <span class="o">=&gt;</span> <span class="s">"Alice"</span><span class="p">,</span>  age <span class="o">=&gt;</span> <span class="n">30</span> <span class="p">},</span>
+    <span class="p">{</span> name <span class="o">=&gt;</span> <span class="s">"Bob"</span><span class="p">,</span>    age <span class="o">=&gt;</span> <span class="n">25</span> <span class="p">},</span>
+<span class="p">);</span>
+<span class="v">$people</span><span class="p">[</span><span class="n">0</span><span class="p">]{</span>name<span class="p">}</span>    <span class="c"># "Alice"</span>
+<span class="v">$people</span><span class="p">[</span><span class="n">1</span><span class="p">]{</span>age<span class="p">}</span>     <span class="c"># 25</span>
+
+<span class="c"># Hash of Arrayrefs (HoA)</span>
+<span class="k">my</span> <span class="v">%scores</span> <span class="o">=</span> <span class="p">(</span>
+    alice <span class="o">=&gt;</span> <span class="p">[</span><span class="n">92</span><span class="p">,</span> <span class="n">88</span><span class="p">,</span> <span class="n">95</span><span class="p">],</span>
+    bob   <span class="o">=&gt;</span> <span class="p">[</span><span class="n">74</span><span class="p">,</span> <span class="n">80</span><span class="p">,</span> <span class="n">65</span><span class="p">],</span>
+<span class="p">);</span>
+<span class="v">$scores</span><span class="p">{</span>alice<span class="p">}[</span><span class="n">0</span><span class="p">]</span>  <span class="c"># 92</span>
+<span class="f">push</span> <span class="v">@{</span><span class="v">$scores</span><span class="p">{</span>bob<span class="p">}</span><span class="v">}</span><span class="p">,</span> <span class="n">91</span><span class="p">;</span>
+
+<span class="c"># Hash of Hashrefs (HoH)</span>
+<span class="k">my</span> <span class="v">%registry</span> <span class="o">=</span> <span class="p">(</span>
+    alice <span class="o">=&gt;</span> <span class="p">{</span> email <span class="o">=&gt;</span> <span class="s">'a@b.com'</span><span class="p">,</span> role <span class="o">=&gt;</span> <span class="s">'admin'</span> <span class="p">},</span>
+    bob   <span class="o">=&gt;</span> <span class="p">{</span> email <span class="o">=&gt;</span> <span class="s">'b@b.com'</span><span class="p">,</span> role <span class="o">=&gt;</span> <span class="s">'user'</span>  <span class="p">},</span>
+<span class="p">);</span>
+<span class="v">$registry</span><span class="p">{</span>alice<span class="p">}{</span>email<span class="p">}</span>   <span class="c"># 'a@b.com'</span>
+
+<span class="c"># Array of Arrayrefs — 2D matrix</span>
+<span class="k">my</span> <span class="v">@matrix</span> <span class="o">=</span> <span class="p">([</span><span class="n">1</span><span class="p">,</span><span class="n">2</span><span class="p">,</span><span class="n">3</span><span class="p">],</span> <span class="p">[</span><span class="n">4</span><span class="p">,</span><span class="n">5</span><span class="p">,</span><span class="n">6</span><span class="p">],</span> <span class="p">[</span><span class="n">7</span><span class="p">,</span><span class="n">8</span><span class="p">,</span><span class="n">9</span><span class="p">]);</span>
+<span class="v">$matrix</span><span class="p">[</span><span class="n">1</span><span class="p">][</span><span class="n">2</span><span class="p">]</span>       <span class="c"># 6 (row 1, col 2)</span>
+
+<span class="c"># Deeply nested: array of hashrefs with nested arrays</span>
+<span class="k">my</span> <span class="v">@classes</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span> name    <span class="o">=&gt;</span> <span class="s">"Math"</span><span class="p">,</span>
+      students <span class="o">=&gt;</span> <span class="p">[</span> <span class="p">{</span>name <span class="o">=&gt;</span> <span class="s">"Alice"</span><span class="p">,</span> grade <span class="o">=&gt;</span> <span class="s">'A'</span><span class="p">},</span>
+                    <span class="p">{</span>name <span class="o">=&gt;</span> <span class="s">"Bob"</span><span class="p">,</span>   grade <span class="o">=&gt;</span> <span class="s">'B'</span><span class="p">}</span> <span class="p">],</span> <span class="p">},</span>
+<span class="p">);</span>
+<span class="v">$classes</span><span class="p">[</span><span class="n">0</span><span class="p">]{</span>students<span class="p">}[</span><span class="n">0</span><span class="p">]{</span>name<span class="p">}</span>   <span class="c"># "Alice"</span></pre></div>
+      <div class="tip"><strong>Tip</strong>Use <code>Data::Dumper</code> or <code>Devel::Dumper</code> to print any complex structure during development: <code>use Data::Dumper; print Dumper(\@classes);</code></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 10 — CONTROL FLOW
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch10">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">10</span>
+    <span class="ch-title">Control Flow</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Conditionals</h3>
+      <div class="two">
+        <div class="code"><div class="code-hdr"><span class="code-file">block form</span><span class="code-lang">perl</span></div><pre><span class="k">if</span> <span class="p">(</span><span class="v">$x</span> <span class="o">&gt;</span> <span class="n">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="f">say</span> <span class="s">"positive"</span><span class="p">;</span>
+<span class="p">}</span> <span class="k">elsif</span> <span class="p">(</span><span class="v">$x</span> <span class="o">==</span> <span class="n">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="f">say</span> <span class="s">"zero"</span><span class="p">;</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="f">say</span> <span class="s">"negative"</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c"># unless = "if not"</span>
+<span class="k">unless</span> <span class="p">(</span><span class="v">$done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="f">work</span><span class="p">();</span>
+<span class="p">}</span></pre></div>
+        <div class="code"><div class="code-hdr"><span class="code-file">postfix &amp; ternary</span><span class="code-lang">perl</span></div><pre><span class="c"># Postfix — condition after statement</span>
+<span class="f">say</span> <span class="s">"yes"</span> <span class="k">if</span>     <span class="v">$flag</span><span class="p">;</span>
+<span class="f">say</span> <span class="s">"no"</span>  <span class="k">unless</span> <span class="v">$flag</span><span class="p">;</span>
+<span class="k">return</span>    <span class="k">unless</span> <span class="f">defined</span> <span class="v">$val</span><span class="p">;</span>
+
+<span class="c"># Ternary: COND ? TRUE : FALSE</span>
+<span class="k">my</span> <span class="v">$label</span> <span class="o">=</span> <span class="v">$n</span> <span class="o">&gt;</span> <span class="n">0</span>
+    <span class="o">?</span> <span class="s">"positive"</span>
+    <span class="o">:</span> <span class="s">"non-positive"</span><span class="p">;</span>
+
+<span class="c"># Chained ternary</span>
+<span class="k">my</span> <span class="v">$g</span> <span class="o">=</span>   <span class="v">$s</span><span class="o">&gt;=</span><span class="n">90</span> <span class="o">?</span> <span class="s">'A'</span>
+        <span class="o">:</span> <span class="v">$s</span><span class="o">&gt;=</span><span class="n">80</span> <span class="o">?</span> <span class="s">'B'</span>
+        <span class="o">:</span> <span class="v">$s</span><span class="o">&gt;=</span><span class="n">70</span> <span class="o">?</span> <span class="s">'C'</span>
+        <span class="o">:</span>          <span class="s">'F'</span><span class="p">;</span></pre></div>
+      </div>
+      <div class="warn"><strong>Note</strong>It is <code>elsif</code>, not <code>else if</code> or <code>elif</code>. Curly braces are always required — there is no braceless form.</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 11 — LOOPS
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch11">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">11</span>
+    <span class="ch-title">Loops</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>All Loop Forms</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">loops.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># while: test first, run while true</span>
+<span class="k">while</span> <span class="p">(</span><span class="v">$i</span> <span class="o">&lt;</span> <span class="n">10</span><span class="p">)</span>  <span class="p">{</span> <span class="v">$i</span><span class="o">++</span> <span class="p">}</span>
+
+<span class="c"># until: test first, run while FALSE</span>
+<span class="k">until</span> <span class="p">(</span><span class="v">$done</span><span class="p">)</span>    <span class="p">{</span> <span class="f">work</span><span class="p">()</span> <span class="p">}</span>
+
+<span class="c"># do/while: always runs body at least once</span>
+<span class="k">do</span> <span class="p">{</span>
+    <span class="v">$input</span> <span class="o">=</span> <span class="o">&lt;</span>STDIN<span class="o">&gt;</span><span class="p">;</span> <span class="f">chomp</span> <span class="v">$input</span><span class="p">;</span>
+<span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="v">$input</span> <span class="k">ne</span> <span class="s">'quit'</span><span class="p">);</span>
+
+<span class="c"># C-style for</span>
+<span class="k">for</span> <span class="p">(</span><span class="k">my</span> <span class="v">$i</span><span class="o">=</span><span class="n">0</span><span class="p">;</span> <span class="v">$i</span><span class="o">&lt;</span><span class="n">10</span><span class="p">;</span> <span class="v">$i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span> <span class="f">say</span> <span class="v">$i</span> <span class="p">}</span>
+
+<span class="c"># foreach (for and foreach are identical keywords)</span>
+<span class="k">for</span> <span class="k">my</span> <span class="v">$item</span> <span class="p">(</span><span class="v">@list</span><span class="p">)</span>    <span class="p">{</span> <span class="f">say</span> <span class="v">$item</span>   <span class="p">}</span>
+<span class="k">foreach</span> <span class="k">my</span> <span class="v">$i</span> <span class="p">(</span><span class="n">1</span><span class="o">..</span><span class="n">10</span><span class="p">)</span>  <span class="p">{</span> <span class="f">say</span> <span class="v">$i</span>     <span class="p">}</span>
+
+<span class="c"># $_ as implicit variable (no 'my $item' needed)</span>
+<span class="k">for</span> <span class="p">(</span><span class="v">@list</span><span class="p">)</span>             <span class="p">{</span> <span class="f">say</span>       <span class="p">}</span>  <span class="c"># say prints $_</span>
+
+<span class="c"># Postfix for — compact one-liners</span>
+<span class="f">say</span> <span class="s">"  </span><span class="v">$_</span><span class="s">"</span> <span class="k">for</span> <span class="v">@list</span><span class="p">;</span>
+<span class="f">say</span> <span class="v">$_</span><span class="o">*</span><span class="n">2</span>  <span class="k">for</span> <span class="n">1</span><span class="o">..</span><span class="n">5</span><span class="p">;</span>
+
+<span class="c"># Loop control</span>
+<span class="k">last</span><span class="p">;</span>       <span class="c"># break — exit loop immediately</span>
+<span class="k">next</span><span class="p">;</span>       <span class="c"># continue — skip to next iteration</span>
+<span class="k">redo</span><span class="p">;</span>       <span class="c"># restart current iteration without re-evaluating condition</span>
+
+<span class="c"># Labels: control outer loop from inner loop</span>
+<span class="f">OUTER</span><span class="o">:</span> <span class="k">for</span> <span class="k">my</span> <span class="v">$i</span> <span class="p">(</span><span class="n">1</span><span class="o">..</span><span class="n">5</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="k">my</span> <span class="v">$j</span> <span class="p">(</span><span class="n">1</span><span class="o">..</span><span class="n">5</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">last</span> <span class="f">OUTER</span> <span class="k">if</span> <span class="v">$i</span> <span class="o">+</span> <span class="v">$j</span> <span class="o">&gt;</span> <span class="n">7</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 12 — SUBROUTINES
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch12">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">12</span>
+    <span class="ch-title">Subroutines</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Defining &amp; Calling</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">subs.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Basic subroutine — arguments arrive in @_</span>
+<span class="k">sub</span> <span class="f">greet</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$name</span><span class="p">,</span> <span class="v">$greeting</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>   <span class="c"># always unpack @_ first</span>
+    <span class="v">$greeting</span> <span class="o">//=</span> <span class="s">"Hello"</span><span class="p">;</span>        <span class="c"># default value with defined-or</span>
+    <span class="k">return</span> <span class="s">"</span><span class="v">$greeting</span><span class="s">, </span><span class="v">$name</span><span class="s">!"</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="f">greet</span><span class="p">(</span><span class="s">"Alice"</span><span class="p">);</span>            <span class="c"># "Hello, Alice!"</span>
+<span class="f">greet</span><span class="p">(</span><span class="s">"Bob"</span><span class="p">,</span> <span class="s">"Hi"</span><span class="p">);</span>         <span class="c"># "Hi, Bob!"</span>
+
+<span class="c"># Named parameters (hash style — very common)</span>
+<span class="k">sub</span> <span class="f">make_user</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">%args</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>
+    <span class="k">my</span> <span class="v">$name</span>  <span class="o">=</span> <span class="v">$args</span><span class="p">{</span>name<span class="p">}</span>  <span class="o">//</span> <span class="f">die</span> <span class="s">"name required"</span><span class="p">;</span>
+    <span class="k">my</span> <span class="v">$role</span>  <span class="o">=</span> <span class="v">$args</span><span class="p">{</span>role<span class="p">}</span>  <span class="o">//</span> <span class="s">"user"</span><span class="p">;</span>
+    <span class="k">return</span> <span class="p">{</span> name <span class="o">=&gt;</span> <span class="v">$name</span><span class="p">,</span> role <span class="o">=&gt;</span> <span class="v">$role</span> <span class="p">};</span>
+<span class="p">}</span>
+<span class="f">make_user</span><span class="p">(</span>name <span class="o">=&gt;</span> <span class="s">"Alice"</span><span class="p">,</span> role <span class="o">=&gt;</span> <span class="s">"admin"</span><span class="p">);</span>
+
+<span class="c"># Multiple return values — just return a list</span>
+<span class="k">sub</span> <span class="f">minmax</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">@nums</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="f">min</span><span class="p">(</span><span class="v">@nums</span><span class="p">),</span> <span class="f">max</span><span class="p">(</span><span class="v">@nums</span><span class="p">));</span>
+<span class="p">}</span>
+<span class="k">my</span> <span class="p">(</span><span class="v">$lo</span><span class="p">,</span> <span class="v">$hi</span><span class="p">)</span> <span class="o">=</span> <span class="f">minmax</span><span class="p">(</span><span class="n">3</span><span class="p">,</span><span class="n">1</span><span class="p">,</span><span class="n">4</span><span class="p">,</span><span class="n">1</span><span class="p">,</span><span class="n">5</span><span class="p">);</span>
+
+<span class="c"># Context-sensitive return with wantarray()</span>
+<span class="k">sub</span> <span class="f">context_aware</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="f">wantarray</span> <span class="o">?</span> <span class="p">(</span><span class="n">1</span><span class="p">,</span><span class="n">2</span><span class="p">,</span><span class="n">3</span><span class="p">)</span> <span class="o">:</span> <span class="s">"summary"</span><span class="p">;</span>
+<span class="p">}</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Argument Passing Gotchas</h3>
+      <div class="warn"><strong>Arrays flatten into @_</strong>If you pass two arrays <code>f(@a, @b)</code>, they merge into a single flat list in <code>@_</code>. Pass references instead: <code>f(\@a, \@b)</code>. Then unpack: <code>my ($aref, $bref) = @_;</code></div>
+      <div class="note"><strong>Note</strong>Perl subroutines do not support true prototypes for type enforcement the way C does. The <code>prototype</code> feature exists but is rarely used in modern code. Named parameters via hashes is the idiomatic solution.</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 13 — SCOPE & CLOSURES
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch13">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">13</span>
+    <span class="ch-title">Scope &amp; Closures</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Three Scoping Keywords</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Keyword</th><th>Type</th><th>Visibility</th><th>Lifetime</th></tr></thead>
+        <tr><td class="mono">my</td><td>Lexical</td><td>Enclosing <code>{ }</code> block only</td><td>Until block ends (or longer if closed over)</td></tr>
+        <tr><td class="mono">our</td><td>Package global</td><td>Entire package / file (and importers)</td><td>Entire program run</td></tr>
+        <tr><td class="mono">local</td><td>Dynamic</td><td>Current call stack frame (and callees)</td><td>Restored when enclosing block exits</td></tr>
+      </table></div>
+      <div class="code"><div class="code-hdr"><span class="code-file">scope.pl</span><span class="code-lang">perl</span></div><pre><span class="k">my</span> <span class="v">$x</span> <span class="o">=</span> <span class="s">"outer"</span><span class="p">;</span>
+<span class="p">{</span>
+    <span class="k">my</span> <span class="v">$x</span> <span class="o">=</span> <span class="s">"inner"</span><span class="p">;</span>  <span class="c"># shadows outer — separate variable</span>
+    <span class="f">say</span> <span class="v">$x</span><span class="p">;</span>           <span class="c"># "inner"</span>
+<span class="p">}</span>
+<span class="f">say</span> <span class="v">$x</span><span class="p">;</span>               <span class="c"># "outer"</span>
+
+<span class="c"># local: temporarily replaces a package variable</span>
+<span class="k">our</span> <span class="v">$sep</span> <span class="o">=</span> <span class="s">","</span><span class="p">;</span>
+<span class="k">sub</span> <span class="f">with_pipe_sep</span> <span class="p">{</span>
+    <span class="k">local</span> <span class="v">$sep</span> <span class="o">=</span> <span class="s">"|"</span><span class="p">;</span>  <span class="c"># $sep is "|" here AND in all functions called from here</span>
+    <span class="f">print_items</span><span class="p">();</span>
+<span class="p">}</span>                     <span class="c"># $sep restored to "," here</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Closures</h3>
+      <p>A closure is a subroutine that captures ("closes over") variables from its enclosing lexical scope. The variables live as long as the closure does — even after the outer function returns.</p>
+      <div class="code"><div class="code-hdr"><span class="code-file">closures.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Factory function: creates specialised closures</span>
+<span class="k">sub</span> <span class="f">make_counter</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$start</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>
+    <span class="k">my</span> <span class="v">$count</span>   <span class="o">=</span> <span class="v">$start</span> <span class="o">//</span> <span class="n">0</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">sub</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="v">$count</span><span class="o">++</span><span class="p">;</span>   <span class="c"># $count is captured — persists</span>
+    <span class="p">};</span>
+<span class="p">}</span>
+
+<span class="k">my</span> <span class="v">$c1</span> <span class="o">=</span> <span class="f">make_counter</span><span class="p">(</span><span class="n">0</span><span class="p">);</span>
+<span class="k">my</span> <span class="v">$c2</span> <span class="o">=</span> <span class="f">make_counter</span><span class="p">(</span><span class="n">10</span><span class="p">);</span>
+<span class="v">$c1</span><span class="o">-&gt;</span><span class="p">();</span>  <span class="c"># 0   — each counter has its own $count</span>
+<span class="v">$c1</span><span class="o">-&gt;</span><span class="p">();</span>  <span class="c"># 1</span>
+<span class="v">$c2</span><span class="o">-&gt;</span><span class="p">();</span>  <span class="c"># 10</span>
+
+<span class="c"># state: per-call persistent variable (no factory needed)</span>
+<span class="k">use</span> <span class="f">feature</span> <span class="s">'state'</span><span class="p">;</span>
+<span class="k">sub</span> <span class="f">auto_id</span> <span class="p">{</span>
+    <span class="k">state</span> <span class="v">$n</span> <span class="o">=</span> <span class="n">0</span><span class="p">;</span>   <span class="c"># initialized once; kept across calls</span>
+    <span class="k">return</span> <span class="o">++</span><span class="v">$n</span><span class="p">;</span>
+<span class="p">}</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 14 — REGULAR EXPRESSIONS
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch14">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">14</span>
+    <span class="ch-title">Regular Expressions</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Operators</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">regex.pl</span><span class="code-lang">perl</span></div><pre><span class="v">$str</span> <span class="o">=~</span>  <span class="r">/pattern/</span>          <span class="c"># match — true if $str contains pattern</span>
+<span class="v">$str</span> <span class="o">!~</span>  <span class="r">/pattern/</span>          <span class="c"># negated match</span>
+<span class="k">if</span> <span class="p">(</span><span class="r">/pattern/</span><span class="p">)</span>             <span class="c"># implicit $_ =~ /pattern/</span>
+
+<span class="v">$str</span> <span class="o">=~</span> <span class="r">s/old/new/</span>          <span class="c"># substitution (first match)</span>
+<span class="v">$str</span> <span class="o">=~</span> <span class="r">s/old/new/g</span>         <span class="c"># global: replace all</span>
+<span class="k">my</span> <span class="v">$copy</span> <span class="o">=</span> <span class="v">$str</span> <span class="o">=~</span> <span class="r">s/a/b/gr</span> <span class="c"># /r: return modified copy</span>
+<span class="v">$str</span> <span class="o">=~</span> <span class="r">s/(\d+)/$1*2/ge</span>     <span class="c"># /e: evaluate replacement as code</span>
+
+<span class="v">$str</span> <span class="o">=~</span> <span class="r">tr/a-z/A-Z/</span>         <span class="c"># transliterate (char mapping)</span>
+<span class="k">my</span> <span class="v">$n</span> <span class="o">=</span> <span class="p">(</span><span class="v">$str</span> <span class="o">=~</span> <span class="r">tr/aeiou//</span><span class="p">)</span> <span class="c"># count vowels (no replacement)</span>
+<span class="v">$str</span> <span class="o">=~</span> <span class="r">tr/aeiou//d</span>          <span class="c"># delete vowels</span>
+<span class="v">$str</span> <span class="o">=~</span> <span class="r">tr/a-z//s</span>            <span class="c"># /s: squeeze repeated translated chars</span>
+
+<span class="c"># Compiled regex (use in multiple places)</span>
+<span class="k">my</span> <span class="v">$re</span> <span class="o">=</span> <span class="f">qr</span><span class="r">/\d{4}-\d{2}-\d{2}/</span><span class="p">;</span>
+<span class="v">$str</span> <span class="o">=~</span> <span class="v">$re</span><span class="p">;</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Modifiers</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Flag</th><th>Meaning</th></tr></thead>
+        <tr><td class="mono">/i</td><td>Case-insensitive matching</td></tr>
+        <tr><td class="mono">/g</td><td>Global — find all occurrences; in list context returns all matches</td></tr>
+        <tr><td class="mono">/m</td><td>Multiline — <code>^</code> and <code>$</code> match at line boundaries, not just string</td></tr>
+        <tr><td class="mono">/s</td><td>Single-line — <code>.</code> also matches <code>\n</code></td></tr>
+        <tr><td class="mono">/x</td><td>Extended — whitespace and <code>#comments</code> ignored in pattern (for readable regex)</td></tr>
+        <tr><td class="mono">/r</td><td>Return modified copy; do not modify the original string</td></tr>
+        <tr><td class="mono">/e</td><td>Evaluate replacement as Perl code (substitute only)</td></tr>
+        <tr><td class="mono">/o</td><td>Compile pattern once (optimization, rarely needed)</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Capture Groups &amp; Variables</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">captures.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Positional captures: $1, $2, ...</span>
+<span class="k">if</span> <span class="p">(</span><span class="v">$date</span> <span class="o">=~</span> <span class="r">/(\d{4})-(\d{2})-(\d{2})/</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$year</span><span class="p">,</span> <span class="v">$mon</span><span class="p">,</span> <span class="v">$day</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="v">$1</span><span class="p">,</span> <span class="v">$2</span><span class="p">,</span> <span class="v">$3</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c"># Named captures: (?&lt;name&gt;...) → $+{name}</span>
+<span class="v">$date</span> <span class="o">=~</span> <span class="r">/(?&lt;y&gt;\d{4})-(?&lt;m&gt;\d{2})-(?&lt;d&gt;\d{2})/</span><span class="p">;</span>
+<span class="f">say</span> <span class="v">$+{y}</span><span class="p">,</span> <span class="v">$+{m}</span><span class="p">,</span> <span class="v">$+{d}</span><span class="p">;</span>
+
+<span class="c"># List context /g: capture all matches at once</span>
+<span class="k">my</span> <span class="v">@words</span>  <span class="o">=</span> <span class="p">(</span><span class="v">$text</span> <span class="o">=~</span> <span class="r">/\b\w+\b/g</span><span class="p">);</span>
+<span class="k">my</span> <span class="v">@pairs</span>  <span class="o">=</span> <span class="p">(</span><span class="v">$text</span> <span class="o">=~</span> <span class="r">/(\w+)=(\w+)/g</span><span class="p">);</span>  <span class="c"># k,v,k,v,...</span>
+
+<span class="c"># Non-capturing group: (?:...) — group without $1</span>
+<span class="r">/(?:foo|bar)(\d+)/</span>
+
+<span class="c"># Regex match variables</span>
+<span class="v">$&amp;</span>  <span class="c"># the entire matched string</span>
+<span class="v">$`</span>  <span class="c"># everything BEFORE the match</span>
+<span class="v">$'</span>  <span class="c"># everything AFTER the match</span>
+<span class="v">$+</span>  <span class="c"># text matched by the last bracket</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Metacharacters Quick Reference</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Pattern</th><th>Matches</th></tr></thead>
+        <tr><td class="mono">.</td><td>Any character except newline (use <code>/s</code> to include <code>\n</code>)</td></tr>
+        <tr><td class="mono">\d \D</td><td>Digit [0-9] / non-digit</td></tr>
+        <tr><td class="mono">\w \W</td><td>Word char [a-zA-Z0-9_] / non-word</td></tr>
+        <tr><td class="mono">\s \S</td><td>Whitespace [\t\n\r\f ] / non-whitespace</td></tr>
+        <tr><td class="mono">^ $</td><td>Start / end of string (or line in <code>/m</code>)</td></tr>
+        <tr><td class="mono">\A \z \Z</td><td>Absolute string start / end / end-before-optional-newline</td></tr>
+        <tr><td class="mono">\b \B</td><td>Word boundary / non-word boundary</td></tr>
+        <tr><td class="mono">* + ?</td><td>0+, 1+, 0 or 1 (all greedy); add <code>?</code> for non-greedy: <code>*? +? ??</code></td></tr>
+        <tr><td class="mono">{n} {n,} {n,m}</td><td>Exactly n, at least n, between n and m times</td></tr>
+        <tr><td class="mono">[abc] [^abc]</td><td>Character class / negated character class</td></tr>
+        <tr><td class="mono">a|b</td><td>Alternation — matches a or b</td></tr>
+        <tr><td class="mono">(?=…) (?!…)</td><td>Positive / negative lookahead (zero-width)</td></tr>
+        <tr><td class="mono">(?&lt;=…) (?&lt;!…)</td><td>Positive / negative lookbehind (zero-width)</td></tr>
+        <tr><td class="mono">(?>…)</td><td>Atomic group — prohibits backtracking</td></tr>
+      </table></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 15 — LIST PROCESSING
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch15">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">15</span>
+    <span class="ch-title">List Processing</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>map, grep, sort</h3>
+      <p>These three functions process lists functionally — they never modify the original list and are the foundation of idiomatic Perl.</p>
+      <div class="code"><div class="code-hdr"><span class="code-file">list_ops.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># map: transform each element ($_ = current element)</span>
+<span class="k">my</span> <span class="v">@doubled</span>  <span class="o">=</span> <span class="f">map</span>  <span class="p">{</span> <span class="v">$_</span> <span class="o">*</span> <span class="n">2</span>      <span class="p">}</span> <span class="v">@numbers</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">@names</span>    <span class="o">=</span> <span class="f">map</span>  <span class="p">{</span> <span class="v">$_</span><span class="o">-&gt;</span><span class="p">{</span>name<span class="p">}</span> <span class="p">}</span> <span class="v">@people</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">%lookup</span>   <span class="o">=</span> <span class="f">map</span>  <span class="p">{</span> <span class="v">$_</span> <span class="o">=&gt;</span> <span class="n">1</span>     <span class="p">}</span> <span class="v">@keys</span><span class="p">;</span>   <span class="c"># build lookup hash</span>
+
+<span class="c"># grep: filter (keep elements where block is true)</span>
+<span class="k">my</span> <span class="v">@evens</span>    <span class="o">=</span> <span class="f">grep</span> <span class="p">{</span> <span class="v">$_</span> <span class="o">%</span> <span class="n">2</span> <span class="o">==</span> <span class="n">0</span>    <span class="p">}</span> <span class="v">@numbers</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">@admins</span>   <span class="o">=</span> <span class="f">grep</span> <span class="p">{</span> <span class="v">$_</span><span class="o">-&gt;</span><span class="p">{</span>role<span class="p">}</span> <span class="k">eq</span> <span class="s">'admin'</span> <span class="p">}</span> <span class="v">@users</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">@nocomment</span> <span class="o">=</span> <span class="f">grep</span> <span class="p">{</span> <span class="o">!</span><span class="r">/^#/</span>           <span class="p">}</span> <span class="v">@lines</span><span class="p">;</span>
+
+<span class="c"># sort: with a comparator block</span>
+<span class="k">my</span> <span class="v">@by_name</span>  <span class="o">=</span> <span class="f">sort</span> <span class="p">{</span> <span class="v">$a</span><span class="o">-&gt;</span><span class="p">{</span>name<span class="p">}</span> <span class="k">cmp</span> <span class="v">$b</span><span class="o">-&gt;</span><span class="p">{</span>name<span class="p">}</span> <span class="p">}</span> <span class="v">@people</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">@by_score</span> <span class="o">=</span> <span class="f">sort</span> <span class="p">{</span> <span class="v">$b</span><span class="o">-&gt;</span><span class="p">{</span>score<span class="p">}</span> <span class="o">&lt;=&gt;</span> <span class="v">$a</span><span class="o">-&gt;</span><span class="p">{</span>score<span class="p">}</span> <span class="p">}</span> <span class="v">@people</span><span class="p">;</span>
+
+<span class="c"># Chaining — reads as a pipeline</span>
+<span class="k">my</span> <span class="v">@result</span> <span class="o">=</span>
+    <span class="f">sort</span> <span class="p">{</span> <span class="v">$a</span> <span class="o">&lt;=&gt;</span> <span class="v">$b</span> <span class="p">}</span>
+    <span class="f">grep</span> <span class="p">{</span> <span class="v">$_</span> <span class="o">&gt;</span> <span class="n">5</span> <span class="p">}</span>
+    <span class="f">map</span>  <span class="p">{</span> <span class="v">$_</span> <span class="o">**</span> <span class="n">2</span> <span class="p">}</span>
+    <span class="v">@numbers</span><span class="p">;</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>List::Util Functions</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Function</th><th>Description</th></tr></thead>
+        <tr><td class="mono">sum(@list)</td><td>Sum of all elements; <code>sum0</code> returns 0 for empty list</td></tr>
+        <tr><td class="mono">max(@list) / min(@list)</td><td>Largest / smallest element</td></tr>
+        <tr><td class="mono">first { } @list</td><td>First element where block is true</td></tr>
+        <tr><td class="mono">any { } @list</td><td>True if block is true for any element</td></tr>
+        <tr><td class="mono">all { } @list</td><td>True if block is true for all elements</td></tr>
+        <tr><td class="mono">none { } @list</td><td>True if block is true for no elements</td></tr>
+        <tr><td class="mono">reduce { } @list</td><td>Reduce list to single value; <code>$a</code> and <code>$b</code> are accumulator/element</td></tr>
+        <tr><td class="mono">uniq(@list)</td><td>Remove duplicates (preserving order)</td></tr>
+        <tr><td class="mono">shuffle(@list)</td><td>Return list in random order</td></tr>
+      </table></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 16 — FILE I/O
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch16">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">16</span>
+    <span class="ch-title">File I/O</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Opening Files</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">fileio.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Always use three-argument open!</span>
+<span class="f">open</span><span class="p">(</span><span class="k">my</span> <span class="v">$fh</span><span class="p">,</span> <span class="s">'&lt;'</span><span class="p">,</span>   <span class="s">'file.txt'</span><span class="p">)</span>  <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span>   <span class="c"># read</span>
+<span class="f">open</span><span class="p">(</span><span class="k">my</span> <span class="v">$fh</span><span class="p">,</span> <span class="s">'&gt;'</span><span class="p">,</span>   <span class="s">'out.txt'</span><span class="p">)</span>   <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span>   <span class="c"># write (truncate)</span>
+<span class="f">open</span><span class="p">(</span><span class="k">my</span> <span class="v">$fh</span><span class="p">,</span> <span class="s">'>>'</span><span class="p">,</span>  <span class="s">'log.txt'</span><span class="p">)</span>   <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span>   <span class="c"># append</span>
+<span class="f">open</span><span class="p">(</span><span class="k">my</span> <span class="v">$fh</span><span class="p">,</span> <span class="s">'+&lt;'</span><span class="p">,</span>  <span class="s">'rw.txt'</span><span class="p">)</span>   <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span>   <span class="c"># read-write</span>
+
+<span class="c"># With encoding layer</span>
+<span class="f">open</span><span class="p">(</span><span class="k">my</span> <span class="v">$fh</span><span class="p">,</span> <span class="s">'&lt;:utf8'</span><span class="p">,</span> <span class="v">$path</span><span class="p">)</span>  <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span>
+<span class="c"># In-memory file (open against a variable)</span>
+<span class="f">open</span><span class="p">(</span><span class="k">my</span> <span class="v">$fh</span><span class="p">,</span> <span class="s">'&gt;'</span><span class="p">,</span> <span class="o">\</span><span class="k">my</span> <span class="v">$buf</span><span class="p">)</span>  <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Reading Files</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">reading.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Line by line — most memory-efficient</span>
+<span class="k">while</span> <span class="p">(</span><span class="k">my</span> <span class="v">$line</span> <span class="o">=</span> <span class="o">&lt;</span><span class="v">$fh</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="f">chomp</span> <span class="v">$line</span><span class="p">;</span>    <span class="c"># remove trailing \n</span>
+    <span class="c"># process $line</span>
+<span class="p">}</span>
+
+<span class="c"># Slurp all lines into an array</span>
+<span class="k">my</span> <span class="v">@lines</span> <span class="o">=</span> <span class="o">&lt;</span><span class="v">$fh</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="f">chomp</span> <span class="v">@lines</span><span class="p">;</span>
+
+<span class="c"># Slurp entire file into a string</span>
+<span class="k">my</span> <span class="v">$content</span> <span class="o">=</span> <span class="k">do</span> <span class="p">{</span> <span class="k">local</span> <span class="v">$/</span><span class="p">;</span> <span class="o">&lt;</span><span class="v">$fh</span><span class="o">&gt;</span> <span class="p">};</span>
+
+<span class="c"># Diamond &lt;&gt;: reads ARGV files or STDIN</span>
+<span class="k">while</span> <span class="p">(</span><span class="o">&lt;&gt;</span><span class="p">)</span> <span class="p">{</span> <span class="f">chomp</span><span class="p">;</span> <span class="f">process</span><span class="p">(</span><span class="v">$_</span><span class="p">)</span> <span class="p">}</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>File Test Operators</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Test</th><th>Meaning</th></tr></thead>
+        <tr><td class="mono">-e $path</td><td>File or directory exists</td></tr>
+        <tr><td class="mono">-f $path</td><td>Is a plain file (not directory, symlink…)</td></tr>
+        <tr><td class="mono">-d $path</td><td>Is a directory</td></tr>
+        <tr><td class="mono">-l $path</td><td>Is a symbolic link</td></tr>
+        <tr><td class="mono">-r / -w / -x</td><td>Readable / writable / executable by current user</td></tr>
+        <tr><td class="mono">-s $path</td><td>File size in bytes (0 if empty)</td></tr>
+        <tr><td class="mono">-z $path</td><td>File is empty (zero size)</td></tr>
+        <tr><td class="mono">-T / -B</td><td>Text file / Binary file (heuristic)</td></tr>
+        <tr><td class="mono">-M / -A / -C</td><td>Age in days: last modified / accessed / inode changed</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Directory Operations</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">dirs.pl</span><span class="code-lang">perl</span></div><pre><span class="f">opendir</span><span class="p">(</span><span class="k">my</span> <span class="v">$dh</span><span class="p">,</span> <span class="s">"."</span><span class="p">)</span> <span class="k">or</span> <span class="f">die</span> <span class="v">$!</span><span class="p">;</span>
+<span class="k">my</span> <span class="v">@files</span> <span class="o">=</span> <span class="f">grep</span> <span class="p">{</span> <span class="o">!</span><span class="r">/^\./</span> <span class="p">}</span> <span class="f">readdir</span><span class="p">(</span><span class="v">$dh</span><span class="p">);</span>  <span class="c"># exclude dotfiles</span>
+<span class="f">closedir</span><span class="p">(</span><span class="v">$dh</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="f">File::Find</span><span class="p">;</span>     <span class="c"># recursive directory walk</span>
+<span class="k">use</span> <span class="f">File::Glob</span><span class="p">;</span>     <span class="c"># glob patterns</span>
+<span class="k">use</span> <span class="f">File::Path</span> <span class="f">qw</span><span class="p">(</span>make_path remove_tree<span class="p">);</span>  <span class="c"># mkdir -p / rm -rf</span>
+<span class="k">use</span> <span class="f">File::Basename</span>  <span class="f">qw</span><span class="p">(</span>dirname basename<span class="p">);</span>   <span class="c"># path components</span>
+<span class="k">use</span> <span class="f">File::Spec</span><span class="p">;</span>     <span class="c"># portable path manipulation</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 17 — ERROR HANDLING
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch17">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">17</span>
+    <span class="ch-title">Error Handling</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>die, warn, eval</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">errors.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># die: throw exception (exits program if not caught)</span>
+<span class="f">die</span> <span class="s">"Something failed\n"</span><span class="p">;</span>        <span class="c"># \n suppresses "at line N"</span>
+<span class="f">die</span> <span class="s">"Error: </span><span class="v">$!</span><span class="s">\n"</span><span class="p">;</span>              <span class="c"># $! = system error message</span>
+<span class="f">die</span> <span class="p">{</span> type<span class="o">=&gt;</span><span class="s">"NotFound"</span><span class="p">,</span> msg<span class="o">=&gt;</span><span class="s">"..."</span> <span class="p">};</span>  <span class="c"># structured exception object</span>
+
+<span class="c"># warn: print warning to STDERR, continue execution</span>
+<span class="f">warn</span> <span class="s">"Something looks wrong\n"</span><span class="p">;</span>
+
+<span class="c"># eval { }: catch exceptions (Perl's try block)</span>
+<span class="k">my</span> <span class="v">$result</span> <span class="o">=</span> <span class="k">eval</span> <span class="p">{</span>
+    <span class="f">risky_operation</span><span class="p">();</span>
+    <span class="s">"success"</span><span class="p">;</span>           <span class="c"># return value if no exception</span>
+<span class="p">};</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="k">my</span> <span class="v">$e</span> <span class="o">=</span> <span class="v">$@</span><span class="p">)</span> <span class="p">{</span>         <span class="c"># $@ holds the caught exception</span>
+    <span class="k">if</span> <span class="p">(</span><span class="f">ref</span><span class="p">(</span><span class="v">$e</span><span class="p">)</span> <span class="k">eq</span> <span class="s">'HASH'</span><span class="p">)</span> <span class="p">{</span>
+        <span class="f">say</span> <span class="s">"Caught: </span><span class="v">$e</span><span class="s">{type}: </span><span class="v">$e</span><span class="s">{msg}"</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="f">die</span> <span class="v">$e</span><span class="p">;</span>             <span class="c"># re-throw unknown exceptions</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c"># Carp module: better caller-perspective error messages</span>
+<span class="k">use</span> Carp <span class="f">qw</span><span class="p">(</span>carp croak confess cluck<span class="p">);</span>
+<span class="f">croak</span>    <span class="s">"bad input"</span><span class="p">;</span>     <span class="c"># like die, but blame the caller</span>
+<span class="f">carp</span>     <span class="s">"suspicious"</span><span class="p">;</span>  <span class="c"># like warn, blame the caller</span>
+<span class="f">confess</span>  <span class="s">"deep error"</span><span class="p">;</span>  <span class="c"># die + full stack trace</span>
+<span class="f">cluck</span>    <span class="s">"soft error"</span><span class="p">;</span>  <span class="c"># warn + full stack trace</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Exception Objects with Exception::Class</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">exceptions.pl</span><span class="code-lang">perl</span></div><pre><span class="k">use</span> <span class="f">Exception::Class</span> <span class="p">(</span>
+    <span class="s">'MyApp::Error'</span>             <span class="o">=&gt;</span> <span class="p">{</span> description <span class="o">=&gt;</span> <span class="s">'Base error'</span> <span class="p">},</span>
+    <span class="s">'MyApp::Error::IO'</span>         <span class="o">=&gt;</span> <span class="p">{</span> isa <span class="o">=&gt;</span> <span class="s">'MyApp::Error'</span><span class="p">,</span>
+                                    fields <span class="o">=&gt;</span> <span class="p">[</span><span class="s">'filename'</span><span class="p">]</span> <span class="p">},</span>
+<span class="p">);</span>
+
+<span class="k">eval</span> <span class="p">{</span>
+    MyApp::Error::IO<span class="o">-&gt;</span><span class="f">throw</span><span class="p">(</span>
+        message  <span class="o">=&gt;</span> <span class="s">"Cannot open file"</span><span class="p">,</span>
+        filename <span class="o">=&gt;</span> <span class="v">$path</span><span class="p">,</span>
+    <span class="p">);</span>
+<span class="p">};</span>
+<span class="k">if</span> <span class="p">(</span><span class="k">my</span> <span class="v">$e</span> <span class="o">=</span> <span class="v">$@</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="v">$e</span><span class="o">-&gt;</span>isa<span class="p">(</span><span class="s">'MyApp::Error::IO'</span><span class="p">))</span> <span class="p">{</span>
+        <span class="f">say</span> <span class="s">"IO error on "</span> <span class="o">.</span> <span class="v">$e</span><span class="o">-&gt;</span>filename<span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 18 — OOP
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch18">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">18</span>
+    <span class="ch-title">Object-Oriented Perl</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>The Three Primitives</h3>
+      <div class="key-concept"><strong>How Perl OOP works</strong>A <strong>package</strong> is a class. A <strong>blessed reference</strong> (any ref tied to a package name via <code>bless()</code>) is an object. A <strong>subroutine in the package</strong> is a method — called with <code>$obj->method()</code>. That's the entire object system. Everything else is convention built on these three rules.</div>
+      <div class="code"><div class="code-hdr"><span class="code-file">oop.pl</span><span class="code-lang">perl</span></div><pre><span class="k">package</span> Animal<span class="p">;</span>
+<span class="k">use strict</span><span class="p">;</span> <span class="k">use warnings</span><span class="p">;</span>
+
+<span class="c"># Constructor — 'new' is conventional, any name works</span>
+<span class="k">sub</span> <span class="f">new</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$class</span><span class="p">,</span> <span class="v">%args</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>   <span class="c"># $class = "Animal" (the package name)</span>
+    <span class="k">my</span> <span class="v">$self</span> <span class="o">=</span> <span class="p">{</span>
+        name  <span class="o">=&gt;</span> <span class="v">$args</span><span class="p">{</span>name<span class="p">}</span>  <span class="o">//</span> <span class="s">"Unknown"</span><span class="p">,</span>
+        sound <span class="o">=&gt;</span> <span class="v">$args</span><span class="p">{</span>sound<span class="p">}</span> <span class="o">//</span> <span class="s">"..."</span><span class="p">,</span>
+    <span class="p">};</span>
+    <span class="k">return</span> <span class="f">bless</span> <span class="v">$self</span><span class="p">,</span> <span class="v">$class</span><span class="p">;</span>   <span class="c"># bless ties $self to class</span>
+<span class="p">}</span>
+
+<span class="c"># Accessor method (get/set)</span>
+<span class="k">sub</span> <span class="f">name</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$self</span><span class="p">,</span> <span class="v">$new</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>
+    <span class="v">$self</span><span class="o">-&gt;</span><span class="p">{</span>name<span class="p">}</span> <span class="o">=</span> <span class="v">$new</span> <span class="k">if</span> <span class="f">defined</span> <span class="v">$new</span><span class="p">;</span>
+    <span class="k">return</span> <span class="v">$self</span><span class="o">-&gt;</span><span class="p">{</span>name<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c"># Regular method</span>
+<span class="k">sub</span> <span class="f">speak</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$self</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>
+    <span class="f">printf</span> <span class="s">"%s says %s\n"</span><span class="p">,</span> <span class="v">$self</span><span class="o">-&gt;</span><span class="p">{</span>name<span class="p">},</span> <span class="v">$self</span><span class="o">-&gt;</span><span class="p">{</span>sound<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c"># Subclass</span>
+<span class="k">package</span> Dog<span class="p">;</span>
+<span class="k">use</span> <span class="f">parent</span> <span class="s">'Animal'</span><span class="p">;</span>       <span class="c"># inherit from Animal</span>
+
+<span class="k">sub</span> <span class="f">new</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$class</span><span class="p">,</span> <span class="v">%args</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>
+    <span class="v">$args</span><span class="p">{</span>sound<span class="p">}</span> <span class="o">//=</span> <span class="s">"Woof"</span><span class="p">;</span>
+    <span class="k">return</span> <span class="v">$class</span><span class="o">-&gt;</span><span class="w">SUPER::new</span><span class="p">(</span><span class="v">%args</span><span class="p">);</span>  <span class="c"># call parent constructor</span>
+<span class="p">}</span>
+
+<span class="k">package</span> main<span class="p">;</span>
+<span class="k">my</span> <span class="v">$dog</span> <span class="o">=</span> Dog<span class="o">-&gt;</span><span class="f">new</span><span class="p">(</span>name <span class="o">=&gt;</span> <span class="s">"Rex"</span><span class="p">);</span>
+<span class="v">$dog</span><span class="o">-&gt;</span><span class="f">speak</span><span class="p">();</span>              <span class="c"># "Rex says Woof"</span>
+<span class="f">ref</span><span class="p">(</span><span class="v">$dog</span><span class="p">);</span>                  <span class="c"># "Dog"</span>
+<span class="v">$dog</span><span class="o">-&gt;</span>isa<span class="p">(</span><span class="s">'Animal'</span><span class="p">);</span>        <span class="c"># 1 (true)</span>
+<span class="v">$dog</span><span class="o">-&gt;</span>can<span class="p">(</span><span class="s">'speak'</span><span class="p">);</span>         <span class="c"># coderef or undef</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Modern OOP: Moose &amp; Moo</h3>
+      <div class="tip"><strong>Tip</strong>For real applications, use <strong>Moose</strong> (full-featured, slower) or <strong>Moo</strong> (lightweight, fast). They provide attribute declarations, type constraints, roles (mixins), method modifiers, and lazy initialization — eliminating nearly all boilerplate.</div>
+      <div class="code"><div class="code-hdr"><span class="code-file">moo_example.pl</span><span class="code-lang">perl</span></div><pre><span class="k">package</span> Person<span class="p">;</span>
+<span class="k">use</span> <span class="f">Moo</span><span class="p">;</span>
+
+<span class="f">has</span> <span class="s">'name'</span>  <span class="o">=&gt;</span> <span class="p">(</span>is <span class="o">=&gt;</span> <span class="s">'rw'</span><span class="p">,</span> required <span class="o">=&gt;</span> <span class="n">1</span><span class="p">);</span>
+<span class="f">has</span> <span class="s">'email'</span> <span class="o">=&gt;</span> <span class="p">(</span>is <span class="o">=&gt;</span> <span class="s">'rw'</span><span class="p">);</span>
+<span class="f">has</span> <span class="s">'age'</span>   <span class="o">=&gt;</span> <span class="p">(</span>is <span class="o">=&gt;</span> <span class="s">'ro'</span><span class="p">,</span> default <span class="o">=&gt;</span> <span class="n">0</span><span class="p">);</span>
+
+<span class="k">sub</span> <span class="f">greet</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="v">$self</span><span class="p">)</span> <span class="o">=</span> <span class="v">@_</span><span class="p">;</span>
+    <span class="f">say</span> <span class="s">"Hi, I'm "</span> <span class="o">.</span> <span class="v">$self</span><span class="o">-&gt;</span>name<span class="p">;</span>
+<span class="p">}</span>
+<span class="c"># Moo automatically generates constructor, accessors, type checking</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Key OOP Concepts Summary</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Concept</th><th>Traditional Perl</th><th>Moose / Moo</th></tr></thead>
+        <tr><td>Class</td><td><code>package Foo;</code></td><td><code>package Foo; use Moose;</code></td></tr>
+        <tr><td>Constructor</td><td><code>sub new { bless {}, $class }</code></td><td>Auto-generated</td></tr>
+        <tr><td>Attributes</td><td>Hash keys in <code>$self</code></td><td><code>has 'attr' => (is=>'rw');</code></td></tr>
+        <tr><td>Inheritance</td><td><code>use parent 'Base';</code></td><td><code>extends 'Base';</code></td></tr>
+        <tr><td>Mixins/Roles</td><td>Multiple inheritance</td><td><code>with 'Role::Name';</code></td></tr>
+        <tr><td>Method override</td><td><code>sub foo { ... SUPER::foo ... }</code></td><td><code>around 'foo' => sub { ... };</code></td></tr>
+        <tr><td>Type check</td><td>Manual validation</td><td><code>isa => 'Int'</code> or <code>Types::Standard</code></td></tr>
+        <tr><td>Destruction</td><td><code>sub DESTROY { ... }</code></td><td><code>DEMOLISH</code></td></tr>
+      </table></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 19 — MODULES & CPAN
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch19">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">19</span>
+    <span class="ch-title">Modules &amp; CPAN</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>use vs require</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th></th><th>use</th><th>require</th></tr></thead>
+        <tr><td>When executed</td><td>Compile time (early)</td><td>Runtime (when line reached)</td></tr>
+        <tr><td>Import</td><td>Calls <code>import()</code> automatically</td><td>Does not call <code>import()</code></td></tr>
+        <tr><td>Version check</td><td><code>use 5.036;</code> works</td><td>Only for modules</td></tr>
+        <tr><td>Typical use</td><td>Almost always</td><td>Conditional loading</td></tr>
+      </table></div>
+      <div class="code"><div class="code-hdr"><span class="code-file">using_modules.pl</span><span class="code-lang">perl</span></div><pre><span class="k">use</span> <span class="f">List::Util</span> <span class="f">qw</span><span class="p">(</span>sum max min first<span class="p">);</span>   <span class="c"># import specific subs</span>
+<span class="k">use</span> <span class="f">Scalar::Util</span> <span class="p">();</span>                     <span class="c"># load but don't import</span>
+<span class="f">Scalar::Util::blessed</span><span class="p">(</span><span class="v">$obj</span><span class="p">);</span>             <span class="c"># call fully-qualified</span>
+<span class="k">use</span> <span class="f">POSIX</span> <span class="f">qw</span><span class="p">(</span>floor ceil strftime<span class="p">);</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Writing a Module</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">MyUtil.pm</span><span class="code-lang">perl</span></div><pre><span class="k">package</span> MyUtil<span class="p">;</span>
+<span class="k">use strict</span><span class="p">;</span> <span class="k">use warnings</span><span class="p">;</span>
+<span class="k">our</span> <span class="v">$VERSION</span> <span class="o">=</span> <span class="s">'1.00'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="f">Exporter</span> <span class="s">'import'</span><span class="p">;</span>
+<span class="k">our</span> <span class="v">@EXPORT_OK</span>   <span class="o">=</span> <span class="f">qw</span><span class="p">(</span>util_one util_two<span class="p">);</span>  <span class="c"># opt-in</span>
+<span class="k">our</span> <span class="v">@EXPORT</span>      <span class="o">=</span> <span class="f">qw</span><span class="p">(</span><span class="p">);</span>                    <span class="c"># auto-export (avoid unless simple)</span>
+<span class="k">our</span> <span class="v">%EXPORT_TAGS</span> <span class="o">=</span> <span class="p">(</span>all <span class="o">=&gt;</span> <span class="p">[</span><span class="v">@EXPORT_OK</span><span class="p">]);</span>
+
+<span class="k">sub</span> <span class="f">util_one</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+<span class="k">sub</span> <span class="f">util_two</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+
+<span class="n">1</span><span class="p">;</span>    <span class="c"># MODULE MUST RETURN TRUE — never forget this!</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Essential CPAN Modules by Category</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Module</th><th>Category</th><th>Purpose</th></tr></thead>
+        <tr><td class="mono">Moose / Moo</td><td>OOP</td><td>Powerful, declarative object system</td></tr>
+        <tr><td class="mono">DBI + DBD::*</td><td>Database</td><td>Universal database interface</td></tr>
+        <tr><td class="mono">Mojolicious</td><td>Web</td><td>Full-stack web framework (no deps)</td></tr>
+        <tr><td class="mono">Dancer2</td><td>Web</td><td>Lightweight sinatra-style web framework</td></tr>
+        <tr><td class="mono">LWP::UserAgent</td><td>HTTP</td><td>HTTP client (make web requests)</td></tr>
+        <tr><td class="mono">HTTP::Tiny</td><td>HTTP</td><td>Lightweight HTTP client (core module)</td></tr>
+        <tr><td class="mono">JSON / JSON::XS</td><td>Data</td><td>JSON encode/decode</td></tr>
+        <tr><td class="mono">YAML::PP</td><td>Data</td><td>YAML parse/generate</td></tr>
+        <tr><td class="mono">Text::CSV_XS</td><td>Data</td><td>Robust CSV parsing</td></tr>
+        <tr><td class="mono">DateTime</td><td>Time</td><td>Comprehensive date/time manipulation</td></tr>
+        <tr><td class="mono">Path::Tiny</td><td>Files</td><td>Elegant file/path operations</td></tr>
+        <tr><td class="mono">Getopt::Long</td><td>CLI</td><td>Command-line option parsing</td></tr>
+        <tr><td class="mono">Template (TT)</td><td>Templates</td><td>Powerful template engine</td></tr>
+        <tr><td class="mono">Try::Tiny</td><td>Errors</td><td>Simple, correct try/catch/finally</td></tr>
+        <tr><td class="mono">Test::More</td><td>Testing</td><td>Standard testing harness</td></tr>
+        <tr><td class="mono">Carp</td><td>Errors</td><td>Better error context (core)</td></tr>
+        <tr><td class="mono">Storable</td><td>Serialize</td><td>Deep copy, serialization (core)</td></tr>
+        <tr><td class="mono">Data::Dumper</td><td>Debug</td><td>Pretty-print any data structure (core)</td></tr>
+      </table></div>
+      <div class="code"><div class="code-hdr"><span class="code-file">installing</span><span class="code-lang">shell</span></div><pre><span class="w">cpanm Module::Name           </span><span class="c"># cpanminus — recommended installer</span>
+<span class="w">cpan  Module::Name           </span><span class="c"># built-in CPAN shell</span>
+<span class="w">apt install libfoo-perl      </span><span class="c"># system package manager (Debian/Ubuntu)</span>
+<span class="w">brew install cpanminus       </span><span class="c"># macOS via Homebrew</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 20 — SPECIAL VARIABLES
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch20">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">20</span>
+    <span class="ch-title">Special Variables</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Most Commonly Used</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Variable</th><th>English name</th><th>Meaning</th></tr></thead>
+        <tr><td class="mono">$_</td><td>$ARG</td><td>Default variable for loops, print, match, chomp, etc.</td></tr>
+        <tr><td class="mono">@_</td><td></td><td>Subroutine argument list — always unpack at top of sub</td></tr>
+        <tr><td class="mono">$!</td><td>$OS_ERROR</td><td>System error from last failed OS call (as string or number)</td></tr>
+        <tr><td class="mono">$@</td><td>$EVAL_ERROR</td><td>Exception caught by last <code>eval</code> block</td></tr>
+        <tr><td class="mono">$?</td><td>$CHILD_ERROR</td><td>Exit status of last <code>system()</code> or backtick command</td></tr>
+        <tr><td class="mono">$0</td><td>$PROGRAM_NAME</td><td>Name of the running script</td></tr>
+        <tr><td class="mono">@ARGV</td><td></td><td>Command-line arguments</td></tr>
+        <tr><td class="mono">%ENV</td><td></td><td>Environment variables (read/write)</td></tr>
+        <tr><td class="mono">$/</td><td>$INPUT_RECORD_SEP</td><td>Input record separator (default: <code>\n</code>); set to undef to slurp</td></tr>
+        <tr><td class="mono">$\</td><td>$OUTPUT_RECORD_SEP</td><td>Appended to every <code>print</code> statement</td></tr>
+        <tr><td class="mono">$,</td><td>$OUTPUT_FIELD_SEP</td><td>Separator between <code>print</code> arguments</td></tr>
+        <tr><td class="mono">$"</td><td>$LIST_SEP</td><td>Separator used when array interpolated in string (default: space)</td></tr>
+        <tr><td class="mono">$.</td><td>$INPUT_LINE_NUMBER</td><td>Current line number of last filehandle read</td></tr>
+        <tr><td class="mono">$;</td><td>$SUBSCRIPT_SEP</td><td>Multi-key hash subscript separator (rare)</td></tr>
+        <tr><td class="mono">$&amp;</td><td>$MATCH</td><td>Entire string matched by last regex</td></tr>
+        <tr><td class="mono">$1..$9</td><td></td><td>Captured groups from last successful regex match</td></tr>
+        <tr><td class="mono">%+</td><td></td><td>Named captures from last regex: <code>$+{name}</code></td></tr>
+        <tr><td class="mono">$^W</td><td>$WARNING</td><td>True if warnings enabled (prefer <code>use warnings</code>)</td></tr>
+        <tr><td class="mono">$^O</td><td>$OSNAME</td><td>Operating system name: "linux", "darwin", "MSWin32"</td></tr>
+        <tr><td class="mono">$^T</td><td>$BASETIME</td><td>Time (epoch) when program started</td></tr>
+      </table></div>
+      <div class="note"><strong>Note</strong>Use <code>use English;</code> to get readable aliases for punctuation variables. Example: <code>$OS_ERROR</code> instead of <code>$!</code>. However, this has a small performance cost for regex-related variables, so some skip it in tight loops.</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 21 — COMMAND-LINE PERL
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch21">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">21</span>
+    <span class="ch-title">Command-Line Perl</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Flags</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Flag</th><th>Effect</th></tr></thead>
+        <tr><td class="mono">-e 'code'</td><td>Execute code string directly (no .pl file needed)</td></tr>
+        <tr><td class="mono">-n</td><td>Wrap code in <code>while (&lt;&gt;) { }</code>; reads lines, sets <code>$_</code>; no automatic print</td></tr>
+        <tr><td class="mono">-p</td><td>Like <code>-n</code> but prints <code>$_</code> after each iteration (like <code>sed</code>)</td></tr>
+        <tr><td class="mono">-i[ext]</td><td>Edit files in-place; optional extension creates backup: <code>-i.bak</code></td></tr>
+        <tr><td class="mono">-a</td><td>Auto-split <code>$_</code> on whitespace into <code>@F</code> (use with -n/-p)</td></tr>
+        <tr><td class="mono">-F/pat/</td><td>Set split pattern for <code>-a</code> (instead of whitespace)</td></tr>
+        <tr><td class="mono">-l</td><td>Auto-chomp input lines; append <code>$/</code> to print output</td></tr>
+        <tr><td class="mono">-0[oct]</td><td>Set <code>$/</code> to given octal value (0 = null, 777 = slurp whole file)</td></tr>
+        <tr><td class="mono">-c</td><td>Check syntax only; don't execute</td></tr>
+        <tr><td class="mono">-w</td><td>Enable warnings (use <code>use warnings</code> in scripts instead)</td></tr>
+        <tr><td class="mono">-d</td><td>Run under debugger</td></tr>
+        <tr><td class="mono">-de 42</td><td>Start interactive debugger (Perl REPL)</td></tr>
+        <tr><td class="mono">-M Module</td><td>Load a module before executing: <code>perl -MList::Util=sum -e 'say sum(1..10)'</code></td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>One-Liner Recipes</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">one_liners</span><span class="code-lang">shell</span></div><pre><span class="c"># Print lines matching a pattern</span>
+<span class="w">perl -ne 'print if /ERROR/'  server.log</span>
+
+<span class="c"># Replace text in-place across multiple files</span>
+<span class="w">perl -pi.bak -e 's/\bfoo\b/bar/g'  *.txt</span>
+
+<span class="c"># Print only lines 15-17</span>
+<span class="w">perl -ne 'print if $. >= 15; last if $. >= 17'  file.txt</span>
+
+<span class="c"># Sum a column of numbers (2nd field)</span>
+<span class="w">perl -ane '$sum += $F[1]; END { say $sum }'  data.txt</span>
+
+<span class="c"># Remove duplicate lines (preserving order)</span>
+<span class="w">perl -ne 'print unless $seen{$_}++'  file.txt</span>
+
+<span class="c"># Count occurrences of each word</span>
+<span class="w">perl -ne 'for (split){ $c{$_}++ } END{ say "$_ $c{$_}" for sort keys %c }'  file.txt</span>
+
+<span class="c"># Reverse each line</span>
+<span class="w">perl -lpe '$_ = reverse'  file.txt</span>
+
+<span class="c"># Rename files: strip .txt from all *.txt.bak files</span>
+<span class="w">perl -e 'rename $_, s/\.txt//r for glob "*.txt.bak"'</span>
+
+<span class="c"># Pretty-print JSON (requires JSON::PP)</span>
+<span class="w">perl -MJSON::PP -e 'print JSON::PP->new->pretty->encode(decode_json(do{local $/;&lt;STDIN>}))'</span>
+
+<span class="c"># Find and print palindromes in a word list</span>
+<span class="w">perl -lne 'print if lc eq reverse lc'  /usr/share/dict/words</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 22 — ADVANCED TOPICS
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch22">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">22</span>
+    <span class="ch-title">Advanced Topics</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Operator Overloading</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">overload.pl</span><span class="code-lang">perl</span></div><pre><span class="k">package</span> Vector<span class="p">;</span>
+<span class="k">use</span> <span class="f">overload</span>
+    <span class="s">'+'</span>  <span class="o">=&gt;</span> <span class="o">\&amp;</span><span class="f">add</span><span class="p">,</span>
+    <span class="s">'""'</span> <span class="o">=&gt;</span> <span class="o">\&amp;</span><span class="f">stringify</span><span class="p">;</span>   <span class="c"># overload stringification</span>
+
+<span class="k">sub</span> <span class="f">new</span>       <span class="p">{</span> <span class="f">bless</span> <span class="p">{</span> x <span class="o">=&gt;</span> <span class="v">$_</span><span class="p">[</span><span class="n">1</span><span class="p">],</span> y <span class="o">=&gt;</span> <span class="v">$_</span><span class="p">[</span><span class="n">2</span><span class="p">]</span> <span class="p">},</span> <span class="v">$_</span><span class="p">[</span><span class="n">0</span><span class="p">]</span> <span class="p">}</span>
+<span class="k">sub</span> <span class="f">add</span>       <span class="p">{</span> Vector<span class="o">-&gt;</span><span class="f">new</span><span class="p">(</span><span class="v">$_</span><span class="p">[</span><span class="n">0</span><span class="p">]{</span>x<span class="p">}+</span><span class="v">$_</span><span class="p">[</span><span class="n">1</span><span class="p">]{</span>x<span class="p">},</span> <span class="v">$_</span><span class="p">[</span><span class="n">0</span><span class="p">]{</span>y<span class="p">}+</span><span class="v">$_</span><span class="p">[</span><span class="n">1</span><span class="p">]{</span>y<span class="p">})</span> <span class="p">}</span>
+<span class="k">sub</span> <span class="f">stringify</span> <span class="p">{</span> <span class="s">"(</span><span class="v">$_[0]{x}</span><span class="s">, </span><span class="v">$_[0]{y}</span><span class="s">)"</span> <span class="p">}</span>
+
+<span class="k">my</span> <span class="v">$v</span> <span class="o">=</span> Vector<span class="o">-&gt;</span><span class="f">new</span><span class="p">(</span><span class="n">1</span><span class="p">,</span><span class="n">2</span><span class="p">)</span> <span class="o">+</span> Vector<span class="o">-&gt;</span><span class="f">new</span><span class="p">(</span><span class="n">3</span><span class="p">,</span><span class="n">4</span><span class="p">);</span>
+<span class="f">say</span> <span class="v">$v</span><span class="p">;</span>    <span class="c"># "(4, 6)"</span></pre></div>
+    </div>
+
+    <div class="sub">
+      <h3>Formats &amp; Context Summary</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Context</th><th>How triggered</th><th>Effect</th></tr></thead>
+        <tr><td>Scalar</td><td><code>my $n = @arr</code></td><td>Array returns element count; <code>localtime</code> returns formatted string</td></tr>
+        <tr><td>List</td><td><code>my @copy = @arr</code>, <code>my ($a,$b) = func()</code></td><td>Array/hash expands to elements; functions return full list</td></tr>
+        <tr><td>Boolean</td><td><code>if (@arr)</code></td><td>Undef/0/"0"/"" are false; everything else is true</td></tr>
+        <tr><td>Void</td><td><code>func();</code> (ignoring return)</td><td>Function may optimize by not building return value</td></tr>
+        <tr><td>Numeric</td><td><code>$s + 0</code></td><td>String converted to number; non-numeric string → 0 + warning</td></tr>
+        <tr><td>String</td><td><code>$n . ""</code></td><td>Number converted to string representation</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Advanced Features Overview</h3>
+      <div class="tag-grid">
+        <span class="tg amber">Weak references (Scalar::Util::weaken)</span>
+        <span class="tg amber">inside-out objects</span>
+        <span class="tg amber">AUTOLOAD / UNIVERSAL</span>
+        <span class="tg amber">tie (overload variables)</span>
+        <span class="tg purple">BEGIN / END / INIT blocks</span>
+        <span class="tg purple">CHECK / UNITCHECK</span>
+        <span class="tg purple">Symbol table manipulation</span>
+        <span class="tg purple">typeglobs (*foo)</span>
+        <span class="tg pink">threads (ithreads)</span>
+        <span class="tg pink">fork() + wait()</span>
+        <span class="tg pink">Inline::C</span>
+        <span class="tg green">XS extensions</span>
+        <span class="tg green">Attribute::Handlers</span>
+        <span class="tg green">Given/when (experimental)</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 23 — BEST PRACTICES
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch23">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">23</span>
+    <span class="ch-title">Best Practices</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Code Style (from Perl Best Practices)</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Category</th><th>Rule</th></tr></thead>
+        <tr><td>Safety</td><td>Always <code>use strict; use warnings;</code> — no exceptions</td></tr>
+        <tr><td>Safety</td><td>Always unpack <code>@_</code> explicitly at the start of every subroutine</td></tr>
+        <tr><td>Safety</td><td>Always use 3-argument <code>open()</code> and check the return value</td></tr>
+        <tr><td>Safety</td><td>Never use bareword filehandles</td></tr>
+        <tr><td>Safety</td><td>Avoid symbolic references entirely</td></tr>
+        <tr><td>Clarity</td><td>Use <code>my</code> for every variable; minimize scope</td></tr>
+        <tr><td>Clarity</td><td>Use <code>//=</code> not <code>||=</code> when 0 or "" are valid values</td></tr>
+        <tr><td>Clarity</td><td>Prefer named variables over <code>$_</code> when the name aids clarity</td></tr>
+        <tr><td>Clarity</td><td>Use <code>elsif</code>, not cascaded <code>if</code> checks on the same variable</td></tr>
+        <tr><td>Naming</td><td>Variables: <code>$my_variable</code> (snake_case for scalars/arrays/hashes)</td></tr>
+        <tr><td>Naming</td><td>Constants: <code>MAX_RETRIES</code> (ALL_CAPS)</td></tr>
+        <tr><td>Naming</td><td>Packages/Classes: <code>MyApp::Parser</code> (CamelCase)</td></tr>
+        <tr><td>Naming</td><td>Private subs: prefix with underscore <code>_helper()</code></td></tr>
+        <tr><td>Layout</td><td>4-space indentation; 78-column line limit</td></tr>
+        <tr><td>Layout</td><td>Trailing comma on last element of multiline list</td></tr>
+        <tr><td>Layout</td><td>Align corresponding items vertically</td></tr>
+        <tr><td>Subroutines</td><td>Use named parameters (hash) for 3+ arguments</td></tr>
+        <tr><td>Subroutines</td><td>Always use explicit <code>return</code></td></tr>
+        <tr><td>Error handling</td><td>Throw exceptions (die) instead of returning error flags</td></tr>
+        <tr><td>Modules</td><td>Export on request (<code>@EXPORT_OK</code>), not automatically</td></tr>
+        <tr><td>OOP</td><td>Don't use indirect object syntax: <code>new Foo()</code> → use <code>Foo->new()</code></td></tr>
+        <tr><td>Performance</td><td>Don't optimize without profiling (use <code>Devel::NYTProf</code>)</td></tr>
+        <tr><td>Testing</td><td>Write tests first (<code>Test::More</code>, <code>Test::Exception</code>)</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Modern Perl Style</h3>
+      <div class="code"><div class="code-hdr"><span class="code-file">modern.pl</span><span class="code-lang">perl</span></div><pre><span class="c"># Modern preamble (Perl 5.36+)</span>
+<span class="k">use</span> v5<span class="p">.</span><span class="n">36</span><span class="p">;</span>       <span class="c"># enables strict, warnings, say, state, and more</span>
+<span class="k">use</span> <span class="f">utf8</span><span class="p">;</span>
+<span class="k">use</span> <span class="f">feature</span> <span class="s">'signatures'</span><span class="p">;</span>   <span class="c"># named params in subs</span>
+<span class="k">no</span> <span class="f">warnings</span> <span class="s">'experimental::signatures'</span><span class="p">;</span>
+
+<span class="c"># Named sub parameters (Perl 5.20+ with signatures)</span>
+<span class="k">sub</span> <span class="f">greet</span> <span class="p">(</span><span class="v">$name</span><span class="p">,</span> <span class="v">$greeting</span> <span class="o">=</span> <span class="s">"Hello"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="f">say</span> <span class="s">"</span><span class="v">$greeting</span><span class="s">, </span><span class="v">$name</span><span class="s">!"</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c"># Try::Tiny for clean exception handling</span>
+<span class="k">use</span> <span class="f">Try::Tiny</span><span class="p">;</span>
+<span class="f">try</span> <span class="p">{</span>
+    <span class="f">risky_op</span><span class="p">();</span>
+<span class="p">}</span> <span class="f">catch</span> <span class="p">{</span>
+    <span class="f">warn</span> <span class="s">"Error: </span><span class="v">$_</span><span class="s">"</span><span class="p">;</span>
+<span class="p">}</span> <span class="f">finally</span> <span class="p">{</span>
+    <span class="f">cleanup</span><span class="p">();</span>
+<span class="p">};</span></pre></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  CH 24 — LEARNING ROADMAP
+════════════════════════════════════════════ -->
+<div class="chapter" id="ch24">
+  <div class="ch-header" onclick="toggleChapter(this)">
+    <span class="ch-num">24</span>
+    <span class="ch-title">Learning Roadmap</span>
+    <span class="ch-arrow">▶</span>
+  </div>
+  <div class="ch-body">
+
+    <div class="sub">
+      <h3>Stage 1 — Foundations (Weeks 1-2)</h3>
+      <div class="tag-grid">
+        <span class="tg green">Program structure + pragmas</span>
+        <span class="tg green">Scalars, strings, numbers</span>
+        <span class="tg green">Arrays and hashes</span>
+        <span class="tg green">if/elsif/unless + loops</span>
+        <span class="tg green">Subroutines</span>
+        <span class="tg green">Reading/writing files</span>
+      </div>
+      <p>Project: Write a script that reads a CSV, processes it, and writes a summary report.</p>
+    </div>
+
+    <div class="sub">
+      <h3>Stage 2 — Intermediate (Weeks 3-5)</h3>
+      <div class="tag-grid">
+        <span class="tg amber">References and nested structures</span>
+        <span class="tg amber">Regular expressions (match, substitute)</span>
+        <span class="tg amber">map / grep / sort</span>
+        <span class="tg amber">Error handling (eval/die)</span>
+        <span class="tg amber">Modules and CPAN</span>
+        <span class="tg amber">Scope and closures</span>
+      </div>
+      <p>Project: Build a log-file analyzer that parses Apache logs, categorizes errors, and generates an HTML report using regex and data structures.</p>
+    </div>
+
+    <div class="sub">
+      <h3>Stage 3 — Object-Oriented (Weeks 6-8)</h3>
+      <div class="tag-grid">
+        <span class="tg purple">Basic OOP (package/bless)</span>
+        <span class="tg purple">Inheritance and SUPER</span>
+        <span class="tg purple">Moose or Moo</span>
+        <span class="tg purple">Writing and distributing modules</span>
+        <span class="tg purple">Test::More and testing patterns</span>
+      </div>
+      <p>Project: Build a small ORM layer that wraps DBI with objects representing database rows.</p>
+    </div>
+
+    <div class="sub">
+      <h3>Stage 4 — Advanced Mastery (Ongoing)</h3>
+      <div class="tag-grid">
+        <span class="tg pink">Advanced regex (lookahead, lookbehind, named captures)</span>
+        <span class="tg pink">Dispatch tables and metaprogramming</span>
+        <span class="tg pink">Operator overloading</span>
+        <span class="tg pink">Performance profiling</span>
+        <span class="tg pink">Algorithms and data structures</span>
+        <span class="tg pink">XS and Inline::C</span>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Canonical Books (Your Bookshelf)</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Book</th><th>Level</th><th>Best for</th></tr></thead>
+        <tr><td>Learning Perl (Llama book)</td><td>Beginner</td><td>First Perl book; covers all fundamentals clearly</td></tr>
+        <tr><td>Intermediate Perl (Alpaca book)</td><td>Intermediate</td><td>References, OOP, modules, testing</td></tr>
+        <tr><td>Programming Perl (Camel book)</td><td>Reference</td><td>The definitive comprehensive reference</td></tr>
+        <tr><td>Modern Perl</td><td>Intermediate+</td><td>Current idioms, Moose, CPAN best practices</td></tr>
+        <tr><td>Perl Best Practices</td><td>Intermediate</td><td>Code quality, style, naming conventions</td></tr>
+        <tr><td>Mastering Algorithms with Perl</td><td>Advanced</td><td>CS algorithms implemented in Perl</td></tr>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>Key Online Resources</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Resource</th><th>URL</th></tr></thead>
+        <tr><td>Official documentation</td><td>perldoc.perl.org</td></tr>
+        <tr><td>CPAN module search</td><td>metacpan.org</td></tr>
+        <tr><td>Modern Perl book (free)</td><td>modernperlbooks.com</td></tr>
+        <tr><td>PerlMonks forum</td><td>perlmonks.org</td></tr>
+        <tr><td>Perl Weekly newsletter</td><td>perlweekly.com</td></tr>
+        <tr><td>Learn Perl in ~2h</td><td>learn.perl.org</td></tr>
+      </table></div>
+    </div>
+
+  </div>
+</div>
+
+
+<div class="guide-footer">
+  <span>Learning Perl — Comprehensive Guide</span>
+  <span>24 chapters · Perl 5.x</span>
+</div>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════ -->
+<script>
+// ── Toggle chapters ──────────────────────────────
+function toggleChapter(header) {
+  header.closest('.chapter').classList.toggle('open');
+}
+
+// ── Nav search filter ────────────────────────────
+document.getElementById('navSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.nav-item').forEach(a => {
+    const txt = a.textContent.toLowerCase();
+    a.classList.toggle('hidden', q && !txt.includes(q));
+  });
+});
+
+// ── Active nav highlighting ──────────────────────
+const chapters = document.querySelectorAll('.chapter[id]');
+const navLinks  = document.querySelectorAll('.nav-item[data-target]');
+
+function updateActive() {
+  let current = '';
+  chapters.forEach(ch => {
+    if (ch.getBoundingClientRect().top <= 60) current = ch.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.dataset.target === current);
+  });
+}
+
+document.addEventListener('scroll', updateActive, { passive: true });
+updateActive();
+
+// ── Click nav → open + scroll ────────────────────
+navLinks.forEach(a => {
+  a.addEventListener('click', () => {
+    const target = document.getElementById(a.dataset.target);
+    if (!target) return;
+    target.classList.add('open');
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// ── Progress bar ─────────────────────────────────
+function updateProgress() {
+  const doc  = document.documentElement;
+  const pct  = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+document.addEventListener('scroll', updateProgress, { passive: true });
+
+// ── Open first chapter by default ────────────────
+document.querySelectorAll('.chapter').forEach((ch, i) => {
+  if (i > 2) ch.classList.remove('open');
+});
+</script>
+</body>
+</html>

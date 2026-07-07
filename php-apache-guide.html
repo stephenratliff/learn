@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP & Apache — A First Principles Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;1,400&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e29;
+    --panel: #1e2230;
+    --border: #2a2f42;
+    --accent: #e8c547;
+    --accent2: #5b8dee;
+    --accent3: #5de0a0;
+    --accent4: #e8637a;
+    --text: #dce2f0;
+    --text-muted: #7a849e;
+    --text-dim: #4a5168;
+    --code-bg: #0a0c10;
+    --tag-php: #8b5cf6;
+    --tag-apache: #f97316;
+    --tag-sql: #06b6d4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 32px 0;
+    transition: transform 0.3s ease;
+  }
+
+  nav::-webkit-scrollbar { width: 4px; }
+  nav::-webkit-scrollbar-track { background: transparent; }
+  nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .nav-logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .nav-logo .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .nav-logo .logo-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 16px 24px 8px;
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  nav a:hover {
+    color: var(--text);
+    background: var(--bg3);
+    border-left-color: var(--accent);
+  }
+
+  nav a .nav-num {
+    color: var(--text-dim);
+    font-size: 10px;
+    min-width: 20px;
+  }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    margin-left: 260px;
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    padding: 80px 80px 70px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: 'PHP';
+    position: absolute;
+    right: -20px;
+    top: -30px;
+    font-family: 'Syne', sans-serif;
+    font-size: 240px;
+    font-weight: 800;
+    color: var(--accent);
+    opacity: 0.04;
+    pointer-events: none;
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 4vw, 58px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-desc {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    color: var(--text-muted);
+    max-width: 580px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .hero-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid;
+    letter-spacing: 0.05em;
+  }
+
+  .tag-php { color: #c4b5fd; border-color: #4c1d95; background: #1a0f3a; }
+  .tag-apache { color: #fdba74; border-color: #7c2d12; background: #2d1208; }
+  .tag-macos { color: #6ee7b7; border-color: #064e3b; background: #06201a; }
+  .tag-beginner { color: #93c5fd; border-color: #1e3a5f; background: #0a1a2e; }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    max-width: 820px;
+    padding: 70px 80px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 80px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+
+  .section h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent2);
+    margin: 36px 0 14px;
+    letter-spacing: -0.01em;
+  }
+
+  .section h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent3);
+    margin: 24px 0 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  p { margin-bottom: 16px; color: var(--text); }
+
+  strong { color: #fff; font-weight: 600; }
+  em { color: var(--accent); font-style: italic; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    position: relative;
+    margin: 24px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .lang-php { color: #c4b5fd; }
+  .lang-bash { color: #6ee7b7; }
+  .lang-apache { color: #fdba74; }
+  .lang-html { color: #f9a8d4; }
+  .lang-sql { color: #7dd3fc; }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+  .code-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-red { background: #e8637a; }
+  .dot-yellow { background: #e8c547; }
+  .dot-green { background: #5de0a0; }
+
+  pre {
+    background: var(--code-bg);
+    padding: 20px 22px;
+    overflow-x: auto;
+    margin: 0;
+  }
+
+  pre::-webkit-scrollbar { height: 4px; }
+  pre::-webkit-scrollbar-track { background: transparent; }
+  pre::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #abb2bf;
+  }
+
+  /* Inline code */
+  p code, li code, td code {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 13px;
+    color: var(--accent3);
+  }
+
+  /* Syntax highlighting classes */
+  .kw  { color: #c678dd; }   /* keyword */
+  .fn  { color: #61afef; }   /* function */
+  .str { color: #98c379; }   /* string */
+  .num { color: #d19a66; }   /* number */
+  .cmt { color: #5c6370; font-style: italic; } /* comment */
+  .var { color: #e06c75; }   /* variable */
+  .tag-c{ color: #e06c75; }  /* html tag */
+  .atr { color: #d19a66; }   /* attribute */
+  .cls { color: #e5c07b; }   /* class */
+  .op  { color: #56b6c2; }   /* operator */
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    margin: 24px 0;
+    padding: 16px 20px 16px 48px;
+    border-radius: 6px;
+    position: relative;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .callout::before {
+    position: absolute;
+    left: 16px;
+    top: 17px;
+    font-size: 16px;
+  }
+
+  .callout-info {
+    background: rgba(91, 141, 238, 0.08);
+    border: 1px solid rgba(91, 141, 238, 0.25);
+    color: #93b4f5;
+  }
+  .callout-info::before { content: 'ℹ'; }
+
+  .callout-tip {
+    background: rgba(93, 224, 160, 0.07);
+    border: 1px solid rgba(93, 224, 160, 0.22);
+    color: #7dd3aa;
+  }
+  .callout-tip::before { content: '💡'; }
+
+  .callout-warn {
+    background: rgba(232, 197, 71, 0.07);
+    border: 1px solid rgba(232, 197, 71, 0.22);
+    color: #cfa93a;
+  }
+  .callout-warn::before { content: '⚠'; }
+
+  .callout-danger {
+    background: rgba(232, 99, 122, 0.08);
+    border: 1px solid rgba(232, 99, 122, 0.22);
+    color: #d97085;
+  }
+  .callout-danger::before { content: '🚨'; }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 24px 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  th {
+    background: var(--bg3);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  tr:hover td { background: var(--bg3); }
+
+  /* ── STEP LIST ── */
+  .steps { counter-reset: step; list-style: none; }
+
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 28px 52px;
+    margin-bottom: 0;
+  }
+
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 2px;
+    width: 30px; height: 30px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .steps li::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 32px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .steps li:last-child::after { display: none; }
+
+  .steps li strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  /* ── DEFINITION LIST ── */
+  dl { margin: 16px 0; }
+  dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent3);
+    margin-top: 14px;
+    margin-bottom: 4px;
+  }
+  dd {
+    padding-left: 20px;
+    color: var(--text-muted);
+    font-size: 15px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  footer .footer-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  footer .footer-text span { color: var(--accent); }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    z-index: 999;
+    transition: width 0.1s linear;
+  }
+
+  /* ── MOBILE TOGGLE ── */
+  .nav-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 200;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    font-size: 18px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 900px) {
+    nav { transform: translateX(-100%); }
+    nav.open { transform: translateX(0); }
+    main { margin-left: 0; }
+    .content { padding: 40px 24px; }
+    .hero { padding: 60px 24px 50px; }
+    footer { padding: 32px 24px; }
+    .nav-toggle { display: flex; }
+  }
+
+  /* ── INLINE HIGHLIGHT ── */
+  .hl { background: rgba(232,197,71,0.12); color: var(--accent); padding: 1px 5px; border-radius: 3px; }
+
+  /* ── COMPARISON GRID ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .compare-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .compare-card .cc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .compare-card ul {
+    list-style: none;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .compare-card ul li {
+    padding: 3px 0;
+    color: var(--text-muted);
+  }
+  .compare-card ul li::before { content: '→ '; color: var(--accent3); }
+
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<button class="nav-toggle" onclick="document.querySelector('nav').classList.toggle('open')">☰</button>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="nav-logo">
+    <div class="logo-text">PHP &amp; Apache</div>
+    <div class="logo-sub">// first principles guide</div>
+  </div>
+
+  <div class="nav-section-title">Getting Started</div>
+  <a href="#intro"><span class="nav-num">01</span> Introduction</a>
+  <a href="#how-it-works"><span class="nav-num">02</span> How PHP Works</a>
+  <a href="#setup"><span class="nav-num">03</span> Setup on macOS</a>
+  <a href="#apache-config"><span class="nav-num">04</span> Apache Config</a>
+  <a href="#first-script"><span class="nav-num">05</span> First PHP Script</a>
+
+  <div class="nav-section-title">PHP Language</div>
+  <a href="#syntax"><span class="nav-num">06</span> Syntax &amp; Tags</a>
+  <a href="#variables"><span class="nav-num">07</span> Variables &amp; Types</a>
+  <a href="#operators"><span class="nav-num">08</span> Operators</a>
+  <a href="#control"><span class="nav-num">09</span> Control Flow</a>
+  <a href="#loops"><span class="nav-num">10</span> Loops</a>
+  <a href="#functions"><span class="nav-num">11</span> Functions</a>
+  <a href="#arrays"><span class="nav-num">12</span> Arrays</a>
+  <a href="#strings"><span class="nav-num">13</span> Strings</a>
+
+  <div class="nav-section-title">Web Development</div>
+  <a href="#superglobals"><span class="nav-num">14</span> Superglobals</a>
+  <a href="#forms"><span class="nav-num">15</span> Forms &amp; Input</a>
+  <a href="#sessions"><span class="nav-num">16</span> Sessions &amp; Cookies</a>
+  <a href="#files"><span class="nav-num">17</span> File I/O</a>
+  <a href="#database"><span class="nav-num">18</span> MySQL &amp; PDO</a>
+
+  <div class="nav-section-title">Advanced</div>
+  <a href="#oop"><span class="nav-num">19</span> OOP in PHP</a>
+  <a href="#error-handling"><span class="nav-num">20</span> Error Handling</a>
+  <a href="#security"><span class="nav-num">21</span> Security</a>
+  <a href="#next-steps"><span class="nav-num">22</span> Next Steps</a>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">// A First Principles Guide</div>
+    <h1>PHP &amp; <span>Apache</span><br>From the Ground Up</h1>
+    <p class="hero-desc">Everything you need to understand how PHP runs on Apache, how the language works, and how to build dynamic web applications — explained from first principles.</p>
+    <div class="hero-tags">
+      <span class="tag tag-php">PHP 8.x</span>
+      <span class="tag tag-apache">Apache 2.4</span>
+      <span class="tag tag-macos">macOS / M-series</span>
+      <span class="tag tag-beginner">Beginner Friendly</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- 01 INTRODUCTION -->
+    <section class="section" id="intro">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2>What is PHP?</h2>
+      </div>
+
+      <p>PHP stands for <strong>PHP: Hypertext Preprocessor</strong> — a recursive acronym. It is a general-purpose scripting language especially suited to <em>server-side web development</em>. Created by Rasmus Lerdorf in 1993 and first released in 1994, PHP now powers over 75% of all websites with a known server-side language, including WordPress, Wikipedia, and Facebook's original stack.</p>
+
+      <p>PHP is different from JavaScript, which runs in the browser. PHP runs on the <strong>server</strong> — it receives an HTTP request, executes code, and returns HTML (or JSON, XML, etc.) to the client. The browser never sees your PHP source code.</p>
+
+      <div class="callout callout-info">
+        PHP is <strong>interpreted</strong> at runtime, not compiled. This makes it fast to iterate on but means errors only surface when the code runs.
+      </div>
+
+      <div class="compare-grid">
+        <div class="compare-card">
+          <div class="cc-title" style="color:var(--accent3)">PHP Strengths</div>
+          <ul>
+            <li>Huge ecosystem &amp; community</li>
+            <li>Runs everywhere Apache does</li>
+            <li>Built-in web primitives</li>
+            <li>Low barrier to entry</li>
+            <li>First-class MySQL support</li>
+            <li>Frameworks: Laravel, Symfony</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <div class="cc-title" style="color:var(--accent4)">Things to Know</div>
+          <ul>
+            <li>Type coercion can surprise you</li>
+            <li>Pre-8.0 had inconsistent APIs</li>
+            <li>Needs careful security hygiene</li>
+            <li>Not ideal for real-time apps</li>
+            <li>Many legacy codebases exist</li>
+            <li>PHP 8.x fixed most old issues</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 HOW IT WORKS -->
+    <section class="section" id="how-it-works">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2>How PHP &amp; Apache Work Together</h2>
+      </div>
+
+      <p>To understand the setup, you need to understand the <strong>request lifecycle</strong>:</p>
+
+      <ol class="steps">
+        <li>
+          <strong>Browser sends HTTP request</strong>
+          Your browser requests <code>http://localhost/hello.php</code>.
+        </li>
+        <li>
+          <strong>Apache receives the request</strong>
+          Apache (the web server) intercepts the request. It looks at the file extension <code>.php</code>.
+        </li>
+        <li>
+          <strong>Apache hands off to PHP</strong>
+          Via <code>mod_php</code> (a module) or PHP-FPM, Apache passes the file to the PHP interpreter.
+        </li>
+        <li>
+          <strong>PHP executes the script</strong>
+          PHP reads the <code>.php</code> file, executes code, and generates output (usually HTML).
+        </li>
+        <li>
+          <strong>Apache returns the response</strong>
+          Apache sends the PHP-generated HTML back to the browser. The browser renders it.
+        </li>
+      </ol>
+
+      <div class="callout callout-info">
+        The browser only ever sees <strong>the output</strong> of your PHP script — pure HTML. Your PHP code is invisible to users, which is why you can safely put database passwords in PHP files (though environment variables are better practice).
+      </div>
+
+      <h3>Apache's Role</h3>
+      <p>Apache is the <strong>HTTP server</strong> — the software that listens on port 80/443, handles incoming connections, maps URLs to files, and enforces rules like access control. Without Apache (or another web server like Nginx), PHP scripts would have no way to receive web requests.</p>
+
+      <p>The key Apache module for PHP is <strong><code>mod_php</code></strong>, which embeds the PHP interpreter directly inside Apache. Alternatively, <strong>PHP-FPM</strong> (FastCGI Process Manager) runs PHP as a separate process pool — this is more modern and used in production.</p>
+    </section>
+
+    <!-- 03 SETUP -->
+    <section class="section" id="setup">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2>Setup on macOS (Apple Silicon)</h2>
+      </div>
+
+      <p>macOS ships with Apache, but we recommend using <strong>Homebrew</strong> for full control. This gives you Apache 2.4 and PHP 8.x that you can update independently.</p>
+
+      <h3>Option A — Homebrew (Recommended)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-bash">bash — Terminal</span>
+        </div>
+        <pre><code><span class="cmt"># 1. Install Homebrew (if not already installed)</span>
+/bin/bash -c <span class="str">"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span>
+
+<span class="cmt"># 2. Install Apache</span>
+brew install httpd
+
+<span class="cmt"># 3. Install PHP 8.3</span>
+brew install php
+
+<span class="cmt"># 4. Start Apache (and enable on login)</span>
+brew services start httpd
+
+<span class="cmt"># 5. Verify PHP is installed</span>
+php -v</code></pre>
+      </div>
+
+      <div class="callout callout-tip">
+        After running <code>brew install httpd</code>, Apache's config file is at:<br>
+        <code>/opt/homebrew/etc/httpd/httpd.conf</code><br>
+        And the document root (where you put PHP files) defaults to:<br>
+        <code>/opt/homebrew/var/www</code>
+      </div>
+
+      <h3>Option B — MAMP (Easiest GUI Option)</h3>
+      <p>Download <strong>MAMP Free</strong> from <code>mamp.info</code>. It bundles Apache, PHP, and MySQL in a GUI app — one click to start/stop. The document root is <code>/Applications/MAMP/htdocs/</code>. Great for beginners.</p>
+
+      <h3>Verify Everything Works</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-bash">bash</span>
+        </div>
+        <pre><code><span class="cmt"># Check Apache is running</span>
+curl http://localhost
+
+<span class="cmt"># Should output: "It works!" or your index page</span>
+
+<span class="cmt"># Check PHP CLI</span>
+php -v
+<span class="cmt"># PHP 8.3.x (cli) ...</span>
+
+<span class="cmt"># Check PHP info from command line</span>
+php -r <span class="str">"echo phpversion();"</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 04 APACHE CONFIG -->
+    <section class="section" id="apache-config">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2>Apache Configuration for PHP</h2>
+      </div>
+
+      <p>Apache's main config file is <code>httpd.conf</code>. You need to tell Apache to load the PHP module and process <code>.php</code> files correctly.</p>
+
+      <h3>Enable PHP in httpd.conf</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-apache">httpd.conf</span>
+        </div>
+        <pre><code><span class="cmt"># Load the PHP module (path varies by install)</span>
+LoadModule php_module /opt/homebrew/lib/httpd/modules/libphp.so
+
+<span class="cmt"># Tell Apache to process .php files with PHP</span>
+&lt;FilesMatch \.php$&gt;
+    SetHandler application/x-httpd-php
+&lt;/FilesMatch&gt;
+
+<span class="cmt"># Set document root (where your files live)</span>
+DocumentRoot <span class="str">"/opt/homebrew/var/www"</span>
+
+<span class="cmt"># Allow index.php as a directory index</span>
+DirectoryIndex index.php index.html
+
+<span class="cmt"># Enable .htaccess overrides (for URL rewriting)</span>
+&lt;Directory <span class="str">"/opt/homebrew/var/www"</span>&gt;
+    AllowOverride All
+    Require all granted
+&lt;/Directory&gt;</code></pre>
+      </div>
+
+      <h3>Key Apache Directives Explained</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Directive</th><th>Purpose</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>DocumentRoot</code></td><td>Root folder served by Apache</td><td><code>/opt/homebrew/var/www</code></td></tr>
+            <tr><td><code>DirectoryIndex</code></td><td>Default file for a directory</td><td><code>index.php index.html</code></td></tr>
+            <tr><td><code>LoadModule</code></td><td>Loads an Apache extension</td><td><code>LoadModule rewrite_module ...</code></td></tr>
+            <tr><td><code>AllowOverride</code></td><td>Allows .htaccess to override</td><td><code>AllowOverride All</code></td></tr>
+            <tr><td><code>Listen</code></td><td>Port Apache listens on</td><td><code>Listen 8080</code></td></tr>
+            <tr><td><code>ServerName</code></td><td>The hostname of the server</td><td><code>localhost</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Using .htaccess</h3>
+      <p>A <code>.htaccess</code> file in any directory lets you override Apache settings for that directory without touching <code>httpd.conf</code>. Essential for URL rewriting (clean URLs).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-apache">.htaccess — URL Rewriting Example</span>
+        </div>
+        <pre><code>RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+<span class="cmt"># Route all requests to index.php (for MVC frameworks)</span>
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]</code></pre>
+      </div>
+
+      <div class="callout callout-warn">
+        After editing <code>httpd.conf</code>, always restart Apache: <code>brew services restart httpd</code>
+      </div>
+    </section>
+
+    <!-- 05 FIRST SCRIPT -->
+    <section class="section" id="first-script">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2>Your First PHP Script</h2>
+      </div>
+
+      <p>Create a file called <code>hello.php</code> in your document root (<code>/opt/homebrew/var/www/</code>) with the following content:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">hello.php</span>
+        </div>
+        <pre><code><span class="tag-c">&lt;!DOCTYPE html&gt;</span>
+<span class="tag-c">&lt;html&gt;</span>
+<span class="tag-c">&lt;body&gt;</span>
+
+<span class="op">&lt;?php</span>
+  <span class="var">$name</span> = <span class="str">"World"</span>;
+  <span class="kw">echo</span> <span class="str">"&lt;h1&gt;Hello, "</span> . <span class="var">$name</span> . <span class="str">"!&lt;/h1&gt;"</span>;
+  <span class="kw">echo</span> <span class="str">"&lt;p&gt;Today is: "</span> . <span class="fn">date</span>(<span class="str">"l, F j, Y"</span>) . <span class="str">"&lt;/p&gt;"</span>;
+<span class="op">?&gt;</span>
+
+<span class="tag-c">&lt;/body&gt;</span>
+<span class="tag-c">&lt;/html&gt;</span></code></pre>
+      </div>
+
+      <p>Visit <code>http://localhost/hello.php</code> in your browser. You should see a greeting with today's date — generated live by PHP on the server.</p>
+
+      <h3>phpinfo() — Your Best Debugging Friend</h3>
+      <p>Create a file called <code>info.php</code> with just this content. It shows every detail about your PHP + Apache configuration:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">info.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span> <span class="fn">phpinfo</span>(); <span class="op">?&gt;</span></code></pre>
+      </div>
+
+      <div class="callout callout-danger">
+        <strong>Never leave info.php on a production server!</strong> It reveals your server configuration, installed modules, and PHP settings to anyone who visits it.
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- 06 SYNTAX -->
+    <section class="section" id="syntax">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2>PHP Syntax &amp; Tags</h2>
+      </div>
+
+      <p>PHP code is embedded inside HTML using <strong>PHP tags</strong>. Everything between the tags is executed by the PHP interpreter; everything outside is sent to the browser as-is.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">PHP Tags</span>
+        </div>
+        <pre><code><span class="cmt">// Standard tags (always available, always use these)</span>
+<span class="op">&lt;?php</span>  <span class="cmt">// ... code ...</span>  <span class="op">?&gt;</span>
+
+<span class="cmt">// Short echo tag (outputs a value directly)</span>
+<span class="op">&lt;?=</span> <span class="var">$variable</span> <span class="op">?&gt;</span>
+<span class="cmt">// Equivalent to: &lt;?php echo $variable; ?&gt;</span>
+
+<span class="cmt">// If a file is ONLY PHP, omit the closing ?&gt; tag</span>
+<span class="cmt">// This prevents accidental whitespace output</span>
+<span class="op">&lt;?php</span>
+<span class="kw">class</span> <span class="cls">MyClass</span> {
+    <span class="cmt">// ...</span>
+}
+<span class="cmt">// No closing ?&gt; needed here</span></code></pre>
+      </div>
+
+      <h3>Statements &amp; Semicolons</h3>
+      <p>Every PHP statement ends with a <strong>semicolon</strong> <code>;</code>. Missing a semicolon is one of the most common beginner errors.</p>
+
+      <h3>Comments</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">comments.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// Single-line comment</span>
+
+<span class="cmt"># Also a single-line comment (shell-style)</span>
+
+<span class="cmt">/*
+ * Multi-line comment
+ * Great for documenting functions
+ */</span>
+
+<span class="cmt">/**
+ * DocBlock comment — used by IDEs and documentation tools
+ * @param string $name  The person's name
+ * @return string       A greeting
+ */</span>
+<span class="kw">function</span> <span class="fn">greet</span>(<span class="kw">string</span> <span class="var">$name</span>): <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="str">"Hello, {$name}!"</span>;
+}
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 07 VARIABLES -->
+    <section class="section" id="variables">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <h2>Variables &amp; Data Types</h2>
+      </div>
+
+      <p>In PHP, variables start with a <strong>dollar sign <code>$</code></strong>. PHP is <em>dynamically typed</em> — a variable can hold any type, and the type can change at runtime.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">variables.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── SCALAR TYPES ──────────────────────────────</span>
+
+<span class="var">$name</span>    = <span class="str">"Alice"</span>;          <span class="cmt">// string</span>
+<span class="var">$age</span>     = <span class="num">30</span>;               <span class="cmt">// integer</span>
+<span class="var">$price</span>   = <span class="num">19.99</span>;            <span class="cmt">// float</span>
+<span class="var">$active</span>  = <span class="kw">true</span>;             <span class="cmt">// boolean</span>
+<span class="var">$nothing</span> = <span class="kw">null</span>;             <span class="cmt">// null</span>
+
+<span class="cmt">// ── TYPE CHECKING ──────────────────────────────</span>
+<span class="fn">var_dump</span>(<span class="var">$age</span>);              <span class="cmt">// int(30)</span>
+<span class="fn">gettype</span>(<span class="var">$price</span>);            <span class="cmt">// "double"</span>
+<span class="fn">is_string</span>(<span class="var">$name</span>);          <span class="cmt">// true</span>
+<span class="fn">is_null</span>(<span class="var">$nothing</span>);         <span class="cmt">// true</span>
+
+<span class="cmt">// ── TYPE CASTING ───────────────────────────────</span>
+<span class="var">$strNum</span>  = <span class="str">"42"</span>;
+<span class="var">$intNum</span>  = (<span class="kw">int</span>) <span class="var">$strNum</span>;    <span class="cmt">// 42</span>
+<span class="var">$floatN</span>  = (<span class="kw">float</span>) <span class="var">$strNum</span>; <span class="cmt">// 42.0</span>
+<span class="var">$boolN</span>   = (<span class="kw">bool</span>) <span class="var">$strNum</span>;  <span class="cmt">// true</span>
+
+<span class="cmt">// ── TYPE JUGGLING (be careful!) ─────────────────</span>
+<span class="var">$result</span> = <span class="str">"3"</span> + <span class="num">4</span>;           <span class="cmt">// 7  (PHP converts "3" to int)</span>
+<span class="var">$concat</span> = <span class="str">"3"</span> . <span class="num">4</span>;           <span class="cmt">// "34" (. is string concat)</span>
+
+<span class="cmt">// ── CONSTANTS ──────────────────────────────────</span>
+<span class="fn">define</span>(<span class="str">'MAX_SIZE'</span>, <span class="num">100</span>);   <span class="cmt">// Old style</span>
+<span class="kw">const</span> <span class="cls">VERSION</span> = <span class="str">'1.0.0'</span>;   <span class="cmt">// Preferred in PHP 5.3+</span>
+
+<span class="kw">echo</span> <span class="cls">MAX_SIZE</span>;               <span class="cmt">// No $ for constants!</span>
+<span class="op">?&gt;</span></code></pre>
+      </div>
+
+      <h3>Variable Variables &amp; isset/empty</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">checking variables</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="var">$username</span> = <span class="str">"alice"</span>;
+
+<span class="cmt">// isset() — true if variable exists AND is not null</span>
+<span class="kw">if</span> (<span class="fn">isset</span>(<span class="var">$username</span>)) {
+    <span class="kw">echo</span> <span class="str">"Username is set"</span>;
+}
+
+<span class="cmt">// empty() — true if falsy: "", 0, "0", [], null, false</span>
+<span class="var">$value</span> = <span class="str">""</span>;
+<span class="kw">if</span> (<span class="fn">empty</span>(<span class="var">$value</span>)) {
+    <span class="kw">echo</span> <span class="str">"Value is empty"</span>;
+}
+
+<span class="cmt">// Nullsafe: PHP 8.0+ null coalescing</span>
+<span class="var">$name</span> = <span class="var">$_POST</span>[<span class="str">'name'</span>] ?? <span class="str">'Guest'</span>; <span class="cmt">// default if null/unset</span>
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 08 OPERATORS -->
+    <section class="section" id="operators">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <h2>Operators</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Operator</th><th>Name</th><th>Example</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>+</code></td><td>Addition</td><td><code>5 + 3</code></td><td><code>8</code></td></tr>
+            <tr><td><code>-</code></td><td>Subtraction</td><td><code>5 - 3</code></td><td><code>2</code></td></tr>
+            <tr><td><code>*</code></td><td>Multiplication</td><td><code>5 * 3</code></td><td><code>15</code></td></tr>
+            <tr><td><code>/</code></td><td>Division</td><td><code>10 / 3</code></td><td><code>3.333...</code></td></tr>
+            <tr><td><code>%</code></td><td>Modulo</td><td><code>10 % 3</code></td><td><code>1</code></td></tr>
+            <tr><td><code>**</code></td><td>Exponentiation</td><td><code>2 ** 8</code></td><td><code>256</code></td></tr>
+            <tr><td><code>.</code></td><td>String concat</td><td><code>"Hi" . " " . "there"</code></td><td><code>"Hi there"</code></td></tr>
+            <tr><td><code>==</code></td><td>Loose equal</td><td><code>"1" == 1</code></td><td><code>true</code></td></tr>
+            <tr><td><code>===</code></td><td>Strict equal</td><td><code>"1" === 1</code></td><td><code>false</code></td></tr>
+            <tr><td><code>!=</code></td><td>Not equal</td><td><code>"1" != 2</code></td><td><code>true</code></td></tr>
+            <tr><td><code>!==</code></td><td>Strict not equal</td><td><code>"1" !== 1</code></td><td><code>true</code></td></tr>
+            <tr><td><code>&lt;=&gt;</code></td><td>Spaceship</td><td><code>1 &lt;=&gt; 2</code></td><td><code>-1</code></td></tr>
+            <tr><td><code>??</code></td><td>Null coalescing</td><td><code>$x ?? 'default'</code></td><td>$x or 'default'</td></tr>
+            <tr><td><code>?:</code></td><td>Elvis / Ternary</td><td><code>$x ?: 'fallback'</code></td><td>$x if truthy</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-warn">
+        Always use <strong><code>===</code></strong> (strict equality) instead of <code>==</code>. Loose comparison with <code>==</code> can produce surprising results due to PHP's type juggling (e.g., <code>0 == "foo"</code> is <code>true</code> in older PHP).
+      </div>
+    </section>
+
+    <!-- 09 CONTROL FLOW -->
+    <section class="section" id="control">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <h2>Control Flow</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">control-flow.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="var">$score</span> = <span class="num">85</span>;
+
+<span class="cmt">// ── IF / ELSEIF / ELSE ──────────────────────────</span>
+<span class="kw">if</span> (<span class="var">$score</span> >= <span class="num">90</span>) {
+    <span class="kw">echo</span> <span class="str">"Grade: A"</span>;
+} <span class="kw">elseif</span> (<span class="var">$score</span> >= <span class="num">80</span>) {
+    <span class="kw">echo</span> <span class="str">"Grade: B"</span>;
+} <span class="kw">elseif</span> (<span class="var">$score</span> >= <span class="num">70</span>) {
+    <span class="kw">echo</span> <span class="str">"Grade: C"</span>;
+} <span class="kw">else</span> {
+    <span class="kw">echo</span> <span class="str">"Grade: F"</span>;
+}
+
+<span class="cmt">// ── TERNARY ────────────────────────────────────</span>
+<span class="var">$status</span> = (<span class="var">$score</span> >= <span class="num">60</span>) ? <span class="str">"Pass"</span> : <span class="str">"Fail"</span>;
+
+<span class="cmt">// ── MATCH (PHP 8.0+) — like switch but strict ──</span>
+<span class="var">$grade</span> = <span class="kw">match</span>(<span class="kw">true</span>) {
+    <span class="var">$score</span> >= <span class="num">90</span> => <span class="str">"A"</span>,
+    <span class="var">$score</span> >= <span class="num">80</span> => <span class="str">"B"</span>,
+    <span class="var">$score</span> >= <span class="num">70</span> => <span class="str">"C"</span>,
+    <span class="kw">default</span>      => <span class="str">"F"</span>,
+};
+
+<span class="cmt">// ── SWITCH ─────────────────────────────────────</span>
+<span class="var">$day</span> = <span class="str">"Monday"</span>;
+<span class="kw">switch</span> (<span class="var">$day</span>) {
+    <span class="kw">case</span> <span class="str">"Saturday"</span>:
+    <span class="kw">case</span> <span class="str">"Sunday"</span>:
+        <span class="kw">echo</span> <span class="str">"Weekend!"</span>;
+        <span class="kw">break</span>;
+    <span class="kw">default</span>:
+        <span class="kw">echo</span> <span class="str">"Weekday"</span>;
+}
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 10 LOOPS -->
+    <section class="section" id="loops">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <h2>Loops</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">loops.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── WHILE ──────────────────────────────────────</span>
+<span class="var">$i</span> = <span class="num">0</span>;
+<span class="kw">while</span> (<span class="var">$i</span> < <span class="num">5</span>) {
+    <span class="kw">echo</span> <span class="var">$i</span> . <span class="str">" "</span>;
+    <span class="var">$i</span>++;
+}
+<span class="cmt">// Output: 0 1 2 3 4</span>
+
+<span class="cmt">// ── DO-WHILE (runs at least once) ───────────────</span>
+<span class="var">$n</span> = <span class="num">10</span>;
+<span class="kw">do</span> {
+    <span class="kw">echo</span> <span class="var">$n</span>;
+    <span class="var">$n</span>--;
+} <span class="kw">while</span> (<span class="var">$n</span> > <span class="num">0</span>);
+
+<span class="cmt">// ── FOR ────────────────────────────────────────</span>
+<span class="kw">for</span> (<span class="var">$i</span> = <span class="num">1</span>; <span class="var">$i</span> <= <span class="num">5</span>; <span class="var">$i</span>++) {
+    <span class="kw">echo</span> <span class="str">"Item {$i}&lt;br&gt;"</span>;
+}
+
+<span class="cmt">// ── FOREACH (perfect for arrays) ───────────────</span>
+<span class="var">$fruits</span> = [<span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>];
+<span class="kw">foreach</span> (<span class="var">$fruits</span> <span class="kw">as</span> <span class="var">$index</span> => <span class="var">$fruit</span>) {
+    <span class="kw">echo</span> <span class="str">"{$index}: {$fruit}&lt;br&gt;"</span>;
+}
+<span class="cmt">// 0: apple  1: banana  2: cherry</span>
+
+<span class="cmt">// ── BREAK &amp; CONTINUE ───────────────────────────</span>
+<span class="kw">for</span> (<span class="var">$i</span> = <span class="num">0</span>; <span class="var">$i</span> < <span class="num">10</span>; <span class="var">$i</span>++) {
+    <span class="kw">if</span> (<span class="var">$i</span> === <span class="num">5</span>) <span class="kw">break</span>;     <span class="cmt">// Stop entirely</span>
+    <span class="kw">if</span> (<span class="var">$i</span> % <span class="num">2</span> === <span class="num">0</span>) <span class="kw">continue</span>; <span class="cmt">// Skip even numbers</span>
+    <span class="kw">echo</span> <span class="var">$i</span> . <span class="str">" "</span>;             <span class="cmt">// Output: 1 3</span>
+}
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 11 FUNCTIONS -->
+    <section class="section" id="functions">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <h2>Functions</h2>
+      </div>
+
+      <p>Functions are reusable blocks of code. PHP 8.x supports typed parameters, return types, default values, variadic arguments, named arguments, and arrow functions.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">functions.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── BASIC FUNCTION ─────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">add</span>(<span class="kw">int</span> <span class="var">$a</span>, <span class="kw">int</span> <span class="var">$b</span>): <span class="kw">int</span> {
+    <span class="kw">return</span> <span class="var">$a</span> + <span class="var">$b</span>;
+}
+<span class="kw">echo</span> <span class="fn">add</span>(<span class="num">3</span>, <span class="num">4</span>); <span class="cmt">// 7</span>
+
+<span class="cmt">// ── DEFAULT PARAMETERS ─────────────────────────</span>
+<span class="kw">function</span> <span class="fn">greet</span>(<span class="kw">string</span> <span class="var">$name</span>, <span class="kw">string</span> <span class="var">$greeting</span> = <span class="str">"Hello"</span>): <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="str">"{$greeting}, {$name}!"</span>;
+}
+<span class="fn">greet</span>(<span class="str">"Alice"</span>);            <span class="cmt">// "Hello, Alice!"</span>
+<span class="fn">greet</span>(<span class="str">"Bob"</span>, <span class="str">"Hi"</span>);       <span class="cmt">// "Hi, Bob!"</span>
+
+<span class="cmt">// ── NAMED ARGUMENTS (PHP 8.0+) ─────────────────</span>
+<span class="fn">greet</span>(greeting: <span class="str">"Hey"</span>, name: <span class="str">"Carol"</span>);
+
+<span class="cmt">// ── VARIADIC (splat) ────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">sum</span>(<span class="kw">int</span> ...<span class="var">$nums</span>): <span class="kw">int</span> {
+    <span class="kw">return</span> <span class="fn">array_sum</span>(<span class="var">$nums</span>);
+}
+<span class="fn">sum</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>); <span class="cmt">// 15</span>
+
+<span class="cmt">// ── NULLABLE TYPES ─────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">findUser</span>(<span class="kw">int</span> <span class="var">$id</span>): ?<span class="kw">array</span> {
+    <span class="kw">return</span> <span class="kw">null</span>; <span class="cmt">// or return an array</span>
+}
+
+<span class="cmt">// ── CLOSURES (anonymous functions) ─────────────</span>
+<span class="var">$multiply</span> = <span class="kw">function</span>(<span class="kw">int</span> <span class="var">$x</span>, <span class="kw">int</span> <span class="var">$y</span>): <span class="kw">int</span> {
+    <span class="kw">return</span> <span class="var">$x</span> * <span class="var">$y</span>;
+};
+<span class="kw">echo</span> <span class="var">$multiply</span>(<span class="num">4</span>, <span class="num">5</span>); <span class="cmt">// 20</span>
+
+<span class="cmt">// ── ARROW FUNCTIONS (PHP 7.4+) ─────────────────</span>
+<span class="var">$double</span> = <span class="kw">fn</span>(<span class="kw">int</span> <span class="var">$n</span>) => <span class="var">$n</span> * <span class="num">2</span>;
+<span class="kw">echo</span> <span class="var">$double</span>(<span class="num">7</span>); <span class="cmt">// 14</span>
+
+<span class="cmt">// ── PASSING BY REFERENCE ───────────────────────</span>
+<span class="kw">function</span> <span class="fn">increment</span>(<span class="kw">int</span> &<span class="var">$val</span>): <span class="kw">void</span> {
+    <span class="var">$val</span>++;
+}
+<span class="var">$count</span> = <span class="num">5</span>;
+<span class="fn">increment</span>(<span class="var">$count</span>);
+<span class="kw">echo</span> <span class="var">$count</span>; <span class="cmt">// 6  (modified in place)</span>
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 12 ARRAYS -->
+    <section class="section" id="arrays">
+      <div class="section-header">
+        <span class="section-num">12</span>
+        <h2>Arrays</h2>
+      </div>
+
+      <p>Arrays in PHP are incredibly versatile — they function as lists, maps (associative arrays), and can be nested arbitrarily deep.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">arrays.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── INDEXED ARRAY ──────────────────────────────</span>
+<span class="var">$colors</span> = [<span class="str">"red"</span>, <span class="str">"green"</span>, <span class="str">"blue"</span>];
+<span class="kw">echo</span> <span class="var">$colors</span>[<span class="num">0</span>];          <span class="cmt">// "red"</span>
+<span class="var">$colors</span>[] = <span class="str">"yellow"</span>;    <span class="cmt">// append</span>
+
+<span class="cmt">// ── ASSOCIATIVE ARRAY (key => value) ───────────</span>
+<span class="var">$user</span> = [
+    <span class="str">"name"</span>  => <span class="str">"Alice"</span>,
+    <span class="str">"email"</span> => <span class="str">"alice@example.com"</span>,
+    <span class="str">"age"</span>   => <span class="num">30</span>,
+];
+<span class="kw">echo</span> <span class="var">$user</span>[<span class="str">"name"</span>];       <span class="cmt">// "Alice"</span>
+
+<span class="cmt">// ── NESTED ARRAYS ──────────────────────────────</span>
+<span class="var">$users</span> = [
+    [<span class="str">"name"</span> => <span class="str">"Alice"</span>, <span class="str">"age"</span> => <span class="num">30</span>],
+    [<span class="str">"name"</span> => <span class="str">"Bob"</span>,   <span class="str">"age"</span> => <span class="num">25</span>],
+];
+<span class="kw">echo</span> <span class="var">$users</span>[<span class="num">1</span>][<span class="str">"name"</span>]; <span class="cmt">// "Bob"</span>
+
+<span class="cmt">// ── COMMON ARRAY FUNCTIONS ─────────────────────</span>
+<span class="fn">count</span>(<span class="var">$colors</span>);          <span class="cmt">// length: 4</span>
+<span class="fn">array_push</span>(<span class="var">$colors</span>, <span class="str">"purple"</span>); <span class="cmt">// add to end</span>
+<span class="fn">array_pop</span>(<span class="var">$colors</span>);      <span class="cmt">// remove from end</span>
+<span class="fn">array_shift</span>(<span class="var">$colors</span>);   <span class="cmt">// remove from start</span>
+<span class="fn">array_unshift</span>(<span class="var">$colors</span>, <span class="str">"black"</span>); <span class="cmt">// add to start</span>
+<span class="fn">in_array</span>(<span class="str">"red"</span>, <span class="var">$colors</span>); <span class="cmt">// true/false</span>
+<span class="fn">array_keys</span>(<span class="var">$user</span>);      <span class="cmt">// ["name","email","age"]</span>
+<span class="fn">array_values</span>(<span class="var">$user</span>);    <span class="cmt">// ["Alice","alice@...",30]</span>
+<span class="fn">array_merge</span>(<span class="var">$arr1</span>, <span class="var">$arr2</span>); <span class="cmt">// combine arrays</span>
+<span class="fn">sort</span>(<span class="var">$colors</span>);           <span class="cmt">// sort indexed array</span>
+<span class="fn">asort</span>(<span class="var">$user</span>);            <span class="cmt">// sort assoc, keep keys</span>
+<span class="fn">ksort</span>(<span class="var">$user</span>);            <span class="cmt">// sort by key</span>
+
+<span class="cmt">// ── ARRAY MAP / FILTER / REDUCE ────────────────</span>
+<span class="var">$nums</span> = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>];
+
+<span class="var">$doubled</span>   = <span class="fn">array_map</span>(<span class="kw">fn</span>(<span class="var">$n</span>) => <span class="var">$n</span> * <span class="num">2</span>, <span class="var">$nums</span>);
+<span class="var">$evens</span>     = <span class="fn">array_filter</span>(<span class="var">$nums</span>, <span class="kw">fn</span>(<span class="var">$n</span>) => <span class="var">$n</span> % <span class="num">2</span> === <span class="num">0</span>);
+<span class="var">$total</span>     = <span class="fn">array_reduce</span>(<span class="var">$nums</span>, <span class="kw">fn</span>(<span class="var">$carry</span>, <span class="var">$n</span>) => <span class="var">$carry</span> + <span class="var">$n</span>, <span class="num">0</span>);
+
+<span class="cmt">// ── ARRAY DESTRUCTURING ────────────────────────</span>
+[<span class="var">$first</span>, <span class="var">$second</span>] = <span class="var">$colors</span>;
+[<span class="str">"name"</span> => <span class="var">$name</span>] = <span class="var">$user</span>;
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 13 STRINGS -->
+    <section class="section" id="strings">
+      <div class="section-header">
+        <span class="section-num">13</span>
+        <h2>Strings</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">strings.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="var">$s</span> = <span class="str">"Hello, World!"</span>;
+
+<span class="cmt">// ── SINGLE vs DOUBLE QUOTES ────────────────────</span>
+<span class="var">$name</span> = <span class="str">"Alice"</span>;
+<span class="kw">echo</span> <span class="str">"Hello, $name"</span>;       <span class="cmt">// "Hello, Alice" (interpolation)</span>
+<span class="kw">echo</span> <span class="str">'Hello, $name'</span>;       <span class="cmt">// "Hello, $name" (literal)</span>
+<span class="kw">echo</span> <span class="str">"Hello, {$name}!"</span>;    <span class="cmt">// Best practice: use {}</span>
+
+<span class="cmt">// ── HEREDOC (multi-line with interpolation) ────</span>
+<span class="var">$html</span> = &lt;&lt;&lt;EOT
+    &lt;p&gt;Hello, {<span class="var">$name</span>}!&lt;/p&gt;
+    &lt;p&gt;Welcome to PHP.&lt;/p&gt;
+EOT;
+
+<span class="cmt">// ── COMMON STRING FUNCTIONS ────────────────────</span>
+<span class="fn">strlen</span>(<span class="var">$s</span>);               <span class="cmt">// 13 (length)</span>
+<span class="fn">strtoupper</span>(<span class="var">$s</span>);          <span class="cmt">// "HELLO, WORLD!"</span>
+<span class="fn">strtolower</span>(<span class="var">$s</span>);          <span class="cmt">// "hello, world!"</span>
+<span class="fn">trim</span>(<span class="str">"  hello  "</span>);       <span class="cmt">// "hello" (strip whitespace)</span>
+<span class="fn">substr</span>(<span class="var">$s</span>, <span class="num">7</span>, <span class="num">5</span>);        <span class="cmt">// "World"</span>
+<span class="fn">str_replace</span>(<span class="str">"World"</span>, <span class="str">"PHP"</span>, <span class="var">$s</span>); <span class="cmt">// "Hello, PHP!"</span>
+<span class="fn">strpos</span>(<span class="var">$s</span>, <span class="str">"World"</span>);     <span class="cmt">// 7 (position) or false</span>
+<span class="fn">str_contains</span>(<span class="var">$s</span>, <span class="str">"Hello"</span>); <span class="cmt">// true (PHP 8.0+)</span>
+<span class="fn">str_starts_with</span>(<span class="var">$s</span>, <span class="str">"Hello"</span>); <span class="cmt">// true (PHP 8.0+)</span>
+<span class="fn">str_ends_with</span>(<span class="var">$s</span>, <span class="str">"!"</span>);  <span class="cmt">// true (PHP 8.0+)</span>
+<span class="fn">explode</span>(<span class="str">","</span>, <span class="str">"a,b,c"</span>);   <span class="cmt">// ["a","b","c"]</span>
+<span class="fn">implode</span>(<span class="str">"-"</span>, [<span class="str">"a"</span>,<span class="str">"b"</span>]); <span class="cmt">// "a-b"</span>
+<span class="fn">sprintf</span>(<span class="str">"%.2f"</span>, <span class="num">3.14159</span>);<span class="cmt">// "3.14"</span>
+<span class="fn">number_format</span>(<span class="num">1234567</span>, <span class="num">2</span>);<span class="cmt">// "1,234,567.00"</span>
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- 14 SUPERGLOBALS -->
+    <section class="section" id="superglobals">
+      <div class="section-header">
+        <span class="section-num">14</span>
+        <h2>Superglobals</h2>
+      </div>
+
+      <p>PHP provides built-in global arrays called <strong>superglobals</strong> that are always accessible, regardless of scope. They are your bridge between HTTP and PHP.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Variable</th><th>Contains</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>$_GET</code></td><td>URL query string parameters: <code>?name=Alice</code></td></tr>
+            <tr><td><code>$_POST</code></td><td>Data from HTTP POST form submissions</td></tr>
+            <tr><td><code>$_REQUEST</code></td><td>Combines $_GET, $_POST, $_COOKIE</td></tr>
+            <tr><td><code>$_COOKIE</code></td><td>Cookies sent by the browser</td></tr>
+            <tr><td><code>$_SESSION</code></td><td>Session variables (server-side)</td></tr>
+            <tr><td><code>$_FILES</code></td><td>Uploaded files</td></tr>
+            <tr><td><code>$_SERVER</code></td><td>Server info: headers, paths, script name</td></tr>
+            <tr><td><code>$_ENV</code></td><td>Environment variables</td></tr>
+            <tr><td><code>$GLOBALS</code></td><td>References all global variables</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">superglobals.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// URL: http://localhost/page.php?id=42&amp;name=Alice</span>
+<span class="var">$id</span>   = <span class="var">$_GET</span>[<span class="str">'id'</span>]   ?? <span class="kw">null</span>;   <span class="cmt">// "42"</span>
+<span class="var">$name</span> = <span class="var">$_GET</span>[<span class="str">'name'</span>] ?? <span class="str">'Guest'</span>; <span class="cmt">// "Alice"</span>
+
+<span class="cmt">// Useful $_SERVER keys</span>
+<span class="kw">echo</span> <span class="var">$_SERVER</span>[<span class="str">'REQUEST_METHOD'</span>];  <span class="cmt">// "GET" or "POST"</span>
+<span class="kw">echo</span> <span class="var">$_SERVER</span>[<span class="str">'REQUEST_URI'</span>];     <span class="cmt">// "/page.php?id=42"</span>
+<span class="kw">echo</span> <span class="var">$_SERVER</span>[<span class="str">'REMOTE_ADDR'</span>];    <span class="cmt">// Client IP</span>
+<span class="kw">echo</span> <span class="var">$_SERVER</span>[<span class="str">'HTTP_USER_AGENT'</span>];<span class="cmt">// Browser string</span>
+<span class="kw">echo</span> <span class="var">$_SERVER</span>[<span class="str">'SERVER_NAME'</span>];    <span class="cmt">// "localhost"</span>
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 15 FORMS -->
+    <section class="section" id="forms">
+      <div class="section-header">
+        <span class="section-num">15</span>
+        <h2>Forms &amp; User Input</h2>
+      </div>
+
+      <p>Handling HTML forms is one of PHP's core strengths. The pattern is: render a form → user submits → PHP processes it. You can use a single file for both display and processing.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">contact-form.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="var">$errors</span>  = [];
+<span class="var">$success</span> = <span class="kw">false</span>;
+
+<span class="kw">if</span> (<span class="var">$_SERVER</span>[<span class="str">'REQUEST_METHOD'</span>] === <span class="str">'POST'</span>) {
+    <span class="cmt">// Sanitize: strip tags and extra whitespace</span>
+    <span class="var">$name</span>    = <span class="fn">trim</span>(<span class="fn">strip_tags</span>(<span class="var">$_POST</span>[<span class="str">'name'</span>] ?? <span class="str">''</span>));
+    <span class="var">$email</span>   = <span class="fn">filter_var</span>(<span class="var">$_POST</span>[<span class="str">'email'</span>] ?? <span class="str">''</span>, <span class="cls">FILTER_SANITIZE_EMAIL</span>);
+    <span class="var">$message</span> = <span class="fn">trim</span>(<span class="fn">strip_tags</span>(<span class="var">$_POST</span>[<span class="str">'message'</span>] ?? <span class="str">''</span>));
+
+    <span class="cmt">// Validate</span>
+    <span class="kw">if</span> (<span class="fn">empty</span>(<span class="var">$name</span>))
+        <span class="var">$errors</span>[] = <span class="str">"Name is required."</span>;
+    <span class="kw">if</span> (!<span class="fn">filter_var</span>(<span class="var">$email</span>, <span class="cls">FILTER_VALIDATE_EMAIL</span>))
+        <span class="var">$errors</span>[] = <span class="str">"Valid email required."</span>;
+    <span class="kw">if</span> (<span class="fn">strlen</span>(<span class="var">$message</span>) < <span class="num">10</span>)
+        <span class="var">$errors</span>[] = <span class="str">"Message must be at least 10 chars."</span>;
+
+    <span class="kw">if</span> (<span class="fn">empty</span>(<span class="var">$errors</span>)) {
+        <span class="cmt">// Process: save to DB, send email, etc.</span>
+        <span class="var">$success</span> = <span class="kw">true</span>;
+    }
+}
+<span class="op">?&gt;</span>
+<span class="tag-c">&lt;!DOCTYPE html&gt;</span>
+<span class="tag-c">&lt;html&gt;</span>
+<span class="tag-c">&lt;body&gt;</span>
+
+<span class="op">&lt;?php</span> <span class="kw">if</span> (<span class="var">$success</span>): <span class="op">?&gt;</span>
+    <span class="tag-c">&lt;p&gt;</span>Thanks! Your message was sent.<span class="tag-c">&lt;/p&gt;</span>
+<span class="op">&lt;?php</span> <span class="kw">else</span>: <span class="op">?&gt;</span>
+
+    <span class="op">&lt;?php</span> <span class="kw">foreach</span> (<span class="var">$errors</span> <span class="kw">as</span> <span class="var">$err</span>): <span class="op">?&gt;</span>
+        <span class="tag-c">&lt;p style="color:red"&gt;</span><span class="op">&lt;?= htmlspecialchars</span>(<span class="var">$err</span>) <span class="op">?&gt;</span><span class="tag-c">&lt;/p&gt;</span>
+    <span class="op">&lt;?php</span> <span class="kw">endforeach</span>; <span class="op">?&gt;</span>
+
+    <span class="tag-c">&lt;form method="POST"&gt;</span>
+        <span class="tag-c">&lt;input</span> <span class="atr">type="text"</span> <span class="atr">name="name"</span>
+               <span class="atr">value="</span><span class="op">&lt;?= htmlspecialchars</span>(<span class="var">$name</span> ?? <span class="str">''</span>) <span class="op">?&gt;</span><span class="atr">"</span><span class="tag-c">&gt;</span>
+        <span class="tag-c">&lt;input</span> <span class="atr">type="email"</span> <span class="atr">name="email"</span><span class="tag-c">&gt;</span>
+        <span class="tag-c">&lt;textarea</span> <span class="atr">name="message"</span><span class="tag-c">&gt;&lt;/textarea&gt;</span>
+        <span class="tag-c">&lt;button</span> <span class="atr">type="submit"</span><span class="tag-c">&gt;</span>Send<span class="tag-c">&lt;/button&gt;</span>
+    <span class="tag-c">&lt;/form&gt;</span>
+
+<span class="op">&lt;?php</span> <span class="kw">endif</span>; <span class="op">?&gt;</span>
+<span class="tag-c">&lt;/body&gt;&lt;/html&gt;</span></code></pre>
+      </div>
+
+      <div class="callout callout-danger">
+        <strong>Always use <code>htmlspecialchars()</code></strong> when outputting user input back to HTML. This prevents Cross-Site Scripting (XSS) attacks by converting characters like <code>&lt;</code> to <code>&amp;lt;</code>.
+      </div>
+    </section>
+
+    <!-- 16 SESSIONS -->
+    <section class="section" id="sessions">
+      <div class="section-header">
+        <span class="section-num">16</span>
+        <h2>Sessions &amp; Cookies</h2>
+      </div>
+
+      <p>HTTP is stateless — each request is independent. Sessions and cookies let you persist data across requests (e.g., keeping a user logged in).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">sessions.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// session_start() MUST be called before any output</span>
+<span class="fn">session_start</span>();
+
+<span class="cmt">// Store data in session</span>
+<span class="var">$_SESSION</span>[<span class="str">'user_id'</span>] = <span class="num">42</span>;
+<span class="var">$_SESSION</span>[<span class="str">'username'</span>] = <span class="str">'alice'</span>;
+
+<span class="cmt">// Read session data</span>
+<span class="kw">if</span> (<span class="fn">isset</span>(<span class="var">$_SESSION</span>[<span class="str">'user_id'</span>])) {
+    <span class="kw">echo</span> <span class="str">"Logged in as: "</span> . <span class="var">$_SESSION</span>[<span class="str">'username'</span>];
+}
+
+<span class="cmt">// Destroy session (logout)</span>
+<span class="fn">session_destroy</span>();
+
+<span class="cmt">// ── COOKIES ────────────────────────────────────</span>
+<span class="cmt">// Set a cookie (30-day expiry, path /, secure, httponly)</span>
+<span class="fn">setcookie</span>(
+    <span class="str">'theme'</span>,
+    <span class="str">'dark'</span>,
+    [
+        <span class="str">'expires'</span>  => <span class="fn">time</span>() + <span class="num">30</span> * <span class="num">24</span> * <span class="num">3600</span>,
+        <span class="str">'path'</span>     => <span class="str">'/'</span>,
+        <span class="str">'secure'</span>   => <span class="kw">true</span>,
+        <span class="str">'httponly'</span> => <span class="kw">true</span>,  <span class="cmt">// JS can't access this</span>
+        <span class="str">'samesite'</span> => <span class="str">'Strict'</span>,
+    ]
+);
+
+<span class="cmt">// Read a cookie</span>
+<span class="var">$theme</span> = <span class="var">$_COOKIE</span>[<span class="str">'theme'</span>] ?? <span class="str">'light'</span>;
+
+<span class="cmt">// Delete a cookie (set expiry in the past)</span>
+<span class="fn">setcookie</span>(<span class="str">'theme'</span>, <span class="str">''</span>, <span class="fn">time</span>() - <span class="num">3600</span>);
+<span class="op">?&gt;</span></code></pre>
+      </div>
+
+      <div class="callout callout-info">
+        Sessions store data on the <strong>server</strong>; the browser only holds a session ID in a cookie. Cookies store data in the <strong>browser</strong>. Use sessions for sensitive data (like login state), cookies for preferences.
+      </div>
+    </section>
+
+    <!-- 17 FILES -->
+    <section class="section" id="files">
+      <div class="section-header">
+        <span class="section-num">17</span>
+        <h2>File I/O</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">file-io.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── READING FILES ──────────────────────────────</span>
+<span class="var">$content</span>  = <span class="fn">file_get_contents</span>(<span class="str">'data.txt'</span>);  <span class="cmt">// entire file as string</span>
+<span class="var">$lines</span>    = <span class="fn">file</span>(<span class="str">'data.txt'</span>);               <span class="cmt">// array of lines</span>
+
+<span class="cmt">// ── WRITING FILES ──────────────────────────────</span>
+<span class="fn">file_put_contents</span>(<span class="str">'log.txt'</span>, <span class="str">"New entry\n"</span>, <span class="cls">FILE_APPEND</span>);
+
+<span class="cmt">// ── READING LINE BY LINE (memory efficient) ────</span>
+<span class="var">$handle</span> = <span class="fn">fopen</span>(<span class="str">'bigfile.csv'</span>, <span class="str">'r'</span>);
+<span class="kw">while</span> ((<span class="var">$line</span> = <span class="fn">fgets</span>(<span class="var">$handle</span>)) !== <span class="kw">false</span>) {
+    <span class="kw">echo</span> <span class="fn">trim</span>(<span class="var">$line</span>) . <span class="str">"&lt;br&gt;"</span>;
+}
+<span class="fn">fclose</span>(<span class="var">$handle</span>);
+
+<span class="cmt">// ── FILE EXISTENCE &amp; INFO ───────────────────────</span>
+<span class="fn">file_exists</span>(<span class="str">'data.txt'</span>);   <span class="cmt">// true/false</span>
+<span class="fn">is_file</span>(<span class="str">'data.txt'</span>);       <span class="cmt">// true if it's a file</span>
+<span class="fn">is_dir</span>(<span class="str">'uploads/'</span>);        <span class="cmt">// true if it's a directory</span>
+<span class="fn">filesize</span>(<span class="str">'data.txt'</span>);      <span class="cmt">// size in bytes</span>
+
+<span class="cmt">// ── FILE UPLOAD HANDLING ───────────────────────</span>
+<span class="kw">if</span> (<span class="fn">isset</span>(<span class="var">$_FILES</span>[<span class="str">'upload'</span>])) {
+    <span class="var">$file</span>    = <span class="var">$_FILES</span>[<span class="str">'upload'</span>];
+    <span class="var">$allowed</span> = [<span class="str">'image/jpeg'</span>, <span class="str">'image/png'</span>, <span class="str">'image/gif'</span>];
+
+    <span class="kw">if</span> (!<span class="fn">in_array</span>(<span class="var">$file</span>[<span class="str">'type'</span>], <span class="var">$allowed</span>)) {
+        <span class="kw">die</span>(<span class="str">"Only images allowed"</span>);
+    }
+    <span class="kw">if</span> (<span class="var">$file</span>[<span class="str">'size'</span>] > <span class="num">2_000_000</span>) {
+        <span class="kw">die</span>(<span class="str">"Max 2MB"</span>);
+    }
+
+    <span class="var">$dest</span> = <span class="str">'uploads/'</span> . <span class="fn">basename</span>(<span class="var">$file</span>[<span class="str">'name'</span>]);
+    <span class="fn">move_uploaded_file</span>(<span class="var">$file</span>[<span class="str">'tmp_name'</span>], <span class="var">$dest</span>);
+}
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 18 DATABASE -->
+    <section class="section" id="database">
+      <div class="section-header">
+        <span class="section-num">18</span>
+        <h2>MySQL &amp; PDO</h2>
+      </div>
+
+      <p><strong>PDO</strong> (PHP Data Objects) is the modern, secure way to talk to databases. It supports MySQL, PostgreSQL, SQLite, and more — all with the same API.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">database.php — PDO</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── CONNECT ────────────────────────────────────</span>
+<span class="kw">try</span> {
+    <span class="var">$dsn</span> = <span class="str">"mysql:host=localhost;dbname=myapp;charset=utf8mb4"</span>;
+    <span class="var">$pdo</span> = <span class="kw">new</span> <span class="cls">PDO</span>(<span class="var">$dsn</span>, <span class="str">'root'</span>, <span class="str">'password'</span>, [
+        <span class="cls">PDO</span>::<span class="cls">ATTR_ERRMODE</span>            => <span class="cls">PDO</span>::<span class="cls">ERRMODE_EXCEPTION</span>,
+        <span class="cls">PDO</span>::<span class="cls">ATTR_DEFAULT_FETCH_MODE</span> => <span class="cls">PDO</span>::<span class="cls">FETCH_ASSOC</span>,
+        <span class="cls">PDO</span>::<span class="cls">ATTR_EMULATE_PREPARES</span>  => <span class="kw">false</span>,
+    ]);
+} <span class="kw">catch</span> (<span class="cls">PDOException</span> <span class="var">$e</span>) {
+    <span class="kw">die</span>(<span class="str">"Connection failed: "</span> . <span class="var">$e</span>-><span class="fn">getMessage</span>());
+}
+
+<span class="cmt">// ── CREATE TABLE ───────────────────────────────</span>
+<span class="var">$pdo</span>-><span class="fn">exec</span>(<span class="str">"
+    CREATE TABLE IF NOT EXISTS users (
+        id       INT AUTO_INCREMENT PRIMARY KEY,
+        name     VARCHAR(100) NOT NULL,
+        email    VARCHAR(255) UNIQUE NOT NULL,
+        created  DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+"</span>);
+
+<span class="cmt">// ── INSERT (prepared statement — prevents SQL injection!) ──</span>
+<span class="var">$stmt</span> = <span class="var">$pdo</span>-><span class="fn">prepare</span>(<span class="str">"INSERT INTO users (name, email) VALUES (:name, :email)"</span>);
+<span class="var">$stmt</span>-><span class="fn">execute</span>([<span class="str">'name'</span> => <span class="str">'Alice'</span>, <span class="str">'email'</span> => <span class="str">'alice@example.com'</span>]);
+<span class="var">$newId</span> = <span class="var">$pdo</span>-><span class="fn">lastInsertId</span>();
+
+<span class="cmt">// ── SELECT ALL ─────────────────────────────────</span>
+<span class="var">$stmt</span>  = <span class="var">$pdo</span>-><span class="fn">query</span>(<span class="str">"SELECT * FROM users ORDER BY id DESC"</span>);
+<span class="var">$users</span> = <span class="var">$stmt</span>-><span class="fn">fetchAll</span>();
+
+<span class="kw">foreach</span> (<span class="var">$users</span> <span class="kw">as</span> <span class="var">$user</span>) {
+    <span class="kw">echo</span> <span class="fn">htmlspecialchars</span>(<span class="var">$user</span>[<span class="str">'name'</span>]) . <span class="str">"&lt;br&gt;"</span>;
+}
+
+<span class="cmt">// ── SELECT ONE ─────────────────────────────────</span>
+<span class="var">$stmt</span> = <span class="var">$pdo</span>-><span class="fn">prepare</span>(<span class="str">"SELECT * FROM users WHERE id = :id"</span>);
+<span class="var">$stmt</span>-><span class="fn">execute</span>([<span class="str">'id'</span> => <span class="num">1</span>]);
+<span class="var">$user</span> = <span class="var">$stmt</span>-><span class="fn">fetch</span>();
+
+<span class="cmt">// ── UPDATE ─────────────────────────────────────</span>
+<span class="var">$stmt</span> = <span class="var">$pdo</span>-><span class="fn">prepare</span>(<span class="str">"UPDATE users SET name = :name WHERE id = :id"</span>);
+<span class="var">$stmt</span>-><span class="fn">execute</span>([<span class="str">'name'</span> => <span class="str">'Alice Smith'</span>, <span class="str">'id'</span> => <span class="num">1</span>]);
+
+<span class="cmt">// ── DELETE ─────────────────────────────────────</span>
+<span class="var">$stmt</span> = <span class="var">$pdo</span>-><span class="fn">prepare</span>(<span class="str">"DELETE FROM users WHERE id = :id"</span>);
+<span class="var">$stmt</span>-><span class="fn">execute</span>([<span class="str">'id'</span> => <span class="num">1</span>]);
+
+<span class="cmt">// ── TRANSACTIONS ───────────────────────────────</span>
+<span class="kw">try</span> {
+    <span class="var">$pdo</span>-><span class="fn">beginTransaction</span>();
+    <span class="cmt">// multiple queries...</span>
+    <span class="var">$pdo</span>-><span class="fn">commit</span>();
+} <span class="kw">catch</span> (<span class="cls">Exception</span> <span class="var">$e</span>) {
+    <span class="var">$pdo</span>-><span class="fn">rollBack</span>();
+    <span class="kw">throw</span> <span class="var">$e</span>;
+}
+<span class="op">?&gt;</span></code></pre>
+      </div>
+
+      <div class="callout callout-danger">
+        <strong>Never</strong> concatenate user input into SQL queries: <code>"SELECT * WHERE name = '$name'"</code>. This is a SQL injection vulnerability. Always use <strong>prepared statements</strong> with bound parameters as shown above.
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- 19 OOP -->
+    <section class="section" id="oop">
+      <div class="section-header">
+        <span class="section-num">19</span>
+        <h2>Object-Oriented PHP</h2>
+      </div>
+
+      <p>PHP supports full OOP with classes, inheritance, interfaces, traits, abstract classes, and more. Modern PHP frameworks (Laravel, Symfony) are built entirely on OOP principles.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">oop.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── INTERFACE ─────────────────────────────────</span>
+<span class="kw">interface</span> <span class="cls">Describable</span> {
+    <span class="kw">public function</span> <span class="fn">describe</span>(): <span class="kw">string</span>;
+}
+
+<span class="cmt">// ── ABSTRACT CLASS ─────────────────────────────</span>
+<span class="kw">abstract class</span> <span class="cls">Animal</span> <span class="kw">implements</span> <span class="cls">Describable</span> {
+    <span class="kw">public function</span> <span class="fn">__construct</span>(
+        <span class="kw">protected</span> <span class="kw">string</span> <span class="var">$name</span>,   <span class="cmt">// PHP 8 constructor promotion</span>
+        <span class="kw">protected</span> <span class="kw">int</span>    <span class="var">$age</span>,
+    ) {}
+
+    <span class="kw">abstract public function</span> <span class="fn">speak</span>(): <span class="kw">string</span>;
+
+    <span class="kw">public function</span> <span class="fn">describe</span>(): <span class="kw">string</span> {
+        <span class="kw">return</span> <span class="str">"{$this->name} is {$this->age} years old"</span>;
+    }
+
+    <span class="kw">public static function</span> <span class="fn">create</span>(<span class="kw">string</span> <span class="var">$name</span>, <span class="kw">int</span> <span class="var">$age</span>): <span class="kw">static</span> {
+        <span class="kw">return new</span> <span class="kw">static</span>(<span class="var">$name</span>, <span class="var">$age</span>);
+    }
+}
+
+<span class="cmt">// ── TRAIT (mixin) ──────────────────────────────</span>
+<span class="kw">trait</span> <span class="cls">HasTimestamps</span> {
+    <span class="kw">private</span> <span class="kw">int</span> <span class="var">$createdAt</span>;
+
+    <span class="kw">public function</span> <span class="fn">setCreatedAt</span>(): <span class="kw">void</span> {
+        <span class="var">$this</span>-><span class="var">createdAt</span> = <span class="fn">time</span>();
+    }
+
+    <span class="kw">public function</span> <span class="fn">getCreatedAt</span>(): <span class="kw">int</span> {
+        <span class="kw">return</span> <span class="var">$this</span>-><span class="var">createdAt</span>;
+    }
+}
+
+<span class="cmt">// ── CONCRETE CLASS ─────────────────────────────</span>
+<span class="kw">class</span> <span class="cls">Dog</span> <span class="kw">extends</span> <span class="cls">Animal</span> {
+    <span class="kw">use</span> <span class="cls">HasTimestamps</span>;
+
+    <span class="kw">public function</span> <span class="fn">__construct</span>(
+        <span class="kw">string</span> <span class="var">$name</span>,
+        <span class="kw">int</span>    <span class="var">$age</span>,
+        <span class="kw">private</span> <span class="kw">string</span> <span class="var">$breed</span>,
+    ) {
+        <span class="kw">parent</span>::<span class="fn">__construct</span>(<span class="var">$name</span>, <span class="var">$age</span>);
+        <span class="var">$this</span>-><span class="fn">setCreatedAt</span>();
+    }
+
+    <span class="kw">public function</span> <span class="fn">speak</span>(): <span class="kw">string</span> { <span class="kw">return</span> <span class="str">"Woof!"</span>; }
+
+    <span class="kw">public function</span> <span class="fn">describe</span>(): <span class="kw">string</span> {
+        <span class="kw">return</span> <span class="kw">parent</span>::<span class="fn">describe</span>() . <span class="str">", breed: {$this->breed}"</span>;
+    }
+}
+
+<span class="cmt">// ── USAGE ──────────────────────────────────────</span>
+<span class="var">$dog</span> = <span class="kw">new</span> <span class="cls">Dog</span>(<span class="str">"Rex"</span>, <span class="num">3</span>, <span class="str">"Labrador"</span>);
+<span class="kw">echo</span> <span class="var">$dog</span>-><span class="fn">speak</span>();         <span class="cmt">// "Woof!"</span>
+<span class="kw">echo</span> <span class="var">$dog</span>-><span class="fn">describe</span>();      <span class="cmt">// "Rex is 3 years old, breed: Labrador"</span>
+<span class="kw">echo</span> (<span class="var">$dog</span> <span class="kw">instanceof</span> <span class="cls">Animal</span>) ? <span class="str">"yes"</span> : <span class="str">"no"</span>; <span class="cmt">// yes</span>
+
+<span class="cmt">// ── ENUMS (PHP 8.1+) ───────────────────────────</span>
+<span class="kw">enum</span> <span class="cls">Status</span>: <span class="kw">string</span> {
+    <span class="kw">case</span> <span class="cls">Active</span>   = <span class="str">'active'</span>;
+    <span class="kw">case</span> <span class="cls">Inactive</span> = <span class="str">'inactive'</span>;
+    <span class="kw">case</span> <span class="cls">Banned</span>   = <span class="str">'banned'</span>;
+}
+<span class="var">$s</span> = <span class="cls">Status</span>::<span class="cls">Active</span>;
+<span class="kw">echo</span> <span class="var">$s</span>->value; <span class="cmt">// "active"</span>
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 20 ERROR HANDLING -->
+    <section class="section" id="error-handling">
+      <div class="section-header">
+        <span class="section-num">20</span>
+        <h2>Error Handling</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">error-handling.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ── PHP.INI SETTINGS (dev vs production) ───────</span>
+<span class="cmt">// Development: show all errors</span>
+<span class="fn">ini_set</span>(<span class="str">'display_errors'</span>, <span class="num">1</span>);
+<span class="fn">error_reporting</span>(<span class="cls">E_ALL</span>);
+
+<span class="cmt">// Production: log errors, never display</span>
+<span class="fn">ini_set</span>(<span class="str">'display_errors'</span>, <span class="num">0</span>);
+<span class="fn">ini_set</span>(<span class="str">'log_errors'</span>, <span class="num">1</span>);
+
+<span class="cmt">// ── TRY / CATCH / FINALLY ──────────────────────</span>
+<span class="kw">function</span> <span class="fn">divide</span>(<span class="kw">int</span> <span class="var">$a</span>, <span class="kw">int</span> <span class="var">$b</span>): <span class="kw">float</span> {
+    <span class="kw">if</span> (<span class="var">$b</span> === <span class="num">0</span>) {
+        <span class="kw">throw new</span> <span class="cls">InvalidArgumentException</span>(<span class="str">"Cannot divide by zero"</span>);
+    }
+    <span class="kw">return</span> <span class="var">$a</span> / <span class="var">$b</span>;
+}
+
+<span class="kw">try</span> {
+    <span class="kw">echo</span> <span class="fn">divide</span>(<span class="num">10</span>, <span class="num">2</span>);  <span class="cmt">// 5</span>
+    <span class="kw">echo</span> <span class="fn">divide</span>(<span class="num">10</span>, <span class="num">0</span>);  <span class="cmt">// throws</span>
+} <span class="kw">catch</span> (<span class="cls">InvalidArgumentException</span> <span class="var">$e</span>) {
+    <span class="kw">echo</span> <span class="str">"Math error: "</span> . <span class="var">$e</span>-><span class="fn">getMessage</span>();
+} <span class="kw">catch</span> (<span class="cls">Exception</span> <span class="var">$e</span>) {
+    <span class="kw">echo</span> <span class="str">"General error: "</span> . <span class="var">$e</span>-><span class="fn">getMessage</span>();
+} <span class="kw">finally</span> {
+    <span class="cmt">// Always runs, even if exception was thrown</span>
+    <span class="kw">echo</span> <span class="str">"Done."</span>;
+}
+
+<span class="cmt">// ── CUSTOM EXCEPTION CLASS ─────────────────────</span>
+<span class="kw">class</span> <span class="cls">NotFoundException</span> <span class="kw">extends</span> <span class="cls">RuntimeException</span> {
+    <span class="kw">public function</span> <span class="fn">__construct</span>(<span class="kw">string</span> <span class="var">$resource</span>) {
+        <span class="kw">parent</span>::<span class="fn">__construct</span>(<span class="str">"{$resource} not found"</span>, <span class="num">404</span>);
+    }
+}
+<span class="kw">throw new</span> <span class="cls">NotFoundException</span>(<span class="str">"User"</span>);
+<span class="op">?&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 21 SECURITY -->
+    <section class="section" id="security">
+      <div class="section-header">
+        <span class="section-num">21</span>
+        <h2>Security Best Practices</h2>
+      </div>
+
+      <p>PHP security vulnerabilities are well-documented. Following these principles will protect your application against the most common attack vectors.</p>
+
+      <h3>XSS — Cross-Site Scripting</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">xss-prevention.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// ALWAYS escape output before rendering in HTML</span>
+<span class="var">$input</span> = <span class="str">'&lt;script&gt;alert("hacked")&lt;/script&gt;'</span>;
+
+<span class="cmt">// ✗ DANGEROUS: echo $input;</span>
+<span class="cmt">// ✓ SAFE:</span>
+<span class="kw">echo</span> <span class="fn">htmlspecialchars</span>(<span class="var">$input</span>, <span class="cls">ENT_QUOTES</span> | <span class="cls">ENT_HTML5</span>, <span class="str">'UTF-8'</span>);
+<span class="cmt">// &amp;lt;script&amp;gt;alert(&amp;quot;hacked&amp;quot;)&amp;lt;/script&amp;gt;</span>
+<span class="op">?&gt;</span></code></pre>
+      </div>
+
+      <h3>Passwords — Never Store Plain Text</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+          <span class="code-lang lang-php">passwords.php</span>
+        </div>
+        <pre><code><span class="op">&lt;?php</span>
+<span class="cmt">// Hash a password (use PHP's built-in bcrypt)</span>
+<span class="var">$hash</span> = <span class="fn">password_hash</span>(<span class="var">$_POST</span>[<span class="str">'password'</span>], <span class="cls">PASSWORD_BCRYPT</span>);
+<span class="cmt">// Store $hash in the database — never the plain password</span>
+
+<span class="cmt">// Verify a password at login</span>
+<span class="kw">if</span> (<span class="fn">password_verify</span>(<span class="var">$_POST</span>[<span class="str">'password'</span>], <span class="var">$hash</span>)) {
+    <span class="kw">echo</span> <span class="str">"Password correct!"</span>;
+}
+
+<span class="cmt">// Check if hash needs to be upgraded (e.g., after cost change)</span>
+<span class="kw">if</span> (<span class="fn">password_needs_rehash</span>(<span class="var">$hash</span>, <span class="cls">PASSWORD_BCRYPT</span>)) {
+    <span class="var">$hash</span> = <span class="fn">password_hash</span>(<span class="var">$password</span>, <span class="cls">PASSWORD_BCRYPT</span>);
+    <span class="cmt">// update hash in database</span>
+}
+<span class="op">?&gt;</span></code></pre>
+      </div>
+
+      <h3>Security Checklist</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Threat</th><th>Prevention</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>SQL Injection</td><td>Always use PDO prepared statements</td></tr>
+            <tr><td>XSS</td><td><code>htmlspecialchars()</code> on all output</td></tr>
+            <tr><td>CSRF</td><td>Use per-form hidden tokens, verify on submit</td></tr>
+            <tr><td>Plain passwords</td><td><code>password_hash()</code> / <code>password_verify()</code></td></tr>
+            <tr><td>Session fixation</td><td><code>session_regenerate_id(true)</code> on login</td></tr>
+            <tr><td>Sensitive errors</td><td>Turn off <code>display_errors</code> in production</td></tr>
+            <tr><td>Directory traversal</td><td><code>basename()</code> and whitelist allowed paths</td></tr>
+            <tr><td>Untrusted uploads</td><td>Validate MIME type, rename files, serve outside docroot</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 22 NEXT STEPS -->
+    <section class="section" id="next-steps">
+      <div class="section-header">
+        <span class="section-num">22</span>
+        <h2>Next Steps</h2>
+      </div>
+
+      <p>You now have a solid foundation in PHP and Apache. Here's where to go next:</p>
+
+      <h3>Frameworks</h3>
+      <dl>
+        <dt>Laravel</dt>
+        <dd>The most popular PHP framework. Elegant MVC, ORM (Eloquent), routing, templating (Blade), queues, and more. Install via Composer: <code>composer create-project laravel/laravel myapp</code></dd>
+
+        <dt>Symfony</dt>
+        <dd>Enterprise-grade, highly modular. More complex but extremely powerful. Laravel is built on Symfony components.</dd>
+
+        <dt>Slim</dt>
+        <dd>Micro-framework for building APIs and small apps. Great for learning the basics before jumping to a full framework.</dd>
+      </dl>
+
+      <h3>Tooling</h3>
+      <dl>
+        <dt>Composer</dt>
+        <dd>PHP's package manager. Install it at <code>getcomposer.org</code>. Use it to add third-party libraries.</dd>
+
+        <dt>Xdebug</dt>
+        <dd>PHP's debugger. Enables step-debugging in VS Code and PhpStorm.</dd>
+
+        <dt>PHPUnit</dt>
+        <dd>Unit testing framework for PHP. Test-driven development in PHP.</dd>
+
+        <dt>PHP-CS-Fixer</dt>
+        <dd>Auto-formats your code to PSR standards.</dd>
+      </dl>
+
+      <h3>Standards to Follow</h3>
+      <dl>
+        <dt>PSR-1 / PSR-2 / PSR-12</dt>
+        <dd>PHP coding style standards. Follow these for clean, consistent code.</dd>
+
+        <dt>PSR-4 Autoloading</dt>
+        <dd>The standard for autoloading classes. Composer handles this automatically in modern PHP.</dd>
+      </dl>
+
+      <div class="callout callout-tip">
+        <strong>Best next project:</strong> Build a simple CRUD app — create, read, update, delete items from a MySQL database using PHP + Apache + a tiny bit of HTML/CSS. This will tie together forms, sessions, PDO, and OOP in one real exercise.
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <div class="footer-text">PHP &amp; Apache — First Principles Guide &nbsp;·&nbsp; <span>2025</span></div>
+    <div class="footer-text">Built for <span>macOS Apple Silicon</span> &nbsp;·&nbsp; PHP 8.x / Apache 2.4</div>
+  </footer>
+
+</main>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+
+  // Active nav link
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(a => a.style.color = '');
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) {
+          active.style.color = 'var(--accent)';
+          active.style.borderLeftColor = 'var(--accent)';
+        }
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Close nav on mobile link click
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.querySelector('nav').classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perl Core Language Tutorial — perl_tutorial.pl</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root{--bg:#09090f;--bg-card:#0f0f1c;--bg-code:#0c0c18;--border:#1e1e30;--amber:#f0a030;--amber-dim:#b87820;--amber-glow:#f0a03018;--text:#e2d9c8;--text-dim:#9b9380;--text-muted:#5a5448;--accent:#4db8ff;--green:#6fcf97;--red:#eb5757;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:1.75;}
+
+/* ── Top nav ── */
+.topnav{background:#06060d;border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topnav-brand{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--amber);}
+.topnav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);text-decoration:none;transition:all .15s;}
+.nav-link:hover{color:var(--amber);border-color:var(--amber-dim);}
+.nav-link.current{color:var(--amber);border-color:var(--amber);background:var(--amber-glow);}
+
+/* ── Layout ── */
+.wrapper{max-width:980px;margin:0 auto;padding:48px 32px 100px;display:grid;grid-template-columns:1fr 280px;gap:48px;align-items:start;}
+@media(max-width:800px){.wrapper{grid-template-columns:1fr;}.toc-panel{display:none;}}
+
+/* ── TOC panel ── */
+.toc-panel{position:sticky;top:72px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:20px;}
+.toc-panel h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;}
+.toc-list{list-style:none;}
+.toc-list li{margin-bottom:4px;}
+.toc-list a{font-size:12.5px;color:var(--text-dim);text-decoration:none;font-family:'JetBrains Mono',monospace;display:block;padding:3px 6px;border-radius:2px;transition:all .12s;border-left:2px solid transparent;}
+.toc-list a:hover{color:var(--amber);background:var(--amber-glow);}
+.toc-list a.active{color:var(--amber);border-left-color:var(--amber);}
+
+/* ── Main content ── */
+.page-hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border);}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;}
+.page-hero h1{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,46px);font-weight:900;line-height:1.15;color:var(--text);margin-bottom:10px;}
+.page-hero h1 em{font-style:italic;color:var(--amber);}
+.page-hero p{font-style:italic;color:var(--text-dim);font-size:17px;font-weight:300;margin-bottom:16px;}
+.file-badge{display:inline-flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);padding:8px 14px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);}
+.file-badge span{color:var(--amber);}
+
+/* ── Tutorial sections ── */
+.tut-section{margin-bottom:56px;scroll-margin-top:20px;}
+.tut-section-header{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber-dim);letter-spacing:.08em;}
+.tut-section-header h2{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--text);}
+.tut-section h3{font-family:'Playfair Display',serif;font-size:17px;color:var(--amber);margin:22px 0 10px;}
+p{margin-bottom:12px;}
+p:last-child{margin-bottom:0;}
+strong{color:var(--text);}
+em{color:var(--amber);font-style:italic;}
+ul,ol{padding-left:22px;margin:10px 0;}
+li{margin-bottom:5px;}
+ul li::marker{color:var(--amber-dim);}
+
+/* ── Code blocks ── */
+.code-block{position:relative;margin:16px 0;border-radius:5px;overflow:hidden;border:1px solid var(--border);background:var(--bg-code);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#0a0a14;border-bottom:1px solid var(--border);}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase;}
+.copy-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .15s;}
+.copy-btn:hover{color:var(--amber);border-color:var(--amber-dim);}
+.copy-btn.copied{color:var(--green);border-color:var(--green);}
+.code-block pre[class*="language-"]{margin:0;padding:16px 18px;background:transparent !important;font-size:13px;line-height:1.7;overflow-x:auto;}
+.code-block code[class*="language-"]{font-family:'JetBrains Mono',monospace !important;}
+
+/* Amber Prism theme overrides */
+.token.comment,.token.prolog{color:#6a7a5a !important;font-style:italic;}
+.token.keyword{color:#f0a030 !important;font-weight:500;}
+.token.string,.token.char{color:#a8d8a0 !important;}
+.token.number{color:#a8c4e0 !important;}
+.token.operator{color:#d4c090 !important;}
+.token.function{color:#8fbce0 !important;}
+.token.variable{color:#e0b87a !important;}
+.token.regex{color:#d4a0c8 !important;}
+.token.punctuation{color:#6a7080 !important;}
+
+code:not([class]){font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--bg-card);color:var(--amber);padding:2px 6px;border-radius:3px;border:1px solid var(--border);}
+
+/* ── Callouts ── */
+.callout{padding:14px 18px;border-radius:3px;border-left:3px solid;margin:16px 0;font-size:14.5px;}
+.callout.note{background:#0a1020;border-color:var(--accent);color:#a8c8e0;}
+.callout.tip{background:#081510;border-color:var(--green);color:#90c890;}
+.callout.warn{background:#130c04;border-color:var(--amber);color:#c8a060;}
+.callout strong{color:inherit;}
+
+/* ── What-this-teaches box ── */
+.teaches-box{background:var(--bg-card);border:1px solid var(--border);border-top:3px solid var(--amber);padding:20px 24px;margin:24px 0;border-radius:0 0 4px 4px;}
+.teaches-box h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+.teaches-box ul{list-style:none;padding:0;}
+.teaches-box li{font-size:14px;color:var(--text-dim);padding:3px 0;font-family:'JetBrains Mono',monospace;}
+.teaches-box li::before{content:"→ ";color:var(--amber-dim);}
+
+/* ── Output block ── */
+.output-block{background:#040408;border:1px solid var(--border);border-left:3px solid var(--green);padding:14px 18px;margin:14px 0;border-radius:0 4px 4px 0;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#a0d8a0;line-height:1.6;overflow-x:auto;}
+.output-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--green);text-transform:uppercase;margin-bottom:6px;}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;margin:16px 0;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+thead tr{background:var(--bg-card);border-bottom:2px solid var(--amber-dim);}
+th{text-align:left;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;}
+td{padding:8px 12px;border-bottom:1px solid var(--border);}
+tbody tr:hover{background:var(--bg-card);}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="topnav-brand">The Perl Guide</span>
+  <div class="topnav-links">
+    <a class="nav-link" href="perl_guide.html">↑ Guide</a>
+    <a class="nav-link current" href="perl_tutorial.html">01 · Core Tutorial</a>
+    <a class="nav-link" href="perl_gui_01_basics.html">02 · GUI Basics</a>
+    <a class="nav-link" href="perl_gui_02_widgets.html">03 · Widgets</a>
+    <a class="nav-link" href="perl_gui_03_events_canvas.html">04 · Events</a>
+    <a class="nav-link" href="perl_gui_04_app.html">05 · App</a>
+  </div>
+</nav>
+
+<div class="wrapper">
+<main>
+
+<header class="page-hero">
+  <div class="eyebrow">Tutorial 01 — Core Language</div>
+  <h1>The <em>Perl</em> Language<br>in Practice</h1>
+  <p>A runnable program walking through every core language concept — scalars, arrays, hashes, control flow, loops, regex, subroutines, references, file I/O, OOP, and more.</p>
+  <div class="file-badge">▶ <span>perl perl_tutorial.pl</span></div>
+</header>
+
+<div class="teaches-box">
+  <h4>What This Tutorial Covers</h4>
+  <ul>
+    <li>Scalars, strings, numbers, and escape sequences</li>
+    <li>Arrays — push/pop/shift/unshift, grep, map, sort</li>
+    <li>Hashes — keys/values/each, frequency counts, grouping</li>
+    <li>Control flow — if/elsif/else, unless, ternary, defined-or</li>
+    <li>All loop types including labels and loop control</li>
+    <li>Regular expressions — match, substitute, capture groups</li>
+    <li>Subroutines, closures, factories, dispatch tables, recursion</li>
+    <li>References and nested data structures (AoH, HoA, deep nesting)</li>
+    <li>File I/O — read, write, append, slurp, file tests</li>
+    <li>Error handling with eval/$@</li>
+    <li>Object-oriented Perl with inheritance and polymorphism</li>
+    <li>List::Util, Scalar::Util, Data::Dumper</li>
+  </ul>
+</div>
+
+<!-- §3 Scalars -->
+<section class="tut-section" id="scalars">
+  <div class="tut-section-header"><span class="sec-num">§03</span><h2>Scalars — The Basic Variable</h2></div>
+  <p>Every scalar variable starts with <code>$</code>. The <code>my</code> keyword declares it with lexical (block) scope. With <code>use strict</code> in effect, <em>every</em> variable must be declared.</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">use strict;
+use warnings;
+
+my $name    = "Alice";
+my $age     = 30;
+my $pi      = 3.14159;
+my $nothing = undef;
+
+# Double-quotes interpolate; single-quotes are literal
+my $city = "San Francisco";
+print "Welcome to $city!\n";         # → Welcome to San Francisco!
+print 'No interpolation: $city\n', "\n";  # literal
+
+# Checking defined vs. undef
+print defined($nothing) ? "defined" : "undef";    # → undef</code></pre></div>
+
+  <div class="output-block"><div class="output-label">Output</div>Welcome to San Francisco!
+No interpolation: $city\n
+undef</div>
+</section>
+
+<!-- §4 Strings -->
+<section class="tut-section" id="strings">
+  <div class="tut-section-header"><span class="sec-num">§04</span><h2>Strings &amp; String Operators</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">my $full = "Hello" . ", " . "World!";   # . = concatenation
+my $line = "-" x 40;                     # x = repetition
+
+# String functions
+my $sample = "  Perl Programming  ";
+print length($sample);        # 20
+print uc($sample);            # "  PERL PROGRAMMING  "
+print ucfirst(lc("hELLO"));   # "Hello"
+print substr("Submarine", 3, 4);   # "marin"
+print index("Submarine", "arin");  # 4
+
+# chomp removes the trailing newline
+my $s = "Hello\n";
+chomp $s;    # $s is now "Hello" (no newline)
+
+# sprintf — formatted strings
+printf "%-22s %s\n", "Zero-padded:",   sprintf("%08d", 42);    # 00000042
+printf "%-22s %s\n", "Float:",         sprintf("%.4f", 3.14);  # 3.1400
+printf "%-22s %s\n", "Left-aligned:",  sprintf("%-10s|", "hi"); # "hi        |"
+
+# Here-doc — multi-line string
+my $poem = &lt;&lt;END_POEM;
+Roses are red,
+Violets are blue,
+Perl is awesome.
+END_POEM</code></pre></div>
+
+  <p>String comparison uses word operators: <code>eq</code> <code>ne</code> <code>lt</code> <code>gt</code> <code>le</code> <code>ge</code> <code>cmp</code></p>
+  <div class="callout warn">Never use <code>==</code> to compare strings — it coerces them to numbers first. Use <strong>eq</strong> for string equality and <strong>==</strong> only for numeric equality.</div>
+</section>
+
+<!-- §5 Numbers -->
+<section class="tut-section" id="numbers">
+  <div class="tut-section-header"><span class="sec-num">§05</span><h2>Numbers &amp; Numeric Operators</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">use POSIX qw(floor ceil);
+
+# Literal forms
+my $hex = 0xFF;        # 255
+my $oct = 0755;        # 493
+my $bin = 0b1010;      # 10
+my $big = 1_000_000;   # underscores for readability
+
+# Arithmetic
+printf "17 + 5  = %d\n",   17 + 5;
+printf "17 % 5  = %d\n",   17 % 5;   # modulus
+printf "2 ** 10 = %d\n",   2 ** 10;  # exponent → 1024
+
+# Math functions
+print abs(-42),    "\n";   # 42
+print int(3.9),    "\n";   # 3  (truncate, not round)
+print sqrt(144),   "\n";   # 12
+print floor(3.7),  "\n";   # 3
+print ceil(3.2),   "\n";   # 4
+
+# Numeric sort (must use $a &lt;=&gt; $b)
+my @nums    = (5, 2, 9, 1, 7, 3);
+my @sorted  = sort { $a &lt;=&gt; $b } @nums;
+print join(", ", @sorted);    # 1, 2, 3, 5, 7, 9
+
+# Spaceship operator &lt;=&gt; returns -1, 0, or 1
+print 10 &lt;=&gt; 20;    # -1</code></pre></div>
+</section>
+
+<!-- §6 Arrays -->
+<section class="tut-section" id="arrays">
+  <div class="tut-section-header"><span class="sec-num">§06</span><h2>Arrays</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">use List::Util qw(sum min max first);
+
+my @colors = ("red", "green", "blue");
+my @range  = (1..10);                   # range operator
+
+# Indexing
+print $colors[0];     # "red"
+print $colors[-1];    # "blue"  (negative index from end)
+print scalar @colors; # 3       (element count)
+print $#colors;       # 2       (last valid index)
+
+# Modification
+push    @colors, "yellow";   # Add to end
+my $out = pop @colors;       # Remove from end
+unshift @colors, "white";    # Add to front
+my $fst = shift @colors;     # Remove from front
+splice(@colors, 1, 1, "lime"); # Replace element at index 1
+
+# Functional operations — grep, map, sort
+my @evens   = grep { $_ % 2 == 0 } @range;
+my @doubled = map  { $_ * 2 }      @range;
+my @words   = qw(banana apple cherry date elderberry);
+my @bylen   = sort { length($a) &lt;=&gt; length($b) || $a cmp $b } @words;
+
+print "sum=", sum(@range), "  min=", min(@range), "  max=", max(@range), "\n";
+
+# join and split
+my $csv   = join(",", @words);
+my @back  = split(/,/, $csv);
+
+# wantarray — context detection
+sub ctx { return wantarray ? (1, 2, 3) : "scalar_result" }
+my @as_list   = ctx();     # (1, 2, 3)
+my $as_scalar = ctx();     # "scalar_result"</code></pre></div>
+
+  <div class="output-block"><div class="output-label">Sample Output</div>sum=55  min=1  max=10
+Doubles: 2, 4, 6, 8, 10, 12, 14, 16, 18, 20
+By length: date, apple, banana, cherry, elderberry</div>
+</section>
+
+<!-- §7 Hashes -->
+<section class="tut-section" id="hashes">
+  <div class="tut-section-header"><span class="sec-num">§07</span><h2>Hashes</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">my %person = (
+    name  =&gt; "Bob",           # fat comma auto-quotes the left side
+    age   =&gt; 25,
+    city  =&gt; "Austin",
+    email =&gt; 'bob@example.com',
+);
+
+# Access, add, delete
+my $name  = $person{name};
+$person{phone} = "555-1234";
+delete $person{phone};
+
+# Test keys
+print exists  $person{name} ? "exists"  : "missing";
+print defined $person{age}  ? "defined" : "undef";
+
+# Iterate — always sort keys for reproducible output
+foreach my $key (sort keys %person) {
+    printf "  %-8s => %s\n", $key, $person{$key};
+}
+
+# Hash slice — get or set multiple keys at once
+my @info            = @person{qw(name city)};
+@person{qw(x y)}    = (10, 20);
+
+# Common patterns
+my @data = qw(pear apple banana cherry apple pear pear);
+
+# Frequency count
+my %freq;
+$freq{$_}++ for @data;
+
+# Unique elements preserving order
+my %seen;
+my @unique = grep { !$seen{$_}++ } @data;</code></pre></div>
+</section>
+
+<!-- §8-9 Control Flow & Loops -->
+<section class="tut-section" id="control">
+  <div class="tut-section-header"><span class="sec-num">§08–09</span><h2>Control Flow &amp; Loops</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl"># if / elsif / else
+my $score = 78;
+if    ($score &gt;= 90) { print "A\n" }
+elsif ($score &gt;= 80) { print "B\n" }
+elsif ($score &gt;= 70) { print "C\n" }  # → prints "C"
+else                 { print "F\n" }
+
+unless ($score &lt; 60) { print "Passing!\n" }  # unless = opposite of if
+
+# Postfix (statement modifier) — readable one-liners
+print "Positive\n" if $score &gt; 0;
+print "Not zero\n" unless $score == 0;
+
+# Ternary and defined-or
+my $result = ($score &gt;= 60) ? "Pass" : "Fail";
+my $val    = undef // "default";   # "default"
+
+# Loops
+my $i = 1;
+while ($i &lt;= 5) { print "$i "; $i++ }       # while
+for (my $n=0; $n&lt;5; $n++) { print "$n " }   # C-style for
+foreach my $c (qw(red green blue)) { print "$c " }  # foreach
+print "$_ " for 1..5;                         # postfix for
+
+# Loop control
+for my $n (1..20) {
+    next if $n % 2 == 0;    # skip even numbers
+    last if $n &gt; 9;          # stop after 9
+    print "$n ";             # → 1 3 5 7 9
+}
+
+# Loop labels — control outer loop from inner loop
+OUTER: for my $row (1..3) {
+    for my $col (1..3) {
+        next OUTER if $col == 2;
+        print "($row,$col) ";
+    }
+}
+# → (1,1) (2,1) (3,1)
+
+# map and grep — functional loops
+my @squares = map  { $_ ** 2 } 1..8;
+my @odds    = grep { $_ % 2  } 1..10;</code></pre></div>
+</section>
+
+<!-- §10 Regex -->
+<section class="tut-section" id="regex">
+  <div class="tut-section-header"><span class="sec-num">§10</span><h2>Regular Expressions</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">my $text = "The quick brown fox jumps over the lazy dog.";
+
+# Basic match / negated match
+print "has fox\n" if $text =~ /fox/;
+print "no cat\n"  if $text !~ /cat/;
+
+# Case-insensitive with /i modifier
+print "found\n" if $text =~ /QUICK/i;
+
+# Substitution — s/old/new/flags
+(my $copy = $text) =~ s/fox/cat/;        # Replace first
+(my $copy2= $text) =~ s/\b\w{4}\b/XXXX/g; # Replace all 4-letter words
+
+# Capturing groups — $1, $2, $3 ...
+my $date = "Dates: 2024-05-04 and 2024-12-25.";
+if ($date =~ /(\d{4})-(\d{2})-(\d{2})/) {
+    print "Year=$1  Month=$2  Day=$3\n";
+}
+
+# Find ALL matches with /g in list context
+my @all_dates = ($date =~ /(\d{4}-\d{2}-\d{2})/g);
+print join(", ", @all_dates);    # 2024-05-04, 2024-12-25
+
+# Named captures — $+{name}
+my $log = "ERROR 404: Page not found";
+if ($log =~ /(?&lt;level&gt;\w+)\s+(?&lt;code&gt;\d+):\s+(?&lt;msg&gt;.+)/) {
+    printf "Level=%-8s Code=%-5s Msg=%s\n",
+           $+{level}, $+{code}, $+{msg};
+}
+
+# tr — transliteration
+(my $upper = "Hello World") =~ tr/a-z/A-Z/;
+my $count = ("Hello" =~ tr/aeiouAEIOU//);   # Count vowels → 2
+
+# Split on regex
+my @fields = split(/\s*,\s*/, "one,  two ,three");
+
+# Extended /x mode — add comments for readability
+my $valid = 'user@example.com' =~ /
+    ^           # Start
+    [\w.+\-]+   # Local part
+    @           # At-sign
+    [\w\-]+     # Domain
+    (\.\w+)+    # Extensions
+    $           # End
+/x;</code></pre></div>
+</section>
+
+<!-- §11 Subroutines -->
+<section class="tut-section" id="subs">
+  <div class="tut-section-header"><span class="sec-num">§11</span><h2>Subroutines</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl"># Arguments arrive in @_ — always unpack with my
+sub greet {
+    my ($name, $greeting) = @_;
+    $greeting //= "Hello";          # default value
+    return "$greeting, $name!";
+}
+
+# Multiple return values
+sub minmax {
+    my @s = sort { $a &lt;=&gt; $b } @_;
+    return ($s[0], $s[-1]);
+}
+my ($min, $max) = minmax(5, 2, 8, 1, 9);
+
+# Named parameters via hash
+sub create_user {
+    my (%args) = @_;
+    return { name =&gt; $args{name} // "Anon", role =&gt; $args{role} // "user" };
+}
+my $u = create_user(name =&gt; "Carol", role =&gt; "admin");
+
+# Anonymous sub stored in a scalar
+my $square = sub { $_[0] ** 2 };
+print $square-&gt;(5);    # 25
+
+# Closure — captures $factor from the enclosing scope
+sub make_multiplier {
+    my ($factor) = @_;
+    return sub { $_[0] * $factor };
+}
+my $double = make_multiplier(2);
+my $triple = make_multiplier(3);
+print $double-&gt;(7);   # 14
+print $triple-&gt;(7);   # 21
+
+# Dispatch table — hash of code refs
+my %ops = (
+    add =&gt; sub { $_[0] + $_[1] },
+    mul =&gt; sub { $_[0] * $_[1] },
+    div =&gt; sub { $_[1] ? $_[0]/$_[1] : "undef" },
+);
+print $ops{add}-&gt;(10, 3);   # 13
+
+# Recursive subroutine
+sub factorial { $_[0] &lt;= 1 ? 1 : $_[0] * factorial($_[0]-1) }
+printf "%d! = %d\n", $_, factorial($_) for 0..8;</code></pre></div>
+</section>
+
+<!-- §12 References -->
+<section class="tut-section" id="refs">
+  <div class="tut-section-header"><span class="sec-num">§12</span><h2>References &amp; Complex Data Structures</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">use List::Util qw(sum);
+use Data::Dumper;
+
+# Anonymous array ref [ ] and hash ref { }
+my $aref = [10, 20, 30];
+my $href = { x =&gt; 1, y =&gt; 2 };
+
+print $aref-&gt;[1];    # 20
+print $href-&gt;{x};    # 1
+
+# Array of hashes — most common "record" structure
+my @team = (
+    { name =&gt; "Alice", role =&gt; "dev",  level =&gt; 5 },
+    { name =&gt; "Bob",   role =&gt; "ops",  level =&gt; 3 },
+    { name =&gt; "Carol", role =&gt; "dev",  level =&gt; 7 },
+);
+
+# Sort, filter, transform via arrow notation
+my @by_level = sort { $b-&gt;{level} &lt;=&gt; $a-&gt;{level} } @team;
+my @devs     = grep { $_-&gt;{role} eq "dev" } @team;
+my $total    = sum(map { $_-&gt;{level} } @team);
+
+printf "  %-8s %-8s Lv.%d\n", $_-&gt;{name}, $_-&gt;{role}, $_-&gt;{level}
+    for @by_level;
+
+# Hash of arrays — group-by pattern
+my %by_role;
+push @{ $by_role{$_-&gt;{role}} }, $_-&gt;{name} for @team;
+for my $role (sort keys %by_role) {
+    printf "  %-8s: %s\n", $role, join(", ", @{ $by_role{$role} });
+}
+
+# Deeply nested structure
+my $company = {
+    depts =&gt; {
+        eng =&gt; { head =&gt; "Alice", staff =&gt; [qw(Bob Carol)] },
+    },
+};
+push @{ $company-&gt;{depts}{eng}{staff} }, "Dave";
+print join(", ", @{ $company-&gt;{depts}{eng}{staff} });
+# → Bob, Carol, Dave
+
+# Data::Dumper for debugging
+local $Data::Dumper::Indent   = 1;
+local $Data::Dumper::Sortkeys = 1;
+print Dumper({ nums =&gt; [1..3], meta =&gt; { env =&gt; "dev" } });</code></pre></div>
+</section>
+
+<!-- §13 File I/O -->
+<section class="tut-section" id="fileio">
+  <div class="tut-section-header"><span class="sec-num">§13</span><h2>File I/O</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl"># Three-argument open — always use this form
+open(my $wfh, "&gt;", "/tmp/test.txt")  or die "Cannot write: $!";
+print $wfh "Hello, file!\n";
+printf $wfh "Squared: %d\n", 7**2;
+close($wfh);
+
+# Read line by line — memory efficient for large files
+open(my $rfh, "&lt;", "/tmp/test.txt") or die "Cannot read: $!";
+while (my $line = &lt;$rfh&gt;) {
+    chomp $line;       # Remove trailing \n
+    print "[$line]\n";
+}
+close($rfh);
+
+# Slurp entire file into a string at once
+open(my $sfh, "&lt;", "/tmp/test.txt") or die "$!";
+my $content = do { local $/; &lt;$sfh&gt; };
+close($sfh);
+printf "File: %d chars\n", length($content);
+
+# File test operators
+printf "-e exists:   %s\n", (-e "/tmp/test.txt" ? "yes" : "no");
+printf "-f regular:  %s\n", (-f "/tmp/test.txt" ? "yes" : "no");
+printf "-s size:     %d bytes\n", -s "/tmp/test.txt";
+
+# Append mode
+open(my $app, "&gt;&gt;", "/tmp/test.txt") or die "$!";
+print $app "Appended line\n";
+close($app);
+
+unlink "/tmp/test.txt";    # Delete the file</code></pre></div>
+</section>
+
+<!-- §15-16 Error handling + OOP -->
+<section class="tut-section" id="oop">
+  <div class="tut-section-header"><span class="sec-num">§15–16</span><h2>Error Handling &amp; OOP</h2></div>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl"># eval — catch exceptions (Perl's try/catch)
+eval { die "Something failed!\n" };
+print "Caught: $@" if $@;
+
+# Structured error object
+eval { die { code =&gt; 404, msg =&gt; "Not found" } };
+if (ref $@ eq 'HASH') {
+    printf "Error %d: %s\n", $@-&gt;{code}, $@-&gt;{msg};
+}
+
+# ── Object-Oriented Perl ──────────────────────────────────
+{ package Animal;
+  sub new {
+      my ($class, %a) = @_;
+      bless { name =&gt; $a{name}//"?", sound =&gt; $a{sound}//"..." }, $class;
+  }
+  sub name  { $_[0]-&gt;{name} }
+  sub speak { printf "%s says: %s\n", $_[0]-&gt;{name}, $_[0]-&gt;{sound} }
+}
+{ package Dog;
+  our @ISA = ('Animal');
+  sub new { my($cl,%a)=@_; $a{sound}="Woof"; $cl-&gt;Animal::new(%a) }
+  sub fetch { print "$_[0]-&gt;{name} fetches!\n" }
+}
+{ package Cat;
+  our @ISA = ('Animal');
+  sub new { my($cl,%a)=@_; $a{sound}="Meow"; $cl-&gt;Animal::new(%a) }
+  sub purr { print "$_[0]-&gt;{name} purrs.\n" }
+}
+package main;
+
+my $dog = Dog-&gt;new(name =&gt; "Rex");
+my $cat = Cat-&gt;new(name =&gt; "Whiskers");
+
+$dog-&gt;speak;   # Rex says: Woof
+$cat-&gt;speak;   # Whiskers says: Meow
+$dog-&gt;fetch;   # Rex fetches!
+$cat-&gt;purr;    # Whiskers purrs.
+
+# ref() tells you the class; isa() checks the hierarchy
+print ref($dog);                # Dog
+print $dog-&gt;isa("Animal");     # 1 (true — inherited!)
+print $dog-&gt;isa("Cat");        # "" (false)</code></pre></div>
+</section>
+
+<!-- Bonus -->
+<section class="tut-section" id="bonus">
+  <div class="tut-section-header"><span class="sec-num">Bonus</span><h2>Mini Address Book — Putting It Together</h2></div>
+  <p>This final section combines hashes, sorting, filtering, grouping, and formatting into a practical program.</p>
+
+  <div class="code-block"><div class="code-header"><span class="code-lang">perl</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><code class="language-perl">my @contacts = (
+    { first =&gt; "Alice",  last =&gt; "Anderson", city =&gt; "Austin",  phone =&gt; "555-0101" },
+    { first =&gt; "Bob",    last =&gt; "Brown",    city =&gt; "Boston",  phone =&gt; "555-0202" },
+    { first =&gt; "Carol",  last =&gt; "Clark",    city =&gt; "Austin",  phone =&gt; "555-0303" },
+    { first =&gt; "Dave",   last =&gt; "Davis",    city =&gt; "Dallas",  phone =&gt; "555-0404" },
+);
+
+sub full_name { "$_[0]-&gt;{first} $_[0]-&gt;{last}" }
+
+# Print all, sorted by last name
+printf "  %-20s  %-12s  %s\n", full_name($_), $_-&gt;{phone}, $_-&gt;{city}
+    for sort { $a-&gt;{last} cmp $b-&gt;{last} } @contacts;
+
+# Filter — only Austin contacts
+my @austin = grep { $_-&gt;{city} eq "Austin" } @contacts;
+print full_name($_), "\n" for @austin;
+
+# Group by city
+my %by_city;
+push @{ $by_city{$_-&gt;{city}} }, full_name($_) for @contacts;
+printf "  %-10s: %s\n", $_, join(", ", sort @{ $by_city{$_} })
+    for sort keys %by_city;
+
+# Search by last name
+my ($found) = grep { $_-&gt;{last} =~ /^Davis$/i } @contacts;
+printf "Found: %s (%s)\n", full_name($found), $found-&gt;{phone} if $found;
+
+# CSV export
+print "First,Last,Phone,City\n";
+printf "%s,%s,%s,%s\n", @{$_}{qw(first last phone city)}
+    for sort { $a-&gt;{last} cmp $b-&gt;{last} } @contacts;</code></pre></div>
+
+  <div class="output-block"><div class="output-label">Output</div>  Alice Anderson        555-0101      Austin
+  Bob Brown             555-0202      Boston
+  Carol Clark           555-0303      Austin
+  Dave Davis            555-0404      Dallas
+Alice Anderson
+Carol Clark
+  Austin    : Alice Anderson, Carol Clark
+  Boston    : Bob Brown
+  Dallas    : Dave Davis
+Found: Dave Davis (555-0404)
+First,Last,Phone,City
+Alice,Anderson,555-0101,Austin
+...</div>
+</section>
+
+<div class="callout tip">
+  <strong>Next step:</strong> Run <code>perl perl_tutorial.pl</code> to see all output live in your terminal, then open
+  <a href="perl_gui_01_basics.html">Tutorial 02 — GUI Basics</a> to start building windows.
+</div>
+
+</main>
+
+<!-- TOC panel -->
+<aside class="toc-panel">
+  <h4>Sections</h4>
+  <ul class="toc-list">
+    <li><a href="#scalars">§03 Scalars</a></li>
+    <li><a href="#strings">§04 Strings</a></li>
+    <li><a href="#numbers">§05 Numbers</a></li>
+    <li><a href="#arrays">§06 Arrays</a></li>
+    <li><a href="#hashes">§07 Hashes</a></li>
+    <li><a href="#control">§08–09 Control &amp; Loops</a></li>
+    <li><a href="#regex">§10 Regex</a></li>
+    <li><a href="#subs">§11 Subroutines</a></li>
+    <li><a href="#refs">§12 References</a></li>
+    <li><a href="#fileio">§13 File I/O</a></li>
+    <li><a href="#oop">§15–16 Error &amp; OOP</a></li>
+    <li><a href="#bonus">Bonus: Address Book</a></li>
+  </ul>
+</aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-perl.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script>
+function copyCode(btn){
+  const pre=btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(()=>{
+    btn.textContent='copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1800);
+  });
+}
+const links=document.querySelectorAll('.toc-list a');
+const sections=document.querySelectorAll('.tut-section');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'));
+      const a=document.querySelector(`.toc-list a[href="#${e.target.id}"]`);
+      if(a)a.classList.add('active');
+    }
+  });
+},{rootMargin:'-15% 0px -75% 0px'});
+sections.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
