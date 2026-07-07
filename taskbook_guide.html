@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskBook — Python Project Walkthrough</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=Source+Code+Pro:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;1,400&display=swap');
+
+  :root {
+    --ink:     #1a1814;
+    --paper:   #faf7f2;
+    --paper2:  #f2ede4;
+    --paper3:  #e8e0d2;
+    --line:    rgba(26,24,20,0.12);
+    --accent:  #b85c2c;
+    --accent2: #2c6eb8;
+    --accent3: #2c8c4e;
+    --code-bg: #1e1c18;
+    --code-fg: #e8e0cc;
+    --kw:  #c89b4c;
+    --fn:  #7eb8e8;
+    --str: #8ec87e;
+    --cm:  #7a7260;
+    --cls: #e8c87e;
+    --dec: #e8a07e;
+    --num: #c8a07e;
+    --op:  #e87e7e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lora', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 80px 48px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: 'taskbook.py';
+    position: absolute;
+    bottom: -20px; right: -10px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 120px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.04);
+    white-space: nowrap;
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .hero-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dec);
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.0;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 span { color: var(--dec); }
+
+  .hero-desc {
+    font-family: 'Lora', serif;
+    font-size: 17px;
+    color: rgba(250,247,242,0.7);
+    max-width: 580px;
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  /* ── NAV BAR ── */
+  nav {
+    background: var(--paper2);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  nav::-webkit-scrollbar { display: none; }
+
+  nav a {
+    padding: 14px 22px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cm);
+    text-decoration: none;
+    white-space: nowrap;
+    border-right: 1px solid var(--line);
+    transition: color 0.15s, background 0.15s;
+  }
+
+  nav a:hover { color: var(--ink); background: var(--paper3); }
+  nav a.active { color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 960px; margin: 0 auto; padding: 60px 32px 100px; }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 80px;
+    scroll-margin-top: 56px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-bottom: 8px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .section-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+  }
+
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .section h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin: 28px 0 10px;
+  }
+
+  p { margin-bottom: 14px; color: #3a3530; line-height: 1.8; }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg);
+    border-radius: 10px;
+    padding: 22px 26px;
+    overflow-x: auto;
+    margin: 14px 0 22px;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  pre .tag {
+    position: absolute;
+    top: 10px; right: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+  }
+
+  pre code {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px;
+    color: var(--code-fg);
+    line-height: 1.85;
+    display: block;
+  }
+
+  .kw  { color: var(--kw);  }
+  .fn  { color: var(--fn);  }
+  .str { color: var(--str); }
+  .cm  { color: var(--cm); font-style: italic; }
+  .cls { color: var(--cls); }
+  .dec { color: var(--dec); }
+  .num { color: var(--num); }
+  .op  { color: var(--op);  }
+
+  code {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px;
+    background: var(--paper3);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    background: var(--paper2);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0 22px;
+    font-size: 14.5px;
+    color: #2a3545;
+    font-style: italic;
+  }
+
+  .callout.warn {
+    border-color: var(--accent);
+    color: #3d2010;
+  }
+
+  .callout strong { font-style: normal; font-weight: 600; }
+
+  /* ── CONCEPT CARDS ── */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 16px 0 24px;
+  }
+
+  .concept-card {
+    background: var(--paper2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .concept-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cm);
+    margin-bottom: 6px;
+  }
+
+  .concept-card p {
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0;
+    color: #3a3530;
+    font-style: normal;
+  }
+
+  /* ── SIDE-BY-SIDE ── */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 14px 0 22px;
+  }
+
+  .split-col { padding: 18px 22px; }
+  .split-col:first-child { border-right: 1px solid var(--line); background: #fff8f0; }
+  .split-col:last-child { background: var(--code-bg); }
+
+  .split-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    color: var(--cm);
+  }
+
+  .split-col:last-child .split-label { color: rgba(255,255,255,0.3); }
+  .split-col:last-child pre { margin: 0; padding: 0; background: none; border: none; }
+
+  /* ── TAG PILLS ── */
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .pill {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--paper3);
+    border: 1px solid var(--line);
+    color: var(--accent2);
+  }
+
+  /* ── STEP BLOCKS ── */
+  .steps { list-style: none; counter-reset: steps; }
+  .steps li {
+    counter-increment: steps;
+    position: relative;
+    padding: 0 0 24px 48px;
+    font-size: 15px;
+    color: #3a3530;
+    line-height: 1.75;
+  }
+  .steps li::before {
+    content: counter(steps);
+    position: absolute; left: 0; top: 2px;
+    width: 28px; height: 28px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .steps li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 13px; top: 32px;
+    width: 2px;
+    height: calc(100% - 32px);
+    background: var(--line);
+  }
+
+  /* ── HOW TO RUN BOX ── */
+  .run-box {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin: 24px 0;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  .run-box .prompt { color: var(--str); user-select: none; }
+  .run-box .cmd { color: var(--fn); }
+  .run-box .comment { color: rgba(255,255,255,0.3); font-style: italic; }
+
+  /* ── SECTION OVERVIEW SUMMARY ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0 28px;
+    font-size: 14px;
+  }
+
+  .sg-label {
+    background: var(--paper2);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cm);
+  }
+
+  .sg-value {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    color: #3a3530;
+  }
+
+  .sg-label:last-of-type, .sg-value:last-child { border-bottom: none; }
+
+  footer {
+    background: var(--ink);
+    color: rgba(250,247,242,0.4);
+    padding: 32px 48px;
+    text-align: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 56px 24px 48px; }
+    .hero h1 { font-size: 38px; }
+    .page { padding: 40px 20px 80px; }
+    .split { grid-template-columns: 1fr; }
+    .split-col:first-child { border-right: none; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-label">Python Learning Project</div>
+  <h1>Task<span>Book</span></h1>
+  <p class="hero-desc">A single, fully-runnable program that covers nearly every core feature of Python — built around a practical CLI task manager so every concept has a real purpose.</p>
+</div>
+
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#setup">Setup</a>
+  <a href="#constants">Constants</a>
+  <a href="#decorator">Decorator</a>
+  <a href="#dataclass">Dataclass</a>
+  <a href="#class">Class</a>
+  <a href="#functions">Functions</a>
+  <a href="#mainloop">Main Loop</a>
+  <a href="#concepts">All Concepts</a>
+</nav>
+
+<div class="page">
+
+  <!-- OVERVIEW -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <span class="section-num">00</span>
+      <h2>What the program does</h2>
+    </div>
+
+    <p><code>taskbook.py</code> is a command-line task manager. You can add tasks with priorities and tags, mark them done, search them, and view statistics. All data is saved to a <code>tasks.json</code> file so it persists between runs.</p>
+
+    <p>Every feature of the app exists to exercise a real Python concept. Nothing is contrived — the program is genuinely useful, and every language feature earns its place.</p>
+
+    <div class="concept-grid">
+      <div class="concept-card"><div class="concept-card-title">Variables & Types</div><p>Every constant, task field, and menu choice.</p></div>
+      <div class="concept-card"><div class="concept-card-title">Dicts, Lists, Sets</div><p>The menu dispatch table, task list, priority set.</p></div>
+      <div class="concept-card"><div class="concept-card-title">OOP — Class</div><p><code>TaskBook</code> manages the collection with methods and a property.</p></div>
+      <div class="concept-card"><div class="concept-card-title">OOP — Dataclass</div><p><code>Task</code> uses <code>@dataclass</code> for auto-generated boilerplate.</p></div>
+      <div class="concept-card"><div class="concept-card-title">Decorator</div><p><code>@log_errors</code> wraps methods to catch and display errors cleanly.</p></div>
+      <div class="concept-card"><div class="concept-card-title">Generator</div><p><code>book.pending()</code> yields tasks lazily instead of building a list.</p></div>
+      <div class="concept-card"><div class="concept-card-title">Comprehensions</div><p>Filtering, transforming, and serialising task lists in one line.</p></div>
+      <div class="concept-card"><div class="concept-card-title">File I/O + JSON</div><p>Tasks are saved and loaded with <code>open()</code> and <code>json</code>.</p></div>
+      <div class="concept-card"><div class="concept-card-title">Exception Handling</div><p>Invalid input and corrupt files are caught gracefully.</p></div>
+      <div class="concept-card"><div class="concept-card-title">match / case</div><p>The main menu uses Python 3.10+ pattern matching.</p></div>
+      <div class="concept-card"><div class="concept-card-title">Lambda & sorted()</div><p>Sorting tasks by priority or title with a key function.</p></div>
+      <div class="concept-card"><div class="concept-card-title">Standard Library</div><p>pathlib, datetime, functools, collections all appear naturally.</p></div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="section" id="setup">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>How to run it</h2>
+    </div>
+
+    <p>You only need Python 3.10+ (for <code>match/case</code>). No external packages are required — the whole program uses the standard library.</p>
+
+    <div class="run-box">
+      <div><span class="prompt">$ </span><span class="cmd">python --version</span> <span class="comment"># confirm Python 3.10+</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">python taskbook.py</span> <span class="comment"># run the program</span></div>
+      <div style="margin-top: 12px; color: rgba(250,247,242,0.5);"># On first run, it creates tasks.json in the same directory.</div>
+      <div style="color: rgba(250,247,242,0.5);"># Type 'a' to add a task. Type 'q' to quit.</div>
+    </div>
+
+    <div class="callout">If you're on Python 3.9 or earlier, the <code>match/case</code> block in <code>main()</code> can be replaced with a standard <code>if/elif</code> chain — everything else will work unchanged.</div>
+  </section>
+
+  <!-- CONSTANTS -->
+  <section class="section" id="constants">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Constants &amp; module-level setup</h2>
+    </div>
+
+    <p>The top of the file defines the program's fixed values. These run once when the module is imported. Notice the three different collection types being used for three different purposes:</p>
+
+    <pre><code><span class="cm"># pathlib.Path is an object — smarter than a plain string</span>
+DATA_FILE   = <span class="cls">Path</span>(<span class="str">"tasks.json"</span>)
+
+<span class="cm"># set — unordered, unique values. Perfect for "valid choices".</span>
+PRIORITIES  = {<span class="str">"low"</span>, <span class="str">"medium"</span>, <span class="str">"high"</span>}
+
+<span class="cm"># dict — maps priority name → display symbol</span>
+PRIORITY_EMOJI = {
+    <span class="str">"low"</span>:    <span class="str">"○"</span>,
+    <span class="str">"medium"</span>: <span class="str">"◐"</span>,
+    <span class="str">"high"</span>:   <span class="str">"●"</span>,
+}
+
+<span class="cm"># tuple of pairs — immutable, fixed data, good for (label, value) tables</span>
+COLOURS = (
+    (<span class="str">"green"</span>,  <span class="str">"\033[92m"</span>),
+    (<span class="str">"reset"</span>,  <span class="str">"\033[0m"</span>),
+    <span class="cm"># ...</span>
+)
+
+<span class="cm"># dict comprehension builds a lookup from the tuple above</span>
+<span class="cm"># {name: code for name, code in COLOURS}  →  {"green": "\033[92m", ...}</span>
+C = {name: code <span class="kw">for</span> name, code <span class="kw">in</span> COLOURS}</code></pre>
+
+    <div class="callout"><strong>Naming convention:</strong> <code>UPPER_CASE</code> signals "treat this as a constant." Python doesn't enforce immutability at the language level — it's a social contract enforced by convention and linters.</div>
+
+    <div class="summary-grid">
+      <div class="sg-label">set {}</div>
+      <div class="sg-value">Unordered, unique values. Use for fast membership tests (<code>if x in PRIORITIES</code>).</div>
+      <div class="sg-label">dict {}</div>
+      <div class="sg-value">Key → value mapping. O(1) lookup. Keys must be hashable.</div>
+      <div class="sg-label">tuple ()</div>
+      <div class="sg-value">Immutable sequence. Use when data shouldn't change.</div>
+      <div class="sg-label">list []</div>
+      <div class="sg-value">Mutable ordered sequence. Use when you need to add/remove.</div>
+    </div>
+  </section>
+
+  <!-- DECORATOR -->
+  <section class="section" id="decorator">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>The decorator</h2>
+    </div>
+
+    <p>A decorator is a function that wraps another function to add behaviour before or after it runs — without modifying the original function's code. In this program, <code>@log_errors</code> catches exceptions from any method it wraps and prints them cleanly, so the program never crashes on bad user input.</p>
+
+    <pre><code><span class="kw">def</span> <span class="fn">log_errors</span>(func):
+    <span class="cm">"""The decorator factory — receives the function to wrap."""</span>
+    @functools.<span class="fn">wraps</span>(func)    <span class="cm"># copies func's name/docstring onto wrapper</span>
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+        <span class="cm"># *args  = extra positional args bundled into a tuple</span>
+        <span class="cm"># **kwargs = extra keyword args bundled into a dict</span>
+        <span class="kw">try</span>:
+            <span class="kw">return</span> <span class="fn">func</span>(*args, **kwargs)   <span class="cm"># call the original function</span>
+        <span class="kw">except</span> (<span class="cls">ValueError</span>, <span class="cls">KeyError</span>) <span class="kw">as</span> e:
+            <span class="fn">print</span>(<span class="str">f"  Error: <span class="op">{</span>e<span class="op">}</span>"</span>)
+    <span class="kw">return</span> wrapper              <span class="cm"># return the wrapper, not the result</span>
+
+<span class="cm"># Applied with @ syntax — exactly equivalent to:  add = log_errors(add)</span>
+@<span class="dec">log_errors</span>
+<span class="kw">def</span> <span class="fn">add</span>(<span class="kw">self</span>, title, ...):
+    ...</code></pre>
+
+    <div class="split">
+      <div class="split-col">
+        <div class="split-label">How it flows</div>
+        <ol class="steps" style="margin-top:4px">
+          <li><code>@log_errors</code> above <code>def add</code> replaces <code>add</code> with <code>wrapper</code>.</li>
+          <li>When you call <code>book.add(...)</code>, you're actually calling <code>wrapper</code>.</li>
+          <li><code>wrapper</code> tries to run the original <code>add</code> inside a try/except.</li>
+          <li>If an exception is raised, it's caught and printed — no crash.</li>
+          <li><code>functools.wraps</code> keeps the original function's name in tracebacks.</li>
+        </ol>
+      </div>
+      <div class="split-col">
+        <div class="split-label">Without the decorator</div>
+        <pre><code><span class="cm"># Every method would need this boilerplate:</span>
+<span class="kw">def</span> <span class="fn">add</span>(<span class="kw">self</span>, title):
+    <span class="kw">try</span>:
+        <span class="cm"># actual logic</span>
+        ...
+    <span class="kw">except</span> (<span class="cls">ValueError</span>, <span class="cls">KeyError</span>) <span class="kw">as</span> e:
+        <span class="fn">print</span>(<span class="str">f"Error: <span class="op">{</span>e<span class="op">}</span>"</span>)
+
+<span class="kw">def</span> <span class="fn">remove</span>(<span class="kw">self</span>, idx):
+    <span class="kw">try</span>:
+        <span class="cm"># actual logic</span>
+        ...
+    <span class="kw">except</span> (<span class="cls">ValueError</span>, <span class="cls">KeyError</span>) <span class="kw">as</span> e:
+        <span class="fn">print</span>(<span class="str">f"Error: <span class="op">{</span>e<span class="op">}</span>"</span>)</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATACLASS -->
+  <section class="section" id="dataclass">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>The Task dataclass</h2>
+    </div>
+
+    <p><code>@dataclass</code> is a decorator from the standard library that automatically generates <code>__init__</code>, <code>__repr__</code>, and <code>__eq__</code> from your field annotations. It's the modern, concise way to define data-holding classes.</p>
+
+    <pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+
+@<span class="dec">dataclass</span>
+<span class="kw">class</span> <span class="cls">Task</span>:
+    title:    str                  <span class="cm"># required field — no default</span>
+    priority: str  = <span class="str">"medium"</span>   <span class="cm"># optional field — has default</span>
+    done:     bool = <span class="kw">False</span>
+    tags:     list = <span class="fn">field</span>(default_factory=list)
+    <span class="cm"># ↑ IMPORTANT: never write  tags: list = []</span>
+    <span class="cm">#   That would share ONE list across all Task instances!</span>
+    <span class="cm">#   field(default_factory=list) creates a fresh [] for each task.</span>
+
+    created:  str = <span class="fn">field</span>(
+        default_factory=<span class="kw">lambda</span>: datetime.datetime.<span class="fn">now</span>().<span class="fn">strftime</span>(<span class="str">"%Y-%m-%d"</span>)
+        <span class="cm"># lambda = anonymous single-expression function</span>
+        <span class="cm"># called at Task() creation time to capture the current date</span>
+    )</code></pre>
+
+    <h3>Methods on the dataclass</h3>
+    <pre><code>    <span class="kw">def</span> <span class="fn">to_dict</span>(<span class="kw">self</span>) -> dict:
+        <span class="cm"># vars(self) returns the instance's __dict__</span>
+        <span class="kw">return</span> <span class="fn">vars</span>(<span class="kw">self</span>)
+
+    @<span class="dec">classmethod</span>                           <span class="cm"># receives the class, not an instance</span>
+    <span class="kw">def</span> <span class="fn">from_dict</span>(<span class="cls">cls</span>, data: dict) -> <span class="str">"Task"</span>:
+        <span class="kw">return</span> <span class="fn">cls</span>(**data)                  <span class="cm"># ** unpacks dict as keyword args</span>
+
+    <span class="kw">def</span> <span class="fn">__str__</span>(<span class="kw">self</span>) -> str:
+        <span class="cm"># __str__ is called by print() and str()</span>
+        status = <span class="str">f"✓"</span> <span class="kw">if</span> <span class="kw">self</span>.done <span class="kw">else</span> <span class="str">f"·"</span>   <span class="cm"># inline ternary</span>
+        tag_str = <span class="str">" "</span>.<span class="fn">join</span>(<span class="str">f"#<span class="op">{</span>t<span class="op">}</span>"</span> <span class="kw">for</span> t <span class="kw">in</span> <span class="kw">self</span>.tags)  <span class="cm"># generator expr</span>
+        <span class="kw">return</span> <span class="str">f"<span class="op">{</span>status<span class="op">}</span> <span class="op">{</span><span class="kw">self</span>.title<span class="op">}</span> <span class="op">{</span>tag_str<span class="op">}</span>"</span></code></pre>
+
+    <div class="callout warn"><strong>The mutable default gotcha</strong> is one of the most common Python bugs. <code>tags: list = []</code> creates one list object shared by every instance — appending to one task's tags would append to all of them. <code>field(default_factory=list)</code> creates a new <code>[]</code> for each instance. Always use <code>field(default_factory=...)</code> for lists and dicts.</div>
+  </section>
+
+  <!-- CLASS -->
+  <section class="section" id="class">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>The TaskBook class</h2>
+    </div>
+
+    <p><code>TaskBook</code> is a traditional class (not a dataclass) because it needs custom logic in <code>__init__</code>, a computed property, and a generator method. It wraps the list of tasks and exposes clean methods for every operation.</p>
+
+    <h3>__init__ and instance variables</h3>
+    <pre><code><span class="kw">class</span> <span class="cls">TaskBook</span>:
+    _instance_count: int = <span class="num">0</span>   <span class="cm"># class variable — shared by ALL instances</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, filepath: <span class="cls">Path</span>):
+        <span class="kw">self</span>.filepath = filepath    <span class="cm"># instance variable — unique to this object</span>
+        <span class="kw">self</span>.tasks: list[<span class="cls">Task</span>] = [] <span class="cm"># empty list, typed for IDE support</span>
+        <span class="cls">TaskBook</span>._instance_count += <span class="num">1</span>
+        <span class="kw">self</span>.<span class="fn">_load</span>()               <span class="cm"># _ prefix = "private by convention"</span></code></pre>
+
+    <h3>@property — computed attributes</h3>
+    <pre><code>    @<span class="dec">property</span>
+    <span class="kw">def</span> <span class="fn">stats</span>(<span class="kw">self</span>) -> dict:
+        <span class="cm"># @property lets callers write  book.stats  instead of  book.stats()</span>
+        <span class="cm"># It looks like an attribute but runs code every time.</span>
+        total = <span class="fn">len</span>(<span class="kw">self</span>.tasks)
+        done  = <span class="fn">sum</span>(<span class="num">1</span> <span class="kw">for</span> t <span class="kw">in</span> <span class="kw">self</span>.tasks <span class="kw">if</span> t.done)  <span class="cm"># generator expression</span>
+        by_priority = <span class="cls">Counter</span>(t.priority <span class="kw">for</span> t <span class="kw">in</span> <span class="kw">self</span>.tasks)
+        <span class="kw">return</span> {<span class="str">"total"</span>: total, <span class="str">"done"</span>: done, <span class="str">"pending"</span>: total - done, ...}</code></pre>
+
+    <h3>Generators — lazy iteration with yield</h3>
+    <pre><code>    <span class="kw">def</span> <span class="fn">pending</span>(<span class="kw">self</span>):
+        <span class="cm"># 'yield' makes this a generator function.</span>
+        <span class="cm"># It produces values one at a time — nothing is computed until</span>
+        <span class="cm"># the caller asks for the next item.</span>
+        <span class="kw">for</span> task <span class="kw">in</span> <span class="kw">self</span>.tasks:
+            <span class="kw">if not</span> task.done:
+                <span class="kw">yield</span> task
+
+    <span class="cm"># Or as a generator expression (one-liner form):</span>
+    <span class="kw">def</span> <span class="fn">by_priority</span>(<span class="kw">self</span>, priority):
+        <span class="kw">return</span> (t <span class="kw">for</span> t <span class="kw">in</span> <span class="kw">self</span>.tasks <span class="kw">if</span> t.priority == priority)</code></pre>
+
+    <h3>File I/O with context manager</h3>
+    <pre><code>    <span class="kw">def</span> <span class="fn">_save</span>(<span class="kw">self</span>) -> <span class="kw">None</span>:
+        <span class="cm"># 'with open(...) as f' is a context manager.</span>
+        <span class="cm"># It guarantees the file is closed even if an exception is raised.</span>
+        <span class="kw">with</span> <span class="fn">open</span>(<span class="kw">self</span>.filepath, <span class="str">"w"</span>, encoding=<span class="str">"utf-8"</span>) <span class="kw">as</span> f:
+            <span class="cm"># list comprehension serialises each Task to a plain dict</span>
+            json.<span class="fn">dump</span>([t.<span class="fn">to_dict</span>() <span class="kw">for</span> t <span class="kw">in</span> <span class="kw">self</span>.tasks], f, indent=<span class="num">2</span>)
+
+    <span class="kw">def</span> <span class="fn">_load</span>(<span class="kw">self</span>) -> <span class="kw">None</span>:
+        <span class="kw">if not</span> <span class="kw">self</span>.filepath.<span class="fn">exists</span>():  <span class="cm"># pathlib method — cleaner than os.path</span>
+            <span class="kw">return</span>
+        <span class="kw">try</span>:
+            <span class="kw">with</span> <span class="fn">open</span>(<span class="kw">self</span>.filepath, <span class="str">"r"</span>, encoding=<span class="str">"utf-8"</span>) <span class="kw">as</span> f:
+                raw = json.<span class="fn">load</span>(f)
+            <span class="kw">self</span>.tasks = [<span class="cls">Task</span>.<span class="fn">from_dict</span>(d) <span class="kw">for</span> d <span class="kw">in</span> raw]
+        <span class="kw">except</span> json.<span class="cls">JSONDecodeError</span>:
+            <span class="fn">print</span>(<span class="str">"Warning: tasks.json is corrupt — starting fresh."</span>)
+            <span class="kw">self</span>.tasks = []</code></pre>
+
+    <h3>Sorting with lambda</h3>
+    <pre><code>    <span class="kw">def</span> <span class="fn">sorted_by</span>(<span class="kw">self</span>, key: str = <span class="str">"priority"</span>) -> list[<span class="cls">Task</span>]:
+        priority_order = {<span class="str">"high"</span>: <span class="num">0</span>, <span class="str">"medium"</span>: <span class="num">1</span>, <span class="str">"low"</span>: <span class="num">2</span>}
+        <span class="kw">if</span> key == <span class="str">"priority"</span>:
+            <span class="cm"># sorted() returns a NEW list (non-destructive)</span>
+            <span class="cm"># key= receives a function called on each element to produce the sort key</span>
+            <span class="cm"># lambda t: ... is an anonymous function: "given task t, return..."</span>
+            <span class="kw">return</span> <span class="fn">sorted</span>(<span class="kw">self</span>.tasks,
+                          key=<span class="kw">lambda</span> t: priority_order.<span class="fn">get</span>(t.priority, <span class="num">99</span>))
+        <span class="kw">elif</span> key == <span class="str">"title"</span>:
+            <span class="kw">return</span> <span class="fn">sorted</span>(<span class="kw">self</span>.tasks, key=<span class="kw">lambda</span> t: t.title.<span class="fn">lower</span>())</code></pre>
+  </section>
+
+  <!-- FUNCTIONS -->
+  <section class="section" id="functions">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Standalone functions</h2>
+    </div>
+
+    <p>Not everything belongs in a class. Pure functions — functions with no side effects that depend only on their arguments — are easier to test and reuse. The display and input functions are kept separate from <code>TaskBook</code> deliberately.</p>
+
+    <h3>Default arguments & *args / **kwargs</h3>
+    <pre><code><span class="kw">def</span> <span class="fn">display_tasks</span>(tasks: list[<span class="cls">Task</span>], heading: str = <span class="str">"Tasks"</span>) -> <span class="kw">None</span>:
+    <span class="cm"># 'heading' has a default — callers can omit it</span>
+    <span class="cm"># enumerate(tasks, start=1) gives (1, task), (2, task), ...</span>
+    <span class="kw">for</span> i, task <span class="kw">in</span> <span class="fn">enumerate</span>(tasks, start=<span class="num">1</span>):
+        <span class="fn">print</span>(<span class="str">f"  <span class="op">{</span>i<span class="op">}</span>. <span class="op">{</span>task<span class="op">}</span>"</span>)
+
+<span class="kw">def</span> <span class="fn">parse_tags</span>(raw: str) -> list[str]:
+    <span class="cm"># List comprehension with filter and transform in one expression:</span>
+    <span class="cm"># [expression  for item in iterable  if condition]</span>
+    <span class="kw">return</span> [t.<span class="fn">strip</span>().<span class="fn">lower</span>() <span class="kw">for</span> t <span class="kw">in</span> raw.<span class="fn">split</span>(<span class="str">","</span>) <span class="kw">if</span> t.<span class="fn">strip</span>()]
+
+<span class="kw">def</span> <span class="fn">prompt</span>(message: str, default: str = <span class="str">""</span>) -> str:
+    <span class="cm"># Walrus operator (:=) assigns and uses in one expression</span>
+    hint = <span class="str">f" [{default}]"</span> <span class="kw">if</span> default <span class="kw">else</span> <span class="str">""</span>
+    raw = <span class="fn">input</span>(<span class="str">f"  {message}{hint}: "</span>).<span class="fn">strip</span>()
+    <span class="kw">return</span> raw <span class="kw">or</span> default   <span class="cm"># 'or default' returns default if raw is empty</span></code></pre>
+
+    <div class="callout"><strong><code>or</code> as a default fallback:</strong> <code>raw or default</code> returns <code>default</code> when <code>raw</code> is any falsy value — empty string, <code>None</code>, <code>0</code>, etc. This is extremely common Python idiom. The longer version would be <code>default if not raw else raw</code>.</div>
+  </section>
+
+  <!-- MAIN LOOP -->
+  <section class="section" id="mainloop">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>The main loop &amp; dispatch table</h2>
+    </div>
+
+    <p>The <code>main()</code> function runs the interactive loop. Two important Python patterns appear here: the <strong>dispatch table</strong> (a dict of functions) and <strong>match/case</strong> pattern matching.</p>
+
+    <h3>Dispatch table — functions as values</h3>
+    <pre><code><span class="cm"># Functions are first-class objects in Python.</span>
+<span class="cm"># They can be stored in a dict just like any other value.</span>
+dispatch: dict[str, callable] = {
+    <span class="str">"a"</span>: run_add,
+    <span class="str">"l"</span>: run_list,
+    <span class="str">"d"</span>: run_complete,
+    <span class="str">"x"</span>: run_remove,
+    <span class="cm"># ...</span>
+}
+
+<span class="cm"># Call the right handler based on user input — no long if/elif chain</span>
+handler = dispatch[choice]     <span class="cm"># look up function by key</span>
+<span class="fn">handler</span>(book)                  <span class="cm"># call it with the TaskBook</span></code></pre>
+
+    <h3>match / case — structural pattern matching</h3>
+    <pre><code><span class="kw">match</span> choice:
+    <span class="kw">case</span> <span class="str">"q"</span>:
+        <span class="kw">break</span>                              <span class="cm"># exit the while loop</span>
+
+    <span class="kw">case</span> <span class="str">""</span> | <span class="str">"?"</span>:
+        <span class="kw">continue</span>                           <span class="cm"># | = OR — match either</span>
+
+    <span class="kw">case</span> cmd <span class="kw">if</span> cmd <span class="kw">in</span> dispatch:
+        <span class="cm"># guard clause — only matches if the condition is True</span>
+        <span class="fn">dispatch</span>[cmd](book)
+
+    <span class="kw">case</span> _:
+        <span class="cm"># _ is the wildcard — matches anything not caught above</span>
+        <span class="fn">print</span>(<span class="str">f"Unknown command '{choice}'"</span>)</code></pre>
+
+    <h3>The script guard</h3>
+    <pre><code><span class="cm"># When Python runs a file directly, __name__ == "__main__"</span>
+<span class="cm"># When the file is imported as a module, __name__ is the module name.</span>
+<span class="cm"># This guard ensures main() only runs when executed directly.</span>
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    <span class="fn">main</span>()</code></pre>
+  </section>
+
+  <!-- ALL CONCEPTS -->
+  <section class="section" id="concepts">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>All concepts — where to find them</h2>
+    </div>
+
+    <p>Every concept is annotated with a comment in the source file. Use this table as a navigation guide when reading <code>taskbook.py</code>.</p>
+
+    <div class="summary-grid">
+      <div class="sg-label">Variables &amp; types</div>
+      <div class="sg-value">Section 2 — <code>DATA_FILE</code>, <code>PRIORITIES</code>, <code>C</code> colour dict</div>
+
+      <div class="sg-label">f-strings</div>
+      <div class="sg-value">Throughout — e.g. <code>f"Task #{i}: {task.title}"</code></div>
+
+      <div class="sg-label">list / dict / set / tuple</div>
+      <div class="sg-value">Section 2 — constants block; TaskBook.tasks (list); dispatch (dict)</div>
+
+      <div class="sg-label">Comprehensions</div>
+      <div class="sg-value"><code>parse_tags</code>, <code>_save</code>, <code>search</code>, <code>clear_done</code>, <code>stats</code></div>
+
+      <div class="sg-label">Generator / yield</div>
+      <div class="sg-value"><code>TaskBook.pending()</code> and <code>by_priority()</code></div>
+
+      <div class="sg-label">if / elif / else</div>
+      <div class="sg-value">Every handler function; <code>sorted_by</code>; <code>_load</code></div>
+
+      <div class="sg-label">for / while</div>
+      <div class="sg-value"><code>display_tasks</code> (for); <code>main()</code> (while True)</div>
+
+      <div class="sg-label">match / case</div>
+      <div class="sg-value"><code>main()</code> — the menu dispatch block</div>
+
+      <div class="sg-label">Functions + defaults</div>
+      <div class="sg-value"><code>display_tasks</code>, <code>prompt</code>, <code>parse_tags</code></div>
+
+      <div class="sg-label">*args / **kwargs</div>
+      <div class="sg-value"><code>log_errors</code> wrapper; <code>Task.from_dict</code> uses <code>**data</code></div>
+
+      <div class="sg-label">lambda</div>
+      <div class="sg-value"><code>sorted_by</code> sort keys; <code>Task.created</code> default_factory</div>
+
+      <div class="sg-label">Decorator</div>
+      <div class="sg-value"><code>log_errors</code> — Section 3; applied with <code>@log_errors</code></div>
+
+      <div class="sg-label">Dataclass</div>
+      <div class="sg-value"><code>Task</code> class — Section 4</div>
+
+      <div class="sg-label">Class + __init__</div>
+      <div class="sg-value"><code>TaskBook</code> — Section 5</div>
+
+      <div class="sg-label">@property</div>
+      <div class="sg-value"><code>TaskBook.stats</code> and <code>TaskBook.count</code></div>
+
+      <div class="sg-label">@classmethod</div>
+      <div class="sg-value"><code>Task.from_dict</code></div>
+
+      <div class="sg-label">Exception handling</div>
+      <div class="sg-value"><code>log_errors</code>; <code>_load</code>; <code>run_complete</code> input parsing</div>
+
+      <div class="sg-label">raise</div>
+      <div class="sg-value"><code>TaskBook.add</code> — validation logic</div>
+
+      <div class="sg-label">File I/O + with</div>
+      <div class="sg-value"><code>_save</code> and <code>_load</code></div>
+
+      <div class="sg-label">json</div>
+      <div class="sg-value"><code>json.dump</code> / <code>json.load</code> in <code>_save</code> / <code>_load</code></div>
+
+      <div class="sg-label">pathlib</div>
+      <div class="sg-value"><code>DATA_FILE = Path(...)</code>; <code>filepath.exists()</code></div>
+
+      <div class="sg-label">datetime</div>
+      <div class="sg-value"><code>Task.created</code> default_factory</div>
+
+      <div class="sg-label">collections.Counter</div>
+      <div class="sg-value"><code>TaskBook.stats</code> — counting tags and priorities</div>
+
+      <div class="sg-label">functools.wraps</div>
+      <div class="sg-value"><code>log_errors</code> decorator</div>
+
+      <div class="sg-label">Type hints</div>
+      <div class="sg-value">Every function signature; <code>Optional[list]</code> in <code>add()</code></div>
+
+      <div class="sg-label">__str__ / __repr__</div>
+      <div class="sg-value"><code>Task.__str__</code> and <code>Task.__repr__</code></div>
+
+      <div class="sg-label">if __name__ == "__main__"</div>
+      <div class="sg-value">Bottom of the file — script entry point guard</div>
+    </div>
+
+    <div class="callout"><strong>Suggested learning path:</strong> Run the program first to see it work. Then read <code>taskbook.py</code> from top to bottom — every section is labelled and every non-obvious line has a comment. Try making a small change at each step: add a new priority level, add a new command, change the display format. Breaking things and fixing them is the fastest way to learn.</div>
+  </section>
+
+</div>
+
+<footer>TaskBook Python Walkthrough — Claude 2026</footer>
+
+<script>
+  const sections = document.querySelectorAll('.section');
+  const links = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (a) { a.classList.add('active'); a.scrollIntoView({ inline: 'nearest', behavior: 'smooth' }); }
+      }
+    });
+  }, { threshold: 0.25, rootMargin: '-56px 0px -40% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

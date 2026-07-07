@@ -1,0 +1,3084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python on Mac — Complete Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<style>
+
+/* ═══════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — change one value, update everywhere
+═══════════════════════════════════════════════════════════ */
+:root {
+  --w-nav: 256px;
+
+  /* Palette — warm, macOS-adjacent */
+  --ivory:    #faf8f4;
+  --ivory2:   #f3f0e9;
+  --ivory3:   #ebe6db;
+  --linen:    #e6e0d4;
+  --bark:     #c8bfae;
+  --stone:    #9e9488;
+  --muted:    #6b6358;
+  --body:     #3a342c;
+  --ink:      #1c1814;
+
+  --apple:    #1d7de0;     /* macOS Blue */
+  --apple-lt: #dbeeff;
+  --sage:     #2e7d5a;     /* green */
+  --sage-lt:  #d4f0e4;
+  --amber:    #c97b10;     /* amber */
+  --amber-lt: #fdf0d8;
+  --ruby:     #c0392b;
+  --ruby-lt:  #fce8e6;
+  --plum:     #7b3fa0;
+  --plum-lt:  #f0e6f9;
+
+  --code-bg:  #1a1814;
+  --code-bg2: #12100d;
+  --code-bd:  rgba(255,255,255,0.07);
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --shadow-card: 0 2px 12px rgba(60,40,10,0.09), 0 1px 3px rgba(60,40,10,0.06);
+  --shadow-lift: 0 8px 32px rgba(60,40,10,0.13);
+  --trans: 0.18s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 15px; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--ivory);
+  color: var(--body);
+  display: flex;
+  min-height: 100vh;
+  line-height: 1.72;
+}
+
+/* ─── SCROLL PROGRESS ──────────────────────────────────────── */
+#scroll-bar {
+  position: fixed; top: 0; left: var(--w-nav); right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--apple), var(--sage));
+  transform-origin: left; transform: scaleX(0);
+  z-index: 999; pointer-events: none;
+  transition: transform 0.08s linear;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR / NAV
+═══════════════════════════════════════════════════════════ */
+.nav {
+  width: var(--w-nav);
+  position: fixed; top: 0; left: 0; bottom: 0;
+  background: var(--ink);
+  display: flex; flex-direction: column;
+  overflow-y: auto; z-index: 200;
+  scrollbar-width: thin; scrollbar-color: #333 transparent;
+}
+
+.nav-logo {
+  padding: 26px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.nav-logo-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 600;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 8px;
+}
+
+.nav-logo-title {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 700;
+  color: #f5f0e8; line-height: 1.2;
+}
+
+.nav-logo-title span { color: var(--amber); font-style: italic; }
+
+.nav-logo-sub {
+  margin-top: 6px; font-size: 11px;
+  color: rgba(245,240,232,0.32); line-height: 1.55;
+}
+
+/* Nav sections */
+.nav-section { padding: 16px 0 0; }
+
+.nav-section-label {
+  padding: 0 20px 6px;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(245,240,232,0.22);
+}
+
+.nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px;
+  font-size: 12.5px; font-weight: 400;
+  color: rgba(245,240,232,0.46);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: var(--trans);
+}
+
+.nav a:hover  { color: #f5f0e8; background: rgba(255,255,255,0.04); }
+.nav a.active { color: var(--amber); border-left-color: var(--amber); background: rgba(201,123,16,0.07); font-weight: 500; }
+
+.nav-num { font-family: var(--font-mono); font-size: 9.5px; color: var(--amber); opacity:.55; min-width: 18px; }
+.nav a.active .nav-num { opacity: 1; }
+
+/* Mac badge */
+.mac-badge {
+  margin: 16px 16px 0;
+  background: rgba(29,125,224,0.12);
+  border: 1px solid rgba(29,125,224,0.2);
+  border-radius: var(--r-md);
+  padding: 10px 13px;
+  font-size: 11px;
+  color: rgba(245,240,232,0.55);
+  line-height: 1.55;
+}
+
+.mac-badge strong { color: var(--apple); display: block; margin-bottom: 3px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════════════════ */
+main {
+  margin-left: var(--w-nav);
+  flex: 1; min-width: 0;
+}
+
+/* ─── HERO ──────────────────────────────────────────────── */
+.hero {
+  background: var(--code-bg);
+  padding: 72px 60px 56px;
+  position: relative; overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 80% -20%, rgba(201,123,16,.09), transparent),
+    radial-gradient(ellipse 40% 60% at 10% 120%, rgba(29,125,224,.07), transparent);
+  pointer-events: none;
+}
+
+/* Decorative grid texture */
+.hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.hero-inner { position: relative; z-index: 1; max-width: 780px; }
+
+.hero-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.hero-kicker::before { content: ''; display: block; width: 28px; height: 1px; background: var(--amber); opacity: .6; }
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: 58px; font-weight: 900;
+  color: #f5f0e8; line-height: 1.0;
+  letter-spacing: -.02em; margin-bottom: 22px;
+}
+
+.hero h1 em { font-style: italic; color: var(--amber); }
+
+.hero-lead {
+  font-size: 16px; color: rgba(245,240,232,.58);
+  max-width: 580px; line-height: 1.78; margin-bottom: 32px;
+}
+
+/* Pill row */
+.hero-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.h-pill {
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  color: rgba(245,240,232,.65);
+}
+
+/* ─── MACOS TERMINAL ────────────────────────────────────── */
+.terminal {
+  margin: 36px 60px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lift);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.term-bar {
+  background: #2a2724;
+  padding: 11px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid rgba(0,0,0,.3);
+}
+
+.term-dot { width: 12px; height: 12px; border-radius: 50%; }
+.term-dot.r { background: #ff5f57; }
+.term-dot.y { background: #febc2e; }
+.term-dot.g { background: #28c840; }
+.term-title { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: rgba(255,255,255,0.3); margin-right: auto; }
+
+.term-body {
+  background: var(--code-bg2);
+  padding: 20px 22px;
+  font-family: var(--font-mono);
+  font-size: 13px; line-height: 2.0;
+  color: #d4cfc8;
+}
+
+.term-body .ps  { color: #4ade80; user-select: none; }
+.term-body .cmd { color: #7dd3fc; font-weight: 600; }
+.term-body .out { color: rgba(212,207,200,.45); margin-left: 2px; font-style: italic; }
+.term-body .cmt { color: rgba(212,207,200,.3); font-style: italic; }
+.term-body .sec { color: var(--amber); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin: 10px 0 4px; display: block; }
+
+/* ═══════════════════════════════════════════════════════════
+   CONTENT SECTIONS
+═══════════════════════════════════════════════════════════ */
+.section {
+  border-bottom: 1px solid var(--linen);
+  scroll-margin-top: 16px;
+}
+
+.section-header {
+  padding: 44px 60px 0;
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 0 18px;
+  align-items: start;
+  background: var(--ivory);
+}
+
+.sec-num {
+  width: 52px; height: 52px;
+  border-radius: var(--r-md);
+  background: var(--code-bg);
+  border: 1px solid rgba(201,123,16,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 600; color: var(--amber);
+  flex-shrink: 0; margin-top: 4px;
+}
+
+.sec-num.mac { background: linear-gradient(135deg, #1a2a3a, #162030); border-color: rgba(29,125,224,.25); color: #60a5fa; }
+
+.sec-title-wrap {}
+
+.sec-title-wrap h2 {
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 700;
+  letter-spacing: -.02em; color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.sec-desc {
+  font-size: 14px; color: var(--stone);
+  max-width: 680px; line-height: 1.72;
+  margin-bottom: 14px;
+}
+
+/* Concept tags */
+.ctags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; }
+
+.ct {
+  padding: 3px 11px; border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 400;
+  border: 1px solid;
+}
+
+.ct-b { background: var(--apple-lt); color: #1e4080; border-color: rgba(29,125,224,.25); }
+.ct-g { background: var(--sage-lt);  color: #164430; border-color: rgba(46,125,90,.25); }
+.ct-a { background: var(--amber-lt); color: #7a4400; border-color: rgba(201,123,16,.25); }
+.ct-p { background: var(--plum-lt);  color: #4a1470; border-color: rgba(123,63,160,.25); }
+.ct-r { background: var(--ruby-lt);  color: #6e1a10; border-color: rgba(192,57,43,.25); }
+
+/* ─── 2-COLUMN SPLIT ────────────────────────────────────── */
+.split {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  border-top: 1px solid var(--linen);
+  margin-top: 2px;
+}
+
+.explain {
+  padding: 28px 36px 28px 60px;
+  background: var(--ivory);
+  border-right: 1px solid var(--linen);
+}
+
+/* ─── HEADINGS INSIDE EXPLAIN ────────────────────────────── */
+.explain h3 {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--apple); margin: 22px 0 8px;
+}
+.explain h3:first-child { margin-top: 0; }
+
+.explain p {
+  font-size: 13.5px; color: var(--muted);
+  line-height: 1.78; margin-bottom: 10px;
+}
+
+/* Inline code */
+ic, .ic {
+  font-family: var(--font-mono); font-size: 12px;
+  background: var(--ivory3);
+  border: 1px solid var(--linen);
+  padding: 1px 5px; border-radius: 4px;
+  color: var(--apple); white-space: nowrap;
+}
+
+/* ─── CALLOUTS ───────────────────────────────────────────── */
+.note {
+  margin: 12px 0; padding: 11px 14px 11px 14px;
+  border-radius: var(--r-sm); font-size: 13px;
+  line-height: 1.65; border-left: 3px solid;
+}
+
+.note-mac  { background: var(--apple-lt);  border-color: var(--apple);  color: #12315a; }
+.note-warn { background: var(--amber-lt); border-color: var(--amber); color: #6b3600; }
+.note-tip  { background: var(--sage-lt);  border-color: var(--sage);  color: #0e3c22; }
+.note-key  { background: var(--plum-lt);  border-color: var(--plum);  color: #3a0e60; }
+.note-err  { background: var(--ruby-lt);  border-color: var(--ruby);  color: #5c100a; }
+
+.note strong { font-weight: 600; }
+
+/* ─── ANNOTATION LIST ────────────────────────────────────── */
+.ann { list-style: none; margin: 10px 0; }
+
+.ann li {
+  display: flex; gap: 9px; align-items: flex-start;
+  padding: 7px 0; border-bottom: 1px solid var(--linen);
+  font-size: 13px; color: var(--muted);
+}
+.ann li:last-child { border-bottom: none; }
+
+.lnb {
+  flex-shrink: 0; min-width: 38px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  color: var(--amber); background: var(--amber-lt);
+  padding: 2px 6px; border-radius: 4px; text-align: center;
+  border: 1px solid rgba(201,123,16,.2); margin-top: 1px;
+}
+
+/* ─── KEY-VALUE LIST ─────────────────────────────────────── */
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 10px 0; font-size: 13px; }
+.kk { font-family: var(--font-mono); font-size: 11.5px; color: var(--sage); font-weight: 600; align-self: start; padding-top: 1px; white-space: nowrap; }
+.kv { color: var(--muted); }
+
+/* ─── COMPARISON TABLE ───────────────────────────────────── */
+.cmp {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; margin: 12px 0;
+  border-radius: var(--r-md); overflow: hidden;
+  border: 1px solid var(--linen);
+}
+
+.cmp th {
+  text-align: left; padding: 9px 14px;
+  background: var(--ivory2);
+  font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--stone); border-bottom: 1px solid var(--linen);
+}
+
+.cmp td {
+  padding: 8px 14px; vertical-align: top;
+  border-bottom: 1px solid var(--linen);
+  color: var(--muted);
+}
+
+.cmp td:first-child {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--apple); font-weight: 500; white-space: nowrap;
+}
+
+.cmp tr:last-child td { border-bottom: none; }
+
+/* ─── DETAILS / SUMMARY ──────────────────────────────────── */
+details {
+  border: 1px solid var(--linen); border-radius: var(--r-md);
+  margin: 10px 0; overflow: hidden;
+}
+
+summary {
+  padding: 11px 16px; cursor: pointer;
+  font-size: 13px; font-weight: 500;
+  color: var(--body); list-style: none;
+  display: flex; align-items: center; gap: 9px;
+  transition: background var(--trans); user-select: none;
+  background: var(--ivory2);
+}
+summary:hover { background: var(--ivory3); }
+
+.arr { font-size: 10px; color: var(--amber); transition: transform .2s; display: inline-block; }
+details[open] .arr { transform: rotate(90deg); }
+
+.det-body {
+  padding: 14px 16px;
+  border-top: 1px solid var(--linen);
+  font-size: 13.5px; color: var(--muted); line-height: 1.75;
+}
+
+/* ─── CODE PANEL ─────────────────────────────────────────── */
+.code-panel {
+  background: var(--code-bg);
+  display: flex; flex-direction: column;
+}
+
+.code-top {
+  padding: 9px 18px;
+  background: var(--code-bg2);
+  border-bottom: 1px solid var(--code-bd);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.code-dots { display: flex; gap: 6px; margin-right: 4px; }
+.cd { width: 10px; height: 10px; border-radius: 50%; }
+.cd.r { background: #ff5f5770; }
+.cd.y { background: #febc2e70; }
+.cd.g { background: #28c84070; }
+
+.code-fname {
+  font-family: var(--font-mono); font-size: 11px;
+  color: rgba(245,240,232,.3);
+}
+
+.copy-btn {
+  margin-left: auto; padding: 3px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  color: rgba(245,240,232,.38);
+  font-size: 10.5px; cursor: pointer;
+  font-family: var(--font-body);
+  transition: var(--trans);
+}
+.copy-btn:hover { background: rgba(255,255,255,.09); color: #f5f0e8; }
+.copy-btn.ok { background: rgba(46,125,90,.18); color: #4ade80; border-color: rgba(46,125,90,.3); }
+
+.code-panel pre {
+  margin: 0; padding: 20px 22px;
+  overflow-x: auto; flex: 1;
+  background: transparent !important;
+}
+
+.code-panel pre code {
+  font-family: var(--font-mono) !important;
+  font-size: 12.5px !important; line-height: 1.88;
+  background: transparent !important;
+  tab-size: 4;
+}
+
+.hljs { background: transparent !important; }
+
+/* Full-width code block (no split) */
+.code-full {
+  margin: 0 60px 32px;
+  border-radius: var(--r-lg); overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+/* ─── SECTION WITH NO SPLIT (narrative) ─────────────────── */
+.prose-section {
+  padding: 32px 60px 36px;
+  background: var(--ivory);
+}
+
+/* ─── GRID CARDS ─────────────────────────────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px; margin: 16px 0;
+}
+
+.card {
+  background: var(--ivory);
+  border: 1px solid var(--linen);
+  border-radius: var(--r-md);
+  padding: 15px 17px;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--trans), box-shadow var(--trans);
+}
+
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+
+.card-title {
+  font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px;
+}
+
+.card-sub {
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--amber); margin-bottom: 7px; font-weight: 600;
+}
+
+.card p { font-size: 13px; color: var(--muted); line-height: 1.62; }
+
+/* ═══════════════════════════════════════════════════════════
+   SETUP PAGE (Mac-specific)
+═══════════════════════════════════════════════════════════ */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px; margin: 20px 60px 32px;
+}
+
+.setup-card {
+  background: var(--ivory);
+  border: 1px solid var(--linen);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.setup-step {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: var(--apple); margin-bottom: 8px;
+}
+
+.setup-card h3 {
+  font-family: var(--font-display); font-size: 17px; font-weight: 700;
+  color: var(--ink); margin-bottom: 6px;
+}
+
+.setup-card p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* ─── REFERENCE TABLE ────────────────────────────────────── */
+.ref-tbl {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; margin: 14px 0;
+  border-radius: var(--r-md); overflow: hidden;
+  border: 1px solid var(--linen);
+}
+
+.ref-tbl th {
+  background: var(--ivory2); padding: 9px 14px;
+  text-align: left; font-size: 10px; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--stone); border-bottom: 1px solid var(--linen);
+}
+
+.ref-tbl td {
+  padding: 8px 14px; border-bottom: 1px solid var(--linen);
+  vertical-align: top; color: var(--muted);
+}
+
+.ref-tbl td:first-child {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--apple); font-weight: 500;
+}
+
+.ref-tbl tr:last-child td { border-bottom: none; }
+
+/* ─── FOOTER ─────────────────────────────────────────────── */
+footer {
+  background: var(--ink); color: rgba(245,240,232,.25);
+  padding: 28px 60px; text-align: center;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD KEY ELEMENT
+═══════════════════════════════════════════════════════════ */
+kbd {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: var(--font-body); font-size: 11.5px; font-weight: 500;
+  background: var(--ivory); color: var(--ink);
+  border: 1px solid var(--bark);
+  border-bottom: 3px solid var(--bark);
+  border-radius: 5px;
+  box-shadow: 0 1px 0 var(--ivory3);
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — collapse sidebar on small screens
+═══════════════════════════════════════════════════════════ */
+.ham { display: none; }
+
+@media (max-width: 900px) {
+  .split { grid-template-columns: 1fr; }
+  .explain { border-right: none; border-bottom: 1px solid var(--linen); padding: 24px 32px; }
+  .section-header, .prose-section, .code-full { padding-left: 32px; padding-right: 32px; }
+  .terminal { margin-left: 32px; margin-right: 32px; }
+  .setup-grid { margin-left: 32px; margin-right: 32px; }
+}
+
+@media (max-width: 700px) {
+  :root { --w-nav: 0px; }
+  .nav { transform: translateX(-256px); width: 256px; transition: transform .25s ease; }
+  .nav.open { transform: none; --w-nav: 0px; box-shadow: 4px 0 40px rgba(0,0,0,.35); }
+  main { margin-left: 0; }
+  #scroll-bar { left: 0; }
+  .ham { display: flex; align-items: center; justify-content: center; position: fixed; top: 12px; left: 12px; z-index: 300; width: 34px; height: 34px; background: var(--ink); border: 1px solid rgba(255,255,255,.15); border-radius: 8px; cursor: pointer; color: #f5f0e8; font-size: 16px; }
+  .hero { padding: 56px 24px 44px; }
+  .hero h1 { font-size: 38px; }
+  .section-header, .prose-section { padding-left: 24px; padding-right: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile toggle -->
+<button class="ham" id="ham">☰</button>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SIDEBAR NAVIGATION
+═══════════════════════════════════════════════════════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-kicker">Python on Mac</div>
+    <div class="nav-logo-title">The Complete<br><span>Guide</span></div>
+    <div class="nav-logo-sub">For Macintosh users new to Python. macOS 13 Ventura+, Python 3.12.</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="#setup"    class="active"><span class="nav-num">⌘</span> Mac Setup</a>
+    <a href="#hello">   <span class="nav-num">0</span> Hello, World!</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Language Reference</div>
+    <a href="#basics">  <span class="nav-num">01</span> Basics &amp; Syntax</a>
+    <a href="#types">   <span class="nav-num">02</span> Types</a>
+    <a href="#control"> <span class="nav-num">03</span> Control Flow</a>
+    <a href="#funcs">   <span class="nav-num">04</span> Functions</a>
+    <a href="#oop">     <span class="nav-num">05</span> Classes &amp; OOP</a>
+    <a href="#colls">   <span class="nav-num">06</span> Collections</a>
+    <a href="#comps">   <span class="nav-num">07</span> Comprehensions</a>
+    <a href="#exc">     <span class="nav-num">08</span> Exceptions</a>
+    <a href="#files">   <span class="nav-num">09</span> Files &amp; I/O</a>
+    <a href="#mods">    <span class="nav-num">10</span> Modules</a>
+    <a href="#advanced"><span class="nav-num">11</span> Advanced</a>
+    <a href="#stdlib">  <span class="nav-num">12</span> Stdlib</a>
+  </div>
+
+  <div class="mac-badge">
+    <strong>🍎 Mac Tips</strong>
+    Look for blue-bordered callouts throughout — they contain macOS-specific commands and shortcuts.
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════════════ -->
+<main>
+  <div id="scroll-bar"></div>
+
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <header class="hero" id="top">
+    <div class="hero-inner">
+      <div class="hero-kicker">Python 3.12 · macOS Guide</div>
+      <h1>Python<br>on <em>Mac</em></h1>
+      <p class="hero-lead">
+        A complete, practical reference for Macintosh users learning Python from scratch. Covers installation on macOS, every core language concept, and real syntax you can run in Terminal today.
+      </p>
+      <div class="hero-pills">
+        <span class="h-pill">Python 3.12</span>
+        <span class="h-pill">macOS Ventura / Sonoma / Sequoia</span>
+        <span class="h-pill">Terminal · Homebrew · pyenv</span>
+        <span class="h-pill">VS Code · Xcode Tools</span>
+        <span class="h-pill">12 Language Sections</span>
+      </div>
+    </div>
+  </header>
+
+<!-- ════════════════════════════════════════════════════════════════
+     ⌘  MAC SETUP
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="setup">
+  <div class="section-header">
+    <div class="sec-num mac">⌘</div>
+    <div class="sec-title-wrap">
+      <h2>Setting Up Python on Your Mac</h2>
+      <p class="sec-desc">macOS ships with a legacy Python 2.7 for internal use — never use it for your own code. Follow these four steps to install a proper, modern Python environment. Takes about 10 minutes.</p>
+      <div class="ctags">
+        <span class="ct ct-b">Terminal</span>
+        <span class="ct ct-b">Homebrew</span>
+        <span class="ct ct-b">pyenv</span>
+        <span class="ct ct-b">VS Code</span>
+        <span class="ct ct-g">Xcode Command Line Tools</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-grid">
+    <div class="setup-card">
+      <div class="setup-step">Step 1</div>
+      <h3>Open Terminal</h3>
+      <p>Press <kbd>⌘</kbd><kbd>Space</kbd>, type <strong>Terminal</strong>, press <kbd>↩</kbd>. Or find it in <strong>Applications → Utilities → Terminal</strong>. This is where you run all Python commands.</p>
+    </div>
+    <div class="setup-card">
+      <div class="setup-step">Step 2</div>
+      <h3>Xcode Tools</h3>
+      <p>These are Apple's free developer command-line tools — required by Homebrew and pyenv. Run the command in the terminal below. A dialog will appear; click Install.</p>
+    </div>
+    <div class="setup-card">
+      <div class="setup-step">Step 3</div>
+      <h3>Install Homebrew</h3>
+      <p>Homebrew is the standard package manager for Mac. It lets you install Python, Git, and thousands of developer tools with a single command from <strong>brew.sh</strong>.</p>
+    </div>
+    <div class="setup-card">
+      <div class="setup-step">Step 4</div>
+      <h3>Install Python</h3>
+      <p>Use pyenv to manage Python versions (strongly recommended over installing Python directly). This lets you switch between versions and keeps your system Python untouched.</p>
+    </div>
+  </div>
+
+  <div class="terminal">
+    <div class="term-bar">
+      <span class="term-dot r"></span>
+      <span class="term-dot y"></span>
+      <span class="term-dot g"></span>
+      <span class="term-title">Terminal — zsh — 80×24</span>
+    </div>
+    <div class="term-body">
+      <span class="sec">Step 1 — Check what Python your Mac has (don't use this one)</span>
+      <div><span class="ps">% </span><span class="cmd">python3 --version</span></div>
+      <div><span class="out">Python 3.9.6  ← Apple's built-in; outdated, do not use</span></div>
+
+      <span class="sec">Step 2 — Install Xcode Command Line Tools</span>
+      <div><span class="ps">% </span><span class="cmd">xcode-select --install</span></div>
+      <div><span class="out">xcode-select: note: install requested for command line developer tools</span></div>
+      <div><span class="cmt"># A dialog opens. Click "Install". Takes ~5 min on first Mac setup.</span></div>
+
+      <span class="sec">Step 3 — Install Homebrew (the Mac package manager)</span>
+      <div><span class="ps">% </span><span class="cmd">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span></div>
+      <div><span class="out">==> Homebrew is installed and ready to brew!</span></div>
+      <div><span class="cmt"># Apple Silicon (M1/M2/M3/M4)? Homebrew installs to /opt/homebrew</span></div>
+      <div><span class="cmt"># Intel Mac? It installs to /usr/local. Follow any PATH instructions shown.</span></div>
+
+      <span class="sec">Step 4a — Install pyenv (Python version manager)</span>
+      <div><span class="ps">% </span><span class="cmd">brew install pyenv</span></div>
+      <div><span class="cmt"># After install, add pyenv to your shell. For zsh (default on modern Mac):</span></div>
+      <div><span class="ps">% </span><span class="cmd">echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc</span></div>
+      <div><span class="ps">% </span><span class="cmd">echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc</span></div>
+      <div><span class="ps">% </span><span class="cmd">echo 'eval "$(pyenv init -)"' >> ~/.zshrc</span></div>
+      <div><span class="ps">% </span><span class="cmd">source ~/.zshrc</span></div>
+
+      <span class="sec">Step 4b — Install Python 3.12 via pyenv</span>
+      <div><span class="ps">% </span><span class="cmd">pyenv install 3.12.3</span></div>
+      <div><span class="out">Downloading Python-3.12.3.tar.xz...</span></div>
+      <div><span class="ps">% </span><span class="cmd">pyenv global 3.12.3</span>  <span class="cmt">  # make it the default everywhere</span></div>
+      <div><span class="ps">% </span><span class="cmd">python --version</span></div>
+      <div><span class="out">Python 3.12.3  ✓</span></div>
+
+      <span class="sec">Step 5 — Install VS Code (recommended editor)</span>
+      <div><span class="ps">% </span><span class="cmd">brew install --cask visual-studio-code</span></div>
+      <div><span class="cmt"># Then in VS Code: Cmd+Shift+X → search "Python" → install Microsoft Python extension</span></div>
+      <div><span class="cmt"># Cmd+Shift+P → "Python: Select Interpreter" → choose your pyenv Python</span></div>
+
+      <span class="sec">Step 6 — Create your first project folder</span>
+      <div><span class="ps">% </span><span class="cmd">mkdir ~/PythonProjects && cd ~/PythonProjects</span></div>
+      <div><span class="ps">% </span><span class="cmd">python -m venv .venv</span>  <span class="cmt">         # create virtual environment</span></div>
+      <div><span class="ps">% </span><span class="cmd">source .venv/bin/activate</span>  <span class="cmt">     # activate it (prompt changes to (.venv))</span></div>
+      <div><span class="out">(.venv) %                        ← you're now inside the virtual env</span></div>
+    </div>
+  </div>
+
+  <div class="prose-section">
+    <div class="note note-mac">
+      <strong>🍎 Apple Silicon (M1 / M2 / M3 / M4) note:</strong> If you see architecture-related errors during install, you may need to run <code class="ic">arch -x86_64 brew install ...</code> for some packages. The steps above work natively on ARM — no Rosetta needed for Python.
+    </div>
+    <div class="note note-warn" style="margin-top:10px">
+      <strong>Never run</strong> <code class="ic">sudo pip install</code> on a Mac. It modifies the system Python and can break macOS tools. Always use a virtual environment (<code class="ic">python -m venv .venv</code>) and activate it first.
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="explain">
+      <h3>Essential Terminal Commands</h3>
+      <table class="cmp">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>pwd</td><td>Print working directory — shows where you are</td></tr>
+          <tr><td>ls</td><td>List files in current directory</td></tr>
+          <tr><td>cd ~/PythonProjects</td><td>Change to your projects folder</td></tr>
+          <tr><td>mkdir myapp</td><td>Create a new directory</td></tr>
+          <tr><td>python script.py</td><td>Run a Python script</td></tr>
+          <tr><td>python</td><td>Open the interactive Python REPL</td></tr>
+          <tr><td>pip install requests</td><td>Install a package</td></tr>
+          <tr><td>pip list</td><td>Show installed packages</td></tr>
+          <tr><td>⌃ C</td><td>Stop a running program</td></tr>
+          <tr><td>⌃ D</td><td>Exit the Python REPL</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note note-mac">
+        <strong>Mac keyboard in Terminal:</strong> The <kbd>⌘</kbd> Command key does <em>not</em> work in Terminal the way it does in apps. Use <kbd>⌃</kbd> Control for terminal shortcuts like <kbd>⌃</kbd><kbd>C</kbd> to stop a program.
+      </div>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">mac_useful_commands.sh</span>
+        <button class="copy-btn" data-t="cm0">Copy</button>
+      </div>
+      <pre><code class="language-bash" id="cm0"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     0  HELLO WORLD
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="hello">
+  <div class="section-header">
+    <div class="sec-num">0</div>
+    <div class="sec-title-wrap">
+      <h2>Hello, World!</h2>
+      <p class="sec-desc">Your first Python program. Then a slightly expanded version that shows the building blocks you'll use constantly — variables, f-strings, user input, and a function.</p>
+      <div class="ctags">
+        <span class="ct ct-b">print()</span>
+        <span class="ct ct-b">variables</span>
+        <span class="ct ct-g">f-strings</span>
+        <span class="ct ct-a">input()</span>
+        <span class="ct ct-a">def</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>The simplest program</h3>
+      <p>Python's <code class="ic">print()</code> function outputs text to the terminal. That's it — no curly braces, no semicolons, no <code class="ic">main()</code> required for small scripts.</p>
+
+      <h3>Variables</h3>
+      <p>No <code class="ic">var</code>, <code class="ic">let</code>, or <code class="ic">int</code> keyword. Just write <code class="ic">name = value</code>. Python infers the type dynamically.</p>
+
+      <h3>f-strings (Python 3.6+)</h3>
+      <p>Prefix a string with <code class="ic">f</code> and embed expressions directly: <code class="ic">f"Hello, {name}!"</code>. The <code class="ic">{...}</code> is evaluated at runtime. This is the preferred way to format strings in modern Python.</p>
+
+      <h3>Running on your Mac</h3>
+      <p>Save the file as <code class="ic">hello.py</code>, then in Terminal:</p>
+      <div class="note note-mac">
+        <strong>In Terminal:</strong><br>
+        <code class="ic">cd ~/PythonProjects</code><br>
+        <code class="ic">python hello.py</code>
+      </div>
+
+      <h3>The interactive REPL</h3>
+      <p>Type <code class="ic">python</code> in Terminal to open the REPL (Read-Eval-Print Loop). Try expressions line by line. Exit with <kbd>⌃</kbd><kbd>D</kbd> or type <code class="ic">exit()</code>.</p>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">hello.py</span>
+        <button class="copy-btn" data-t="c0">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c0"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     01  BASICS & SYNTAX
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="basics">
+  <div class="section-header">
+    <div class="sec-num">01</div>
+    <div class="sec-title-wrap">
+      <h2>Basics &amp; Syntax</h2>
+      <p class="sec-desc">Python uses indentation (4 spaces) instead of braces to define blocks. There are no semicolons. It is dynamically but strongly typed — <code class="ic">"1" + 1</code> raises a <code class="ic">TypeError</code>, unlike JavaScript.</p>
+      <div class="ctags">
+        <span class="ct ct-b">indentation</span>
+        <span class="ct ct-b">variables</span>
+        <span class="ct ct-g">operators</span>
+        <span class="ct ct-g">strings</span>
+        <span class="ct ct-a">f-strings</span>
+        <span class="ct ct-a">comments</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>Indentation is syntax</h3>
+      <p>Python uses <strong>4 spaces</strong> per level. Tabs vs spaces is a hard error if mixed. VS Code handles this automatically — check the bottom-right corner shows "Spaces: 4".</p>
+
+      <h3>Comments</h3>
+      <p><code class="ic"># single line</code> — everything after <code class="ic">#</code> is ignored. There are no multi-line block comments; use consecutive <code class="ic">#</code> lines. Triple-quoted strings <code class="ic">"""..."""</code> are used as docstrings (function/class documentation), not general comments.</p>
+
+      <h3>Operators — differences from other languages</h3>
+      <ul class="ann">
+        <li><span class="lnb">//</span>Floor (integer) division: <code class="ic">7 // 2 → 3</code>. Plain <code class="ic">/</code> always returns a float.</li>
+        <li><span class="lnb">**</span>Exponentiation: <code class="ic">2 ** 8 → 256</code>. Not <code class="ic">^</code> (which is XOR in Python).</li>
+        <li><span class="lnb">and/or</span>Logical operators are words, not <code class="ic">&amp;&amp;</code> and <code class="ic">||</code>.</li>
+        <li><span class="lnb">not</span>Logical negation — a word, not <code class="ic">!</code>.</li>
+        <li><span class="lnb">is</span>Identity check (same object). Use only for <code class="ic">None</code>, <code class="ic">True</code>, <code class="ic">False</code>.</li>
+        <li><span class="lnb">in</span>Membership: <code class="ic">"a" in ["a","b"]</code> → True.</li>
+      </ul>
+
+      <h3>String literals</h3>
+      <ul class="ann">
+        <li><span class="lnb">'...'</span>Single quotes — identical to double quotes.</li>
+        <li><span class="lnb">"..."</span>Double quotes — use whichever avoids escaping apostrophes.</li>
+        <li><span class="lnb">"""..."""</span>Triple quotes — spans multiple lines. Used for docstrings.</li>
+        <li><span class="lnb">r"..."</span>Raw string — backslashes are literal. Use for file paths and regex.</li>
+        <li><span class="lnb">f"..."</span>F-string — embeds expressions. <code class="ic">f"Pi is {3.14:.2f}"</code></li>
+      </ul>
+
+      <div class="note note-mac">
+        <strong>Mac file paths:</strong> On macOS, paths use forward slashes: <code class="ic">/Users/alice/Documents</code>. Use Python's <code class="ic">pathlib.Path</code> or raw strings to avoid escaping issues: <code class="ic">Path.home() / "Documents"</code>
+      </div>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">01_basics.py</span>
+        <button class="copy-btn" data-t="c1">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c1"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     02  TYPES
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="types">
+  <div class="section-header">
+    <div class="sec-num">02</div>
+    <div class="sec-title-wrap">
+      <h2>Built-in Types</h2>
+      <p class="sec-desc">Python's type system is dynamic — a variable can hold any type at any time. But Python is <em>strongly</em> typed: operations on incompatible types raise errors rather than silently coercing them.</p>
+      <div class="ctags">
+        <span class="ct ct-b">int float bool</span>
+        <span class="ct ct-b">str</span>
+        <span class="ct ct-g">type()</span>
+        <span class="ct ct-g">isinstance()</span>
+        <span class="ct ct-a">type hints</span>
+        <span class="ct ct-a">None</span>
+        <span class="ct ct-p">truthiness</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>Numeric types</h3>
+      <div class="kv" style="grid-template-columns: auto 1fr;">
+        <span class="kk">int</span><span>Arbitrary precision. <code class="ic">42</code>, <code class="ic">-7</code>, <code class="ic">1_000_000</code> (underscores OK).</span>
+        <span class="kk">float</span><span>IEEE 754 double. <code class="ic">3.14</code>, <code class="ic">1e-10</code>, <code class="ic">float('inf')</code>.</span>
+        <span class="kk">bool</span><span>Subclass of int. <code class="ic">True == 1</code>, <code class="ic">False == 0</code>. Capitalised.</span>
+        <span class="kk">complex</span><span><code class="ic">3 + 2j</code>. Rare in everyday code.</span>
+      </div>
+
+      <h3>Type inspection</h3>
+      <p>Use <code class="ic">type(x)</code> to check type. Prefer <code class="ic">isinstance(x, int)</code> for conditional checks — it handles subclasses.</p>
+
+      <h3>Type hints (Python 3.5+)</h3>
+      <p>Hints are optional documentation. The interpreter <em>does not enforce them</em>. Tools like <strong>mypy</strong> and VS Code use them for static analysis and autocomplete.</p>
+      <p><code class="ic">def greet(name: str) -> str:</code></p>
+      <p><code class="ic">age: int = 30</code></p>
+
+      <h3>Truthiness — what is falsy?</h3>
+      <p>In Python, every value has a boolean interpretation. These are falsy (everything else is truthy):</p>
+      <ul class="ann">
+        <li><span class="lnb">None</span>Python's null value</li>
+        <li><span class="lnb">False</span>Boolean false</li>
+        <li><span class="lnb">0, 0.0</span>Zero numbers of any numeric type</li>
+        <li><span class="lnb">"", [], {}</span>Empty string, list, dict, set, tuple</li>
+      </ul>
+      <div class="note note-tip">
+        Idiomatic Python: <code class="ic">if my_list:</code> (truthy if non-empty) is preferred over <code class="ic">if len(my_list) > 0:</code>.
+      </div>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">02_types.py</span>
+        <button class="copy-btn" data-t="c2">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c2"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     03  CONTROL FLOW
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="control">
+  <div class="section-header">
+    <div class="sec-num">03</div>
+    <div class="sec-title-wrap">
+      <h2>Control Flow</h2>
+      <p class="sec-desc">if/elif/else, for loops, while loops, and Python 3.10's match/case. Python's for loop iterates directly over any collection — no manual index management needed.</p>
+      <div class="ctags">
+        <span class="ct ct-b">if / elif / else</span>
+        <span class="ct ct-b">for / in</span>
+        <span class="ct ct-g">while</span>
+        <span class="ct ct-g">break / continue</span>
+        <span class="ct ct-a">range()</span>
+        <span class="ct ct-a">enumerate()</span>
+        <span class="ct ct-p">match / case</span>
+        <span class="ct ct-p">ternary</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>for loops — iterate directly</h3>
+      <p>Python's <code class="ic">for</code> loop iterates over any <em>iterable</em> — lists, strings, dicts, files, generators. You almost never need a manual index.</p>
+      <ul class="ann">
+        <li><span class="lnb">range(n)</span>Generates integers 0 to n-1. <code class="ic">range(2, 10, 2)</code> → 2,4,6,8.</li>
+        <li><span class="lnb">enumerate</span><code class="ic">for i, val in enumerate(lst):</code> — gives index AND value. Never write <code class="ic">range(len(lst))</code>.</li>
+        <li><span class="lnb">zip()</span><code class="ic">for a, b in zip(lst1, lst2):</code> — iterate two lists together.</li>
+        <li><span class="lnb">for…else</span>The <code class="ic">else</code> block runs if the loop completed <em>without</em> hitting a <code class="ic">break</code>.</li>
+      </ul>
+
+      <h3>Ternary expression</h3>
+      <p><code class="ic">value_if_true if condition else value_if_false</code></p>
+      <p>Example: <code class="ic">label = "even" if n % 2 == 0 else "odd"</code></p>
+
+      <h3>match / case (Python 3.10+)</h3>
+      <p>Structural pattern matching. More powerful than a switch statement — it can match values, types, sequences, and guard conditions.</p>
+
+      <div class="note note-warn">
+        <strong>Common pitfall:</strong> <code class="ic">elif</code> is one word (not <code class="ic">else if</code>). And Python has no <code class="ic">do…while</code> — use <code class="ic">while True:</code> with a <code class="ic">break</code>.
+      </div>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">03_control.py</span>
+        <button class="copy-btn" data-t="c3">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c3"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     04  FUNCTIONS
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="funcs">
+  <div class="section-header">
+    <div class="sec-num">04</div>
+    <div class="sec-title-wrap">
+      <h2>Functions</h2>
+      <p class="sec-desc">Functions are first-class objects — they can be passed as arguments, returned from other functions, and stored in variables. Python functions have powerful argument handling with defaults, *args, and **kwargs.</p>
+      <div class="ctags">
+        <span class="ct ct-b">def / return</span>
+        <span class="ct ct-b">default args</span>
+        <span class="ct ct-g">*args **kwargs</span>
+        <span class="ct ct-g">lambda</span>
+        <span class="ct ct-a">closures</span>
+        <span class="ct ct-a">decorators</span>
+        <span class="ct ct-p">generators / yield</span>
+        <span class="ct ct-p">type hints</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>Argument types</h3>
+      <ul class="ann">
+        <li><span class="lnb">positional</span>Standard args. <code class="ic">greet("Alice")</code></li>
+        <li><span class="lnb">keyword</span>Named at call site. <code class="ic">greet(name="Alice")</code> — order doesn't matter.</li>
+        <li><span class="lnb">default</span><code class="ic">def f(x, n=10):</code> — n is optional. Defaults evaluated once at definition time.</li>
+        <li><span class="lnb">*args</span>Variadic positional. Collected into a tuple inside the function.</li>
+        <li><span class="lnb">**kwargs</span>Variadic keyword. Collected into a dict inside the function.</li>
+      </ul>
+
+      <div class="note note-err">
+        <strong>Default argument gotcha — never do this:</strong><br>
+        <code class="ic">def f(items=[]):  # items shared across ALL calls!</code><br><br>
+        Use <code class="ic">None</code> and create the mutable default inside:<br>
+        <code class="ic">def f(items=None):<br>&nbsp;&nbsp;&nbsp;&nbsp;items = items or []</code>
+      </div>
+
+      <h3>Generators</h3>
+      <p>A function with <code class="ic">yield</code> becomes a generator. It produces values lazily — pausing at each <code class="ic">yield</code> and resuming when the caller asks for the next item. Memory-efficient for large sequences.</p>
+
+      <h3>Decorators</h3>
+      <p><code class="ic">@decorator</code> above a function is shorthand for <code class="ic">f = decorator(f)</code>. Decorators wrap a function to add behavior (logging, timing, caching) without modifying its code.</p>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">04_functions.py</span>
+        <button class="copy-btn" data-t="c4">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c4"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     05  OOP
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="oop">
+  <div class="section-header">
+    <div class="sec-num">05</div>
+    <div class="sec-title-wrap">
+      <h2>Classes &amp; OOP</h2>
+      <p class="sec-desc">Python is fully object-oriented. Everything is an object — including integers, functions, and modules. Classes are defined with the <code class="ic">class</code> keyword; <code class="ic">self</code> is the instance passed as the first argument to every method.</p>
+      <div class="ctags">
+        <span class="ct ct-b">class / self</span>
+        <span class="ct ct-b">__init__</span>
+        <span class="ct ct-g">inheritance</span>
+        <span class="ct ct-g">super()</span>
+        <span class="ct ct-a">@property</span>
+        <span class="ct ct-a">@classmethod</span>
+        <span class="ct ct-p">@dataclass</span>
+        <span class="ct ct-p">dunder methods</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>self is not a keyword</h3>
+      <p><code class="ic">self</code> is just the conventional name for the first parameter of an instance method — Python passes the instance automatically. You could name it anything, but always use <code class="ic">self</code>.</p>
+
+      <h3>Privacy conventions</h3>
+      <div class="kv" style="grid-template-columns: auto 1fr">
+        <span class="kk">name</span><span>Public — accessible everywhere.</span>
+        <span class="kk">_name</span><span>"Private by convention" — don't access from outside the class.</span>
+        <span class="kk">__name</span><span>Name-mangled to <code class="ic">_ClassName__name</code>. Harder to accidentally override.</span>
+      </div>
+
+      <h3>@dataclass — modern Python</h3>
+      <p>The <code class="ic">@dataclass</code> decorator auto-generates <code class="ic">__init__</code>, <code class="ic">__repr__</code>, and <code class="ic">__eq__</code> from field annotations. Recommended for data-holding classes.</p>
+
+      <h3>Key dunder methods</h3>
+      <table class="cmp">
+        <thead><tr><th>Method</th><th>Called when</th></tr></thead>
+        <tbody>
+          <tr><td>__init__</td><td><code class="ic">MyClass()</code> — constructor</td></tr>
+          <tr><td>__str__</td><td><code class="ic">print(obj)</code> / <code class="ic">str(obj)</code></td></tr>
+          <tr><td>__repr__</td><td><code class="ic">repr(obj)</code> / console display</td></tr>
+          <tr><td>__len__</td><td><code class="ic">len(obj)</code></td></tr>
+          <tr><td>__eq__</td><td><code class="ic">obj1 == obj2</code></td></tr>
+          <tr><td>__enter__/__exit__</td><td><code class="ic">with obj:</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">05_oop.py</span>
+        <button class="copy-btn" data-t="c5">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c5"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     06  COLLECTIONS
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="colls">
+  <div class="section-header">
+    <div class="sec-num">06</div>
+    <div class="sec-title-wrap">
+      <h2>Collections</h2>
+      <p class="sec-desc">Python has four built-in collection types, each optimised for different use cases. Choosing the right one matters for both correctness and performance.</p>
+      <div class="ctags">
+        <span class="ct ct-b">list []</span>
+        <span class="ct ct-b">tuple ()</span>
+        <span class="ct ct-g">dict {}</span>
+        <span class="ct ct-g">set {}</span>
+        <span class="ct ct-a">slicing</span>
+        <span class="ct ct-a">unpacking</span>
+        <span class="ct ct-p">collections module</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>Choosing the right collection</h3>
+      <table class="cmp">
+        <thead><tr><th>Type</th><th>Ordered</th><th>Mutable</th><th>Unique</th><th>Best for</th></tr></thead>
+        <tbody>
+          <tr><td>list []</td><td>✓</td><td>✓</td><td>—</td><td>Sequences you add/remove from</td></tr>
+          <tr><td>tuple ()</td><td>✓</td><td>✗</td><td>—</td><td>Fixed records, function returns</td></tr>
+          <tr><td>dict {}</td><td>✓*</td><td>✓</td><td>keys</td><td>Key→value mapping</td></tr>
+          <tr><td>set {}</td><td>✗</td><td>✓</td><td>✓</td><td>Membership test, deduplication</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:11.5px;color:var(--stone);margin-top:-6px">* dicts preserve insertion order since Python 3.7</p>
+
+      <h3>Slicing — works on any sequence</h3>
+      <p><code class="ic">lst[start:stop:step]</code></p>
+      <ul class="ann">
+        <li><span class="lnb">lst[2:5]</span>Items at index 2, 3, 4 (stop is exclusive)</li>
+        <li><span class="lnb">lst[:3]</span>First 3 items</li>
+        <li><span class="lnb">lst[-3:]</span>Last 3 items (negative counts from end)</li>
+        <li><span class="lnb">lst[::-1]</span>Reverse a sequence</li>
+        <li><span class="lnb">lst[::2]</span>Every second item</li>
+      </ul>
+
+      <h3>Tuple unpacking</h3>
+      <p><code class="ic">x, y = (3, 4)</code> — assigns both at once. Works with any iterable. Use <code class="ic">*rest</code> to collect remaining items: <code class="ic">first, *rest = [1, 2, 3, 4]</code></p>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">06_collections.py</span>
+        <button class="copy-btn" data-t="c6">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c6"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     07  COMPREHENSIONS
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="comps">
+  <div class="section-header">
+    <div class="sec-num">07</div>
+    <div class="sec-title-wrap">
+      <h2>Comprehensions</h2>
+      <p class="sec-desc">Pythonic one-line syntax for building collections by filtering and transforming iterables. More readable than loops in most cases, and often faster.</p>
+      <div class="ctags">
+        <span class="ct ct-b">list comprehension</span>
+        <span class="ct ct-b">dict comprehension</span>
+        <span class="ct ct-g">set comprehension</span>
+        <span class="ct ct-g">generator expression</span>
+        <span class="ct ct-a">nested comprehension</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>The pattern</h3>
+      <p><code class="ic">[expression  for item in iterable  if condition]</code></p>
+      <p>All three parts map directly to what you'd write in a for loop:</p>
+      <ul class="ann">
+        <li><span class="lnb">expression</span>What to do with each item (transform)</li>
+        <li><span class="lnb">for item in</span>Source iterable to loop over</li>
+        <li><span class="lnb">if condition</span>Optional filter — only include items where this is truthy</li>
+      </ul>
+
+      <h3>Four types</h3>
+      <table class="cmp">
+        <thead><tr><th>Syntax</th><th>Produces</th></tr></thead>
+        <tbody>
+          <tr><td>[x for x in it]</td><td>list</td></tr>
+          <tr><td>{k: v for ...}</td><td>dict</td></tr>
+          <tr><td>{x for x in it}</td><td>set (unique, unordered)</td></tr>
+          <tr><td>(x for x in it)</td><td>generator (lazy, no memory)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note note-tip">
+        Use a <strong>generator expression</strong> when you only need to iterate once: <code class="ic">sum(x**2 for x in range(1_000_000))</code> — this never builds the list in memory. Just change <code class="ic">[]</code> to <code class="ic">()</code>.
+      </div>
+
+      <details>
+        <summary><span class="arr">▶</span> Comprehension vs for loop — readability guide</summary>
+        <div class="det-body">
+          <p><strong>Use a comprehension</strong> when the result is a single collection and the logic fits on one readable line.</p>
+          <p style="margin-top:8px"><strong>Use a for loop</strong> when you have multiple operations per item, nested logic, or side effects (printing, writing to a file).</p>
+          <p style="margin-top:8px">Never nest more than two comprehensions — the readability cost outweighs the conciseness.</p>
+        </div>
+      </details>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">07_comprehensions.py</span>
+        <button class="copy-btn" data-t="c7">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c7"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     08  EXCEPTIONS
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="exc">
+  <div class="section-header">
+    <div class="sec-num">08</div>
+    <div class="sec-title-wrap">
+      <h2>Exception Handling</h2>
+      <p class="sec-desc">Python uses exceptions for error handling. The try/except/else/finally pattern lets you handle errors gracefully without crashing. Always catch the most specific exception type you can.</p>
+      <div class="ctags">
+        <span class="ct ct-b">try / except</span>
+        <span class="ct ct-b">else / finally</span>
+        <span class="ct ct-g">raise</span>
+        <span class="ct ct-g">as e</span>
+        <span class="ct ct-a">custom exceptions</span>
+        <span class="ct ct-r">common types</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>try/except/else/finally</h3>
+      <ul class="ann">
+        <li><span class="lnb">try</span>The code that might raise an exception.</li>
+        <li><span class="lnb">except</span>Runs if an exception matches. Can have multiple <code class="ic">except</code> clauses.</li>
+        <li><span class="lnb">else</span>Runs only if no exception was raised. Good for code that shouldn't be in try.</li>
+        <li><span class="lnb">finally</span>Always runs — exception or not. Use for cleanup (closing files, releasing resources).</li>
+      </ul>
+
+      <h3>Common exceptions</h3>
+      <table class="cmp">
+        <thead><tr><th>Exception</th><th>Cause</th></tr></thead>
+        <tbody>
+          <tr><td>ValueError</td><td>Right type, wrong value: <code class="ic">int("abc")</code></td></tr>
+          <tr><td>TypeError</td><td>Wrong type: <code class="ic">"a" + 1</code></td></tr>
+          <tr><td>KeyError</td><td>Dict key missing: <code class="ic">d["missing"]</code></td></tr>
+          <tr><td>IndexError</td><td>List index out of range</td></tr>
+          <tr><td>FileNotFoundError</td><td>File or path doesn't exist</td></tr>
+          <tr><td>AttributeError</td><td><code class="ic">None.strip()</code></td></tr>
+          <tr><td>PermissionError</td><td>No permission to read/write</td></tr>
+          <tr><td>ZeroDivisionError</td><td><code class="ic">x / 0</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="note note-mac">
+        <strong>Mac-specific:</strong> <code class="ic">PermissionError</code> is common when trying to write to <code class="ic">/usr/local/</code> or <code class="ic">/System/</code>. Always write files to <code class="ic">~/Documents/</code> or your project folder.
+      </div>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">08_exceptions.py</span>
+        <button class="copy-btn" data-t="c8">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c8"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     09  FILES & I/O
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="files">
+  <div class="section-header">
+    <div class="sec-num">09</div>
+    <div class="sec-title-wrap">
+      <h2>Files &amp; I/O</h2>
+      <p class="sec-desc">Reading and writing files on macOS. Always use <code class="ic">pathlib.Path</code> for paths (macOS-native). Always use context managers (<code class="ic">with open()</code>). Always specify <code class="ic">encoding="utf-8"</code>.</p>
+      <div class="ctags">
+        <span class="ct ct-b">open() / with</span>
+        <span class="ct ct-b">read / write</span>
+        <span class="ct ct-g">pathlib.Path</span>
+        <span class="ct ct-g">json</span>
+        <span class="ct ct-a">csv</span>
+        <span class="ct ct-a">encoding</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>File modes</h3>
+      <table class="cmp">
+        <thead><tr><th>Mode</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>"r"</td><td>Read (default). FileNotFoundError if missing.</td></tr>
+          <tr><td>"w"</td><td>Write. Creates or overwrites.</td></tr>
+          <tr><td>"a"</td><td>Append. Creates if missing, never overwrites.</td></tr>
+          <tr><td>"x"</td><td>Exclusive create. FileExistsError if it exists.</td></tr>
+          <tr><td>"rb"/"wb"</td><td>Binary mode. For images, PDFs, ZIPs.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>pathlib on Mac</h3>
+      <p><code class="ic">Path.home()</code> returns <code class="ic">/Users/username</code> on Mac. Use <code class="ic">/</code> operator to build paths: <code class="ic">Path.home() / "Documents" / "data.json"</code></p>
+
+      <div class="note note-mac">
+        <strong>Mac Desktop/Documents:</strong> On macOS 13+, Desktop and Documents may be in iCloud Drive. If you get <code class="ic">PermissionError</code>, check <strong>System Settings → Privacy &amp; Security → Files and Folders</strong> and grant Terminal access.
+      </div>
+
+      <h3>Always specify encoding</h3>
+      <p>macOS defaults to UTF-8, but always specify it explicitly for portability: <code class="ic">open("f.txt", encoding="utf-8")</code>. This prevents issues when files are shared with Windows users.</p>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">09_files.py</span>
+        <button class="copy-btn" data-t="c9">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c9"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     10  MODULES
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="mods">
+  <div class="section-header">
+    <div class="sec-num">10</div>
+    <div class="sec-title-wrap">
+      <h2>Modules &amp; Packages</h2>
+      <p class="sec-desc">A module is a .py file. A package is a folder with an __init__.py. Virtual environments keep your project's packages isolated from other projects and from the system.</p>
+      <div class="ctags">
+        <span class="ct ct-b">import</span>
+        <span class="ct ct-b">from … import</span>
+        <span class="ct ct-g">venv</span>
+        <span class="ct ct-g">pip</span>
+        <span class="ct ct-a">__name__</span>
+        <span class="ct ct-a">packages</span>
+        <span class="ct ct-p">requirements.txt</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>Virtual environments — always use them</h3>
+      <p>A virtual environment creates an isolated Python installation for each project. Packages installed in one environment don't affect others.</p>
+      <div class="note note-mac">
+        <strong>Mac venv workflow:</strong><br>
+        <code class="ic">cd ~/PythonProjects/myapp</code><br>
+        <code class="ic">python -m venv .venv</code><br>
+        <code class="ic">source .venv/bin/activate</code><br>
+        <code class="ic">pip install requests</code><br><br>
+        Your prompt changes to <code class="ic">(.venv) %</code> when active. To deactivate: <code class="ic">deactivate</code>
+      </div>
+
+      <h3>The script guard</h3>
+      <p>When Python runs a file directly: <code class="ic">__name__ == "__main__"</code>. When it's imported as a module: <code class="ic">__name__ == "modulename"</code>. Always guard your entry point:</p>
+      <p><code class="ic">if __name__ == "__main__":</code><br><code class="ic">&nbsp;&nbsp;&nbsp;&nbsp;main()</code></p>
+
+      <h3>VS Code on Mac</h3>
+      <p>After activating your venv, open the project folder: <code class="ic">code .</code> in Terminal. Press <kbd>⌘</kbd><kbd>Shift</kbd><kbd>P</kbd> → "Python: Select Interpreter" → choose <code class="ic">.venv/bin/python</code>.</p>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">10_modules.py</span>
+        <button class="copy-btn" data-t="c10">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c10"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     11  ADVANCED
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="advanced">
+  <div class="section-header">
+    <div class="sec-num">11</div>
+    <div class="sec-title-wrap">
+      <h2>Advanced Features</h2>
+      <p class="sec-desc">Context managers, async/await, itertools, functools, and the walrus operator. These features appear in real-world Python code — understanding them helps you read other people's code.</p>
+      <div class="ctags">
+        <span class="ct ct-b">context managers</span>
+        <span class="ct ct-b">async / await</span>
+        <span class="ct ct-g">itertools</span>
+        <span class="ct ct-g">functools</span>
+        <span class="ct ct-a">lru_cache</span>
+        <span class="ct ct-a">:= walrus</span>
+        <span class="ct ct-p">dataclass</span>
+      </div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="explain">
+      <h3>Context managers — with statement</h3>
+      <p>Any object with <code class="ic">__enter__</code> and <code class="ic">__exit__</code> methods can be used with <code class="ic">with</code>. The <code class="ic">__exit__</code> is always called — even on exceptions — making cleanup reliable.</p>
+
+      <h3>Walrus operator := (Python 3.8+)</h3>
+      <p>Assigns and returns a value in a single expression. Useful in while loops and if statements to avoid redundant calls:</p>
+      <p><code class="ic">while chunk := file.read(8192):</code></p>
+
+      <h3>async / await</h3>
+      <p>Cooperative multitasking for I/O-bound code (network requests, file reading). <code class="ic">async def</code> defines a coroutine. <code class="ic">await</code> suspends it until the awaited operation completes. Run with <code class="ic">asyncio.run(main())</code>.</p>
+
+      <h3>functools.lru_cache</h3>
+      <p>Memoizes a function — caches return values by arguments. <code class="ic">@lru_cache(maxsize=128)</code> above a recursive or expensive function can give dramatic speedups.</p>
+
+      <div class="note note-tip">
+        <strong>Python 3.9+ shortcut:</strong> Use <code class="ic">@cache</code> from functools instead of <code class="ic">@lru_cache(maxsize=None)</code> — same behavior, cleaner syntax.
+      </div>
+    </div>
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">11_advanced.py</span>
+        <button class="copy-btn" data-t="c11">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c11"></code></pre>
+    </div>
+  </div>
+</article>
+
+<!-- ════════════════════════════════════════════════════════════════
+     12  STANDARD LIBRARY
+════════════════════════════════════════════════════════════════ -->
+<article class="section" id="stdlib">
+  <div class="section-header">
+    <div class="sec-num">12</div>
+    <div class="sec-title-wrap">
+      <h2>Standard Library</h2>
+      <p class="sec-desc">Python ships with "batteries included" — a massive standard library covering almost every common task. No pip required for these.</p>
+      <div class="ctags">
+        <span class="ct ct-b">datetime</span>
+        <span class="ct ct-b">os / sys</span>
+        <span class="ct ct-g">pathlib</span>
+        <span class="ct ct-g">re</span>
+        <span class="ct ct-a">collections</span>
+        <span class="ct ct-a">json / csv</span>
+        <span class="ct ct-p">subprocess</span>
+        <span class="ct ct-p">random</span>
+      </div>
+    </div>
+  </div>
+  <div class="prose-section">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">datetime</div>
+        <div class="card-sub">Dates, times, timezones</div>
+        <p><code class="ic">datetime.now()</code>, <code class="ic">strftime()</code>, <code class="ic">timedelta</code>. Use <code class="ic">zoneinfo</code> (3.9+) for timezone-aware datetimes.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">pathlib</div>
+        <div class="card-sub">Object-oriented paths</div>
+        <p><code class="ic">Path.home()</code> on Mac returns <code class="ic">/Users/you</code>. Use <code class="ic">/</code> to join: <code class="ic">Path.home() / "Desktop"</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">os / sys</div>
+        <div class="card-sub">Operating system interface</div>
+        <p><code class="ic">os.environ["HOME"]</code>, <code class="ic">os.getcwd()</code>, <code class="ic">sys.argv</code> for command-line args, <code class="ic">sys.exit()</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">subprocess</div>
+        <div class="card-sub">Run shell commands from Python</div>
+        <p><code class="ic">subprocess.run(["ls", "-la"])</code>. On Mac this lets you call any Terminal command from a Python script.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">re</div>
+        <div class="card-sub">Regular expressions</div>
+        <p><code class="ic">re.search(r"\d+", text)</code>, <code class="ic">re.findall()</code>, <code class="ic">re.sub()</code>. Prefix patterns with <code class="ic">r"..."</code> to avoid double-escaping.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">json</div>
+        <div class="card-sub">JSON encode / decode</div>
+        <p><code class="ic">json.dumps(data, indent=2)</code> to serialize. <code class="ic">json.loads(text)</code> to parse. <code class="ic">json.dump/load</code> for files.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">collections</div>
+        <div class="card-sub">Specialised containers</div>
+        <p><code class="ic">Counter</code> for frequency counts, <code class="ic">defaultdict</code> for auto-creating missing keys, <code class="ic">deque</code> for fast queue operations.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">random</div>
+        <div class="card-sub">Randomness (non-cryptographic)</div>
+        <p><code class="ic">random.choice(lst)</code>, <code class="ic">random.randint(1,100)</code>, <code class="ic">random.shuffle(lst)</code>. For crypto use <code class="ic">secrets</code> module.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">argparse</div>
+        <div class="card-sub">Command-line argument parsing</div>
+        <p>Build scripts with proper <code class="ic">--flag</code> arguments: <code class="ic">parser.add_argument("--output")</code>. Runs beautifully in Mac Terminal.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">urllib / http</div>
+        <div class="card-sub">HTTP without pip</div>
+        <p><code class="ic">urllib.request.urlopen(url)</code> for basic HTTP. For real projects, install <code class="ic">requests</code> or <code class="ic">httpx</code> via pip.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">csv</div>
+        <div class="card-sub">Spreadsheet data</div>
+        <p><code class="ic">csv.DictReader(f)</code> reads rows as dicts using the header row. <code class="ic">csv.DictWriter</code> writes them. Works great with Numbers exports.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">sqlite3</div>
+        <div class="card-sub">Embedded database</div>
+        <p>A full SQL database in a single file. No server needed. <code class="ic">conn = sqlite3.connect("app.db")</code>. Great for Mac apps storing structured data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stdlib code examples -->
+  <div class="code-full">
+    <div class="code-panel">
+      <div class="code-top">
+        <div class="code-dots"><span class="cd r"></span><span class="cd y"></span><span class="cd g"></span></div>
+        <span class="code-fname">12_stdlib_examples.py</span>
+        <button class="copy-btn" data-t="c12">Copy</button>
+      </div>
+      <pre><code class="language-python" id="c12"></code></pre>
+    </div>
+  </div>
+
+  <!-- PEP 8 reference -->
+  <div class="prose-section">
+    <details>
+      <summary><span class="arr">▶</span> PEP 8 — Python Style Guide (essential rules)</summary>
+      <div class="det-body">
+        <table class="ref-tbl">
+          <thead><tr><th>Rule</th><th>Correct</th><th>Wrong</th></tr></thead>
+          <tbody>
+            <tr><td>Indentation</td><td><code class="ic">4 spaces</code></td><td>tabs, 2 spaces, 3 spaces</td></tr>
+            <tr><td>Function names</td><td><code class="ic">snake_case</code></td><td><code class="ic">camelCase</code></td></tr>
+            <tr><td>Class names</td><td><code class="ic">PascalCase</code></td><td><code class="ic">snake_case</code></td></tr>
+            <tr><td>Constants</td><td><code class="ic">UPPER_CASE</code></td><td><code class="ic">lower_case</code></td></tr>
+            <tr><td>Max line length</td><td>79 characters</td><td>200-char lines</td></tr>
+            <tr><td>Blank lines</td><td>2 between top-level defs</td><td>0 or 1</td></tr>
+            <tr><td>Imports</td><td>One per line, at top</td><td><code class="ic">import os, sys</code></td></tr>
+            <tr><td>Spaces around =</td><td><code class="ic">x = 5</code></td><td><code class="ic">x=5</code></td></tr>
+            <tr><td>No spaces in keyword args</td><td><code class="ic">f(n=5)</code></td><td><code class="ic">f(n = 5)</code></td></tr>
+          </tbody>
+        </table>
+        <div class="note note-mac" style="margin-top:12px">
+          <strong>Auto-format on Mac:</strong> Install black with <code class="ic">pip install black</code> then run <code class="ic">black myfile.py</code>. In VS Code, install the Black formatter extension and press <kbd>⌘</kbd><kbd>Shift</kbd><kbd>F</kbd> to format.
+        </div>
+      </div>
+    </details>
+
+    <details style="margin-top:10px">
+      <summary><span class="arr">▶</span> Recommended Mac Python Tools</summary>
+      <div class="det-body">
+        <table class="ref-tbl">
+          <thead><tr><th>Tool</th><th>Purpose</th><th>Install</th></tr></thead>
+          <tbody>
+            <tr><td>black</td><td>Auto-formatter — makes your code PEP 8 compliant</td><td><code class="ic">pip install black</code></td></tr>
+            <tr><td>ruff</td><td>Fast linter — catches errors and style issues</td><td><code class="ic">pip install ruff</code></td></tr>
+            <tr><td>mypy</td><td>Static type checker — validates your type hints</td><td><code class="ic">pip install mypy</code></td></tr>
+            <tr><td>pytest</td><td>Test framework — run with <code class="ic">pytest</code> in Terminal</td><td><code class="ic">pip install pytest</code></td></tr>
+            <tr><td>ipython</td><td>Enhanced interactive Python REPL</td><td><code class="ic">pip install ipython</code></td></tr>
+            <tr><td>jupyter</td><td>Notebook interface — great for data exploration</td><td><code class="ic">pip install jupyter</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+</article>
+
+<footer>
+  Python on Mac — Complete Guide &nbsp;·&nbsp; Python 3.12 · macOS Ventura/Sonoma/Sequoia &nbsp;·&nbsp; Claude 2026
+</footer>
+
+</main><!-- /main -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     highlight.js + code content + JS behavior
+═══════════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+/* ───────────────────────────────────────────────────────────────
+   All Python code snippets stored as template literals.
+   String.raw prevents backslash interpretation.
+─────────────────────────────────────────────────────────────── */
+const CODE = {
+
+  cm0: String.raw`# ── Essential Mac Terminal Commands for Python ──────────────
+
+# Navigate
+pwd                          # Print working directory
+ls -la                       # List files with details
+cd ~/PythonProjects          # Go to your projects folder
+cd ..                        # Go up one directory
+open .                       # Open current folder in Finder
+
+# Python
+python --version             # Should show 3.12+
+python script.py             # Run a script
+python                       # Open REPL (Ctrl+D to exit)
+python -m venv .venv         # Create virtual environment
+source .venv/bin/activate    # Activate it (prompt shows (.venv))
+deactivate                   # Deactivate
+
+# Packages
+pip install requests         # Install a package
+pip list                     # Show installed packages
+pip freeze > requirements.txt  # Save deps list
+pip install -r requirements.txt  # Install from deps list
+
+# pyenv
+pyenv versions               # List installed Pythons
+pyenv install 3.12.3         # Install a version
+pyenv global 3.12.3          # Set default globally
+pyenv local 3.11.8           # Set for this folder only
+
+# VS Code from Terminal
+code .                       # Open current folder in VS Code
+code myfile.py               # Open a specific file`,
+
+  c0: String.raw`# ── hello.py ── The traditional first program ────────────────
+print("Hello, World!")
+
+# ── A slightly more interesting version ──────────────────────
+# Variables — no type declaration needed
+name    = "Alice"           # str
+age     = 28                # int
+height  = 5.6               # float
+on_mac  = True              # bool (note: capital T/F)
+nothing = None              # None — Python's null
+
+# f-strings: prefix with f, embed expressions in {}
+print(f"Hello, {name}!")
+print(f"Age: {age}  Height: {height:.1f}ft  Mac: {on_mac}")
+
+# Multi-line string (triple quotes)
+message = """
+Welcome to Python.
+Running on macOS.
+"""
+print(message.strip())
+
+# Input from the user
+user = input("What's your name? ")   # pauses and waits
+print(f"Nice to meet you, {user}!")
+
+# A simple function
+def greet(person, greeting="Hello"):
+    """Greet someone. greeting defaults to 'Hello'."""
+    return f"{greeting}, {person}!"
+
+print(greet("Bob"))
+print(greet("Carol", greeting="G'day"))
+
+# Run in Terminal: python hello.py`,
+
+  c1: String.raw`# ── 01_basics.py ── Syntax, operators, strings ──────────────
+
+# ── INDENTATION: 4 spaces — this is syntax, not style ────────
+def example():
+    if True:
+        for i in range(3):
+            print(i)       # 3 levels = 12 spaces total
+
+# ── VARIABLES & ASSIGNMENT ────────────────────────────────────
+x = 10
+y = 3.14
+name = "Python"
+flag = True
+nothing = None
+
+# Multiple assignment
+a, b, c = 1, 2, 3          # tuple unpacking
+p = q = r = 0               # chain assignment
+a, b = b, a                 # swap — no temp variable needed
+
+# Augmented assignment
+x += 5    # x = x + 5     (also -=, *=, //=, **=, %=)
+
+# ── ARITHMETIC ────────────────────────────────────────────────
+print(10 + 3)   # 13
+print(10 - 3)   # 7
+print(10 * 3)   # 30
+print(10 / 3)   # 3.3333...  ← always float
+print(10 // 3)  # 3          ← floor division (integer result)
+print(10 % 3)   # 1          ← modulo (remainder)
+print(2 ** 8)   # 256        ← exponentiation (NOT ^)
+print(abs(-5))  # 5
+print(round(3.14159, 2))  # 3.14
+
+# ── COMPARISON ────────────────────────────────────────────────
+print(5 == 5)   # True     (equality)
+print(5 != 3)   # True     (inequality)
+print(5 > 3)    # True
+print(5 >= 5)   # True
+x = None
+print(x is None)     # True  — use 'is' only with None/True/False
+print(x is not None) # False
+
+# ── LOGIC ─────────────────────────────────────────────────────
+print(True and False)  # False  (not &&)
+print(True or False)   # True   (not ||)
+print(not True)        # False  (not !)
+
+# Short-circuit evaluation
+result = None or "default"    # "default" (None is falsy)
+value  = "yes" and "also yes" # "also yes" (both truthy)
+
+# ── STRINGS ───────────────────────────────────────────────────
+s = "Hello, macOS!"
+
+# Slicing: s[start:stop:step]
+print(s[0])       # 'H'       — first character
+print(s[-1])      # '!'       — last character
+print(s[7:12])    # 'macOS'
+print(s[:5])      # 'Hello'   — first 5
+print(s[::-1])    # reverse the string
+
+# String methods
+print("  hello  ".strip())          # 'hello'
+print("hello".upper())              # 'HELLO'
+print("HELLO".lower())              # 'hello'
+print("hello world".title())        # 'Hello World'
+print("a,b,c".split(","))           # ['a', 'b', 'c']
+print(",".join(["a", "b", "c"]))    # 'a,b,c'
+print("hello".replace("l", "r"))    # 'herro'
+print("hello world".startswith("hello"))  # True
+print("hello world".count("l"))     # 3
+
+# f-string format specifications
+pi = 3.14159
+print(f"{pi:.2f}")         # '3.14'  — 2 decimal places
+print(f"{1000000:,}")      # '1,000,000'  — thousands separator
+print(f"{'hi':>10}")       # '        hi'  — right-align in 10 chars
+print(f"{42:05d}")         # '00042'  — zero-pad to 5 digits
+
+# Mac paths — use raw strings to avoid backslash confusion
+# (not needed on Mac since paths use /, but good habit)
+mac_path = "/Users/alice/Documents/data.csv"
+print(mac_path.split("/")[-1])   # 'data.csv'`,
+
+  c2: String.raw`# ── 02_types.py ── Python's type system ─────────────────────
+import sys
+
+# ── NUMERIC TYPES ─────────────────────────────────────────────
+i = 42               # int — unlimited precision on Python
+f = 3.14159          # float — IEEE 754 double
+b = True             # bool — True/False (capitalised)
+c = 3 + 2j           # complex
+
+print(type(i))       # <class 'int'>
+print(type(f))       # <class 'float'>
+print(isinstance(i, int))    # True  ← prefer over type() check
+print(isinstance(True, int)) # True  — bool is a subclass of int!
+print(True + 1)              # 2     — bool arithmetic works
+
+# int has unlimited precision
+big = 2 ** 1000
+print(big)                   # a very large number, no overflow
+
+# Underscores in numeric literals (readability)
+million = 1_000_000
+price   = 19_99    # cents
+
+# ── TYPE CONVERSION ───────────────────────────────────────────
+print(int("42"))          # 42
+print(int(3.9))           # 3   (truncates, doesn't round)
+print(float("3.14"))      # 3.14
+print(str(100))           # '100'
+print(bool(0))            # False
+print(bool(""))           # False
+print(bool(None))         # False
+print(bool("hello"))      # True
+print(bool(42))           # True
+
+# ── TYPE HINTS (annotation only — NOT enforced at runtime) ────
+def add(x: int, y: int) -> int:
+    return x + y
+
+age: int = 28
+name: str = "Alice"
+scores: list[int] = [90, 85, 92]
+info: dict[str, str] = {"city": "Cupertino", "os": "macOS"}
+
+from typing import Optional, Union
+def find(key: str) -> Optional[int]:   # int or None
+    return None
+
+def process(val: Union[int, str]) -> str:  # int or str
+    return str(val)
+
+# Python 3.10+ shorthand for Union:
+def process_new(val: int | str) -> str:
+    return str(val)
+
+# ── TRUTHINESS ────────────────────────────────────────────────
+# These are ALL falsy:
+falsy_values = [None, False, 0, 0.0, 0j, "", [], {}, set(), ()]
+for v in falsy_values:
+    print(f"{repr(v):10} → falsy={not bool(v)}")
+
+# Idiomatic Python — use truthiness directly
+items = []
+if not items:              # True — empty list is falsy
+    print("Nothing here")
+
+name = ""
+display = name or "Anonymous"  # 'Anonymous' — name is falsy
+print(display)
+
+# ── NONE ──────────────────────────────────────────────────────
+x = None
+print(x is None)       # True  — use 'is', not '=='
+print(x is not None)   # False
+
+# sys.getsizeof — see how much memory objects use on your Mac
+print(sys.getsizeof(42))        # ~28 bytes
+print(sys.getsizeof("hello"))   # ~54 bytes`,
+
+  c3: String.raw`# ── 03_control.py ── Control flow ───────────────────────────
+
+# ── IF / ELIF / ELSE ──────────────────────────────────────────
+temperature = 22
+
+if temperature > 30:
+    print("Hot")
+elif temperature > 20:     # Note: 'elif' not 'else if'
+    print("Comfortable")
+elif temperature > 10:
+    print("Cool")
+else:
+    print("Cold")
+
+# ── TERNARY EXPRESSION ────────────────────────────────────────
+label = "warm" if temperature > 20 else "cold"
+print(label)
+
+# ── MATCH / CASE (Python 3.10+) ───────────────────────────────
+day = "Monday"
+match day:
+    case "Saturday" | "Sunday":      # OR with |
+        print("Weekend!")
+    case "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday":
+        print("Weekday")
+    case _:                           # wildcard / default
+        print("Unknown day")
+
+# Match with guard clause
+x = 42
+match x:
+    case n if n < 0:
+        print("Negative")
+    case n if n == 0:
+        print("Zero")
+    case n if n > 0:
+        print(f"Positive: {n}")
+
+# ── FOR LOOPS ─────────────────────────────────────────────────
+fruits = ["apple", "banana", "cherry"]
+
+# Iterate directly — no index needed
+for fruit in fruits:
+    print(fruit)
+
+# With index — use enumerate(), NEVER range(len())
+for i, fruit in enumerate(fruits, start=1):
+    print(f"{i}. {fruit}")
+
+# range(start, stop, step)
+for n in range(0, 10, 2):     # 0, 2, 4, 6, 8
+    print(n, end=" ")
+print()
+
+for n in range(10, 0, -1):   # count down
+    print(n, end=" ")
+print()
+
+# Iterate two lists simultaneously
+names  = ["Alice", "Bob", "Carol"]
+scores = [92, 78, 95]
+for name, score in zip(names, scores):
+    print(f"{name}: {score}")
+
+# Unpack inside loop
+pairs = [(1, "one"), (2, "two"), (3, "three")]
+for num, word in pairs:
+    print(f"{num} = {word}")
+
+# for...else — else runs if loop completed WITHOUT break
+numbers = [1, 3, 5, 7, 9]
+target = 6
+for n in numbers:
+    if n == target:
+        print(f"Found {target}")
+        break
+else:
+    print(f"{target} not found")   # prints this
+
+# ── WHILE LOOPS ───────────────────────────────────────────────
+count = 5
+while count > 0:
+    print(count, end=" ")
+    count -= 1
+print()
+
+# Infinite loop with break
+while True:
+    response = input("Press q to quit: ")
+    if response == "q":
+        break
+    print(f"You typed: {response}")
+
+# continue — skip to next iteration
+for i in range(10):
+    if i % 2 == 0:
+        continue           # skip even numbers
+    print(i, end=" ")      # prints: 1 3 5 7 9
+print()`,
+
+  c4: String.raw`# ── 04_functions.py ── Functions in Python ──────────────────
+import functools, time
+
+# ── BASIC FUNCTION ────────────────────────────────────────────
+def add(a: int, b: int) -> int:
+    """Add two numbers and return the result.
+    
+    Docstrings like this appear in help() and IDE tooltips.
+    """
+    return a + b
+
+print(add(3, 4))      # positional arguments
+print(add(a=3, b=4))  # keyword arguments — same result
+
+# ── DEFAULT ARGUMENTS ─────────────────────────────────────────
+def greet(name: str, greeting: str = "Hello") -> str:
+    return f"{greeting}, {name}!"
+
+print(greet("Alice"))               # uses default
+print(greet("Bob", greeting="Hi"))  # overrides default
+
+# ── MUTABLE DEFAULT GOTCHA ────────────────────────────────────
+# WRONG: items=[] is created ONCE and shared across all calls
+# def append_item(item, items=[]):   # DON'T DO THIS
+#     items.append(item)
+#     return items
+
+# RIGHT: use None and create the list inside
+def append_item(item, items=None):
+    if items is None:
+        items = []
+    items.append(item)
+    return items
+
+print(append_item(1))   # [1]
+print(append_item(2))   # [2] — fresh list each time
+
+# ── *ARGS — VARIADIC POSITIONAL ───────────────────────────────
+def total(*numbers: float) -> float:
+    """Accept any number of positional arguments."""
+    return sum(numbers)    # numbers is a tuple inside the function
+
+print(total(1, 2, 3, 4, 5))   # 15
+
+# ── **KWARGS — VARIADIC KEYWORD ───────────────────────────────
+def configure(**options):
+    """Accept any number of keyword arguments."""
+    for key, value in options.items():   # options is a dict
+        print(f"  {key} = {value}")
+
+configure(debug=True, port=8080, host="localhost")
+
+# ── UNPACKING AT CALL SITE ────────────────────────────────────
+args_list = [1, 2, 3]
+kwargs_dict = {"greeting": "Bonjour"}
+print(total(*args_list))             # unpack list as positional args
+print(greet("Marie", **kwargs_dict)) # unpack dict as keyword args
+
+# ── LAMBDA — ANONYMOUS FUNCTION ───────────────────────────────
+square = lambda x: x ** 2           # single expression only
+print(square(5))                     # 25
+
+# Lambdas shine as sort keys and in map/filter
+people = [{"name": "Bob", "age": 30}, {"name": "Alice", "age": 25}]
+sorted_people = sorted(people, key=lambda p: p["age"])
+print(sorted_people)
+
+numbers = [1, 2, 3, 4, 5, 6]
+evens   = list(filter(lambda x: x % 2 == 0, numbers))
+doubled = list(map(lambda x: x * 2, numbers))
+
+# ── CLOSURES ──────────────────────────────────────────────────
+def make_multiplier(n: int):
+    """Return a function that multiplies by n."""
+    def multiply(x):
+        return x * n     # n is captured from the outer scope
+    return multiply      # return the function itself
+
+triple = make_multiplier(3)
+double = make_multiplier(2)
+print(triple(10))   # 30
+print(double(10))   # 20
+
+# ── DECORATORS ────────────────────────────────────────────────
+def timer(func):
+    """Decorator: print how long a function takes to run."""
+    @functools.wraps(func)      # preserves func's __name__ and __doc__
+    def wrapper(*args, **kwargs):
+        start  = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+        print(f"  {func.__name__} took {elapsed:.4f}s")
+        return result
+    return wrapper
+
+@timer                          # equivalent to:  slow_op = timer(slow_op)
+def slow_op(n: int) -> int:
+    time.sleep(0.01)
+    return n * n
+
+print(slow_op(7))
+
+# ── GENERATORS — LAZY SEQUENCES ───────────────────────────────
+def fibonacci(limit: int):
+    """Yield Fibonacci numbers up to limit."""
+    a, b = 0, 1
+    while a <= limit:
+        yield a         # pauses here, resumes on next()
+        a, b = b, a + b
+
+for n in fibonacci(100):
+    print(n, end=" ")
+print()
+
+# Generator expression (lazy, memory-efficient)
+squares_gen = (x ** 2 for x in range(1_000_000))
+print(next(squares_gen))   # 0 — compute one at a time
+print(next(squares_gen))   # 1`,
+
+  c5: String.raw`# ── 05_oop.py ── Classes and Object-Oriented Programming ────
+from dataclasses import dataclass, field
+import datetime
+
+# ── BASIC CLASS ───────────────────────────────────────────────
+class Animal:
+    # Class variable — shared by ALL instances
+    kingdom = "Animalia"
+
+    def __init__(self, name: str, sound: str):
+        # Instance variables — unique to each object
+        self.name   = name          # public
+        self._sound = sound         # "private" by convention (_)
+        self.__id   = id(self)      # name-mangled (__) — harder to override
+
+    def speak(self) -> str:
+        """self is always the first parameter — Python passes it automatically."""
+        return f"{self.name} says {self._sound}!"
+
+    def __str__(self) -> str:
+        """Called by print() and str()."""
+        return f"Animal({self.name})"
+
+    def __repr__(self) -> str:
+        """Called by repr() and the REPL."""
+        return f"Animal(name={self.name!r}, sound={self._sound!r})"
+
+    def __eq__(self, other) -> bool:
+        """Called by ==."""
+        return isinstance(other, Animal) and self.name == other.name
+
+    @classmethod
+    def create_dog(cls) -> "Animal":
+        """Factory method — cls is the class itself, not an instance."""
+        return cls("Dog", "Woof")
+
+    @staticmethod
+    def describe() -> str:
+        """No self or cls — just a regular function in the class namespace."""
+        return "Animals are multicellular organisms."
+
+cat = Animal("Cat", "Meow")
+print(cat.speak())          # Cat says Meow!
+print(cat)                  # Animal(Cat)  — calls __str__
+print(repr(cat))            # Animal(name='Cat', sound='Meow') — calls __repr__
+print(Animal.kingdom)       # Animalia — class variable
+print(Animal.create_dog())  # Animal(Dog) — classmethod
+
+# ── INHERITANCE ───────────────────────────────────────────────
+class Dog(Animal):
+    """Dog inherits everything from Animal."""
+
+    def __init__(self, name: str, breed: str):
+        super().__init__(name, "Woof")  # call parent __init__
+        self.breed = breed              # add new instance variable
+
+    def speak(self) -> str:
+        """Override the parent's speak method."""
+        return f"{super().speak()} *wags tail*"   # extend parent
+
+    def fetch(self, item: str) -> str:
+        return f"{self.name} fetches the {item}!"
+
+fido = Dog("Fido", "Labrador")
+print(fido.speak())          # Fido says Woof! *wags tail*
+print(fido.fetch("ball"))    # Fido fetches the ball!
+print(isinstance(fido, Dog))    # True
+print(isinstance(fido, Animal)) # True — Dog IS-A Animal
+
+# ── @PROPERTY — COMPUTED ATTRIBUTES ──────────────────────────
+class Circle:
+    def __init__(self, radius: float):
+        self._radius = radius
+
+    @property
+    def radius(self) -> float:
+        """Getter — access with  circle.radius  not  circle.radius()"""
+        return self._radius
+
+    @radius.setter
+    def radius(self, value: float):
+        if value < 0:
+            raise ValueError("Radius must be non-negative.")
+        self._radius = value
+
+    @property
+    def area(self) -> float:
+        import math
+        return math.pi * self._radius ** 2
+
+    @property
+    def circumference(self) -> float:
+        import math
+        return 2 * math.pi * self._radius
+
+c = Circle(5.0)
+print(f"Area: {c.area:.2f}")            # 78.54
+print(f"Circumference: {c.circumference:.2f}")  # 31.42
+c.radius = 10
+print(f"New area: {c.area:.2f}")        # 314.16
+
+# ── @DATACLASS — MODERN, CONCISE CLASSES ─────────────────────
+@dataclass
+class Point:
+    """@dataclass auto-generates __init__, __repr__, __eq__."""
+    x: float
+    y: float
+    label: str = "origin"         # optional field with default
+    tags: list = field(default_factory=list)  # MUST use field() for mutables
+
+    def distance_to(self, other: "Point") -> float:
+        return ((self.x - other.x)**2 + (self.y - other.y)**2) ** 0.5
+
+p1 = Point(0.0, 0.0)
+p2 = Point(3.0, 4.0)
+print(p1)                    # Point(x=0.0, y=0.0, label='origin', tags=[])
+print(p1 == Point(0, 0))    # True — __eq__ auto-generated
+print(p1.distance_to(p2))   # 5.0`,
+
+  c6: String.raw`# ── 06_collections.py ── list, tuple, dict, set ─────────────
+
+# ══════════════════════ LIST [] ═══════════════════════════════
+fruits = ["apple", "banana", "cherry", "date"]
+
+# Indexing and slicing
+print(fruits[0])      # 'apple'    — first element
+print(fruits[-1])     # 'date'     — last element
+print(fruits[1:3])    # ['banana', 'cherry']  — stop is exclusive
+print(fruits[::-1])   # reversed
+
+# Mutating
+fruits.append("elderberry")    # add to end
+fruits.insert(0, "avocado")   # insert at index
+fruits.extend(["fig", "grape"]) # add multiple
+popped = fruits.pop()          # remove & return last
+fruits.remove("banana")        # remove first occurrence
+del fruits[0]                  # delete by index
+
+# Useful list operations
+print(len(fruits))             # length
+print(sorted(fruits))          # NEW sorted list (original unchanged)
+fruits.sort()                  # sort IN PLACE
+fruits.sort(reverse=True)      # reverse sort in place
+print(fruits.count("apple"))   # count occurrences
+print(fruits.index("cherry"))  # find index of value (ValueError if missing)
+print("apple" in fruits)       # membership test
+
+# ══════════════════════ TUPLE () ══════════════════════════════
+# Tuples are IMMUTABLE — cannot be changed after creation
+point   = (3, 4)
+rgb     = (255, 128, 0)
+single  = (42,)   # trailing comma required for single-element tuple
+
+# Unpacking — works with any iterable
+x, y      = point
+r, g, b   = rgb
+first, *rest = (1, 2, 3, 4, 5)   # first=1, rest=[2,3,4,5]
+_, second, _ = (10, 20, 30)       # _ discards values
+
+print(x, y)        # 3 4
+print(first, rest) # 1 [2, 3, 4, 5]
+
+# Named tuple — lightweight struct
+from collections import namedtuple
+Person = namedtuple("Person", ["name", "age", "city"])
+alice  = Person("Alice", 28, "San Francisco")
+print(alice.name, alice.city)   # Alice  San Francisco
+print(alice._asdict())           # {'name': 'Alice', ...}
+
+# ══════════════════════ DICT {} ═══════════════════════════════
+user = {"name": "Alice", "age": 28, "city": "Cupertino"}
+
+# Access
+print(user["name"])                    # 'Alice' — KeyError if missing
+print(user.get("email"))               # None — no error
+print(user.get("email", "no email"))   # 'no email' — with default
+
+# Modify
+user["email"]  = "alice@example.com"   # add key
+user["age"]    = 29                     # update value
+del user["city"]                        # delete key
+popped = user.pop("email", None)       # remove and return (default None)
+
+# Iteration
+for key in user:                  # iterate keys
+    print(key)
+for value in user.values():       # iterate values
+    print(value)
+for key, value in user.items():   # iterate pairs
+    print(f"{key}: {value}")
+
+# Membership
+print("name" in user)    # True  — tests keys
+print("Alice" in user)   # False — 'Alice' is a value, not a key
+
+# Merge dicts (Python 3.9+)
+defaults = {"theme": "dark", "lang": "en"}
+settings = {"lang": "fr", "font": "Monaco"}
+merged   = defaults | settings   # {'theme': 'dark', 'lang': 'fr', 'font': 'Monaco'}
+# settings overrides defaults for shared keys
+
+# Dict comprehension
+squares = {n: n**2 for n in range(6)}   # {0:0, 1:1, 2:4, 3:9, 4:16, 5:25}
+inverted = {v: k for k, v in squares.items()}
+
+from collections import defaultdict
+word_count = defaultdict(int)   # missing keys auto-created with int() = 0
+for word in "the cat sat on the mat the cat".split():
+    word_count[word] += 1
+print(dict(word_count))
+
+# ══════════════════════ SET {} ════════════════════════════════
+# Sets: unordered, unique values, O(1) membership test
+primes = {2, 3, 5, 7, 11, 13}
+evens  = {2, 4, 6, 8, 10, 12}
+
+print(primes & evens)   # {2}          — intersection
+print(primes | evens)   # union
+print(primes - evens)   # {3,5,7,11,13} — difference
+print(primes ^ evens)   # symmetric difference (in one but not both)
+print(3 in primes)      # True  — O(1) vs O(n) for list
+
+# Deduplicate a list using a set
+names_with_dupes = ["Alice", "Bob", "Alice", "Carol", "Bob"]
+unique_names     = list(set(names_with_dupes))
+print(sorted(unique_names))   # ['Alice', 'Bob', 'Carol']`,
+
+  c7: String.raw`# ── 07_comprehensions.py ── Pythonic collection building ─────
+
+# ══════════ LIST COMPREHENSION ════════════════════════════════
+# Pattern: [expression  for item in iterable  if condition]
+
+squares  = [x**2 for x in range(10)]
+evens    = [x for x in range(20) if x % 2 == 0]
+words    = ["hello", "world", "python", "mac"]
+upper    = [w.upper() for w in words if len(w) > 4]
+
+print(squares)   # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+print(evens)     # [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+print(upper)     # ['HELLO', 'WORLD', 'PYTHON']
+
+# Nested comprehension — flatten a 2D matrix
+matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+flat   = [x for row in matrix for x in row]
+print(flat)   # [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+# Conditional expression inside comprehension
+labels = ["even" if x % 2 == 0 else "odd" for x in range(8)]
+print(labels)   # ['even', 'odd', 'even', ...]
+
+# ══════════ DICT COMPREHENSION ════════════════════════════════
+# Pattern: {key_expr: val_expr for item in iterable if condition}
+
+word_lengths = {w: len(w) for w in words}
+print(word_lengths)   # {'hello': 5, 'world': 5, 'python': 6, 'mac': 3}
+
+# Invert a dictionary
+original = {"a": 1, "b": 2, "c": 3}
+inverted = {v: k for k, v in original.items()}
+print(inverted)   # {1: 'a', 2: 'b', 3: 'c'}
+
+# Filter a dict (keep only values > 2)
+filtered = {k: v for k, v in original.items() if v > 2}
+print(filtered)   # {'c': 3}
+
+# ══════════ SET COMPREHENSION ═════════════════════════════════
+# Pattern: {expression for item in iterable if condition}
+
+sentence = "the quick brown fox jumps over the lazy dog"
+unique_lengths = {len(w) for w in sentence.split()}
+print(sorted(unique_lengths))   # [2, 3, 4, 5]
+
+# ══════════ GENERATOR EXPRESSION ═════════════════════════════
+# Pattern: (expression for item in iterable if condition)
+# Lazy — values produced on demand. No list is built in memory.
+
+# Pass directly to functions that consume iterables
+total   = sum(x**2 for x in range(1_000_000))   # efficient!
+maximum = max(len(w) for w in words)
+has_mac = any(w == "mac" for w in words)         # short-circuits
+all_low = all(w.islower() for w in words)
+
+print(total)    # sum of first million squares
+print(maximum)  # 6
+print(has_mac)  # True
+print(all_low)  # True
+
+# Build lazily, iterate once
+gen = (x**2 for x in range(10))
+print(next(gen))   # 0
+print(next(gen))   # 1
+for val in gen:    # continues from where we left off
+    print(val, end=" ")
+print()
+
+# ══════════ COMPARISON: loop vs comprehension ═════════════════
+data = range(1000)
+
+# Equivalent forms — comprehension is faster and more readable
+by_loop = []
+for x in data:
+    if x % 2 == 0:
+        by_loop.append(x * 2)
+
+by_comp = [x * 2 for x in data if x % 2 == 0]   # ← prefer this
+by_map  = list(map(lambda x: x*2, filter(lambda x: x%2==0, data)))
+
+assert by_loop == by_comp == by_map  # all identical`,
+
+  c8: String.raw`# ── 08_exceptions.py ── Exception handling ──────────────────
+
+# ── BASIC try/except ──────────────────────────────────────────
+def safe_divide(a: float, b: float) -> float:
+    try:
+        return a / b
+    except ZeroDivisionError:
+        print("Cannot divide by zero.")
+        return 0.0
+
+print(safe_divide(10, 2))   # 5.0
+print(safe_divide(10, 0))   # prints message, returns 0.0
+
+# ── CATCHING MULTIPLE EXCEPTIONS ──────────────────────────────
+def parse_number(text: str) -> int:
+    try:
+        return int(text)
+    except ValueError:
+        print(f"'{text}' is not a valid integer.")
+        return 0
+    except TypeError:
+        print(f"Expected a string, got {type(text).__name__}")
+        return 0
+
+print(parse_number("42"))     # 42
+print(parse_number("hello"))  # prints warning, returns 0
+
+# ── FULL try/except/else/finally ──────────────────────────────
+def read_number_from_input():
+    try:
+        text = input("Enter a number: ")
+        value = int(text)
+    except ValueError as e:
+        # 'as e' binds the exception object — access .args for message
+        print(f"ValueError: {e}")
+        value = 0
+    except (KeyboardInterrupt, EOFError):
+        # Ctrl+C or Ctrl+D on Mac
+        print("\nInterrupted!")
+        return None
+    else:
+        # Only runs if NO exception was raised in try
+        print(f"Successfully parsed: {value}")
+    finally:
+        # ALWAYS runs — exception or not
+        print("(input processing complete)")
+    return value
+
+# ── RAISING EXCEPTIONS ────────────────────────────────────────
+def set_age(age: int):
+    if not isinstance(age, int):
+        raise TypeError(f"age must be int, got {type(age).__name__}")
+    if age < 0 or age > 150:
+        raise ValueError(f"age {age} is out of valid range 0–150")
+    return age
+
+try:
+    set_age(-5)
+except ValueError as e:
+    print(f"Caught: {e}")
+
+# Re-raise the exception after doing something
+def process():
+    try:
+        result = 1 / 0
+    except ZeroDivisionError:
+        print("Logging the error...")
+        raise                        # re-raise the original exception
+
+try:
+    process()
+except ZeroDivisionError:
+    print("Caught re-raised exception")
+
+# ── CUSTOM EXCEPTIONS ─────────────────────────────────────────
+class AppError(Exception):
+    """Base class for application errors."""
+    pass
+
+class ValidationError(AppError):
+    def __init__(self, field: str, message: str):
+        super().__init__(f"Validation error on '{field}': {message}")
+        self.field   = field
+        self.message = message
+
+class NotFoundError(AppError):
+    def __init__(self, resource: str, key):
+        super().__init__(f"{resource} '{key}' not found.")
+        self.resource = resource
+        self.key      = key
+
+# Usage
+try:
+    raise ValidationError("email", "must contain @")
+except ValidationError as e:
+    print(e)                  # Validation error on 'email': must contain @
+    print(e.field)            # email
+    print(e.message)          # must contain @
+
+# ── CONTEXT MANAGER — with ────────────────────────────────────
+# Always use 'with' for file operations on Mac.
+# __exit__ is called even if an exception occurs inside the block.
+from pathlib import Path
+import tempfile, os
+
+with tempfile.NamedTemporaryFile(mode='w', suffix='.txt',
+                                  delete=False, encoding='utf-8') as f:
+    temp_path = f.name
+    f.write("Hello from Python on Mac!\n")
+
+# File is closed now — safe to read
+with open(temp_path, encoding='utf-8') as f:
+    content = f.read()
+    print(content.strip())   # Hello from Python on Mac!
+
+os.unlink(temp_path)  # clean up`,
+
+  c9: String.raw`# ── 09_files.py ── File I/O on macOS ────────────────────────
+from pathlib import Path
+import json, csv, os
+
+# ── PATHLIB — PREFERRED ON MAC ────────────────────────────────
+home     = Path.home()                 # /Users/yourname  on Mac
+desktop  = Path.home() / "Desktop"    # /Users/yourname/Desktop
+docs     = Path.home() / "Documents"
+
+p = Path("data.txt")
+print(p.name)           # 'data.txt'
+print(p.stem)           # 'data'
+print(p.suffix)         # '.txt'
+print(p.parent)         # '.'  (current dir)
+print(p.absolute())     # full path
+print(p.exists())       # False (doesn't exist yet)
+print(home.is_dir())    # True
+
+# Create directories
+output_dir = Path("output")
+output_dir.mkdir(exist_ok=True)        # no error if already exists
+output_dir.mkdir(parents=True, exist_ok=True)  # create parent dirs too
+
+# Glob — find files matching a pattern
+py_files = list(Path(".").glob("*.py"))       # all .py in current dir
+all_py   = list(Path(".").rglob("*.py"))      # recursive
+
+# ── READING TEXT FILES ────────────────────────────────────────
+# Always use context manager (with) and specify encoding
+sample_path = Path("sample.txt")
+sample_path.write_text("Line one\nLine two\nLine three\n", encoding="utf-8")
+
+# Read entire file
+with open(sample_path, "r", encoding="utf-8") as f:
+    content = f.read()
+    print(repr(content))
+
+# Read line by line (memory-efficient for large files)
+with open(sample_path, encoding="utf-8") as f:
+    for line in f:                     # iterate file object directly
+        print(line.rstrip("\n"))       # strip newline
+
+# Shorthand via pathlib
+lines = sample_path.read_text(encoding="utf-8").splitlines()
+print(lines)   # ['Line one', 'Line two', 'Line three']
+
+# ── WRITING TEXT FILES ────────────────────────────────────────
+output_path = Path("output.txt")
+
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write("Hello from Python on macOS!\n")
+    f.writelines([f"Item {i}\n" for i in range(5)])
+
+# Pathlib shorthand (for smaller files)
+output_path.write_text("Quick write\n", encoding="utf-8")
+
+# Append mode
+with open(output_path, "a", encoding="utf-8") as f:
+    f.write("Appended line\n")
+
+# ── JSON ──────────────────────────────────────────────────────
+data = {
+    "name":   "Alice",
+    "age":    28,
+    "mac":    True,
+    "scores": [95, 87, 92],
+    "address": {"city": "Cupertino", "state": "CA"}
+}
+
+json_path = Path("data.json")
+
+# Write JSON
+with open(json_path, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2)           # indent= makes it human-readable
+
+# Read JSON
+with open(json_path, "r", encoding="utf-8") as f:
+    loaded = json.load(f)
+print(loaded["name"])           # Alice
+print(loaded["address"]["city"]) # Cupertino
+
+# JSON ↔ string (for APIs, not files)
+text   = json.dumps(data, indent=2)  # dict → string
+parsed = json.loads(text)             # string → dict
+
+# ── CSV ───────────────────────────────────────────────────────
+# Great for Numbers / Excel exports from Mac
+csv_path = Path("people.csv")
+
+rows = [
+    {"name": "Alice", "age": 28, "city": "Cupertino"},
+    {"name": "Bob",   "age": 34, "city": "San Francisco"},
+    {"name": "Carol", "age": 22, "city": "Berkeley"},
+]
+
+# Write CSV
+with open(csv_path, "w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=["name", "age", "city"])
+    writer.writeheader()
+    writer.writerows(rows)
+
+# Read CSV
+with open(csv_path, encoding="utf-8") as f:
+    reader = csv.DictReader(f)   # rows as dicts using header
+    for row in reader:
+        print(f"{row['name']} ({row['age']}) — {row['city']}")
+
+# Cleanup
+for p in [sample_path, output_path, json_path, csv_path]:
+    p.unlink(missing_ok=True)
+output_dir.rmdir()`,
+
+  c10: String.raw`# ── 10_modules.py ── Imports, packages, venv ────────────────
+
+# ── IMPORT STYLES ─────────────────────────────────────────────
+import math                        # import whole module
+import math as m                   # alias
+from math import sqrt, pi, floor   # import specific names
+# from math import *               # AVOID: pollutes namespace
+
+print(math.sqrt(16))   # 4.0
+print(m.pi)            # 3.14159...
+print(sqrt(16))        # 4.0  — no math. prefix needed
+print(pi)              # 3.14159...
+
+# ── STANDARD LIBRARY MODULES ──────────────────────────────────
+import os
+import sys
+import datetime as dt
+from pathlib import Path
+from collections import Counter, defaultdict, deque
+from functools import lru_cache, partial
+from itertools import islice, chain, zip_longest
+
+# os — operating system interface
+print(os.getcwd())               # current directory
+print(os.getenv("HOME"))         # /Users/yourname on Mac
+print(os.getenv("SHELL"))        # /bin/zsh on Mac
+home = os.path.expanduser("~")  # /Users/yourname
+
+# sys — interpreter info
+print(sys.version)       # Python 3.12.x
+print(sys.platform)      # 'darwin' on macOS
+print(sys.executable)    # path to the Python binary
+print(sys.argv)          # command-line arguments list
+
+# datetime
+now = dt.datetime.now()
+print(now.strftime("%Y-%m-%d %H:%M:%S"))
+tomorrow = now + dt.timedelta(days=1)
+print(f"Tomorrow: {tomorrow.date()}")
+
+# collections.Counter
+text  = "the quick brown fox jumps over the lazy dog"
+words = text.split()
+freq  = Counter(words)
+print(freq.most_common(3))   # [('the', 2), ('quick', 1), ...]
+
+# itertools
+first5 = list(islice(range(100), 5))   # [0, 1, 2, 3, 4]
+merged = list(chain([1,2], [3,4], [5,6]))   # [1,2,3,4,5,6]
+
+# ── SCRIPT GUARD ──────────────────────────────────────────────
+# When run directly: __name__ == "__main__"
+# When imported:     __name__ == "10_modules"
+# This ensures main() only runs when the file is executed directly.
+
+def main():
+    print("Running as a script")
+
+if __name__ == "__main__":
+    main()
+
+# ── CREATING YOUR OWN MODULE ──────────────────────────────────
+# Any .py file is a module. Create  myutils.py:
+#
+#   def greet(name): return f"Hello, {name}!"
+#   PI = 3.14159
+#
+# Then in your main script:
+#   from myutils import greet, PI
+
+# ── PACKAGE STRUCTURE ─────────────────────────────────────────
+# mypackage/
+#   __init__.py           # makes it a package (can be empty)
+#   utils.py              # mypackage.utils
+#   models/
+#     __init__.py
+#     user.py             # mypackage.models.user
+#
+# Import:  from mypackage.models.user import User
+# Relative: from .utils import helper  (inside the package)
+
+# ── VIRTUAL ENVIRONMENTS ON MAC ───────────────────────────────
+# Terminal commands (run in Terminal, not Python):
+#
+# Create:     python -m venv .venv
+# Activate:   source .venv/bin/activate
+# Deactivate: deactivate
+# Install:    pip install requests pandas
+# Freeze:     pip freeze > requirements.txt
+# Restore:    pip install -r requirements.txt
+# Check:      pip list`,
+
+  c11: String.raw`# ── 11_advanced.py ── Advanced Python features ───────────────
+import asyncio, functools, contextlib
+from typing import Generator, Iterator
+
+# ── WALRUS OPERATOR := (Python 3.8+) ─────────────────────────
+# Assign and return a value in one expression
+numbers = [1, 4, 9, 2, 8, 6, 3]
+
+# Without walrus: two calls
+if max(numbers) > 5:
+    print(f"max is {max(numbers)}")
+
+# With walrus: one call
+if (m := max(numbers)) > 5:
+    print(f"max is {m}")     # m is now in scope
+
+# Great in while loops
+data = b"first chunk"       # simulate data source
+chunks = []
+# while chunk := source.read(4096):   # real usage pattern
+#     chunks.append(chunk)
+
+# ── CONTEXT MANAGERS ─────────────────────────────────────────
+# Implement __enter__ and __exit__ for 'with' statement
+import time
+
+class Timer:
+    """Measure elapsed time with a context manager."""
+    def __enter__(self):
+        self.start = time.perf_counter()
+        return self                    # value bound to 'as' variable
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.elapsed = time.perf_counter() - self.start
+        print(f"  Elapsed: {self.elapsed:.4f}s")
+        return False   # False = don't suppress exceptions
+
+with Timer() as t:
+    total = sum(x**2 for x in range(1_000_000))
+print(f"  Sum: {total}")
+
+# Simpler: use contextlib.contextmanager decorator
+@contextlib.contextmanager
+def temporary_directory():
+    """Context manager that creates a temp dir and cleans up after."""
+    import tempfile, shutil
+    tmpdir = tempfile.mkdtemp()
+    try:
+        yield tmpdir        # value given to 'as' variable
+    finally:
+        shutil.rmtree(tmpdir)  # always clean up
+
+with temporary_directory() as tmpdir:
+    print(f"Working in: {tmpdir}")
+# tmpdir is deleted here
+
+# ── FUNCTOOLS ─────────────────────────────────────────────────
+# lru_cache: memoize function results
+@functools.lru_cache(maxsize=128)
+def fibonacci(n: int) -> int:
+    if n < 2: return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+print([fibonacci(i) for i in range(12)])
+print(fibonacci.cache_info())   # show cache hits/misses
+
+# Python 3.9+ shorthand — @functools.cache (unbounded)
+@functools.cache
+def factorial(n: int) -> int:
+    return 1 if n <= 1 else n * factorial(n - 1)
+
+print(factorial(10))   # 3628800
+
+# partial: fix some arguments of a function
+def power(base, exponent):
+    return base ** exponent
+
+square = functools.partial(power, exponent=2)
+cube   = functools.partial(power, exponent=3)
+print(square(5))   # 25
+print(cube(3))     # 27
+
+# reduce: apply function cumulatively
+from functools import reduce
+product = reduce(lambda a, b: a * b, [1, 2, 3, 4, 5])
+print(product)   # 120
+
+# ── ASYNC / AWAIT ─────────────────────────────────────────────
+# For I/O-bound tasks (network, file): run concurrently
+# Requires Python 3.7+, available on all modern Macs
+
+async def fetch_data(name: str, delay: float) -> str:
+    """Simulate an async network request."""
+    await asyncio.sleep(delay)   # non-blocking sleep
+    return f"Data from {name}"
+
+async def main_async():
+    # Sequential — total time = sum of delays
+    r1 = await fetch_data("API 1", 0.1)
+    r2 = await fetch_data("API 2", 0.1)
+    print(r1, r2)
+
+    # Concurrent — total time = max of delays
+    r1, r2, r3 = await asyncio.gather(
+        fetch_data("API A", 0.1),
+        fetch_data("API B", 0.15),
+        fetch_data("API C", 0.05),
+    )
+    print(r1, r2, r3)
+
+asyncio.run(main_async())   # entry point for async code
+
+# ── ITERTOOLS ─────────────────────────────────────────────────
+from itertools import (
+    chain, islice, groupby, product,
+    accumulate, cycle, takewhile, dropwhile
+)
+
+# chain — combine iterables without copying
+for x in chain([1, 2], [3, 4], "56"):
+    print(x, end=" ")   # 1 2 3 4 5 6
+print()
+
+# islice — take first n items from any iterable
+first10 = list(islice(range(10**6), 10))   # [0..9]
+
+# accumulate — running totals
+running_sum = list(accumulate([1, 2, 3, 4, 5]))
+print(running_sum)   # [1, 3, 6, 10, 15]
+
+# product — cartesian product
+suits  = ["♠", "♥", "♦", "♣"]
+values = ["A", "K", "Q", "J"]
+print(list(product(values[:2], suits[:2])))`,
+
+  c12: String.raw`# ── 12_stdlib_examples.py ── Standard library in action ─────
+import datetime, pathlib, re, collections, random, subprocess, json
+
+# ── DATETIME ──────────────────────────────────────────────────
+now  = datetime.datetime.now()
+utc  = datetime.datetime.now(datetime.timezone.utc)
+
+print(now.strftime("%A, %B %d, %Y at %I:%M %p"))   # e.g. "Sunday, March 17, 2024"
+print(now.isoformat())
+
+# Date arithmetic
+deadline = now + datetime.timedelta(days=30)
+print(f"30 days from now: {deadline.date()}")
+
+# ── PATHLIB (Mac paths) ───────────────────────────────────────
+from pathlib import Path
+
+home      = Path.home()                    # /Users/alice
+desktop   = home / "Desktop"              # /Users/alice/Desktop
+documents = home / "Documents"
+
+print(f"Home: {home}")
+print(f"Desktop exists: {desktop.exists()}")
+
+# List all .py files in current directory
+for f in sorted(Path(".").glob("*.py")):
+    size = f.stat().st_size
+    print(f"  {f.name:30} {size:6} bytes")
+
+# ── RE — REGULAR EXPRESSIONS ─────────────────────────────────
+text = "My email is alice@example.com and phone is (408) 555-1234"
+
+# Search for first match
+m = re.search(r"[\w.]+@[\w.]+\.\w+", text)
+if m:
+    print(f"Email: {m.group()}")   # alice@example.com
+
+# Find all matches
+emails = re.findall(r"[\w.]+@[\w.]+\.\w+", text)
+phones = re.findall(r"\(\d{3}\)\s*\d{3}-\d{4}", text)
+print(f"Emails: {emails}")
+print(f"Phones: {phones}")
+
+# Replace
+cleaned = re.sub(r"\s+", " ", "too   many     spaces")
+print(cleaned)   # 'too many spaces'
+
+# ── COLLECTIONS ───────────────────────────────────────────────
+# Counter
+words = "to be or not to be that is the question".split()
+freq  = collections.Counter(words)
+print(freq.most_common(3))    # [('to', 2), ('be', 2), ...]
+print(freq["to"])              # 2
+
+# Counter arithmetic
+c1 = collections.Counter("aabbc")
+c2 = collections.Counter("abcdd")
+print(c1 + c2)   # combined counts
+print(c1 & c2)   # intersection (min)
+print(c1 - c2)   # subtract
+
+# defaultdict
+graph = collections.defaultdict(list)
+graph["A"].append("B")
+graph["A"].append("C")
+graph["B"].append("D")
+print(dict(graph))   # {'A': ['B', 'C'], 'B': ['D']}
+
+# OrderedDict (historical — regular dict is ordered in Python 3.7+)
+# namedtuple
+Point = collections.namedtuple("Point", ["x", "y"])
+p = Point(3, 4)
+print(p, p.x, p.y)
+
+# deque — fast append/pop from both ends (O(1))
+queue = collections.deque([1, 2, 3])
+queue.appendleft(0)    # add to front
+queue.append(4)        # add to back
+queue.popleft()        # remove from front
+print(list(queue))     # [1, 2, 3, 4]
+
+# ── RANDOM ────────────────────────────────────────────────────
+random.seed(42)                            # for reproducibility
+print(random.randint(1, 10))               # random int 1–10
+print(random.random())                     # float in [0.0, 1.0)
+print(random.choice(["a", "b", "c"]))     # random item
+items = list(range(10))
+random.shuffle(items)                      # shuffle in place
+print(items)
+sample = random.sample(range(100), 5)     # 5 unique random ints
+print(sorted(sample))
+
+# ── SUBPROCESS — run Terminal commands from Python ─────────────
+# Perfect for Mac automation
+result = subprocess.run(
+    ["ls", "-la"],
+    capture_output=True, text=True, cwd=str(Path.home())
+)
+# print(result.stdout[:200])             # first 200 chars of output
+
+# Get macOS version
+mac_ver = subprocess.run(
+    ["sw_vers", "-productVersion"],
+    capture_output=True, text=True
+)
+print(f"macOS version: {mac_ver.stdout.strip()}")
+
+# Open a file in its default app (like double-clicking in Finder)
+# subprocess.run(["open", "myfile.pdf"])     # 'open' is Mac-specific
+
+# ── JSON (recap) ──────────────────────────────────────────────
+config = {
+    "app_name": "MyPythonApp",
+    "version":  "1.0.0",
+    "mac":      True,
+    "settings": {"theme": "dark", "font_size": 14}
+}
+
+# Pretty-print JSON
+print(json.dumps(config, indent=2, sort_keys=True))`
+
+}; /* end CODE */
+
+/* ── Inject code content, then syntax-highlight ────────────── */
+Object.entries(CODE).forEach(([id, src]) => {
+  const el = document.getElementById(id);
+  if (el) el.textContent = src;
+});
+
+hljs.highlightAll();
+
+/* ── Copy buttons ───────────────────────────────────────────── */
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const el = document.getElementById(btn.dataset.t);
+    if (!el) return;
+    try {
+      await navigator.clipboard.writeText(el.textContent);
+      btn.textContent = '✓ Copied';
+      btn.classList.add('ok');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 2000);
+    } catch { btn.textContent = 'Error'; }
+  });
+});
+
+/* ── Scroll progress bar ────────────────────────────────────── */
+const bar = document.getElementById('scroll-bar');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.transform = `scaleX(${h > 0 ? window.scrollY / h : 0})`;
+}, { passive: true });
+
+/* ── Active nav link via IntersectionObserver ───────────────── */
+const sections = document.querySelectorAll('article.section, [id]');
+const links    = document.querySelectorAll('.nav a');
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav a[href="#${e.target.id}"]`);
+      if (a) { a.classList.add('active'); a.scrollIntoView({ block: 'nearest' }); }
+    }
+  });
+}, { threshold: 0.12, rootMargin: '-30px 0px -50% 0px' });
+
+sections.forEach(s => io.observe(s));
+
+/* ── Mobile sidebar toggle ──────────────────────────────────── */
+const nav = document.getElementById('nav');
+const ham = document.getElementById('ham');
+ham.addEventListener('click', () => nav.classList.toggle('open'));
+document.addEventListener('click', e => {
+  if (!nav.contains(e.target) && !ham.contains(e.target)) nav.classList.remove('open');
+});
+</script>
+</body>
+</html>

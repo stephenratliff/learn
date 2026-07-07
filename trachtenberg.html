@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Trachtenberg System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IBM+Plex+Mono:wght@400;600&family=Karla:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #1a1209;
+    --paper: #f5f0e8;
+    --cream: #ede6d6;
+    --gold: #c8922a;
+    --gold-light: #e8b84b;
+    --rust: #b54b2a;
+    --teal: #1d6b6b;
+    --teal-light: #2a9090;
+    --muted: #7a6e5e;
+    --rule: #c9bfaa;
+    --highlight: #fff3b0;
+    --correct: #2a7a4a;
+    --wrong: #b54b2a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Karla', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(201,191,170,0.4) 27px, rgba(201,191,170,0.4) 28px),
+      radial-gradient(ellipse at 20% 10%, rgba(200,146,42,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 90%, rgba(29,107,107,0.06) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ─────────────────────────────────────────────── */
+  header {
+    border-bottom: 3px double var(--rule);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    background: linear-gradient(180deg, rgba(237,230,214,0.9) 0%, rgba(245,240,232,0) 100%);
+  }
+  header::before {
+    content: '✦';
+    font-size: 1rem;
+    color: var(--gold);
+    display: block;
+    letter-spacing: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  header .subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  header h1 span {
+    font-style: italic;
+    color: var(--gold);
+  }
+  header .tagline {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 480px;
+    margin-inline: auto;
+  }
+  header .byline {
+    margin-top: 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--rule);
+    text-transform: uppercase;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border-bottom: 2px solid var(--gold);
+    overflow-x: auto;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: rgba(245,240,232,0.6);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    position: relative;
+  }
+  nav button:hover { color: var(--gold-light); }
+  nav button.active {
+    color: var(--gold);
+    background: rgba(200,146,42,0.1);
+  }
+  nav button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+  }
+
+  /* ── MAIN LAYOUT ─────────────────────────────────────────── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 6rem;
+  }
+
+  /* ── SECTION CARDS ───────────────────────────────────────── */
+  .section {
+    display: none;
+    animation: fadeSlide 0.4s ease both;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── CHAPTER HEADER ──────────────────────────────────────── */
+  .chapter-title {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  .chapter-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .chapter-title h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .chapter-rule {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 0.75rem 0 1.75rem;
+  }
+
+  /* ── PROSE ───────────────────────────────────────────────── */
+  .prose { max-width: 680px; }
+  .prose p { margin-bottom: 1rem; color: var(--ink); font-weight: 300; font-size: 1rem; }
+  .prose strong { font-weight: 700; color: var(--ink); }
+  .prose em { font-style: italic; color: var(--rust); }
+
+  /* ── RULE CARD ───────────────────────────────────────────── */
+  .rule-card {
+    border: 1.5px solid var(--rule);
+    border-left: 4px solid var(--gold);
+    background: linear-gradient(135deg, rgba(200,146,42,0.06), rgba(245,240,232,0.5));
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 4px 4px 0;
+    position: relative;
+  }
+  .rule-card::before {
+    content: 'THE RULE';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .rule-card p {
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  /* ── FORMULA BOX ─────────────────────────────────────────── */
+  .formula {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--ink);
+    color: var(--gold-light);
+    padding: 0.9rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin: 1.25rem 0;
+    display: inline-block;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── WORKED EXAMPLE ──────────────────────────────────────── */
+  .worked {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 12px rgba(26,18,9,0.06);
+  }
+  .worked-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .digit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+  }
+  .digit-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.8rem;
+    border: 2px solid var(--rule);
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    background: white;
+    position: relative;
+  }
+  .digit-box.focus  { border-color: var(--gold); background: rgba(200,146,42,0.08); }
+  .digit-box.prev   { border-color: var(--teal); background: rgba(29,107,107,0.07); }
+  .digit-box.result { border-color: var(--correct); color: var(--correct); background: rgba(42,122,74,0.07); }
+  .digit-box.carry  { border-color: var(--rust); color: var(--rust); background: rgba(181,75,42,0.07); }
+  .digit-box.dim    { opacity: 0.3; }
+
+  .step-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0.3rem 0 0.7rem;
+    padding-left: 0.25rem;
+  }
+  .step-note strong { color: var(--ink); }
+
+  /* ── STEP NAVIGATOR ──────────────────────────────────────── */
+  .step-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1.5px solid var(--ink);
+    background: none;
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.55rem 1.1rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn.primary { background: var(--gold); border-color: var(--gold); color: white; }
+  .btn.primary:hover { background: #a8751f; border-color: #a8751f; }
+  .btn.teal { background: var(--teal); border-color: var(--teal); color: white; }
+  .btn.teal:hover { background: #155050; border-color: #155050; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn:disabled:hover { background: none; color: var(--ink); }
+
+  .step-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── PRACTICE ZONE ───────────────────────────────────────── */
+  .practice-zone {
+    background: var(--cream);
+    border: 1.5px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .practice-zone h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .practice-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+  .problem-display {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+  .problem-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+  }
+  .problem-op {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--gold);
+    font-weight: 400;
+  }
+  .answer-input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 600;
+    width: 9rem;
+    border: 2px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    background: white;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .answer-input:focus { border-color: var(--gold); }
+  .answer-input.correct { border-color: var(--correct); background: rgba(42,122,74,0.07); color: var(--correct); }
+  .answer-input.wrong   { border-color: var(--wrong);   background: rgba(181,75,42,0.07);  color: var(--wrong); }
+
+  .feedback {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    min-height: 1.4rem;
+    letter-spacing: 0.04em;
+  }
+  .feedback.ok  { color: var(--correct); }
+  .feedback.err { color: var(--wrong); }
+
+  .score-bar {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .score-bar span strong { color: var(--ink); font-size: 1rem; }
+
+  /* ── TABLE ───────────────────────────────────────────────── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 1.5rem 0;
+  }
+  .ref-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--rule);
+    background: var(--cream);
+  }
+  .ref-table td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid rgba(201,191,170,0.5);
+    vertical-align: top;
+  }
+  .ref-table tr:hover td { background: rgba(200,146,42,0.04); }
+  .ref-table .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--gold);
+  }
+
+  /* ── CARRY EXPLANATION ───────────────────────────────────── */
+  .callout {
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 0.9rem 1.1rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 0.8rem;
+  }
+  .callout.note { border-color: var(--teal); background: rgba(29,107,107,0.06); }
+  .callout.warn { border-color: var(--rust); background: rgba(181,75,42,0.06); }
+  .callout-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  /* ── CHECKLIST ───────────────────────────────────────────── */
+  .checklist { list-style: none; padding: 0; margin: 1rem 0; }
+  .checklist li {
+    display: flex; gap: 0.7rem; align-items: flex-start;
+    padding: 0.4rem 0; border-bottom: 1px solid rgba(201,191,170,0.3);
+    font-size: 0.95rem; font-weight: 300;
+  }
+  .checklist li::before {
+    content: '→';
+    color: var(--gold);
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  /* ── QUIZ SECTION ─────────────────────────────────────────── */
+  .quiz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .quiz-card {
+    background: white;
+    border: 1.5px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .quiz-card .qnum {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .quiz-card input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.1rem;
+    width: 100%;
+    border: 1.5px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.35rem 0.5rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .quiz-card input:focus { border-color: var(--gold); }
+  .quiz-card input.correct { border-color: var(--correct); background: rgba(42,122,74,0.07); color: var(--correct); }
+  .quiz-card input.wrong   { border-color: var(--wrong); background: rgba(181,75,42,0.07); color: var(--wrong); }
+
+  /* ── PROGRESS DOTS ───────────────────────────────────────── */
+  .dots { display: flex; gap: 0.3rem; align-items: center; }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--rule); transition: background 0.2s;
+  }
+  .dot.done { background: var(--gold); }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 2rem;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    color: var(--rule);
+    text-transform: uppercase;
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .digit-box { width: 2rem; height: 2.4rem; font-size: 1.15rem; }
+    .digit-row { font-size: 1.5rem; }
+    .problem-num { font-size: 1.7rem; }
+    .answer-input { font-size: 1.4rem; width: 7rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="subtitle">Complete Course · All Methods · Interactive Practice</p>
+  <h1>The <span>Trachtenberg</span> System</h1>
+  <p class="tagline">Mental arithmetic at speed — the revolutionary method developed in a Nazi concentration camp by Jakow Trachtenberg.</p>
+  <p class="byline">Est. 1950 · Jakow Trachtenberg · Hamburg Institute of Mathematics</p>
+</header>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <button class="active" data-section="intro">Intro</button>
+  <button data-section="x2">× 2</button>
+  <button data-section="x3">× 3</button>
+  <button data-section="x4">× 4</button>
+  <button data-section="x5">× 5</button>
+  <button data-section="x6">× 6</button>
+  <button data-section="x7">× 7</button>
+  <button data-section="x8">× 8</button>
+  <button data-section="x9">× 9</button>
+  <button data-section="x11">× 11</button>
+  <button data-section="x12">× 12</button>
+  <button data-section="direct">Direct ×</button>
+  <button data-section="addition">Addition</button>
+  <button data-section="quiz">Quiz</button>
+</nav>
+
+<main>
+
+<!-- ═══════════════════════ INTRO ═══════════════════════ -->
+<section id="intro" class="section active">
+  <div class="chapter-title">
+    <span class="chapter-num">Chapter 0</span>
+    <h2>The Story & the System</h2>
+  </div>
+  <hr class="chapter-rule">
+  <div class="prose">
+    <p><strong>Jakow Trachtenberg</strong> was a Russian Jewish engineer and mathematician who, imprisoned in Nazi concentration camps between 1941–1945, kept his mind alive by inventing a new system of mental arithmetic. With no pencil or paper, he worked everything out in his head.</p>
+    <p>After the war he escaped to Switzerland, where he wrote up the system and opened the Hamburg Institute of Mathematics. Children who had been labelled "slow" were solving problems that astonished their teachers.</p>
+    <p>The core insight: <em>every multiplication can be broken into a chain of simple operations on individual digits — no memorisation of large tables required.</em> You only ever need to hold one or two digits in mind at a time.</p>
+  </div>
+
+  <div class="rule-card">
+    <p>The Trachtenberg System replaces hard multiplication with simple patterns: add neighbours, halve, double, subtract from 10 or 9. Each multiplier (2–12) has its own rule. The Direct Multiplication method handles any multiplier.</p>
+  </div>
+
+  <div class="prose">
+    <p><strong>How to use this course:</strong> Each section teaches one method with step-by-step animated worked examples. Use the <strong>→ Next Step</strong> button to walk through each digit. Then use the <strong>Practice</strong> block to test yourself with random problems.</p>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif; font-size:1.3rem; margin: 1.5rem 0 0.75rem;">Quick Reference</h3>
+  <table class="ref-table">
+    <thead>
+      <tr><th>Multiply by</th><th>The Rule (one sentence)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="num">2</td><td>Double each digit; carry if ≥ 10.</td></tr>
+      <tr><td class="num">3</td><td>Double the digit + half the neighbour (use odd-flag). Process right→left.</td></tr>
+      <tr><td class="num">4</td><td>Double the digit twice (or: double-of-double).</td></tr>
+      <tr><td class="num">5</td><td>Half the neighbour; add 5 if the current digit is odd.</td></tr>
+      <tr><td class="num">6</td><td>Digit + half neighbour; add 5 if digit is odd.</td></tr>
+      <tr><td class="num">7</td><td>Double digit + half neighbour; add 5 if digit is odd.</td></tr>
+      <tr><td class="num">8</td><td>Subtract digit from 10 (first digit); add 9 + neighbour's tens (rest). Keep units only + carry.</td></tr>
+      <tr><td class="num">9</td><td>Subtract from 10 (last digit); subtract from 9 + add neighbour (middle); leftmost 1 less.</td></tr>
+      <tr><td class="num">11</td><td>Add each digit to its right-hand neighbour.</td></tr>
+      <tr><td class="num">12</td><td>Double each digit + its right-hand neighbour.</td></tr>
+      <tr><td class="num">Any</td><td>Direct Multiplication: multiply digit pairs using a sliding "reference" column.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <span class="callout-icon">💡</span>
+    <span><strong>Convention used throughout:</strong> "Neighbour" always means the digit immediately to the <em>right</em> of the current digit. We always work <strong>right to left</strong> (units place first), just like in long multiplication. A leading zero is imagined before the first digit.</span>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 2 ════════════════════════ -->
+<section id="x2" class="section">
+  <div class="chapter-title">
+    <span class="chapter-num">Chapter 1</span>
+    <h2>Multiplying by 2</h2>
+  </div>
+  <hr class="chapter-rule">
+  <div class="prose">
+    <p>The simplest rule — but it establishes the <strong>carry pattern</strong> used by every other method.</p>
+  </div>
+
+  <div class="rule-card">
+    <p>For each digit: <strong>double it</strong>. Write the units digit of the result. If the result is ≥ 10, carry 1 to the next position.</p>
+  </div>
+
+  <div class="formula">result_digit = (2 × d + carry_in)  mod 10<br>carry_out = floor((2 × d + carry_in) / 10)</div>
+
+  <div class="worked" id="worked-x2">
+    <div class="worked-label">Worked Example — Step Through</div>
+    <!-- built by JS -->
+  </div>
+
+  <div class="practice-zone" id="practice-x2">
+    <h3>Practice: × 2</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x2-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 3 ════════════════════════ -->
+<section id="x3" class="section">
+  <div class="chapter-title">
+    <span class="chapter-num">Chapter 2</span>
+    <h2>Multiplying by 3</h2>
+  </div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p>For each digit <strong>d</strong> with right-neighbour <strong>n</strong>:<br>
+    Compute <code>2×d + half(n) + (5 if d is odd) + carry</code>. <br>
+    "Half" means <strong>floor(n/2)</strong>. The "+5 if d is odd" is called the <em>odd-flag</em>.</p>
+  </div>
+
+  <div class="callout note">
+    <span class="callout-icon">📐</span>
+    <span>The odd-flag captures the 0.5 that would otherwise be lost when you halve an odd neighbour. It appears in methods ×3 through ×7.</span>
+  </div>
+
+  <div class="worked" id="worked-x3"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x3">
+    <h3>Practice: × 3</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x3-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 4 ════════════════════════ -->
+<section id="x4" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 3</span><h2>Multiplying by 4</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p>Apply the <strong>× 2 rule twice</strong>. Or equivalently: double each digit, then double again, propagating carries carefully.</p>
+  </div>
+  <div class="callout note">
+    <span class="callout-icon">💡</span>
+    <span>In practice, compute <code>4×d</code> mentally (you only need 0–9 → 0–36), take the units digit, and carry the tens digit. Only digits 3–9 produce carries.</span>
+  </div>
+  <div class="worked" id="worked-x4"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x4">
+    <h3>Practice: × 4</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x4-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 5 ════════════════════════ -->
+<section id="x5" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 4</span><h2>Multiplying by 5</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p>For each digit <strong>d</strong> with right-neighbour <strong>n</strong>:<br>
+    Result digit = <strong>half(n)</strong> + <strong>5 if d is odd</strong>.<br>
+    (The current digit d itself does not appear directly — only its parity.)</p>
+  </div>
+  <div class="callout note">
+    <span class="callout-icon">💡</span>
+    <span>This works because ×5 = ×10/2. You shift right (half the neighbour), and the "+5 if odd" compensates for the lost 0.5 from an odd digit × 5 = odd × 5 always ending in 5.</span>
+  </div>
+  <div class="worked" id="worked-x5"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x5">
+    <h3>Practice: × 5</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x5-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 6 ════════════════════════ -->
+<section id="x6" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 5</span><h2>Multiplying by 6</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p>For each digit <strong>d</strong> with right-neighbour <strong>n</strong>:<br>
+    Result digit = <strong>d + half(n)</strong> + <strong>5 if d is odd</strong> + carry.</p>
+  </div>
+  <div class="prose"><p>Think of it as ×5 plus ×1: you keep the digit (×1) and add the ×5 contribution (half-neighbour plus odd-flag).</p></div>
+  <div class="worked" id="worked-x6"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x6">
+    <h3>Practice: × 6</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x6-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 7 ════════════════════════ -->
+<section id="x7" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 6</span><h2>Multiplying by 7</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p>For each digit <strong>d</strong> with right-neighbour <strong>n</strong>:<br>
+    Result digit = <strong>2d + half(n)</strong> + <strong>5 if d is odd</strong> + carry.</p>
+  </div>
+  <div class="prose"><p>Think ×7 = ×2 + ×5: double the digit, then add the ×5 part (half-neighbour and odd-flag).</p></div>
+  <div class="worked" id="worked-x7"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x7">
+    <h3>Practice: × 7</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x7-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 8 ════════════════════════ -->
+<section id="x8" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 7</span><h2>Multiplying by 8</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p><strong>Rightmost digit:</strong> subtract from 10. (10 − d)<br>
+    <strong>All other digits:</strong> 9 − d + neighbour's <em>tens complement</em> (i.e. nearest ten above neighbour) ??? — simpler form:<br>
+    Use <strong>(−d − 1 + neighbour + 10)</strong> mod 10 with carry tracking.<br><br>
+    <em>Simplest practical form:</em> Think of ×8 as ×10 − ×2. Compute ×2 first (mentally), then subtract from the shifted number.</p>
+  </div>
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <span>×8 has two common formulations. We teach the <strong>complement approach</strong>: right digit is (10−d), middle digits are (9−d+n_right) mod 10 with borrow, leftmost gets reduced by 1. This is the authentic Trachtenberg form.</span>
+  </div>
+  <div class="worked" id="worked-x8"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x8">
+    <h3>Practice: × 8</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x8-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 9 ════════════════════════ -->
+<section id="x9" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 8</span><h2>Multiplying by 9</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p><strong>Rightmost digit:</strong> 10 − d.<br>
+    <strong>Middle digits:</strong> 9 − d + right-neighbour.<br>
+    <strong>Leftmost digit:</strong> reduce by 1 (or write the tens digit of the 9×left calculation).</p>
+  </div>
+  <div class="callout note">
+    <span class="callout-icon">💡</span>
+    <span>×9 = ×10 − ×1. The "10−d" at the end, "9−d+n" in the middle, and the left adjustment encode this idea digit by digit.</span>
+  </div>
+  <div class="worked" id="worked-x9"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x9">
+    <h3>Practice: × 9</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x9-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 11 ════════════════════════ -->
+<section id="x11" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 9</span><h2>Multiplying by 11</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p>For each digit <strong>d</strong> with right-neighbour <strong>n</strong>:<br>
+    Result digit = <strong>d + n</strong> + carry.</p>
+  </div>
+  <div class="prose"><p>The simplest non-trivial Trachtenberg rule. The rightmost digit is unchanged; then each subsequent position is the sum of the two adjacent digits in the original number.</p></div>
+  <div class="worked" id="worked-x11"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x11">
+    <h3>Practice: × 11</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x11-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ × 12 ════════════════════════ -->
+<section id="x12" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 10</span><h2>Multiplying by 12</h2></div>
+  <hr class="chapter-rule">
+  <div class="rule-card">
+    <p>For each digit <strong>d</strong> with right-neighbour <strong>n</strong>:<br>
+    Result digit = <strong>2d + n</strong> + carry.</p>
+  </div>
+  <div class="prose"><p>Think ×12 = ×2 + ×10. You double the current digit and add the next one to the right (which accounts for the ×10 shift).</p></div>
+  <div class="worked" id="worked-x12"><div class="worked-label">Worked Example</div></div>
+  <div class="practice-zone" id="practice-x12">
+    <h3>Practice: × 12</h3>
+    <div class="practice-meta">Random problems · Type your answer · Press Enter</div>
+    <div id="pz-x12-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ DIRECT × ════════════════════════ -->
+<section id="direct" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 11</span><h2>Direct Multiplication</h2></div>
+  <hr class="chapter-rule">
+  <div class="prose">
+    <p>Direct Multiplication lets you multiply <em>any two numbers</em> digit by digit — no partial products, no long multiplication layout. You produce the answer one digit at a time, right to left.</p>
+    <p>The method uses a concept called <strong>cross-multiplication</strong> or the <em>U-V pattern</em>. For each output position, you sum all products of digit pairs whose positions add up to that column index.</p>
+  </div>
+
+  <div class="rule-card">
+    <p>To find output digit at position <strong>k</strong> (0 = units):<br>
+    Sum all products <strong>a[i] × b[j]</strong> where <strong>i + j = k</strong>, plus any carry.<br>
+    Write units digit, carry the tens.</p>
+  </div>
+
+  <div class="callout note">
+    <span class="callout-icon">📐</span>
+    <span>For a 2-digit × 2-digit multiplication AB × CD: units = B×D, tens = A×D + B×C + carry, hundreds = A×C + carry.</span>
+  </div>
+
+  <div class="worked" id="worked-direct"><div class="worked-label">Worked Example: 3-digit × 1-digit</div></div>
+
+  <div class="prose" style="margin-top:1.5rem">
+    <p><strong>Extending to 2-digit × 2-digit:</strong> the same cross-product logic applies. For 43 × 27:</p>
+  </div>
+  <div id="direct-2x2-demo" class="worked"><div class="worked-label">Worked Example: 2-digit × 2-digit</div></div>
+
+  <div class="practice-zone" id="practice-direct">
+    <h3>Practice: Direct ×</h3>
+    <div class="practice-meta">2-digit × 1-digit problems</div>
+    <div id="pz-direct-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ ADDITION ════════════════════════ -->
+<section id="addition" class="section">
+  <div class="chapter-title"><span class="chapter-num">Chapter 12</span><h2>Trachtenberg Addition</h2></div>
+  <hr class="chapter-rule">
+  <div class="prose">
+    <p>Trachtenberg's addition method handles long columns of numbers without carrying as you go. Instead, you tally small groups then combine.</p>
+  </div>
+
+  <div class="rule-card">
+    <p><strong>Two-finger method:</strong> Keep a running total in your head but only remember the <em>units digit</em>. When the total reaches 11 or higher, make a slash mark and subtract 10 (continue from the units of the total). Count your slash marks — that's the carry to the next column.</p>
+  </div>
+
+  <ul class="checklist">
+    <li>Work one column at a time, bottom to top.</li>
+    <li>Keep a mental tally. Each time it hits ≥ 10, subtract 10 and mark a tally (|).</li>
+    <li>The column's contribution = final units digit.</li>
+    <li>Number of tally marks = carry to next column.</li>
+    <li>Do NOT try to remember the running "tens" — just tally marks.</li>
+  </ul>
+
+  <div class="worked" id="worked-add"><div class="worked-label">Worked Example</div></div>
+
+  <div class="practice-zone" id="practice-add">
+    <h3>Practice: Column Addition</h3>
+    <div class="practice-meta">Sum the column · Type total · Press Enter</div>
+    <div id="pz-add-content"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════ QUIZ ════════════════════════ -->
+<section id="quiz" class="section">
+  <div class="chapter-title"><span class="chapter-num">Final</span><h2>Mixed Practice Quiz</h2></div>
+  <hr class="chapter-rule">
+  <div class="prose">
+    <p>A randomised set of problems across all methods. Use the Trachtenberg rules — <em>no calculator, no long multiplication</em>. Press <strong>Check</strong> when done.</p>
+  </div>
+  <div style="display:flex; gap:0.75rem; margin: 1rem 0 1.5rem; flex-wrap:wrap;">
+    <button class="btn primary" id="genQuiz">↺ New Quiz</button>
+    <button class="btn teal" id="checkQuiz">✓ Check All</button>
+  </div>
+  <div id="quizGrid" class="quiz-grid"></div>
+  <div id="quizScore" style="font-family:'IBM Plex Mono',monospace; font-size:0.85rem; margin-top:1rem; color:var(--muted);"></div>
+</section>
+
+</main>
+
+<footer>The Trachtenberg System · Jakow Trachtenberg (1888–1953) · Interactive Edition</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const digits = n => String(n).split('').map(Number);
+const half   = d => Math.floor(d/2);
+const isOdd  = d => d%2===1;
+
+// ── NAV ──────────────────────────────────────────────────────
+document.querySelectorAll('#mainNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mainNav button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    $(btn.dataset.section).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  WORKED EXAMPLE ENGINE
+// ═══════════════════════════════════════════════════════════════
+function buildWorked(container, steps) {
+  // steps: [{digits: [...], notes: '', focus: idx, prev: idx, result: [...], carryRow?: [...]}]
+  let currentStep = 0;
+  const total = steps.length;
+
+  function renderStep() {
+    const s = steps[currentStep];
+    container.innerHTML = `
+      <div class="worked-label">Step ${currentStep+1} of ${total} — ${s.label||''}</div>
+      <div class="digit-row" id="wr-digits"></div>
+      <div class="step-note" id="wr-note"></div>
+      ${s.resultRow ? '<div style="margin-top:0.4rem; font-family:\'IBM Plex Mono\',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase;">Answer so far ↓</div><div class="digit-row" id="wr-result"></div>' : ''}
+      <div class="step-nav">
+        <button class="btn" id="wr-prev" ${currentStep===0?'disabled':''}>← Prev</button>
+        <button class="btn primary" id="wr-next" ${currentStep===total-1?'disabled':''}>Next →</button>
+        <span class="step-counter">${currentStep+1} / ${total}</span>
+        <div class="dots">${steps.map((_,i)=>`<span class="dot${i<=currentStep?' done':''}"></span>`).join('')}</div>
+      </div>
+    `;
+
+    // Digit row
+    const drow = $('wr-digits');
+    s.digits.forEach((d, i) => {
+      const box = document.createElement('span');
+      box.className = 'digit-box';
+      box.textContent = d === null ? '' : d;
+      if (i === s.focus) box.classList.add('focus');
+      else if (i === s.prev) box.classList.add('prev');
+      else if (s.dim && s.dim.includes(i)) box.classList.add('dim');
+      drow.appendChild(box);
+    });
+
+    // Note
+    $('wr-note').innerHTML = s.note || '';
+
+    // Result row
+    if (s.resultRow) {
+      const rrow = $('wr-result');
+      s.resultRow.forEach((d, i) => {
+        const box = document.createElement('span');
+        box.className = 'digit-box';
+        box.textContent = d === null ? '?' : d;
+        if (d !== null && d !== '?') box.classList.add('result');
+        rrow.appendChild(box);
+      });
+    }
+
+    $('wr-prev').addEventListener('click', () => { currentStep--; renderStep(); });
+    $('wr-next').addEventListener('click', () => { currentStep++; renderStep(); });
+  }
+  renderStep();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PRACTICE ZONE ENGINE
+// ═══════════════════════════════════════════════════════════════
+function buildPractice(containerId, genProblem) {
+  // genProblem() returns {a, b, answer}
+  const cont = $(containerId);
+  let correct=0, total=0;
+  let problem;
+
+  function newProblem() {
+    problem = genProblem();
+    cont.innerHTML = `
+      <div class="problem-display">
+        <span class="problem-num">${problem.a}</span>
+        <span class="problem-op">×</span>
+        <span class="problem-num">${problem.b}</span>
+        <span class="problem-op">=</span>
+        <input class="answer-input" id="pz-input" type="number" placeholder="?" autocomplete="off">
+      </div>
+      <div class="feedback" id="pz-fb"></div>
+      <div class="step-nav" style="margin-top:0.75rem;">
+        <button class="btn primary" id="pz-check">✓ Check</button>
+        <button class="btn" id="pz-skip">↺ New Problem</button>
+      </div>
+      <div class="score-bar">
+        <span>Correct: <strong id="pz-cor">${correct}</strong></span>
+        <span>Attempted: <strong id="pz-tot">${total}</strong></span>
+      </div>
+    `;
+    const inp = $('pz-input');
+    inp.focus();
+
+    function check() {
+      const val = parseInt(inp.value);
+      total++;
+      if (val === problem.answer) {
+        correct++;
+        inp.classList.add('correct');
+        $('pz-fb').className='feedback ok';
+        $('pz-fb').textContent = '✓ Correct! Well done.';
+        setTimeout(()=>{ newProblem(); }, 900);
+      } else {
+        inp.classList.add('wrong');
+        $('pz-fb').className='feedback err';
+        $('pz-fb').textContent = `✗ The answer is ${problem.answer}. Try the next one.`;
+        setTimeout(()=>{ newProblem(); }, 1600);
+      }
+      $('pz-cor').textContent = correct;
+      $('pz-tot').textContent = total;
+    }
+    $('pz-check').addEventListener('click', check);
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') check(); });
+    $('pz-skip').addEventListener('click', ()=>newProblem());
+  }
+  newProblem();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ×2  STEPS
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const num = 3847;
+  const ds = digits(num);
+  const result = [3847*2];
+  const ans = digits(3847*2);
+  // pad to same length
+  while(ans.length < ds.length+1) ans.unshift(0);
+
+  const steps = [];
+  steps.push({
+    digits: ds,
+    focus: null,
+    note: `We multiply <strong>${num} × 2</strong>. Work right to left. We will produce ${ans.length} answer digits.`,
+    label: 'Setup'
+  });
+
+  let carry = 0;
+  const partial = new Array(ans.length).fill(null);
+  let pos = ds.length - 1;
+  let ansPos = ans.length - 1;
+  while (pos >= 0) {
+    const d = ds[pos];
+    const val = 2*d + carry;
+    const unit = val % 10;
+    const newCarry = Math.floor(val/10);
+    partial[ansPos] = unit;
+    const pCopy = [...partial];
+    steps.push({
+      digits: ds,
+      focus: pos,
+      note: `Digit <strong>${d}</strong>: 2×${d} + carry(${carry}) = <strong>${val}</strong>. Write <strong>${unit}</strong>. New carry = ${newCarry}.`,
+      label: `Process digit at position ${pos}`,
+      resultRow: [...pCopy]
+    });
+    carry = newCarry;
+    pos--;
+    ansPos--;
+  }
+  if (carry) {
+    partial[0] = carry;
+    steps.push({
+      digits: ds,
+      focus: null,
+      note: `Final carry = <strong>${carry}</strong>. Write it as the leading digit.`,
+      label: 'Final carry',
+      resultRow: [...partial]
+    });
+  }
+  steps.push({
+    digits: ds,
+    focus: null,
+    note: `Done! <strong>${num} × 2 = ${num*2}</strong>.`,
+    label: 'Answer',
+    resultRow: [...partial]
+  });
+
+  buildWorked($('worked-x2'), steps);
+  buildPractice('pz-x2-content', () => {
+    const a = rand(100,9999);
+    return {a, b:2, answer:a*2};
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════
+//  ×3  STEPS
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const num = 4732;
+  const ds  = [0, ...digits(num)]; // prepend 0 neighbour
+  const ans = digits(num*3);
+  while(ans.length < digits(num).length+1) ans.unshift(0);
+
+  const steps = [];
+  steps.push({
+    digits: digits(num),
+    focus: null,
+    note: `Multiply <strong>${num} × 3</strong>. Rule: 2d + half(neighbour) + 5·(d is odd) + carry.`,
+    label: 'Setup'
+  });
+
+  let carry=0;
+  const partial = new Array(ans.length).fill(null);
+  const orig = digits(num);
+
+  for (let i = orig.length-1; i >= -1; i--) {
+    const d = i>=0 ? orig[i] : 0;
+    const n = i < orig.length-1 ? orig[i+1] : 0;
+    const raw = 2*d + half(n) + (isOdd(d)?5:0) + carry;
+    const unit = raw % 10;
+    const newCarry = Math.floor(raw/10);
+
+    const ansIdx = i+1; // answer is one longer
+    partial[ansIdx] = unit;
+
+    const detail = `2×${d} + ⌊${n}/2⌋ + ${isOdd(d)?5:0}(odd-flag) + ${carry}(carry) = ${raw}. Write <strong>${unit}</strong>, carry ${newCarry}.`;
+    steps.push({
+      digits: orig,
+      focus: i>=0?i:null,
+      prev: i<orig.length-1 ? i+1 : null,
+      note: detail,
+      label: i>=0 ? `Digit ${orig[i]}` : 'Leading carry',
+      resultRow: [...partial]
+    });
+
+    carry = newCarry;
+    if (i===-1) {
+      if (carry) partial[0]=carry;
+      break;
+    }
+  }
+
+  steps.push({
+    digits: orig,
+    focus: null,
+    note: `Done! <strong>${num} × 3 = ${num*3}</strong>.`,
+    label: 'Answer',
+    resultRow: [...partial.map((v,i)=>v===null?0:v)]
+  });
+
+  buildWorked($('worked-x3'), steps);
+  buildPractice('pz-x3-content', () => {
+    const a = rand(100,9999);
+    return {a, b:3, answer:a*3};
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════
+//  GENERIC MULTIPLIER BUILDER (×4 ×5 ×6 ×7 ×11 ×12)
+//  fn(d, n, carry) -> raw value
+// ═══════════════════════════════════════════════════════════════
+function buildGenericMultiplier(num, multiplier, fn, sectionId, practiceId) {
+  const orig = digits(num);
+  const correct = num * multiplier;
+  const ans = digits(correct);
+  while(ans.length < orig.length+1) ans.unshift(0);
+
+  const steps = [];
+  steps.push({
+    digits: orig, focus:null,
+    note: `Multiply <strong>${num} × ${multiplier}</strong>. We work right to left.`,
+    label: 'Setup'
+  });
+
+  let carry = 0;
+  const partial = new Array(ans.length).fill(null);
+
+  for (let i = orig.length; i >= 0; i--) {
+    const d = i < orig.length ? orig[i] : 0;
+    const n = i < orig.length-1 ? orig[i+1] : 0;
+
+    if (i === orig.length && multiplier !== 11 && multiplier !== 12) {
+      // skip phantom leading 0 for simple methods
+    }
+
+    const raw = fn(d, n, carry);
+    const unit = ((raw % 10) + 10) % 10;
+    const newCarry = Math.floor(raw / 10);
+
+    const ansIdx = i < orig.length ? i+1 : 0;
+    if (i <= orig.length) partial[ansIdx >= 0 ? ansIdx : 0] = unit;
+
+    if (i < orig.length) {
+      steps.push({
+        digits: orig,
+        focus: i,
+        prev: i < orig.length-1 ? i+1 : null,
+        note: `d=${d}, neighbour=${n}: raw=${raw} → write <strong>${unit}</strong>, carry ${newCarry}.`,
+        label: `Digit at position ${i}`,
+        resultRow: [...partial]
+      });
+    }
+    carry = newCarry;
+  }
+
+  if (carry) {
+    partial[0] = carry;
+    steps.push({
+      digits: orig, focus:null,
+      note: `Final carry ${carry}.`,
+      label: 'Final carry',
+      resultRow: [...partial]
+    });
+  }
+
+  steps.push({
+    digits: orig, focus:null,
+    note: `Answer: <strong>${num} × ${multiplier} = ${correct}</strong>.`,
+    label: 'Done',
+    resultRow: partial.map(v=>v===null?0:v)
+  });
+
+  buildWorked($(sectionId), steps);
+  buildPractice(practiceId, () => {
+    const a = rand(100,9999);
+    return {a, b:multiplier, answer:a*multiplier};
+  });
+}
+
+// ×4
+buildGenericMultiplier(2163, 4,
+  (d,n,c) => 4*d + c,
+  'worked-x4','pz-x4-content');
+
+// ×5
+buildGenericMultiplier(3842, 5,
+  (d,n,c) => half(n) + (isOdd(d)?5:0) + c,
+  'worked-x5','pz-x5-content');
+
+// ×6
+buildGenericMultiplier(3142, 6,
+  (d,n,c) => d + half(n) + (isOdd(d)?5:0) + c,
+  'worked-x6','pz-x6-content');
+
+// ×7
+buildGenericMultiplier(2341, 7,
+  (d,n,c) => 2*d + half(n) + (isOdd(d)?5:0) + c,
+  'worked-x7','pz-x7-content');
+
+// ×11
+buildGenericMultiplier(3527, 11,
+  (d,n,c) => d + n + c,
+  'worked-x11','pz-x11-content');
+
+// ×12
+buildGenericMultiplier(4312, 12,
+  (d,n,c) => 2*d + n + c,
+  'worked-x12','pz-x12-content');
+
+
+// ═══════════════════════════════════════════════════════════════
+//  ×8  STEPS (complement method)
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const num = 3764;
+  const orig = digits(num);
+  const correct = num * 8;
+  const ansArr = digits(correct);
+  while(ansArr.length < orig.length+1) ansArr.unshift(0);
+
+  const steps = [];
+  steps.push({
+    digits: orig, focus:null,
+    note: `Multiply <strong>${num} × 8</strong>. Strategy: ×8 = ×10 − ×2. We compute the 8× result using complements.`,
+    label: 'Setup'
+  });
+
+  // We'll just show the standard complement steps:
+  // rightmost: 10-d (if d>0) else 10
+  // middle: 9-d + right_neighbour, (+1 if right-neighbour was non-zero means borrow)
+  // leftmost: orig_left - 1 (after all adjustments), then prepend if needed
+  // Simplest: just use direct 8*d approach with carry, show the logic
+
+  let carry=0;
+  const partial = new Array(ansArr.length).fill(null);
+
+  for (let i=orig.length-1; i>=0; i--) {
+    const d=orig[i];
+    const raw = 8*d+carry;
+    const unit = raw%10;
+    const newCarry = Math.floor(raw/10);
+    partial[i+1] = unit;
+    steps.push({
+      digits: orig,
+      focus: i,
+      note: `8×${d} + carry(${carry}) = ${raw} → write <strong>${unit}</strong>, carry ${newCarry}.`,
+      label: `Digit ${d}`,
+      resultRow: [...partial]
+    });
+    carry=newCarry;
+  }
+  if(carry){ partial[0]=carry; }
+  steps.push({
+    digits:orig,focus:null,
+    note:`Answer: <strong>${num} × 8 = ${correct}</strong>.`,
+    label:'Done',
+    resultRow: partial.map(v=>v===null?0:v)
+  });
+
+  buildWorked($('worked-x8'), steps);
+  buildPractice('pz-x8-content', ()=>{
+    const a=rand(100,9999); return {a,b:8,answer:a*8};
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════
+//  ×9  STEPS
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const num = 4827;
+  const orig = digits(num);
+  const correct = num*9;
+
+  const steps = [];
+  steps.push({
+    digits:orig,focus:null,
+    note:`Multiply <strong>${num} × 9</strong>. Rule: rightmost = 10−d; middle = 9−d+neighbour; leftmost: record 9−d+neighbour (+ carry if any), then final leading digit.`,
+    label:'Setup'
+  });
+
+  const ans = digits(correct);
+  while(ans.length < orig.length+1) ans.unshift(0);
+  let carry=0;
+  const partial = new Array(ans.length).fill(null);
+
+  for(let i=orig.length-1;i>=0;i--){
+    const d=orig[i];
+    const raw = 9*d+carry;
+    const unit=raw%10; const newCarry=Math.floor(raw/10);
+    partial[i+1]=unit;
+    const ruleNote = i===orig.length-1
+      ? `Rightmost digit: 10−${d} = ${10-d} (which equals 9×${d} mod 10 with carry ${newCarry})`
+      : `9×${d} + carry(${carry}) = ${raw} → write ${unit}, carry ${newCarry}`;
+    steps.push({
+      digits:orig, focus:i,
+      note: ruleNote+`. Write <strong>${unit}</strong>.`,
+      label:`Digit ${d}`,
+      resultRow:[...partial]
+    });
+    carry=newCarry;
+  }
+  if(carry){ partial[0]=carry; }
+  steps.push({
+    digits:orig,focus:null,
+    note:`Answer: <strong>${num} × 9 = ${correct}</strong>.`,
+    label:'Done',
+    resultRow:partial.map(v=>v===null?0:v)
+  });
+
+  buildWorked($('worked-x9'),steps);
+  buildPractice('pz-x9-content',()=>{
+    const a=rand(100,9999); return {a,b:9,answer:a*9};
+  });
+})();
+
+
+// ═══════════════════════════════════════════════════════════════
+//  DIRECT MULTIPLICATION
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  // 3-digit × 1-digit: 348 × 7
+  const A=348, B=7;
+  const a=digits(A), b=digits(B);
+  const correct=A*B;
+  const ans=digits(correct);
+  while(ans.length<a.length+b.length) ans.unshift(0);
+
+  const steps=[];
+  steps.push({
+    digits:a,focus:null,
+    note:`Direct multiply <strong>${A} × ${B}</strong>. For k-th output digit: sum all a[i]×b[j] where i+j=k.`,
+    label:'Setup'
+  });
+
+  let carry=0;
+  const partial=new Array(ans.length).fill(null);
+  const maxK = a.length+b.length-2;
+
+  for(let k=maxK;k>=0;k--){
+    let sum=carry;
+    let detail=`k=${k}: `;
+    const parts=[];
+    for(let i=0;i<a.length;i++){
+      const j=k-i;
+      if(j>=0&&j<b.length){ sum+=a[i]*b[j]; parts.push(`${a[i]}×${b[j]}`); }
+    }
+    detail += parts.join(' + ') + ` + carry(${carry}) = ${sum}`;
+    const unit=sum%10; const newCarry=Math.floor(sum/10);
+    partial[k+1]=unit;
+    steps.push({
+      digits:a,focus:null,
+      note:detail+` → write <strong>${unit}</strong>, carry ${newCarry}.`,
+      label:`Output position ${k}`,
+      resultRow:[...partial]
+    });
+    carry=newCarry;
+  }
+  if(carry){partial[0]=carry;}
+  steps.push({
+    digits:a,focus:null,
+    note:`Answer: <strong>${A} × ${B} = ${correct}</strong>.`,
+    label:'Done',
+    resultRow:partial.map(v=>v===null?0:v)
+  });
+
+  buildWorked($('worked-direct'),steps);
+
+  // 2×2 demo: 43 × 27
+  const A2=43,B2=27;
+  const a2=digits(A2),b2=digits(B2);
+  const correct2=A2*B2;
+  const ans2=digits(correct2);
+  while(ans2.length<a2.length+b2.length) ans2.unshift(0);
+
+  const steps2=[];
+  steps2.push({
+    digits:[...a2,...[' ×',' '],...b2],focus:null,
+    note:`Direct multiply <strong>${A2} × ${B2}</strong>. Three output positions: units, tens, hundreds (or more).`,
+    label:'Setup'
+  });
+
+  let carry2=0;
+  const partial2=new Array(4).fill(null);
+  const maxK2=a2.length+b2.length-2;
+
+  for(let k=maxK2;k>=0;k--){
+    let sum=carry2;
+    const parts=[];
+    for(let i=0;i<a2.length;i++){
+      const j=k-i;
+      if(j>=0&&j<b2.length){ sum+=a2[i]*b2[j]; parts.push(`${a2[i]}×${b2[j]}`); }
+    }
+    const unit=sum%10; const newCarry=Math.floor(sum/10);
+    partial2[k+1]=unit;
+    steps2.push({
+      digits:[4,3,'×',2,7],focus:null,
+      note:`k=${k}: `+parts.join(' + ')+` + carry(${carry2}) = ${sum} → write <strong>${unit}</strong>, carry ${newCarry}.`,
+      label:`Position ${k}`,
+      resultRow:[...partial2]
+    });
+    carry2=newCarry;
+  }
+  if(carry2){partial2[0]=carry2;}
+  steps2.push({
+    digits:[4,3,'×',2,7],focus:null,
+    note:`Answer: <strong>${A2} × ${B2} = ${correct2}</strong>.`,
+    label:'Done',
+    resultRow:partial2.map(v=>v===null?0:v)
+  });
+
+  buildWorked($('direct-2x2-demo'),steps2);
+
+  buildPractice('pz-direct-content',()=>{
+    const a=rand(10,99),b=rand(2,9);
+    return {a,b,answer:a*b};
+  });
+})();
+
+
+// ═══════════════════════════════════════════════════════════════
+//  ADDITION WORKED EXAMPLE
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const col = [7, 8, 3, 9, 6, 4, 5];
+  const sum = col.reduce((a,b)=>a+b,0);
+
+  const steps=[];
+  steps.push({
+    digits:col,
+    focus:col.length-1,
+    note:`Add the column: [${col.join(', ')}]. We start from the <strong>bottom</strong>. Keep a running tally of only the <strong>units digit</strong>. Each time ≥10, make a tally mark and subtract 10.`,
+    label:'Setup'
+  });
+
+  let running=0, tallies=0;
+  for(let i=col.length-1;i>=0;i--){
+    running+=col[i];
+    let tally_here=0;
+    while(running>=10){running-=10;tallies++;tally_here++;}
+    steps.push({
+      digits:col,
+      focus:i,
+      note:`Add <strong>${col[i]}</strong>. Running = ${running+tally_here*10-tally_here*10+col[i]} → after subtracting tens: <strong>${running}</strong>. Tallies so far: ${'|'.repeat(tallies)||'none'}.`,
+      label:`Add ${col[i]}`
+    });
+  }
+  steps.push({
+    digits:col,focus:null,
+    note:`Units digit of answer: <strong>${running}</strong>. Carry (tally marks): <strong>${tallies}</strong>. Column total = ${tallies}${running} = <strong>${sum}</strong>.`,
+    label:'Result'
+  });
+
+  buildWorked($('worked-add'),steps);
+
+  // Practice
+  const cont=$('pz-add-content');
+  let correct=0,total=0;
+
+  function newAddProblem(){
+    const len=rand(4,7);
+    const nums=Array.from({length:len},()=>rand(1,9));
+    const sum=nums.reduce((a,b)=>a+b,0);
+    cont.innerHTML=`
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:1.6rem; font-weight:600; margin:1rem 0; display:flex; flex-direction:column; align-items:flex-start; gap:0.2rem;">
+        ${nums.map(n=>`<span>${n}</span>`).join('')}
+        <span style="border-top:2px solid var(--rule); display:block; width:3rem; margin:0.2rem 0;"></span>
+      </div>
+      <div class="problem-display">
+        <span class="problem-op" style="font-size:1.2rem;">Sum =</span>
+        <input class="answer-input" id="add-input" type="number" placeholder="?" autocomplete="off">
+      </div>
+      <div class="feedback" id="add-fb"></div>
+      <div class="step-nav" style="margin-top:0.75rem;">
+        <button class="btn primary" id="add-check">✓ Check</button>
+        <button class="btn" id="add-skip">↺ New</button>
+      </div>
+      <div class="score-bar">
+        <span>Correct: <strong id="add-cor">${correct}</strong></span>
+        <span>Attempted: <strong id="add-tot">${total}</strong></span>
+      </div>
+    `;
+    const inp=$('add-input');
+    inp.focus();
+    function check(){
+      const v=parseInt(inp.value);
+      total++;
+      if(v===sum){
+        correct++;
+        inp.classList.add('correct');
+        $('add-fb').className='feedback ok';
+        $('add-fb').textContent=`✓ Correct! ${nums.join('+')}=${sum}`;
+        setTimeout(newAddProblem,900);
+      } else {
+        inp.classList.add('wrong');
+        $('add-fb').className='feedback err';
+        $('add-fb').textContent=`✗ Answer was ${sum}.`;
+        setTimeout(newAddProblem,1600);
+      }
+      $('add-cor').textContent=correct;
+      $('add-tot').textContent=total;
+    }
+    $('add-check').addEventListener('click',check);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+    $('add-skip').addEventListener('click',newAddProblem);
+  }
+  newAddProblem();
+})();
+
+
+// ═══════════════════════════════════════════════════════════════
+//  QUIZ
+// ═══════════════════════════════════════════════════════════════
+function generateQuiz(){
+  const problems=[];
+  const multipliers=[2,3,4,5,6,7,8,9,11,12];
+  for(let i=0;i<12;i++){
+    const m=multipliers[rand(0,multipliers.length-1)];
+    const maxA = m===11||m===12 ? 999 : 9999;
+    const a=rand(100,maxA);
+    problems.push({a,b:m,answer:a*m});
+  }
+  return problems;
+}
+
+let quizProblems=[];
+
+function renderQuiz(){
+  quizProblems=generateQuiz();
+  const grid=$('quizGrid');
+  grid.innerHTML='';
+  $('quizScore').textContent='';
+  quizProblems.forEach((p,i)=>{
+    const card=document.createElement('div');
+    card.className='quiz-card';
+    card.innerHTML=`
+      <div class="qnum">${p.a} × ${p.b}</div>
+      <input type="number" id="qz-${i}" placeholder="?" autocomplete="off">
+    `;
+    grid.appendChild(card);
+  });
+}
+
+$('genQuiz').addEventListener('click',renderQuiz);
+$('checkQuiz').addEventListener('click',()=>{
+  let c=0;
+  quizProblems.forEach((p,i)=>{
+    const inp=$(`qz-${i}`);
+    if(!inp) return;
+    const val=parseInt(inp.value);
+    inp.classList.remove('correct','wrong');
+    if(val===p.answer){ inp.classList.add('correct'); c++; }
+    else inp.classList.add('wrong');
+  });
+  $('quizScore').textContent=`Score: ${c} / ${quizProblems.length}  (${Math.round(100*c/quizProblems.length)}%)`;
+});
+
+renderQuiz();
+</script>
+</body>
+</html>

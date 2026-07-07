@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Symbolic Logic — A Complete Interactive Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4efe4;
+  --paper-2:#ece4d4;
+  --ink:#211c16;
+  --ink-soft:#4a4035;
+  --ink-faint:#7a6f60;
+  --rule:#cdbfa6;
+  --ox:#8a2b22;          /* oxblood accent */
+  --ox-soft:#b15a4e;
+  --ink-blue:#27445c;    /* secondary */
+  --gold:#a9802e;
+  --true:#2f6d4f;
+  --false:#9a3b30;
+  --code-bg:#241f18;
+  --code-fg:#ece3d2;
+  --shadow:0 18px 50px -28px rgba(33,28,22,.55);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(138,43,34,.05), transparent 40%),
+    radial-gradient(circle at 88% 30%, rgba(39,68,92,.05), transparent 45%),
+    var(--paper);
+  color:var(--ink);
+  font-family:"Spectral",Georgia,serif;
+  font-size:18px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+/* faint paper grain */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+.wrap{position:relative;z-index:1}
+
+/* ---------- layout ---------- */
+.layout{display:grid;grid-template-columns:268px 1fr;max-width:1500px;margin:0 auto}
+nav.toc{
+  position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  padding:38px 26px 60px;border-right:1px solid var(--rule);
+}
+nav.toc .brand{font-family:"Fraunces";font-weight:900;font-size:1.35rem;line-height:1.1;margin-bottom:4px}
+nav.toc .brand em{color:var(--ox);font-style:normal}
+nav.toc .sub{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:26px}
+nav.toc a{display:block;color:var(--ink-soft);text-decoration:none;font-size:.92rem;padding:5px 10px;border-radius:6px;margin:1px 0;transition:.15s;border-left:2px solid transparent}
+nav.toc a:hover{background:var(--paper-2);color:var(--ink)}
+nav.toc a.num{color:var(--ox);font-family:"JetBrains Mono";font-size:.72rem;margin-right:7px}
+main{padding:0 clamp(20px,5vw,90px) 120px;min-width:0}
+
+/* ---------- hero ---------- */
+header.hero{padding:90px 0 50px;border-bottom:2px solid var(--ink);position:relative}
+header.hero .eyebrow{font-family:"JetBrains Mono";font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--ox)}
+header.hero h1{font-family:"Fraunces";font-weight:900;font-size:clamp(2.8rem,7vw,5.4rem);line-height:.95;margin:.18em 0 .12em;letter-spacing:-.02em}
+header.hero h1 .glyphs{color:var(--ox)}
+header.hero p.lede{font-size:1.22rem;max-width:60ch;color:var(--ink-soft)}
+.floating-symbols{position:absolute;top:30px;right:0;font-family:"Fraunces";font-size:5.5rem;color:var(--rule);opacity:.5;line-height:1;user-select:none;letter-spacing:.1em}
+@media(max-width:900px){.floating-symbols{display:none}}
+
+/* ---------- sections ---------- */
+section{padding:54px 0;border-bottom:1px solid var(--rule);scroll-margin-top:14px}
+section > .kicker{font-family:"JetBrains Mono";font-size:.74rem;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-blue);margin-bottom:6px}
+h2{font-family:"Fraunces";font-weight:900;font-size:clamp(1.9rem,4vw,2.9rem);line-height:1.05;margin:.1em 0 .5em;letter-spacing:-.015em}
+h2 .n{color:var(--ox);font-size:.62em;vertical-align:.12em;margin-right:.4em}
+h3{font-family:"Fraunces";font-weight:600;font-size:1.45rem;margin:1.8em 0 .4em;color:var(--ink)}
+h4{font-family:"JetBrains Mono";font-weight:700;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ox);margin:1.6em 0 .3em}
+p{margin:.7em 0;max-width:72ch}
+strong{font-weight:600}
+em.term{font-style:italic;color:var(--ox);font-weight:500}
+a.inline{color:var(--ink-blue);text-decoration-color:var(--rule)}
+.sym{font-family:"Fraunces";font-weight:600}
+ul,ol{max-width:72ch}
+li{margin:.35em 0}
+hr.soft{border:none;border-top:1px dashed var(--rule);margin:2em 0}
+
+/* ---------- callouts ---------- */
+.callout{border-left:4px solid var(--ox);background:var(--paper-2);padding:16px 22px;margin:1.4em 0;border-radius:0 10px 10px 0;max-width:74ch}
+.callout.blue{border-color:var(--ink-blue)}
+.callout.gold{border-color:var(--gold)}
+.callout .label{font-family:"JetBrains Mono";font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ox);display:block;margin-bottom:4px}
+.callout.blue .label{color:var(--ink-blue)}
+.callout.gold .label{color:var(--gold)}
+
+/* ---------- definition box ---------- */
+.defbox{border:1px solid var(--rule);border-radius:12px;padding:4px 24px 18px;margin:1.4em 0;background:rgba(255,255,255,.35);box-shadow:var(--shadow)}
+.defbox .deftag{display:inline-block;font-family:"JetBrains Mono";font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:3px 11px;border-radius:0 0 8px 8px;margin-left:-1px}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;margin:1.2em 0}
+table.tt{border-collapse:collapse;font-family:"JetBrains Mono";font-size:.92rem;margin:0 auto;min-width:min(100%,340px)}
+table.tt th,table.tt td{border:1px solid var(--rule);padding:7px 14px;text-align:center}
+table.tt thead th{background:var(--ink);color:var(--paper);font-weight:500;letter-spacing:.04em}
+table.tt thead th.main{background:var(--ox)}
+table.tt td.main{background:rgba(138,43,34,.09);font-weight:700}
+table.tt .T{color:var(--true);font-weight:700}
+table.tt .F{color:var(--false);font-weight:700}
+table.tt tbody tr:nth-child(even){background:rgba(205,191,166,.16)}
+table.tt td.varcol{background:rgba(39,68,92,.06)}
+table.ref{border-collapse:collapse;width:100%;font-size:.95rem;margin:1em 0}
+table.ref th,table.ref td{border-bottom:1px solid var(--rule);padding:9px 12px;text-align:left;vertical-align:top}
+table.ref th{font-family:"JetBrains Mono";font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-blue)}
+table.ref td:first-child .sym{font-size:1.15rem}
+table.ref code{background:var(--paper-2);padding:1px 6px;border-radius:4px;font-size:.85em}
+
+/* ---------- interactive widgets ---------- */
+.widget{border:1.5px solid var(--ink);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.2));padding:22px 24px 26px;margin:1.6em 0;box-shadow:var(--shadow)}
+.widget .wtitle{font-family:"JetBrains Mono";font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ox);display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.widget .wtitle::before{content:"▸";color:var(--ox)}
+.field{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
+.field label{font-size:.85rem;color:var(--ink-soft);font-family:"JetBrains Mono"}
+input[type=text]{
+  font-family:"JetBrains Mono";font-size:1.05rem;padding:10px 14px;border:1.5px solid var(--rule);
+  border-radius:8px;background:var(--paper);color:var(--ink);flex:1;min-width:200px;outline:none;transition:.15s;
+}
+input[type=text]:focus{border-color:var(--ox);box-shadow:0 0 0 3px rgba(138,43,34,.12)}
+button.btn{
+  font-family:"JetBrains Mono";font-size:.82rem;letter-spacing:.06em;font-weight:700;cursor:pointer;
+  background:var(--ink);color:var(--paper);border:none;padding:11px 20px;border-radius:8px;transition:.15s;
+}
+button.btn:hover{background:var(--ox)}
+button.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+button.btn.ghost:hover{border-color:var(--ox);color:var(--ox)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0}
+.chip{font-family:"JetBrains Mono";font-size:.85rem;cursor:pointer;background:var(--paper-2);border:1px solid var(--rule);
+  padding:5px 11px;border-radius:20px;transition:.15s;user-select:none}
+.chip:hover{background:var(--ox);color:var(--paper);border-color:var(--ox)}
+.hint{font-size:.82rem;color:var(--ink-faint);font-family:"JetBrains Mono")}
+.verdict{font-family:"Fraunces";font-weight:900;font-size:1.5rem;margin:14px 0 4px}
+.verdict.taut{color:var(--true)}
+.verdict.contra{color:var(--false)}
+.verdict.cont{color:var(--ink-blue)}
+.verdict.valid{color:var(--true)}
+.verdict.invalid{color:var(--false)}
+.errmsg{color:var(--false);font-family:"JetBrains Mono";font-size:.85rem;margin-top:8px}
+
+/* connective explorer */
+.toggle-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:8px 0 16px}
+.toggle{display:flex;align-items:center;gap:9px;font-family:"JetBrains Mono"}
+.switch{width:62px;height:32px;border-radius:20px;background:var(--false);position:relative;cursor:pointer;transition:.2s;border:none}
+.switch.on{background:var(--true)}
+.switch .knob{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:var(--paper);transition:.2s}
+.switch.on .knob{left:33px}
+.switch-label{font-weight:700;font-size:1.05rem;min-width:14px}
+.conn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.conn-cell{border:1px solid var(--rule);border-radius:10px;padding:12px;text-align:center;background:var(--paper)}
+.conn-cell .expr{font-family:"Fraunces";font-size:1.25rem;font-weight:600}
+.conn-cell .name{font-family:"JetBrains Mono";font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-top:2px}
+.conn-cell .val{font-family:"JetBrains Mono";font-weight:700;font-size:1.4rem;margin-top:6px}
+.conn-cell .val.T{color:var(--true)}
+.conn-cell .val.F{color:var(--false)}
+
+/* ---------- code ---------- */
+.codeblock{position:relative;background:var(--code-bg);border-radius:12px;margin:1.3em 0;overflow:hidden;box-shadow:var(--shadow)}
+.codeblock .codehead{display:flex;justify-content:space-between;align-items:center;padding:9px 16px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08)}
+.codeblock .codehead .fname{font-family:"JetBrains Mono";font-size:.74rem;color:#c9b98f;letter-spacing:.08em}
+.codeblock .copybtn{font-family:"JetBrains Mono";font-size:.7rem;background:transparent;border:1px solid rgba(255,255,255,.2);color:#d8cdb6;padding:4px 11px;border-radius:6px;cursor:pointer;transition:.15s}
+.codeblock .copybtn:hover{background:var(--ox);border-color:var(--ox);color:#fff}
+pre{margin:0;padding:18px 20px;overflow-x:auto}
+code,pre{font-family:"JetBrains Mono",monospace;font-size:.86rem;line-height:1.65}
+pre code{color:var(--code-fg)}
+.tok-c{color:#8a9a7b;font-style:italic}   /* comment */
+.tok-k{color:#e0915f}                      /* keyword */
+.tok-f{color:#7fb0c9}                       /* function */
+.tok-n{color:#d8b86a}                       /* number */
+.tok-o{color:#c98a8a}                        /* operator */
+.tok-s{color:#9fc28a}                        /* string */
+
+/* quiz */
+.quiz-q{border:1px solid var(--rule);border-radius:12px;padding:18px 22px;margin:14px 0;background:rgba(255,255,255,.35)}
+.quiz-q .qn{font-family:"JetBrains Mono";font-size:.74rem;color:var(--ox);letter-spacing:.14em}
+.quiz-q .qtext{font-size:1.08rem;margin:6px 0 12px;font-weight:500}
+.quiz-opt{display:block;width:100%;text-align:left;font-family:"Spectral";font-size:1rem;background:var(--paper);border:1.5px solid var(--rule);
+  padding:10px 16px;border-radius:8px;margin:7px 0;cursor:pointer;transition:.15s;color:var(--ink)}
+.quiz-opt:hover{border-color:var(--ox)}
+.quiz-opt.correct{background:rgba(47,109,79,.16);border-color:var(--true);color:var(--true);font-weight:600}
+.quiz-opt.wrong{background:rgba(154,59,48,.14);border-color:var(--false);color:var(--false)}
+.quiz-fb{margin-top:8px;font-size:.92rem;color:var(--ink-soft);display:none}
+.quiz-fb.show{display:block}
+.scorebar{font-family:"Fraunces";font-weight:900;font-size:1.3rem;margin-top:10px}
+
+footer{padding:50px 0 30px;color:var(--ink-faint);font-size:.9rem}
+footer .marque{font-family:"Fraunces";font-weight:900;color:var(--ink);font-size:1.1rem}
+
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr}
+  nav.toc{position:static;height:auto;border-right:none;border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:2px 6px;padding:20px}
+  nav.toc .brand,nav.toc .sub{width:100%}
+  nav.toc a{font-size:.8rem;padding:4px 8px}
+}
+::selection{background:var(--ox);color:var(--paper)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="layout">
+
+<!-- ============ NAV / TOC ============ -->
+<nav class="toc">
+  <div class="brand"><em>Symbolic</em> Logic</div>
+  <div class="sub">An Interactive Course</div>
+  <a href="#intro"><span class="num">00</span>What Logic Is</a>
+  <a href="#prop"><span class="num">01</span>Propositional Logic</a>
+  <a href="#connectives"><span class="num">02</span>The Five Connectives</a>
+  <a href="#truthtables"><span class="num">03</span>Truth Tables</a>
+  <a href="#generator"><span class="num">04</span>⚙ Truth-Table Engine</a>
+  <a href="#classes"><span class="num">05</span>Taut. / Contra. / Conting.</a>
+  <a href="#equiv"><span class="num">06</span>Logical Equivalence</a>
+  <a href="#validity"><span class="num">07</span>Arguments &amp; Validity</a>
+  <a href="#checker"><span class="num">08</span>⚙ Validity Checker</a>
+  <a href="#inference"><span class="num">09</span>Rules of Inference</a>
+  <a href="#predicate"><span class="num">10</span>Predicate Logic</a>
+  <a href="#normal"><span class="num">11</span>Normal Forms</a>
+  <a href="#octave"><span class="num">12</span>GNU Octave Lab</a>
+  <a href="#quiz"><span class="num">13</span>⚙ Self-Test Quiz</a>
+  <a href="#cheat"><span class="num">14</span>Symbol Reference</a>
+</nav>
+
+<!-- ============ MAIN ============ -->
+<main>
+<header class="hero" id="top">
+  <div class="floating-symbols">¬∧<br>∨→<br>↔∀∃</div>
+  <div class="eyebrow">A Complete Interactive Course · with GNU Octave</div>
+  <h1>Symbolic<br>Logic <span class="glyphs">∴</span></h1>
+  <p class="lede">From propositions to predicate calculus — the formal language of valid reasoning, taught with live truth-table machinery, an argument checker, and runnable Octave code.</p>
+</header>
+
+<!-- 00 INTRO -->
+<section id="intro">
+  <div class="kicker">Chapter 00</div>
+  <h2><span class="n">§0</span>What Logic Actually Is</h2>
+  <p><em class="term">Symbolic logic</em> (also called <em class="term">formal</em> or <em class="term">mathematical logic</em>) is the study of reasoning carried out by replacing ordinary language with precise symbols. By stripping arguments down to their bare structure, we can decide whether a conclusion <em>must</em> follow from its premises — independently of what the sentences happen to be about.</p>
+
+  <p>The central object of study is the <strong>argument</strong>: a set of statements (the <em class="term">premises</em>) offered in support of another statement (the <em class="term">conclusion</em>).</p>
+
+  <div class="defbox">
+    <span class="deftag">Definitions</span>
+    <p><strong>Proposition (statement):</strong> a declarative sentence that is either <span class="sym" style="color:var(--true)">true</span> or <span class="sym" style="color:var(--false)">false</span> — never both, never neither. "Paris is in France" is a proposition. "Shut the door!" and "Is it raining?" are not.</p>
+    <p><strong>Valid argument:</strong> one where it is <em>impossible</em> for all the premises to be true while the conclusion is false. Validity is about <em>form</em>, not truth of content.</p>
+    <p><strong>Sound argument:</strong> a valid argument that <em>also</em> has all-true premises. Soundness = validity + true premises.</p>
+  </div>
+
+  <p>Consider:</p>
+  <div class="callout blue">
+    <span class="label">Example argument</span>
+    <em>All philosophers are mortal. Socrates is a philosopher. Therefore, Socrates is mortal.</em>
+  </div>
+  <p>This is <strong>valid</strong>: granting the premises, the conclusion is inescapable. It is also <strong>sound</strong>, because the premises are in fact true. Crucially, the <em>same form</em> — "All A are B; x is an A; so x is B" — is valid no matter what A, B, and x stand for. That portable structure is exactly what symbolic logic isolates.</p>
+
+  <div class="callout">
+    <span class="label">Key insight</span>
+    A valid argument can have a false conclusion (if a premise is false), and a sound argument always has a true one. Logic guarantees the <em>connection</em> between premises and conclusion, not the truth of the premises themselves.
+  </div>
+
+  <p>This course builds upward in two great layers: <strong>propositional logic</strong> (reasoning about whole statements joined by connectives), then <strong>predicate logic</strong> (reasoning about objects, properties, and quantity). Along the way you'll use live tools that compute the very things textbooks ask you to do by hand.</p>
+</section>
+
+<!-- 01 PROPOSITIONAL -->
+<section id="prop">
+  <div class="kicker">Chapter 01</div>
+  <h2><span class="n">§1</span>Propositional Logic</h2>
+  <p><em class="term">Propositional logic</em> (or <em class="term">sentential logic</em>) treats simple statements as indivisible atoms and studies how their truth values combine. We abbreviate atomic propositions with capital letters — by convention <strong>P, Q, R, S</strong>…</p>
+
+  <p>For instance, let <strong>P</strong> = "It is raining" and <strong>Q</strong> = "The ground is wet." We then build <em class="term">compound propositions</em> by joining atoms with <em class="term">logical connectives</em>, e.g. <span class="sym">P → Q</span> ("if it is raining, then the ground is wet").</p>
+
+  <h3>Well-formed formulas</h3>
+  <p>Not every string of symbols counts. A <em class="term">well-formed formula</em> (WFF) is built by these recursive rules:</p>
+  <ol>
+    <li>Every propositional variable (P, Q, R, …) is a WFF.</li>
+    <li>If <span class="sym">φ</span> is a WFF, then <span class="sym">¬φ</span> is a WFF.</li>
+    <li>If <span class="sym">φ</span> and <span class="sym">ψ</span> are WFFs, then <span class="sym">(φ ∧ ψ)</span>, <span class="sym">(φ ∨ ψ)</span>, <span class="sym">(φ → ψ)</span>, and <span class="sym">(φ ↔ ψ)</span> are WFFs.</li>
+    <li>Nothing else is a WFF.</li>
+  </ol>
+  <p>So <span class="sym">¬(P ∧ Q) → R</span> is well-formed; <span class="sym">P ¬ ∧ Q</span> is gibberish.</p>
+
+  <h3>Operator precedence</h3>
+  <p>To avoid drowning in parentheses, connectives bind in a fixed order — tightest first:</p>
+  <table class="ref">
+    <thead><tr><th>Rank</th><th>Connective</th><th>Binds</th></tr></thead>
+    <tbody>
+      <tr><td>1 (tightest)</td><td><span class="sym">¬</span> negation</td><td>most tightly</td></tr>
+      <tr><td>2</td><td><span class="sym">∧</span> conjunction</td><td></td></tr>
+      <tr><td>3</td><td><span class="sym">∨</span> disjunction</td><td></td></tr>
+      <tr><td>4</td><td><span class="sym">→</span> conditional</td><td>(right-associative)</td></tr>
+      <tr><td>5 (loosest)</td><td><span class="sym">↔</span> biconditional</td><td>most loosely</td></tr>
+    </tbody>
+  </table>
+  <p>Thus <span class="sym">¬P ∧ Q → R</span> reads as <span class="sym">((¬P) ∧ Q) → R</span>. When in doubt, add parentheses — the truth-table engine below honours exactly this precedence.</p>
+</section>
+
+<!-- 02 CONNECTIVES -->
+<section id="connectives">
+  <div class="kicker">Chapter 02</div>
+  <h2><span class="n">§2</span>The Five Connectives</h2>
+  <p>Each connective is defined entirely by how it maps the truth values of its parts to a truth value for the whole — they are <em class="term">truth-functional</em>. Here is the complete catalogue.</p>
+
+  <h4>Negation ¬ (NOT)</h4>
+  <p>Flips truth value. <span class="sym">¬P</span> is true exactly when P is false.</p>
+
+  <h4>Conjunction ∧ (AND)</h4>
+  <p><span class="sym">P ∧ Q</span> is true only when <em>both</em> conjuncts are true.</p>
+
+  <h4>Disjunction ∨ (OR)</h4>
+  <p><span class="sym">P ∨ Q</span> is true when <em>at least one</em> disjunct is true. This is <strong>inclusive</strong> or — true also when both hold. (Exclusive "or" is a separate, derived connective ⊕.)</p>
+
+  <h4>Conditional → (IF…THEN)</h4>
+  <p><span class="sym">P → Q</span> ("if P then Q") is false in exactly one case: when the antecedent P is true but the consequent Q is false. A famous consequence is <em class="term">vacuous truth</em> — if P is false, <span class="sym">P → Q</span> is automatically true. ("If the moon is cheese, then 2+2=5" is, formally, true.)</p>
+
+  <h4>Biconditional ↔ (IF AND ONLY IF)</h4>
+  <p><span class="sym">P ↔ Q</span> is true when both sides have the <em>same</em> truth value.</p>
+
+  <div class="callout gold">
+    <span class="label">Try it — toggle the inputs</span>
+    Flip P and Q below and watch every connective recompute instantly.
+  </div>
+
+  <!-- WIDGET: connective explorer -->
+  <div class="widget" id="connExplorer">
+    <div class="wtitle">Connective Explorer</div>
+    <div class="toggle-row">
+      <div class="toggle">
+        <span class="switch-label">P</span>
+        <button class="switch on" data-var="P" aria-label="toggle P"><span class="knob"></span></button>
+        <span class="hint" data-state="P">true</span>
+      </div>
+      <div class="toggle">
+        <span class="switch-label">Q</span>
+        <button class="switch on" data-var="Q" aria-label="toggle Q"><span class="knob"></span></button>
+        <span class="hint" data-state="Q">true</span>
+      </div>
+    </div>
+    <div class="conn-grid" id="connGrid"></div>
+  </div>
+</section>
+
+<!-- 03 TRUTH TABLES -->
+<section id="truthtables">
+  <div class="kicker">Chapter 03</div>
+  <h2><span class="n">§3</span>Truth Tables</h2>
+  <p>A <em class="term">truth table</em> lists every possible combination of truth values for the atomic variables and computes the resulting value of a formula in each case. With <strong>n</strong> variables there are <strong>2<sup>n</sup></strong> rows — the exhaustive set of possible worlds.</p>
+
+  <p>The four base binary connectives, side by side:</p>
+  <div class="tablewrap">
+  <table class="tt">
+    <thead><tr><th>P</th><th>Q</th><th>P ∧ Q</th><th>P ∨ Q</th><th>P → Q</th><th>P ↔ Q</th></tr></thead>
+    <tbody>
+      <tr><td class="varcol T">T</td><td class="varcol T">T</td><td class="T">T</td><td class="T">T</td><td class="T">T</td><td class="T">T</td></tr>
+      <tr><td class="varcol T">T</td><td class="varcol F">F</td><td class="F">F</td><td class="T">T</td><td class="F">F</td><td class="F">F</td></tr>
+      <tr><td class="varcol F">F</td><td class="varcol T">T</td><td class="F">F</td><td class="T">T</td><td class="T">T</td><td class="F">F</td></tr>
+      <tr><td class="varcol F">F</td><td class="varcol F">F</td><td class="F">F</td><td class="F">F</td><td class="T">T</td><td class="T">T</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>To evaluate a complex formula by hand, you compute <em>inner</em> sub-formulas first and work outward — exactly mirroring operator precedence. The engine in the next section does this automatically and shows you every intermediate column.</p>
+
+  <div class="callout">
+    <span class="label">Reading order</span>
+    Build columns from the smallest pieces outward: variables → negations → conjunctions → disjunctions → conditionals → biconditional. The rightmost (highlighted) column is your answer.
+  </div>
+</section>
+
+<!-- 04 GENERATOR -->
+<section id="generator">
+  <div class="kicker">Chapter 04 · Interactive Tool</div>
+  <h2><span class="n">⚙</span>Live Truth-Table Engine</h2>
+  <p>Type any well-formed formula. The engine tokenizes it, parses it into a syntax tree (respecting precedence), generates all 2<sup>n</sup> rows, fills in every sub-formula column, and classifies the result.</p>
+
+  <div class="callout blue">
+    <span class="label">Accepted syntax</span>
+    Variables are letters (P, Q, R, A, x…). Operators: <code>~ ! ¬</code> (not) · <code>&amp; ^ ∧</code> (and) · <code>| ∨</code> (or) · <code>-&gt; =&gt; →</code> (if-then) · <code>&lt;-&gt; &lt;=&gt; ↔</code> (iff). Use parentheses <code>( )</code> freely.
+  </div>
+
+  <div class="widget" id="ttWidget">
+    <div class="wtitle">Truth-Table Generator</div>
+    <div class="field">
+      <input type="text" id="ttInput" value="(P -> Q) & (Q -> R)" spellcheck="false" autocomplete="off">
+      <button class="btn" id="ttGo">Generate ▸</button>
+    </div>
+    <div class="chips" id="ttChips">
+      <span class="chip" data-f="P & Q">P &amp; Q</span>
+      <span class="chip" data-f="P | ~P">P ∨ ¬P</span>
+      <span class="chip" data-f="P & ~P">P ∧ ¬P</span>
+      <span class="chip" data-f="~(P & Q) <-> (~P | ~Q)">De Morgan</span>
+      <span class="chip" data-f="(P -> Q) <-> (~Q -> ~P)">Contrapositive</span>
+      <span class="chip" data-f="((P -> Q) & P) -> Q">Modus Ponens</span>
+    </div>
+    <div id="ttResult"></div>
+  </div>
+</section>
+
+<!-- 05 CLASSES -->
+<section id="classes">
+  <div class="kicker">Chapter 05</div>
+  <h2><span class="n">§5</span>Tautology, Contradiction, Contingency</h2>
+  <p>Looking at the final column of a truth table, every formula falls into exactly one of three categories:</p>
+  <div class="defbox">
+    <span class="deftag">The trichotomy</span>
+    <p><strong style="color:var(--true)">Tautology:</strong> true in <em>every</em> row — true under all interpretations. E.g. <span class="sym">P ∨ ¬P</span> (the law of excluded middle).</p>
+    <p><strong style="color:var(--false)">Contradiction:</strong> false in <em>every</em> row. E.g. <span class="sym">P ∧ ¬P</span> (the law of non-contradiction, negated).</p>
+    <p><strong style="color:var(--ink-blue)">Contingency:</strong> true in some rows and false in others — its truth depends on the facts. E.g. <span class="sym">P ∧ Q</span>.</p>
+  </div>
+  <p>Tautologies are the "logical truths" — the theorems guaranteed by form alone. Try <code>P | ~P</code> and <code>P & ~P</code> in the engine above to see the engine label each one.</p>
+  <p>A formula is <em class="term">satisfiable</em> if it is true in at least one row (i.e. not a contradiction), and <em class="term">unsatisfiable</em> if it is a contradiction. Deciding satisfiability is the famous <strong>SAT problem</strong> at the heart of computer science.</p>
+</section>
+
+<!-- 06 EQUIVALENCE -->
+<section id="equiv">
+  <div class="kicker">Chapter 06</div>
+  <h2><span class="n">§6</span>Logical Equivalence &amp; the Laws</h2>
+  <p>Two formulas are <em class="term">logically equivalent</em> (written <span class="sym">φ ≡ ψ</span>) when they have identical truth values in every row — equivalently, when <span class="sym">φ ↔ ψ</span> is a tautology. Equivalences are the algebra of logic: they let you rewrite formulas while preserving meaning.</p>
+
+  <h3>The standard equivalences</h3>
+  <table class="ref">
+    <thead><tr><th>Law</th><th>Form</th></tr></thead>
+    <tbody>
+      <tr><td>Double negation</td><td><span class="sym">¬¬P ≡ P</span></td></tr>
+      <tr><td>Commutativity</td><td><span class="sym">P ∧ Q ≡ Q ∧ P</span> &nbsp;·&nbsp; <span class="sym">P ∨ Q ≡ Q ∨ P</span></td></tr>
+      <tr><td>Associativity</td><td><span class="sym">(P ∧ Q) ∧ R ≡ P ∧ (Q ∧ R)</span></td></tr>
+      <tr><td>Distribution</td><td><span class="sym">P ∧ (Q ∨ R) ≡ (P ∧ Q) ∨ (P ∧ R)</span></td></tr>
+      <tr><td><strong>De Morgan's laws</strong></td><td><span class="sym">¬(P ∧ Q) ≡ ¬P ∨ ¬Q</span> &nbsp;·&nbsp; <span class="sym">¬(P ∨ Q) ≡ ¬P ∧ ¬Q</span></td></tr>
+      <tr><td>Material conditional</td><td><span class="sym">P → Q ≡ ¬P ∨ Q</span></td></tr>
+      <tr><td>Contrapositive</td><td><span class="sym">P → Q ≡ ¬Q → ¬P</span></td></tr>
+      <tr><td>Biconditional</td><td><span class="sym">P ↔ Q ≡ (P → Q) ∧ (Q → P)</span></td></tr>
+      <tr><td>Idempotence</td><td><span class="sym">P ∧ P ≡ P</span> &nbsp;·&nbsp; <span class="sym">P ∨ P ≡ P</span></td></tr>
+      <tr><td>Absorption</td><td><span class="sym">P ∧ (P ∨ Q) ≡ P</span></td></tr>
+      <tr><td>Exportation</td><td><span class="sym">(P ∧ Q) → R ≡ P → (Q → R)</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="label">Verify any of these</span>
+    Paste e.g. <code>~(P &amp; Q) &lt;-&gt; (~P | ~Q)</code> into the engine. If the final column is all-T (tautology), the equivalence holds. The two De Morgan laws are the most useful rewrites you will ever learn.
+  </div>
+</section>
+
+<!-- 07 VALIDITY -->
+<section id="validity">
+  <div class="kicker">Chapter 07</div>
+  <h2><span class="n">§7</span>Arguments &amp; Validity</h2>
+  <p>We can now make "valid" mathematically precise. An argument with premises <span class="sym">P₁, P₂, …, Pₙ</span> and conclusion <span class="sym">C</span> is <strong>valid</strong> if and only if there is <em>no</em> row of the joint truth table in which all premises are true while the conclusion is false.</p>
+
+  <div class="defbox">
+    <span class="deftag">The truth-table test for validity</span>
+    <p>1. List all variables appearing anywhere in the argument.</p>
+    <p>2. Build the full 2<sup>n</sup>-row table with a column for each premise and the conclusion.</p>
+    <p>3. Find every row where <em>all premises are true</em> (the "critical rows").</p>
+    <p>4. If the conclusion is true in <em>every</em> critical row → <strong style="color:var(--true)">VALID</strong>. If even one critical row has a false conclusion → <strong style="color:var(--false)">INVALID</strong> (that row is a counterexample).</p>
+  </div>
+
+  <p>Equivalently: an argument is valid iff the single conditional <span class="sym">(P₁ ∧ … ∧ Pₙ) → C</span> is a tautology. The checker below implements the critical-row method and reports any counterexample it finds.</p>
+</section>
+
+<!-- 08 CHECKER -->
+<section id="checker">
+  <div class="kicker">Chapter 08 · Interactive Tool</div>
+  <h2><span class="n">⚙</span>Argument Validity Checker</h2>
+  <p>Enter your premises (separated by commas or semicolons) and a single conclusion. The tool builds the joint table, highlights the critical rows, and delivers a verdict — with a counterexample if the argument fails.</p>
+
+  <div class="widget" id="valWidget">
+    <div class="wtitle">Validity Checker</div>
+    <div class="field">
+      <label for="premInput">Premises</label>
+      <input type="text" id="premInput" value="P -> Q, Q -> R" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="conclInput">Conclusion</label>
+      <input type="text" id="conclInput" value="P -> R" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="field">
+      <button class="btn" id="valGo">Check validity ▸</button>
+      <button class="btn ghost" id="valEx1">Modus Ponens</button>
+      <button class="btn ghost" id="valEx2">Affirming Consequent</button>
+    </div>
+    <div id="valResult"></div>
+  </div>
+  <p class="hint" style="margin-top:6px">Try "Affirming the Consequent" (premises <code>P -&gt; Q, Q</code>; conclusion <code>P</code>) — a classic <em>fallacy</em> the checker will expose with a counterexample row.</p>
+</section>
+
+<!-- 09 INFERENCE -->
+<section id="inference">
+  <div class="kicker">Chapter 09</div>
+  <h2><span class="n">§9</span>Rules of Inference &amp; Natural Deduction</h2>
+  <p>Truth tables decide validity by brute force, but they explode (2<sup>n</sup> rows). <em class="term">Natural deduction</em> instead derives the conclusion step-by-step using a small set of always-valid <em class="term">rules of inference</em>. Each rule is itself a valid argument form.</p>
+
+  <table class="ref">
+    <thead><tr><th>Rule</th><th>From</th><th>Infer</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Modus Ponens</strong> (MP)</td><td><span class="sym">P → Q</span> , <span class="sym">P</span></td><td><span class="sym">Q</span></td></tr>
+      <tr><td><strong>Modus Tollens</strong> (MT)</td><td><span class="sym">P → Q</span> , <span class="sym">¬Q</span></td><td><span class="sym">¬P</span></td></tr>
+      <tr><td>Hypothetical Syllogism (HS)</td><td><span class="sym">P → Q</span> , <span class="sym">Q → R</span></td><td><span class="sym">P → R</span></td></tr>
+      <tr><td>Disjunctive Syllogism (DS)</td><td><span class="sym">P ∨ Q</span> , <span class="sym">¬P</span></td><td><span class="sym">Q</span></td></tr>
+      <tr><td>Simplification (Simp)</td><td><span class="sym">P ∧ Q</span></td><td><span class="sym">P</span></td></tr>
+      <tr><td>Conjunction (Conj)</td><td><span class="sym">P</span> , <span class="sym">Q</span></td><td><span class="sym">P ∧ Q</span></td></tr>
+      <tr><td>Addition (Add)</td><td><span class="sym">P</span></td><td><span class="sym">P ∨ Q</span></td></tr>
+      <tr><td>Constructive Dilemma</td><td><span class="sym">(P→Q) ∧ (R→S)</span> , <span class="sym">P ∨ R</span></td><td><span class="sym">Q ∨ S</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>A worked proof</h3>
+  <p>Prove <span class="sym">R</span> from premises <span class="sym">P → Q</span>, <span class="sym">Q → R</span>, and <span class="sym">P</span>:</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">derivation</span></div>
+    <pre><code>1.  P → Q        (premise)
+2.  Q → R        (premise)
+3.  P            (premise)
+4.  Q            (1, 3, Modus Ponens)
+5.  R            (2, 4, Modus Ponens)   ∴ proved</code></pre>
+  </div>
+
+  <h3>Conditional &amp; indirect proof</h3>
+  <p>Two power techniques: in <em class="term">conditional proof</em> you assume the antecedent, derive the consequent, then discharge the assumption to conclude <span class="sym">P → Q</span>. In <em class="term">indirect proof</em> (reductio ad absurdum) you assume the negation of your goal and derive a contradiction <span class="sym">(R ∧ ¬R)</span>, which establishes the goal.</p>
+
+  <div class="callout gold">
+    <span class="label">Watch the fallacies</span>
+    Two invalid forms that <em>masquerade</em> as MP/MT: <strong>Affirming the Consequent</strong> (P→Q, Q ⊢ P) and <strong>Denying the Antecedent</strong> (P→Q, ¬P ⊢ ¬Q). Both fail — test them in the Validity Checker above.
+  </div>
+</section>
+
+<!-- 10 PREDICATE -->
+<section id="predicate">
+  <div class="kicker">Chapter 10</div>
+  <h2><span class="n">§10</span>Predicate Logic</h2>
+  <p>Propositional logic can't see <em>inside</em> a statement. It treats "All cats are mammals" and "Some cats are black" as unrelated atoms. <em class="term">Predicate logic</em> (first-order logic) opens the atom up, exposing objects, their properties, and relations — and adds <em class="term">quantifiers</em> to talk about <em>how many</em>.</p>
+
+  <h3>The new vocabulary</h3>
+  <ul>
+    <li><strong>Constants</strong> — names of specific objects: <span class="sym">a, b, c</span> (e.g. <em>s</em> = Socrates).</li>
+    <li><strong>Variables</strong> — placeholders ranging over a domain: <span class="sym">x, y, z</span>.</li>
+    <li><strong>Predicates</strong> — properties/relations applied to terms: <span class="sym">Cat(x)</span>, <span class="sym">Loves(x, y)</span>.</li>
+    <li><strong>Universal quantifier</strong> <span class="sym">∀</span> — "for all": <span class="sym">∀x</span> means "for every x."</li>
+    <li><strong>Existential quantifier</strong> <span class="sym">∃</span> — "there exists": <span class="sym">∃x</span> means "for at least one x."</li>
+  </ul>
+
+  <h3>Translating English</h3>
+  <table class="ref">
+    <thead><tr><th>English</th><th>Symbolic</th></tr></thead>
+    <tbody>
+      <tr><td>All cats are mammals.</td><td><span class="sym">∀x (Cat(x) → Mammal(x))</span></td></tr>
+      <tr><td>Some cats are black.</td><td><span class="sym">∃x (Cat(x) ∧ Black(x))</span></td></tr>
+      <tr><td>No cats are dogs.</td><td><span class="sym">∀x (Cat(x) → ¬Dog(x))</span></td></tr>
+      <tr><td>Everyone loves someone.</td><td><span class="sym">∀x ∃y Loves(x, y)</span></td></tr>
+      <tr><td>Someone is loved by everyone.</td><td><span class="sym">∃y ∀x Loves(x, y)</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <span class="label">The crucial pattern</span>
+    Universal claims pair with <strong>→</strong> ("all A are B" = <span class="sym">∀x(A(x)→B(x))</span>); existential claims pair with <strong>∧</strong> ("some A is B" = <span class="sym">∃x(A(x)∧B(x))</span>). Mixing these up is the #1 translation error. Also note <span class="sym">∀x∃y</span> and <span class="sym">∃y∀x</span> say genuinely different things — quantifier order matters.
+  </div>
+
+  <h3>Quantifier negation</h3>
+  <p>The quantifiers are dual to one another — De Morgan's laws lifted to the predicate level:</p>
+  <table class="ref">
+    <tbody>
+      <tr><td><span class="sym">¬∀x P(x)</span></td><td>≡</td><td><span class="sym">∃x ¬P(x)</span> &nbsp;— "not all" = "some isn't"</td></tr>
+      <tr><td><span class="sym">¬∃x P(x)</span></td><td>≡</td><td><span class="sym">∀x ¬P(x)</span> &nbsp;— "none" = "all aren't"</td></tr>
+    </tbody>
+  </table>
+  <p>Over a <em>finite</em> domain, the quantifiers collapse into ordinary connectives: <span class="sym">∀x P(x)</span> becomes a big conjunction <span class="sym">P(a)∧P(b)∧…</span> and <span class="sym">∃x P(x)</span> becomes a big disjunction <span class="sym">P(a)∨P(b)∨…</span>. That fact is exactly what lets us model quantifiers in Octave with <code>all()</code> and <code>any()</code> — see the lab below.</p>
+</section>
+
+<!-- 11 NORMAL FORMS -->
+<section id="normal">
+  <div class="kicker">Chapter 11</div>
+  <h2><span class="n">§11</span>Normal Forms</h2>
+  <p>Any propositional formula can be rewritten into standardized shapes, useful for proofs, circuit design, and automated solvers.</p>
+  <h4>Literal</h4>
+  <p>A variable or its negation: <span class="sym">P</span> or <span class="sym">¬P</span>.</p>
+  <h4>Disjunctive Normal Form (DNF)</h4>
+  <p>An OR of ANDs of literals — a "sum of products": <span class="sym">(P ∧ ¬Q) ∨ (¬P ∧ R)</span>. You can read a DNF straight off the <em>true</em> rows of a truth table.</p>
+  <h4>Conjunctive Normal Form (CNF)</h4>
+  <p>An AND of ORs of literals — a "product of sums": <span class="sym">(P ∨ ¬Q) ∧ (¬P ∨ R)</span>. CNF is the input format for SAT solvers.</p>
+  <div class="callout blue">
+    <span class="label">Recipe to convert any formula</span>
+    (1) Eliminate <span class="sym">↔</span> and <span class="sym">→</span> using <span class="sym">P→Q ≡ ¬P∨Q</span>. (2) Push negations inward with De Morgan until they sit only on variables. (3) Distribute <span class="sym">∧</span> over <span class="sym">∨</span> (for CNF) or <span class="sym">∨</span> over <span class="sym">∧</span> (for DNF).
+  </div>
+</section>
+
+<!-- 12 OCTAVE -->
+<section id="octave">
+  <div class="kicker">Chapter 12 · Computational Lab</div>
+  <h2><span class="n">§12</span>The GNU Octave Logic Lab</h2>
+  <p><a class="inline" href="https://octave.org" target="_blank" rel="noopener">GNU Octave</a> is a free, open-source numerical environment (largely compatible with MATLAB). Its element-wise logical operators make it a superb scratchpad for propositional logic: truth values are just <code>1</code> (true) and <code>0</code> (false), and a whole column of a truth table is a vector. Copy any block below into Octave and run it.</p>
+
+  <div class="callout">
+    <span class="label">Operator map</span>
+    Octave's logical operators: <code>~</code> or <code>!</code> = NOT · <code>&amp;</code> = AND · <code>|</code> = OR · <code>xor(a,b)</code> = exclusive or · <code>==</code> = biconditional. There is no built-in <code>-&gt;</code>; we encode the conditional via the equivalence <span class="sym">P→Q ≡ ¬P ∨ Q</span>.
+  </div>
+
+  <h3>Lab 1 — The four connectives as columns</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">connectives.m</span><button class="copybtn">Copy</button></div>
+    <pre><code><span class="tok-c">% Truth values: 1 = true, 0 = false. Order rows T,T / T,F / F,T / F,F</span>
+P = [<span class="tok-n">1</span>; <span class="tok-n">1</span>; <span class="tok-n">0</span>; <span class="tok-n">0</span>];
+Q = [<span class="tok-n">1</span>; <span class="tok-n">0</span>; <span class="tok-n">1</span>; <span class="tok-n">0</span>];
+
+NOT_P  = ~P;                 <span class="tok-c">% negation</span>
+AND_PQ = P & Q;              <span class="tok-c">% conjunction</span>
+OR_PQ  = P | Q;              <span class="tok-c">% disjunction (inclusive)</span>
+XOR_PQ = <span class="tok-f">xor</span>(P, Q);          <span class="tok-c">% exclusive or</span>
+IMP_PQ = ~P | Q;             <span class="tok-c">% conditional  P -> Q  ==  ~P | Q</span>
+IFF_PQ = (P == Q);           <span class="tok-c">% biconditional P <-> Q</span>
+
+<span class="tok-c">% Print as one labelled matrix</span>
+<span class="tok-f">disp</span>(<span class="tok-s">'  P  Q | ~P  P&Q  P|Q  xor  P->Q P<->Q'</span>);
+<span class="tok-f">disp</span>([P Q NOT_P AND_PQ OR_PQ XOR_PQ IMP_PQ IFF_PQ]);</code></pre>
+  </div>
+
+  <h3>Lab 2 — A reusable truth-table generator</h3>
+  <p>This function produces all 2<sup>n</sup> input combinations (true-first ordering), so you can append any computed column.</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">truth_combos.m</span><button class="copybtn">Copy</button></div>
+    <pre><code><span class="tok-k">function</span> combos = <span class="tok-f">truth_combos</span>(n)
+  <span class="tok-c">% All combinations of n truth values, ordered T...F per column.</span>
+  <span class="tok-c">% dec2bin gives binary strings; subtracting '0' makes a numeric matrix.</span>
+  combos = <span class="tok-f">dec2bin</span>((<span class="tok-n">2</span>^n - <span class="tok-n">1</span>):-<span class="tok-n">1</span>:<span class="tok-n">0</span>) - <span class="tok-s">'0'</span>;
+<span class="tok-k">end</span>
+
+<span class="tok-c">% --- usage: truth table for  (P -> Q) & (Q -> R) ---</span>
+C = <span class="tok-f">truth_combos</span>(<span class="tok-n">3</span>);
+P = C(:,<span class="tok-n">1</span>); Q = C(:,<span class="tok-n">2</span>); R = C(:,<span class="tok-n">3</span>);
+result = (~P | Q) & (~Q | R);
+<span class="tok-f">disp</span>(<span class="tok-s">'  P  Q  R | (P->Q)&(Q->R)'</span>);
+<span class="tok-f">disp</span>([P Q R result]);</code></pre>
+  </div>
+
+  <h3>Lab 3 — Detecting tautologies &amp; contradictions</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">classify.m</span><button class="copybtn">Copy</button></div>
+    <pre><code>C = <span class="tok-f">truth_combos</span>(<span class="tok-n">1</span>);  P = C(:,<span class="tok-n">1</span>);
+
+excluded_middle = P | ~P;       <span class="tok-c">% P v ~P</span>
+contradiction   = P & ~P;       <span class="tok-c">% P & ~P</span>
+
+<span class="tok-f">printf</span>(<span class="tok-s">'P v ~P  is tautology?     %d\n'</span>, <span class="tok-f">all</span>(excluded_middle));
+<span class="tok-f">printf</span>(<span class="tok-s">'P & ~P  is contradiction? %d\n'</span>, ~<span class="tok-f">any</span>(contradiction));
+<span class="tok-c">% all(col)==1 -> tautology ;  any(col)==0 -> contradiction</span></code></pre>
+  </div>
+
+  <h3>Lab 4 — Verifying De Morgan's law</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">demorgan.m</span><button class="copybtn">Copy</button></div>
+    <pre><code>C = <span class="tok-f">truth_combos</span>(<span class="tok-n">2</span>);  P = C(:,<span class="tok-n">1</span>); Q = C(:,<span class="tok-n">2</span>);
+
+lhs = ~(P & Q);        <span class="tok-c">% ¬(P ∧ Q)</span>
+rhs = ~P | ~Q;         <span class="tok-c">% ¬P ∨ ¬Q</span>
+
+<span class="tok-k">if</span> <span class="tok-f">isequal</span>(lhs, rhs)
+  <span class="tok-f">disp</span>(<span class="tok-s">'De Morgan confirmed: the two columns are identical.'</span>);
+<span class="tok-k">else</span>
+  <span class="tok-f">disp</span>(<span class="tok-s">'Columns differ — not equivalent.'</span>);
+<span class="tok-k">end</span></code></pre>
+  </div>
+
+  <h3>Lab 5 — Testing an argument for validity</h3>
+  <p>An argument is valid iff no row has all premises true but the conclusion false.</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">validity.m</span><button class="copybtn">Copy</button></div>
+    <pre><code><span class="tok-c">% Argument:  P->Q ,  Q->R   ∴  P->R   (Hypothetical Syllogism)</span>
+C = <span class="tok-f">truth_combos</span>(<span class="tok-n">3</span>);
+P = C(:,<span class="tok-n">1</span>); Q = C(:,<span class="tok-n">2</span>); R = C(:,<span class="tok-n">3</span>);
+
+prem1 = ~P | Q;            <span class="tok-c">% P -> Q</span>
+prem2 = ~Q | R;            <span class="tok-c">% Q -> R</span>
+concl = ~P | R;            <span class="tok-c">% P -> R</span>
+
+critical    = prem1 & prem2;        <span class="tok-c">% rows where all premises hold</span>
+counterex   = critical & ~concl;    <span class="tok-c">% premises true, conclusion false</span>
+isValid     = ~<span class="tok-f">any</span>(counterex);
+
+<span class="tok-f">printf</span>(<span class="tok-s">'Argument is valid? %d\n'</span>, isValid);
+<span class="tok-k">if</span> <span class="tok-f">any</span>(counterex)
+  <span class="tok-f">disp</span>(<span class="tok-s">'Counterexample rows (P Q R):'</span>);
+  <span class="tok-f">disp</span>(C(counterex, :));
+<span class="tok-k">end</span></code></pre>
+  </div>
+
+  <h3>Lab 6 — Quantifiers over a finite domain</h3>
+  <p>Here <code>all()</code> realises <span class="sym">∀</span> and <code>any()</code> realises <span class="sym">∃</span>.</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">quantifiers.m</span><button class="copybtn">Copy</button></div>
+    <pre><code><span class="tok-c">% Domain = {1,2,3,4,5}; predicates Even(x) and Positive(x)</span>
+domain   = <span class="tok-n">1</span>:<span class="tok-n">5</span>;
+Even     = <span class="tok-f">mod</span>(domain, <span class="tok-n">2</span>) == <span class="tok-n">0</span>;     <span class="tok-c">% [0 1 0 1 0]</span>
+Positive = domain &gt; <span class="tok-n">0</span>;             <span class="tok-c">% [1 1 1 1 1]</span>
+
+<span class="tok-f">printf</span>(<span class="tok-s">'∃x Even(x)      : %d\n'</span>, <span class="tok-f">any</span>(Even));      <span class="tok-c">% true</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∀x Even(x)      : %d\n'</span>, <span class="tok-f">all</span>(Even));      <span class="tok-c">% false</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∀x Positive(x)  : %d\n'</span>, <span class="tok-f">all</span>(Positive));  <span class="tok-c">% true</span>
+
+<span class="tok-c">% ∀x (Even(x) -> Positive(x))  — all evens are positive</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'∀x(Even->Pos)   : %d\n'</span>, <span class="tok-f">all</span>(~Even | Positive));
+<span class="tok-c">% Quantifier negation:  ¬∀x Even(x)  ==  ∃x ¬Even(x)</span>
+<span class="tok-f">printf</span>(<span class="tok-s">'¬∀ == ∃¬ ?      : %d\n'</span>, (~<span class="tok-f">all</span>(Even)) == <span class="tok-f">any</span>(~Even));</code></pre>
+  </div>
+
+  <div class="callout gold">
+    <span class="label">Run it anywhere</span>
+    Install Octave from octave.org, or run these in the free browser sandbox at <strong>octave-online.net</strong> — no setup required. Save a block as <code>name.m</code> and type <code>name</code> at the prompt, or paste line-by-line.
+  </div>
+</section>
+
+<!-- 13 QUIZ -->
+<section id="quiz">
+  <div class="kicker">Chapter 13 · Interactive Tool</div>
+  <h2><span class="n">⚙</span>Self-Test Quiz</h2>
+  <p>Eight questions spanning the whole course. Click an answer to see instant feedback and an explanation.</p>
+  <div id="quizMount"></div>
+  <div class="scorebar" id="quizScore">Score: 0 / 8</div>
+</section>
+
+<!-- 14 CHEAT -->
+<section id="cheat">
+  <div class="kicker">Chapter 14</div>
+  <h2><span class="n">§</span>Symbol &amp; Syntax Reference</h2>
+  <table class="ref">
+    <thead><tr><th>Symbol</th><th>Name</th><th>Reads as</th><th>Engine / Octave</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sym">¬</span></td><td>Negation</td><td>not</td><td><code>~ ! ¬</code> / <code>~</code></td></tr>
+      <tr><td><span class="sym">∧</span></td><td>Conjunction</td><td>and</td><td><code>&amp; ^ ∧</code> / <code>&amp;</code></td></tr>
+      <tr><td><span class="sym">∨</span></td><td>Disjunction</td><td>(inclusive) or</td><td><code>| ∨</code> / <code>|</code></td></tr>
+      <tr><td><span class="sym">→</span></td><td>Conditional</td><td>if … then</td><td><code>-&gt; =&gt; →</code> / <code>~P | Q</code></td></tr>
+      <tr><td><span class="sym">↔</span></td><td>Biconditional</td><td>if and only if</td><td><code>&lt;-&gt; &lt;=&gt; ↔</code> / <code>==</code></td></tr>
+      <tr><td><span class="sym">⊕</span></td><td>Exclusive or</td><td>either…or (not both)</td><td>— / <code>xor()</code></td></tr>
+      <tr><td><span class="sym">∀</span></td><td>Universal</td><td>for all</td><td>— / <code>all()</code></td></tr>
+      <tr><td><span class="sym">∃</span></td><td>Existential</td><td>there exists</td><td>— / <code>any()</code></td></tr>
+      <tr><td><span class="sym">⊨</span></td><td>Entailment</td><td>models / entails</td><td>—</td></tr>
+      <tr><td><span class="sym">∴</span></td><td>Therefore</td><td>conclusion marker</td><td>—</td></tr>
+      <tr><td><span class="sym">≡</span></td><td>Equivalence</td><td>is logically equivalent to</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="label">Where to go next</span>
+    From here: <strong>modal logic</strong> (necessity ◻ and possibility ◇), <strong>second-order logic</strong> (quantifying over predicates), <strong>proof theory &amp; the sequent calculus</strong>, and the great <strong>metalogical results</strong> — soundness, completeness, and Gödel's incompleteness theorems.
+  </div>
+</section>
+
+<footer>
+  <p class="marque">Symbolic Logic ∴</p>
+  <p>A complete interactive course with a live truth-table engine, validity checker, and GNU Octave computational lab. All tools run entirely in your browser — nothing is sent anywhere. Save this file and it works offline forever.</p>
+</footer>
+
+</main>
+</div>
+</div>
+
+<script>
+/* ============================================================
+   PROPOSITIONAL LOGIC ENGINE
+   tokenizer -> recursive-descent parser -> AST -> evaluator
+   ============================================================ */
+(function(){
+"use strict";
+
+/* ---- tokenizer ---- */
+function tokenize(input){
+  const s = input.replace(/\s+/g,'');
+  const tokens=[]; let i=0;
+  while(i<s.length){
+    if(s.startsWith('<->',i)||s.startsWith('<=>',i)){tokens.push({t:'iff'});i+=3;continue;}
+    if(s.startsWith('->',i) ||s.startsWith('=>',i)){tokens.push({t:'imp'});i+=2;continue;}
+    if(s.startsWith('&&',i)){tokens.push({t:'and'});i+=2;continue;}
+    if(s.startsWith('||',i)){tokens.push({t:'or'}); i+=2;continue;}
+    const c=s[i];
+    if(c==='↔'||c==='≡'){tokens.push({t:'iff'});i++;continue;}
+    if(c==='→'||c==='⊃'){tokens.push({t:'imp'});i++;continue;}
+    if(c==='∧'||c==='&'||c==='^'){tokens.push({t:'and'});i++;continue;}
+    if(c==='∨'||c==='|'){tokens.push({t:'or'});i++;continue;}
+    if(c==='¬'||c==='~'||c==='!'){tokens.push({t:'not'});i++;continue;}
+    if(c==='('){tokens.push({t:'lp'});i++;continue;}
+    if(c===')'){tokens.push({t:'rp'});i++;continue;}
+    if(/[A-Za-z]/.test(c)){
+      let j=i+1;
+      while(j<s.length && /[A-Za-z0-9_]/.test(s[j])) j++;
+      tokens.push({t:'var',name:s.slice(i,j)}); i=j; continue;
+    }
+    throw new Error('Unexpected character: "'+c+'"');
+  }
+  return tokens;
+}
+
+/* ---- parser ---- */
+function parse(tokens){
+  let pos=0;
+  const peek=()=>tokens[pos];
+  const next=()=>tokens[pos++];
+  function expect(t){ const tk=peek(); if(!tk||tk.t!==t) throw new Error('Expected ")"'); return next(); }
+
+  function pIff(){ let l=pImp(); while(peek()&&peek().t==='iff'){ next(); l={t:'iff',l:l,r:pImp()}; } return l; }
+  function pImp(){ let l=pOr();  if(peek()&&peek().t==='imp'){ next(); return {t:'imp',l:l,r:pImp()}; } return l; } // right-assoc
+  function pOr(){  let l=pAnd(); while(peek()&&peek().t==='or'){  next(); l={t:'or',l:l,r:pAnd()}; }  return l; }
+  function pAnd(){ let l=pNot(); while(peek()&&peek().t==='and'){ next(); l={t:'and',l:l,r:pNot()}; } return l; }
+  function pNot(){ if(peek()&&peek().t==='not'){ next(); return {t:'not',e:pNot()}; } return pAtom(); }
+  function pAtom(){
+    const tk=peek();
+    if(!tk) throw new Error('Unexpected end of formula');
+    if(tk.t==='var'){ next(); return {t:'var',name:tk.name}; }
+    if(tk.t==='lp'){ next(); const e=pIff(); expect('rp'); return e; }
+    throw new Error('Unexpected symbol in formula');
+  }
+  const ast=pIff();
+  if(pos<tokens.length) throw new Error('Trailing symbols after a complete formula');
+  return ast;
+}
+
+/* ---- evaluator ---- */
+function ev(node,env){
+  switch(node.t){
+    case 'var': return env[node.name];
+    case 'not': return !ev(node.e,env);
+    case 'and': return ev(node.l,env)&&ev(node.r,env);
+    case 'or':  return ev(node.l,env)||ev(node.r,env);
+    case 'imp': return (!ev(node.l,env))||ev(node.r,env);
+    case 'iff': return ev(node.l,env)===ev(node.r,env);
+  }
+}
+
+/* ---- pretty-printer with minimal parens ---- */
+const PREC={iff:1,imp:2,or:3,and:4,not:5,var:6};
+function prec(n){return PREC[n.t];}
+function wrap(child,parent){
+  return prec(child)<prec(parent) ? '('+nodeStr(child)+')' : nodeStr(child);
+}
+function nodeStr(n){
+  switch(n.t){
+    case 'var': return n.name;
+    case 'not': return '¬'+wrap(n.e,n);
+    case 'and': return wrap(n.l,n)+' ∧ '+wrap(n.r,n);
+    case 'or':  return wrap(n.l,n)+' ∨ '+wrap(n.r,n);
+    case 'imp': return wrap(n.l,n)+' → '+wrap(n.r,n);
+    case 'iff': return wrap(n.l,n)+' ↔ '+wrap(n.r,n);
+  }
+}
+
+/* ---- collect variables (sorted) ---- */
+function collectVars(n,set){
+  if(n.t==='var'){set.add(n.name);return;}
+  if(n.e) collectVars(n.e,set);
+  if(n.l) collectVars(n.l,set);
+  if(n.r) collectVars(n.r,set);
+}
+/* ---- collect sub-formulas, simplest first, deduped ---- */
+function collectSubs(n,acc){
+  if(n.t==='var') return;
+  if(n.e) collectSubs(n.e,acc);
+  if(n.l) collectSubs(n.l,acc);
+  if(n.r) collectSubs(n.r,acc);
+  const s=nodeStr(n);
+  if(!acc.some(x=>x.str===s)) acc.push({str:s,node:n});
+}
+
+/* ---- generate 2^n combos, true-first ---- */
+function combos(vars){
+  const n=vars.length, rows=[];
+  for(let r=0;r<(1<<n);r++){
+    const env={};
+    for(let j=0;j<n;j++){
+      env[vars[j]] = ((r>>(n-1-j))&1)===0; // 0-bit => true => T first
+    }
+    rows.push(env);
+  }
+  return rows;
+}
+
+/* ---- build full truth table for one formula ---- */
+function buildTable(formula){
+  const ast=parse(tokenize(formula));
+  const varSet=new Set(); collectVars(ast,varSet);
+  const vars=[...varSet].sort();
+  if(vars.length===0) throw new Error('Formula contains no variables');
+  if(vars.length>6) throw new Error('Please use 6 variables or fewer ('+(1<<vars.length)+' rows is a lot!)');
+  const subs=[]; collectSubs(ast,subs);
+  const rows=combos(vars);
+  const mainStr=nodeStr(ast);
+  const data=rows.map(env=>{
+    return {
+      vars: vars.map(v=>env[v]),
+      subs: subs.map(s=>ev(s.node,env))
+    };
+  });
+  // classify by the LAST sub (the main formula)
+  const mainCol=data.map(d=>d.subs[d.subs.length-1]);
+  const allTrue=mainCol.every(Boolean);
+  const allFalse=mainCol.every(v=>!v);
+  let cls = allTrue?'tautology' : (allFalse?'contradiction':'contingency');
+  return {vars,subs,data,mainStr,cls};
+}
+
+/* ---- render table to HTML ---- */
+function tv(b){return b?'<span class="T">T</span>':'<span class="F">F</span>';}
+function renderTable(tbl){
+  const lastIdx=tbl.subs.length-1;
+  let html='<div class="tablewrap"><table class="tt"><thead><tr>';
+  tbl.vars.forEach(v=>html+='<th>'+v+'</th>');
+  tbl.subs.forEach((s,i)=>{
+    html+='<th'+(i===lastIdx?' class="main"':'')+'>'+s.str+'</th>';
+  });
+  html+='</tr></thead><tbody>';
+  tbl.data.forEach(row=>{
+    html+='<tr>';
+    row.vars.forEach(b=>html+='<td class="varcol">'+tv(b)+'</td>');
+    row.subs.forEach((b,i)=>html+='<td'+(i===lastIdx?' class="main"':'')+'>'+tv(b)+'</td>');
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  const labels={tautology:['taut','✓ Tautology — true in every row'],
+                contradiction:['contra','✗ Contradiction — false in every row'],
+                contingency:['cont','◐ Contingency — true in some rows, false in others']};
+  const [c,txt]=labels[tbl.cls];
+  html+='<div class="verdict '+c+'">'+txt+'</div>';
+  return html;
+}
+
+/* ============================================================
+   WIDGET 1 — connective explorer
+   ============================================================ */
+(function(){
+  const grid=document.getElementById('connGrid');
+  if(!grid) return;
+  let P=true,Q=true;
+  const defs=[
+    {expr:'¬P',name:'negation',f:()=>!P},
+    {expr:'P ∧ Q',name:'conjunction',f:()=>P&&Q},
+    {expr:'P ∨ Q',name:'disjunction',f:()=>P||Q},
+    {expr:'P → Q',name:'conditional',f:()=>(!P)||Q},
+    {expr:'P ↔ Q',name:'biconditional',f:()=>P===Q},
+    {expr:'P ⊕ Q',name:'exclusive or',f:()=>P!==Q},
+  ];
+  function render(){
+    grid.innerHTML=defs.map(d=>{
+      const val=d.f();
+      return '<div class="conn-cell"><div class="expr">'+d.expr+'</div>'+
+             '<div class="name">'+d.name+'</div>'+
+             '<div class="val '+(val?'T':'F')+'">'+(val?'T':'F')+'</div></div>';
+    }).join('');
+  }
+  document.querySelectorAll('#connExplorer .switch').forEach(sw=>{
+    sw.addEventListener('click',()=>{
+      const v=sw.dataset.var;
+      const on=sw.classList.toggle('on');
+      if(v==='P')P=on; else Q=on;
+      document.querySelector('[data-state="'+v+'"]').textContent=on?'true':'false';
+      render();
+    });
+  });
+  render();
+})();
+
+/* ============================================================
+   WIDGET 2 — truth-table generator
+   ============================================================ */
+(function(){
+  const input=document.getElementById('ttInput');
+  const out=document.getElementById('ttResult');
+  if(!input) return;
+  function run(){
+    const f=input.value.trim();
+    if(!f){out.innerHTML='';return;}
+    try{
+      out.innerHTML=renderTable(buildTable(f));
+    }catch(e){
+      out.innerHTML='<div class="errmsg">⚠ '+e.message+'</div>';
+    }
+  }
+  document.getElementById('ttGo').addEventListener('click',run);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+  document.querySelectorAll('#ttChips .chip').forEach(ch=>{
+    ch.addEventListener('click',()=>{input.value=ch.dataset.f;run();});
+  });
+  run();
+})();
+
+/* ============================================================
+   WIDGET 3 — validity checker
+   ============================================================ */
+(function(){
+  const premI=document.getElementById('premInput');
+  const conI=document.getElementById('conclInput');
+  const out=document.getElementById('valResult');
+  if(!premI) return;
+
+  function check(){
+    out.innerHTML='';
+    const premStrs=premI.value.split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+    const conStr=conI.value.trim();
+    if(premStrs.length===0||!conStr){out.innerHTML='<div class="errmsg">⚠ Enter at least one premise and a conclusion.</div>';return;}
+    try{
+      const premAst=premStrs.map(s=>parse(tokenize(s)));
+      const conAst=parse(tokenize(conStr));
+      const varSet=new Set();
+      premAst.forEach(a=>collectVars(a,varSet));
+      collectVars(conAst,varSet);
+      const vars=[...varSet].sort();
+      if(vars.length>6) throw new Error('Please keep to 6 variables or fewer.');
+      const rows=combos(vars);
+      let valid=true, counter=null;
+      const tableRows=rows.map(env=>{
+        const pv=premAst.map(a=>ev(a,env));
+        const cv=ev(conAst,env);
+        const allPrem=pv.every(Boolean);
+        const critical=allPrem;
+        if(critical && !cv && valid){valid=false;}
+        if(critical && !cv && !counter){counter={env:env};}
+        return {vars:vars.map(v=>env[v]),pv,cv,critical};
+      });
+
+      // render table
+      let html='<div class="tablewrap"><table class="tt"><thead><tr>';
+      vars.forEach(v=>html+='<th>'+v+'</th>');
+      premStrs.forEach((p,i)=>html+='<th>'+nodeStr(premAst[i])+'</th>');
+      html+='<th class="main">∴ '+nodeStr(conAst)+'</th></tr></thead><tbody>';
+      tableRows.forEach(r=>{
+        const bad = r.critical && !r.cv;
+        const rowStyle = r.critical ? ' style="outline:2px solid '+(bad?'var(--false)':'var(--true)')+';outline-offset:-2px"' : '';
+        html+='<tr'+rowStyle+'>';
+        r.vars.forEach(b=>html+='<td class="varcol">'+tv(b)+'</td>');
+        r.pv.forEach(b=>html+='<td>'+tv(b)+'</td>');
+        html+='<td class="main">'+tv(r.cv)+'</td></tr>';
+      });
+      html+='</tbody></table></div>';
+      html+='<p class="hint">Outlined rows are <strong>critical rows</strong> (all premises true). '+
+            'Green outline = conclusion holds; red outline = counterexample.</p>';
+
+      if(valid){
+        html+='<div class="verdict valid">✓ VALID — in every critical row the conclusion is true.</div>';
+      }else{
+        const ce=vars.map(v=>v+'='+(counter.env[v]?'T':'F')).join(', ');
+        html+='<div class="verdict invalid">✗ INVALID — counterexample: '+ce+'</div>'+
+              '<p class="hint">In this row all premises are true yet the conclusion is false, so the conclusion does not follow.</p>';
+      }
+      out.innerHTML=html;
+    }catch(e){
+      out.innerHTML='<div class="errmsg">⚠ '+e.message+'</div>';
+    }
+  }
+  document.getElementById('valGo').addEventListener('click',check);
+  [premI,conI].forEach(inp=>inp.addEventListener('keydown',e=>{if(e.key==='Enter')check();}));
+  document.getElementById('valEx1').addEventListener('click',()=>{premI.value='P -> Q, P';conI.value='Q';check();});
+  document.getElementById('valEx2').addEventListener('click',()=>{premI.value='P -> Q, Q';conI.value='P';check();});
+  check();
+})();
+
+/* ============================================================
+   WIDGET 4 — quiz
+   ============================================================ */
+(function(){
+  const mount=document.getElementById('quizMount');
+  if(!mount) return;
+  const Q=[
+    {q:'Which connective produces a FALSE result only when the antecedent is true and the consequent is false?',
+     opts:['Conjunction (∧)','Disjunction (∨)','Conditional (→)','Biconditional (↔)'],a:2,
+     fb:'The conditional P → Q is false in exactly one case: P true, Q false.'},
+    {q:'A valid argument must have:',
+     opts:['True premises','A true conclusion','No row where all premises are true and the conclusion is false','At least two premises'],a:2,
+     fb:'Validity is purely structural: it forbids the "all premises true, conclusion false" combination.'},
+    {q:'¬(P ∨ Q) is logically equivalent to:',
+     opts:['¬P ∨ ¬Q','¬P ∧ ¬Q','P ∧ Q','¬P → Q'],a:1,
+     fb:'De Morgan: the negation of a disjunction is the conjunction of the negations.'},
+    {q:'The formula P ∨ ¬P is a:',
+     opts:['Contradiction','Contingency','Tautology','Fallacy'],a:2,
+     fb:'Law of excluded middle — true in every row, hence a tautology.'},
+    {q:'"All dogs are loyal" is best symbolized as:',
+     opts:['∃x (Dog(x) ∧ Loyal(x))','∀x (Dog(x) ∧ Loyal(x))','∀x (Dog(x) → Loyal(x))','∃x (Dog(x) → Loyal(x))'],a:2,
+     fb:'Universal claims pair with the conditional: for every x, IF x is a dog THEN x is loyal.'},
+    {q:'From "P → Q" and "¬Q", which rule lets you infer "¬P"?',
+     opts:['Modus Ponens','Modus Tollens','Disjunctive Syllogism','Addition'],a:1,
+     fb:'Modus Tollens: deny the consequent to deny the antecedent.'},
+    {q:'Inferring P from "P → Q" and "Q" is:',
+     opts:['Valid (Modus Ponens)','Valid (Modus Tollens)','The fallacy of affirming the consequent','Valid (Hypothetical Syllogism)'],a:2,
+     fb:'This is invalid — Q could be true for reasons other than P. It is the fallacy of affirming the consequent.'},
+    {q:'¬∀x P(x) is equivalent to:',
+     opts:['∀x ¬P(x)','∃x ¬P(x)','∃x P(x)','¬∃x P(x)'],a:1,
+     fb:'Quantifier negation: "not everything is P" means "something is not P".'},
+  ];
+  let score=0; const answered=new Array(Q.length).fill(false);
+  mount.innerHTML=Q.map((item,qi)=>{
+    return '<div class="quiz-q" data-qi="'+qi+'">'+
+      '<div class="qn">QUESTION '+(qi+1)+' / '+Q.length+'</div>'+
+      '<div class="qtext">'+item.q+'</div>'+
+      item.opts.map((o,oi)=>'<button class="quiz-opt" data-oi="'+oi+'">'+o+'</button>').join('')+
+      '<div class="quiz-fb"></div></div>';
+  }).join('');
+
+  mount.querySelectorAll('.quiz-q').forEach(card=>{
+    const qi=+card.dataset.qi;
+    const fb=card.querySelector('.quiz-fb');
+    card.querySelectorAll('.quiz-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(answered[qi]) return;
+        answered[qi]=true;
+        const oi=+btn.dataset.oi;
+        const correct=Q[qi].a;
+        card.querySelectorAll('.quiz-opt').forEach(b=>{
+          const bi=+b.dataset.oi;
+          if(bi===correct) b.classList.add('correct');
+          else if(bi===oi) b.classList.add('wrong');
+          b.style.cursor='default';
+        });
+        if(oi===correct) score++;
+        fb.textContent=(oi===correct?'✓ Correct. ':'✗ ')+Q[qi].fb;
+        fb.classList.add('show');
+        document.getElementById('quizScore').textContent='Score: '+score+' / '+Q.length;
+      });
+    });
+  });
+})();
+
+/* ============================================================
+   copy buttons for code blocks
+   ============================================================ */
+document.querySelectorAll('.copybtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const code=btn.closest('.codeblock').querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(()=>{
+      const old=btn.textContent; btn.textContent='Copied ✓';
+      setTimeout(()=>btn.textContent=old,1400);
+    }).catch(()=>{btn.textContent='Press Ctrl+C';});
+  });
+});
+
+})();
+</script>
+</body>
+</html>

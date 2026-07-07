@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboPi + ROS 2 Guide — Raspberry Pi 5 on Debian</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg:        #080d10;
+    --bg2:       #0d1318;
+    --bg3:       #111820;
+    --panel:     #131c24;
+    --border:    #1e2e3a;
+    --green:     #00e676;
+    --green-dim: #00c853;
+    --cyan:      #00e5ff;
+    --amber:     #ffab00;
+    --red:       #ff5252;
+    --blue:      #40c4ff;
+    --text:      #cdd9e5;
+    --text-dim:  #7a99ad;
+    --text-faint:#3a5568;
+    --glow-g:    0 0 18px #00e67650, 0 0 40px #00e67618;
+    --glow-c:    0 0 18px #00e5ff50, 0 0 40px #00e5ff18;
+    --glow-a:    0 0 18px #ffab0050, 0 0 40px #ffab0018;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── CIRCUIT BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--text-faint) 1px, transparent 1px),
+      linear-gradient(90deg, var(--text-faint) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  #sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+    transition: transform .3s ease;
+  }
+
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-logo .logo-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .sidebar-logo h1 {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .sidebar-logo h1 span { color: var(--green); }
+
+  .sidebar-logo .version-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 8px;
+    background: rgba(0,230,118,.12);
+    border: 1px solid rgba(0,230,118,.3);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+
+  #sidebar nav { flex: 1; padding: 16px 0; }
+
+  .nav-section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    padding: 12px 24px 6px;
+  }
+
+  #sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 24px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 400;
+    transition: all .2s;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    color: var(--green);
+    background: rgba(0,230,118,.06);
+    border-left-color: var(--green);
+  }
+
+  #sidebar nav a .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    min-width: 20px;
+  }
+
+  #sidebar nav a:hover .step-num,
+  #sidebar nav a.active .step-num { color: var(--green); }
+
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+  }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    margin-left: 260px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #080d10 0%, #0a1820 50%, #08100d 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 60px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,230,118,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    width: 32px; height: 1px;
+    background: var(--green);
+    box-shadow: var(--glow-g);
+  }
+
+  .hero h2 {
+    font-weight: 900;
+    font-size: clamp(28px, 4vw, 48px);
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .hero h2 span.accent { color: var(--green); }
+  .hero h2 span.accent2 { color: var(--cyan); }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin-bottom: 36px;
+    line-height: 1.8;
+  }
+
+  .hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .chip {
+    padding: 5px 14px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+
+  .chip-green { background: rgba(0,230,118,.12); border: 1px solid rgba(0,230,118,.35); color: var(--green); }
+  .chip-cyan  { background: rgba(0,229,255,.10); border: 1px solid rgba(0,229,255,.30); color: var(--cyan); }
+  .chip-amber { background: rgba(255,171,0,.10); border: 1px solid rgba(255,171,0,.30); color: var(--amber); }
+  .chip-blue  { background: rgba(64,196,255,.10); border: 1px solid rgba(64,196,255,.30); color: var(--blue); }
+
+  /* ── CONTENT SECTIONS ── */
+  .section {
+    padding: 56px 60px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .section-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 2px;
+    min-width: 32px;
+  }
+
+  .section h2 {
+    font-weight: 700;
+    font-size: 22px;
+    color: #fff;
+    letter-spacing: .3px;
+  }
+
+  .section-divider {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    display: flex;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 3px solid;
+  }
+
+  .callout-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .callout-body { font-size: 14px; line-height: 1.7; }
+  .callout-body strong { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; }
+
+  .callout-warning { background: rgba(255,171,0,.07); border-color: var(--amber); }
+  .callout-warning .callout-icon { color: var(--amber); }
+  .callout-warning .callout-body strong { color: var(--amber); }
+
+  .callout-info { background: rgba(0,229,255,.06); border-color: var(--cyan); }
+  .callout-info .callout-icon { color: var(--cyan); }
+  .callout-info .callout-body strong { color: var(--cyan); }
+
+  .callout-success { background: rgba(0,230,118,.06); border-color: var(--green); }
+  .callout-success .callout-icon { color: var(--green); }
+  .callout-success .callout-body strong { color: var(--green); }
+
+  .callout-danger { background: rgba(255,82,82,.07); border-color: var(--red); }
+  .callout-danger .callout-icon { color: var(--red); }
+  .callout-danger .callout-body strong { color: var(--red); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    margin: 20px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #060c10;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #0a1218;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .code-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .copy-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: 1px;
+  }
+
+  .copy-btn:hover { color: var(--green); border-color: var(--green); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  pre {
+    padding: 20px 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #c8d8e4;
+  }
+
+  pre .c  { color: var(--text-faint); font-style: italic; } /* comment */
+  pre .kw { color: var(--cyan); }       /* keyword / sudo */
+  pre .cm { color: var(--green); }      /* command */
+  pre .fl { color: var(--amber); }      /* flags */
+  pre .st { color: #a8d8a8; }           /* string */
+  pre .pr { color: var(--green); opacity:.6; user-select:none; } /* prompt */
+  pre .hl { background: rgba(0,230,118,.06); display: block; margin: 0 -20px; padding: 0 20px; border-left: 2px solid var(--green); }
+
+  /* ── STEP BOXES ── */
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    padding: 20px 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color .2s;
+  }
+
+  .step:hover { border-color: rgba(0,230,118,.3); }
+
+  .step-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,230,118,.1);
+    border: 1px solid rgba(0,230,118,.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--green);
+    flex-shrink: 0;
+    box-shadow: var(--glow-g);
+  }
+
+  .step-content h4 {
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .step-content p { font-size: 14px; color: var(--text-dim); margin: 0; }
+
+  /* ── SPEC GRID ── */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .spec-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    transition: border-color .2s;
+  }
+
+  .spec-card:hover { border-color: rgba(0,229,255,.3); }
+
+  .spec-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .spec-value {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--cyan);
+  }
+
+  .spec-sub { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+  }
+
+  .arch-node {
+    padding: 10px 18px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .node-green { background: rgba(0,230,118,.12); border: 1px solid rgba(0,230,118,.4); color: var(--green); }
+  .node-cyan  { background: rgba(0,229,255,.10); border: 1px solid rgba(0,229,255,.35); color: var(--cyan); }
+  .node-amber { background: rgba(255,171,0,.10); border: 1px solid rgba(255,171,0,.35); color: var(--amber); }
+  .node-blue  { background: rgba(64,196,255,.10); border: 1px solid rgba(64,196,255,.35); color: var(--blue); }
+  .node-gray  { background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--text-dim); }
+
+  .arch-arrow {
+    color: var(--text-faint);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .arch-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    text-align: center;
+    letter-spacing: 1px;
+    margin: 12px 0 4px;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  .data-table th {
+    background: var(--panel);
+    padding: 10px 16px;
+    text-align: left;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(30,46,58,.5);
+    color: var(--text-dim);
+  }
+
+  .data-table tr:hover td { background: rgba(0,230,118,.03); }
+  .data-table td:first-child { color: var(--text); font-weight: 600; }
+  .data-table code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--green); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-tracker {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .progress-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .progress-phases {
+    display: flex;
+    gap: 4px;
+  }
+
+  .phase {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    position: relative;
+  }
+
+  .phase::after {
+    content: attr(data-label);
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+
+  .phase-1 { background: var(--green); }
+  .phase-2 { background: var(--cyan); }
+  .phase-3 { background: var(--amber); }
+  .phase-4 { background: var(--blue); }
+  .phase-5 { background: #7c4dff; }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(0,230,118,.07);
+    border: 1px solid rgba(0,230,118,.2);
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: var(--green);
+  }
+
+  /* ── TOGGLE MOBILE ── */
+  #menu-toggle {
+    display: none;
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 200;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 42px; height: 42px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+    font-size: 20px;
+  }
+
+  @media (max-width: 768px) {
+    #menu-toggle { display: flex; }
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    main { margin-left: 0; }
+    .hero, .section { padding: 40px 24px; }
+    .two-col { grid-template-columns: 1fr; }
+    .spec-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 6px rgba(0,230,118,.3); }
+    50%       { box-shadow: 0 0 20px rgba(0,230,118,.6), 0 0 40px rgba(0,230,118,.2); }
+  }
+
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+  .cursor { display: inline-block; animation: blink 1s step-end infinite; }
+
+  .live-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-green 2s ease-in-out infinite;
+    margin-right: 8px;
+  }
+
+  /* Fade-in on scroll */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  ul.styled-list, ol.styled-list {
+    padding-left: 0;
+    list-style: none;
+    margin: 12px 0;
+  }
+
+  ul.styled-list li, ol.styled-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--text-dim);
+    border-bottom: 1px solid rgba(30,46,58,.4);
+  }
+  ul.styled-list li:last-child, ol.styled-list li:last-child { border-bottom: none; }
+
+  ul.styled-list li::before {
+    content: '▸';
+    color: var(--green);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  ol.styled-list { counter-reset: ol-count; }
+  ol.styled-list li { counter-increment: ol-count; }
+  ol.styled-list li::before {
+    content: counter(ol-count, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Troubleshoot cards */
+  .trouble-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+
+  .trouble-q {
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--amber);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid transparent;
+    transition: border-color .2s;
+  }
+
+  .trouble-q:hover { background: rgba(255,171,0,.05); }
+  .trouble-q.open { border-bottom-color: var(--border); }
+
+  .trouble-a {
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .35s ease, padding .35s ease;
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .trouble-a.open { max-height: 600px; padding: 16px 20px; }
+
+  .trouble-q .icon { font-size: 12px; transition: transform .3s; }
+  .trouble-q.open .icon { transform: rotate(90deg); }
+</style>
+</head>
+<body>
+
+<!-- Mobile Menu Toggle -->
+<button id="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
+
+<!-- ── SIDEBAR ── -->
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-tag">Hiwonder</span>
+    <h1>TurboPi <span>&</span> ROS 2</h1>
+    <div class="version-badge">ROS 2 Jazzy · Debian Bookworm</div>
+  </div>
+
+  <nav>
+    <div class="nav-section-label">Getting Started</div>
+    <a href="#overview" onclick="closeSidebar()"><span class="step-num">00</span> Overview</a>
+    <a href="#hardware" onclick="closeSidebar()"><span class="step-num">01</span> Hardware</a>
+    <a href="#debian-setup" onclick="closeSidebar()"><span class="step-num">02</span> Debian Setup</a>
+
+    <div class="nav-section-label">Installation</div>
+    <a href="#docker-install" onclick="closeSidebar()"><span class="step-num">03</span> Docker for ROS 2</a>
+    <a href="#ros-workspace" onclick="closeSidebar()"><span class="step-num">04</span> ROS 2 Workspace</a>
+    <a href="#turbopi-packages" onclick="closeSidebar()"><span class="step-num">05</span> TurboPi Packages</a>
+
+    <div class="nav-section-label">Hardware</div>
+    <a href="#i2c-gpio" onclick="closeSidebar()"><span class="step-num">06</span> I²C & GPIO</a>
+    <a href="#camera-setup" onclick="closeSidebar()"><span class="step-num">07</span> Camera & Vision</a>
+
+    <div class="nav-section-label">ROS 2 Usage</div>
+    <a href="#ros-concepts" onclick="closeSidebar()"><span class="step-num">08</span> Core Concepts</a>
+    <a href="#teleop" onclick="closeSidebar()"><span class="step-num">09</span> Teleoperation</a>
+    <a href="#custom-nodes" onclick="closeSidebar()"><span class="step-num">10</span> Custom Nodes</a>
+    <a href="#ai-vision" onclick="closeSidebar()"><span class="step-num">11</span> AI Vision</a>
+
+    <div class="nav-section-label">Reference</div>
+    <a href="#troubleshoot" onclick="closeSidebar()"><span class="step-num">12</span> Troubleshooting</a>
+    <a href="#reference" onclick="closeSidebar()"><span class="step-num">13</span> Quick Reference</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span class="live-dot"></span> Raspberry Pi 5 · 8 GB RAM
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="overview">
+    <div class="hero-eyebrow">Complete Installation & Operation Guide</div>
+    <h2>
+      TurboPi Robot Car<br>
+      <span class="accent">ROS 2 Jazzy</span> on
+      <span class="accent2">Debian Bookworm</span>
+    </h2>
+    <p class="hero-sub">
+      A step-by-step guide to installing the Robot Operating System 2 (Jazzy Jalisco)
+      on a Raspberry Pi 5 8 GB running Debian Bookworm — purpose-built for the
+      Hiwonder TurboPi AI Vision Robot Car with Mecanum wheels, 2-DOF HD camera,
+      and OpenCV/YOLOv5 vision pipeline.
+    </p>
+    <div class="hero-chips">
+      <span class="chip chip-green">ROS 2 Jazzy Jalisco</span>
+      <span class="chip chip-cyan">Raspberry Pi 5 · 8 GB</span>
+      <span class="chip chip-amber">Debian Bookworm 64-bit</span>
+      <span class="chip chip-blue">Docker Container</span>
+      <span class="chip chip-green">OpenCV · YOLOv5</span>
+      <span class="chip chip-cyan">Python 3.12</span>
+    </div>
+
+    <div class="progress-tracker" style="margin-top:40px;">
+      <div class="progress-label">Guide Phases</div>
+      <div class="progress-phases">
+        <div class="phase phase-1" data-label="System"></div>
+        <div class="phase phase-2" data-label="Docker"></div>
+        <div class="phase phase-3" data-label="ROS 2"></div>
+        <div class="phase phase-4" data-label="TurboPi"></div>
+        <div class="phase phase-5" data-label="Vision"></div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="arch-diagram" style="margin-top:40px;">
+      <div class="arch-label">SYSTEM ARCHITECTURE</div>
+      <div class="arch-row">
+        <div class="arch-node node-amber">Debian Bookworm (64-bit)</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node node-blue">Docker Engine</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node node-cyan">Ubuntu Noble 24.04</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node node-green">ROS 2 Jazzy</div>
+      </div>
+      <div class="arch-row" style="margin-top:16px;">
+        <div class="arch-node node-gray">Mecanum Motors (I²C)</div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-node node-green">TurboPi ROS2 Nodes</div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-node node-gray">HD Camera (CSI)</div>
+      </div>
+      <div class="arch-row" style="margin-top:4px;">
+        <div class="arch-node node-gray">Servo Pan-Tilt</div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-node node-amber">OpenCV · YOLOv5 · DNN</div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-node node-gray">IR Line Sensors</div>
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:28px;">
+      <div class="callout-icon">ℹ</div>
+      <div class="callout-body">
+        <strong>ROS 2 on Debian Bookworm</strong>
+        Debian Bookworm only has Tier 3 ROS 2 support, meaning binary packages aren't distributed for it directly. This guide uses <strong>Docker</strong> to run ROS 2 inside an Ubuntu Noble 24.04 container — the recommended, most reliable approach — with device pass-through for GPIO, I²C, and camera access.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 1: HARDWARE -->
+  <section class="section fade-in" id="hardware">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Hardware Overview</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>Before you begin, confirm you have all required components. The Hiwonder TurboPi Advanced Kit includes the Raspberry Pi 5 expansion board, mecanum chassis, and all sensors — but verify your kit version carefully, as the <strong>Standard Kit does not include ROS 2 support</strong>.</p>
+
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="spec-label">Controller</div>
+        <div class="spec-value">Raspberry Pi 5</div>
+        <div class="spec-sub">8 GB RAM · BCM2712 · 2.4 GHz</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Drive System</div>
+        <div class="spec-value">4× Mecanum Wheels</div>
+        <div class="spec-sub">360° omnidirectional movement</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Camera</div>
+        <div class="spec-value">2-DOF HD Wide-Angle</div>
+        <div class="spec-sub">CSI interface · 130° horizontal</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Pan-Tilt</div>
+        <div class="spec-value">Anti-Blocking Servos</div>
+        <div class="spec-sub">130° vertical · 180° horizontal</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Line Sensors</div>
+        <div class="spec-value">4-Channel IR Array</div>
+        <div class="spec-sub">0.5–6 cm line width detection</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Bus</div>
+        <div class="spec-value">I²C / UART / GPIO</div>
+        <div class="spec-sub">Motor driver via expansion board</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Storage (Recommended)</div>
+        <div class="spec-value">32 GB+ microSD</div>
+        <div class="spec-sub">Class 10 / A2 · NVMe SSD ideal</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Power</div>
+        <div class="spec-value">7.4V LiPo Pack</div>
+        <div class="spec-sub">Onboard BMS · USB-C passthrough</div>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon">⚠</div>
+      <div class="callout-body">
+        <strong>Kit Version Check</strong>
+        Only the <strong>TurboPi Advanced Kit</strong> officially supports ROS 2. The Standard Kit runs Python/OpenCV only. If you have the Standard Kit with an RPi 5 8 GB board, you can still follow this guide to add ROS 2 via Docker, but you'll need to write your own hardware interface packages.
+      </div>
+    </div>
+
+    <h3 style="color:#fff; font-size:16px; font-weight:600; margin: 24px 0 12px;">Required Tools & Materials</h3>
+    <ul class="styled-list">
+      <li>Raspberry Pi 5 8 GB with TurboPi expansion board assembled</li>
+      <li>32 GB+ microSD card (64 GB+ recommended) — Class 10 / A2 rated</li>
+      <li>A computer with SD card reader (for flashing the OS image)</li>
+      <li>Keyboard, mouse, and monitor (HDMI/micro-HDMI) for initial setup</li>
+      <li>Wi-Fi network or Ethernet cable for SSH / package downloads</li>
+      <li>Fully charged TurboPi battery pack</li>
+      <li>Raspberry Pi Imager (free) — download from raspberrypi.com/software</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 2: DEBIAN SETUP -->
+  <section class="section fade-in" id="debian-setup">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Debian / Raspberry Pi OS Setup</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>The Raspberry Pi 5 runs Raspberry Pi OS, which is derived from Debian 12 "Bookworm". We use the <strong>64-bit full desktop version</strong> — this is required for ROS 2 (arm64 architecture) and for camera/AI workloads.</p>
+
+    <div class="callout callout-info">
+      <div class="callout-icon">ℹ</div>
+      <div class="callout-body">
+        <strong>Note on the Hiwonder Pre-built Image</strong>
+        Hiwonder ships a custom OS image with TurboPi pre-configured. If you received one (via their documentation portal or USB drive), you can flash it directly to your SD card and skip most of this section. This guide also covers building from a clean Raspberry Pi OS image for full control.
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-badge">1</div>
+        <div class="step-content">
+          <h4>Flash Raspberry Pi OS (64-bit) to your SD card</h4>
+          <p>Open Raspberry Pi Imager → Choose OS → "Raspberry Pi OS (64-bit)" → Choose Storage → Select your SD card → Click Write. Use the ⚙ gear icon to pre-configure hostname, SSH, Wi-Fi, and your username/password before writing.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-badge">2</div>
+        <div class="step-content">
+          <h4>First boot and system update</h4>
+          <p>Insert the SD card, connect a display and keyboard, and power on. Log in and run a full system update. This may take 5–10 minutes.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-badge">3</div>
+        <div class="step-content">
+          <h4>Enable required interfaces</h4>
+          <p>Enable I²C and the Camera interface via <code>raspi-config</code> or the Raspberry Pi Configuration GUI. These are required for the TurboPi motor driver and HD camera.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-badge">4</div>
+        <div class="step-content">
+          <h4>Set up swap space (important for builds)</h4>
+          <p>Increase swap to at least 2 GB to prevent out-of-memory issues during Docker image pulls and ROS 2 builds. Even with 8 GB RAM, Docker builds benefit from extra swap.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:24px;">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">System Update & Essentials</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Step 1: Full system update</span>
+<span class="pr">$ </span><span class="kw">sudo</span> apt update && <span class="kw">sudo</span> apt upgrade -y
+
+<span class="c"># Step 2: Enable I2C and camera interfaces</span>
+<span class="pr">$ </span><span class="kw">sudo</span> raspi-config
+<span class="c"># Navigate: Interface Options → I2C → Enable</span>
+<span class="c"># Navigate: Interface Options → Camera → Enable</span>
+<span class="c"># Also enable: Interface Options → SSH (for remote access)</span>
+<span class="c"># Select "Finish" and reboot when prompted</span>
+
+<span class="c"># Step 3: Add your user to I2C and GPIO groups</span>
+<span class="pr">$ </span><span class="kw">sudo</span> usermod -aG i2c,gpio,video $USER
+
+<span class="c"># Step 4: Install I2C tools and verify hardware</span>
+<span class="pr">$ </span><span class="kw">sudo</span> apt install -y i2c-tools python3-smbus
+<span class="pr">$ </span>i2cdetect -y 1
+<span class="c"># You should see the TurboPi expansion board at address 0x7f (or 0x70)</span>
+
+<span class="c"># Step 5: Increase swap space to 2 GB</span>
+<span class="pr">$ </span><span class="kw">sudo</span> dphys-swapfile swapoff
+<span class="pr">$ </span><span class="kw">sudo</span> sed -i 's/CONF_SWAPSIZE=100/CONF_SWAPSIZE=2048/' /etc/dphys-swapfile
+<span class="pr">$ </span><span class="kw">sudo</span> dphys-swapfile setup
+<span class="pr">$ </span><span class="kw">sudo</span> dphys-swapfile swapon
+
+<span class="c"># Step 6: Verify swap is active</span>
+<span class="pr">$ </span>free -h
+<span class="c"># Should show ~2G under Swap</span></pre>
+    </div>
+
+    <div class="callout callout-success">
+      <div class="callout-icon">✓</div>
+      <div class="callout-body">
+        <strong>VNC Remote Desktop</strong>
+        For headless operation, install a VNC server: <code>sudo apt install -y realvnc-vnc-server</code> and enable it via <code>raspi-config</code>. Connect from your PC using RealVNC Viewer. The TurboPi docs recommend this as the primary way to interact with the robot's desktop.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: DOCKER INSTALL -->
+  <section class="section fade-in" id="docker-install">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Installing Docker for ROS 2</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>Since Debian Bookworm only has Tier 3 ROS 2 support (requiring a full source build), the recommended approach is to run ROS 2 inside a <strong>Docker container</strong> based on Ubuntu Noble 24.04 — which has official Tier 1 ROS 2 Jazzy support with pre-built binary packages.</p>
+
+    <div class="two-col">
+      <div class="callout callout-success">
+        <div class="callout-icon">✓</div>
+        <div class="callout-body">
+          <strong>Why Docker?</strong>
+          Docker gives you official ROS 2 binary packages, full tool support (RViz2, Gazebo, colcon), clean environment isolation, and easy updates. The hardware devices (I²C, GPIO, camera) are passed through to the container.
+        </div>
+      </div>
+      <div class="callout callout-warning">
+        <div class="callout-icon">⚠</div>
+        <div class="callout-body">
+          <strong>Alternative: Build from Source</strong>
+          You can build ROS 2 Jazzy from source directly on Debian Bookworm. This is covered in the Appendix but takes 3–5 hours and significant disk space. Docker is strongly recommended.
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Install Docker Engine on Debian Bookworm</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Remove any old Docker installations</span>
+<span class="pr">$ </span><span class="kw">sudo</span> apt remove -y docker docker-engine docker.io containerd runc
+
+<span class="c"># Install prerequisites</span>
+<span class="pr">$ </span><span class="kw">sudo</span> apt update
+<span class="pr">$ </span><span class="kw">sudo</span> apt install -y ca-certificates curl gnupg lsb-release
+
+<span class="c"># Add Docker's official GPG key</span>
+<span class="pr">$ </span><span class="kw">sudo</span> install -m 0755 -d /etc/apt/keyrings
+<span class="pr">$ </span><span class="kw">sudo</span> curl -fsSL https://download.docker.com/linux/debian/gpg \
+    -o /etc/apt/keyrings/docker.asc
+<span class="pr">$ </span><span class="kw">sudo</span> chmod a+r /etc/apt/keyrings/docker.asc
+
+<span class="c"># Add the Docker repository</span>
+<span class="pr">$ </span>echo \
+  <span class="st">"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable"</span> | \
+  <span class="kw">sudo</span> tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+<span class="c"># Install Docker Engine</span>
+<span class="pr">$ </span><span class="kw">sudo</span> apt update
+<span class="pr">$ </span><span class="kw">sudo</span> apt install -y \
+    docker-ce docker-ce-cli containerd.io \
+    docker-buildx-plugin docker-compose-plugin
+
+<span class="c"># Add your user to the docker group (no sudo needed for docker)</span>
+<span class="pr">$ </span><span class="kw">sudo</span> groupadd docker 2>/dev/null || true
+<span class="pr">$ </span><span class="kw">sudo</span> usermod -aG docker $USER
+
+<span class="c"># Apply group change (or log out and back in)</span>
+<span class="pr">$ </span>newgrp docker
+
+<span class="c"># Verify Docker installation</span>
+<span class="pr">$ </span>docker run hello-world
+<span class="c"># Should print "Hello from Docker!" if working correctly</span></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Pull the ROS 2 Jazzy Docker Image</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Pull the official ROS 2 Jazzy desktop image (Ubuntu Noble base)</span>
+<span class="c"># "desktop" includes RViz2, demo tools, and all CLI utilities</span>
+<span class="c"># NOTE: This image is ~2.4 GB — allow 15-30 minutes on typical Wi-Fi</span>
+<span class="pr">$ </span>docker pull osrf/ros:jazzy-desktop
+
+<span class="c"># Quick test: verify ROS 2 is working inside the container</span>
+<span class="pr">$ </span>docker run --rm osrf/ros:jazzy-desktop \
+    bash -c "source /opt/ros/jazzy/setup.bash && ros2 --version"
+<span class="c"># Expected output: ros2 jazzy 0.x.x</span>
+
+<span class="c"># Test talker/listener demo (open TWO terminal tabs for this)</span>
+<span class="c"># Terminal 1 — start the talker node:</span>
+<span class="pr">$ </span>docker run -it --rm --network host osrf/ros:jazzy-desktop \
+    bash -c "source /opt/ros/jazzy/setup.bash && \
+             ros2 run demo_nodes_cpp talker"
+
+<span class="c"># Terminal 2 — start the listener node:</span>
+<span class="pr">$ </span>docker run -it --rm --network host osrf/ros:jazzy-desktop \
+    bash -c "source /opt/ros/jazzy/setup.bash && \
+             ros2 run demo_nodes_py listener"
+<span class="c"># You should see: [listener]: I heard: [Hello World: N]</span></pre>
+    </div>
+
+    <h3 style="color:#fff; font-size:16px; font-weight:600; margin: 28px 0 12px;">Creating a Persistent TurboPi Container</h3>
+    <p>Rather than running temporary containers each time, create a dedicated container with all necessary device mounts, network access, and volume mounts for your workspace.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Create & Launch TurboPi ROS 2 Container</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Create your ROS 2 workspace directory on the host</span>
+<span class="pr">$ </span>mkdir -p ~/ros2_ws/src
+
+<span class="c"># Create and run the TurboPi container with full hardware access</span>
+<span class="pr">$ </span>docker run -it \
+  --name turbopi_ros2 \
+  --restart unless-stopped \
+  --network host \
+  --privileged \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+  -v ~/ros2_ws:/root/ros2_ws \
+  -v /dev:/dev \
+  --device /dev/i2c-1 \
+  --device /dev/video0 \
+  --device /dev/gpiomem \
+  --group-add dialout \
+  --group-add video \
+  -w /root/ros2_ws \
+  osrf/ros:jazzy-desktop \
+  bash
+
+<span class="c"># Inside the container — source ROS 2 automatically on every shell</span>
+<span class="pr">[container]# </span>echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+<span class="pr">[container]# </span>echo "source ~/ros2_ws/install/setup.bash 2>/dev/null || true" >> ~/.bashrc
+<span class="pr">[container]# </span>source ~/.bashrc
+
+<span class="c"># Verify ROS 2 environment inside the container</span>
+<span class="pr">[container]# </span>ros2 doctor
+<span class="c"># All checks should pass</span></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Container Management (Host Terminal)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Start the container after a reboot</span>
+<span class="pr">$ </span>docker start turbopi_ros2
+
+<span class="c"># Open a shell inside the running container</span>
+<span class="pr">$ </span>docker exec -it turbopi_ros2 bash
+
+<span class="c"># Open a second shell in the same container (e.g. for teleop)</span>
+<span class="pr">$ </span>docker exec -it turbopi_ros2 bash
+
+<span class="c"># Stop the container</span>
+<span class="pr">$ </span>docker stop turbopi_ros2
+
+<span class="c"># View container logs</span>
+<span class="pr">$ </span>docker logs turbopi_ros2
+
+<span class="c"># Enable X11 forwarding for GUI tools (RViz2, rqt) from host</span>
+<span class="pr">$ </span>xhost +local:docker</pre>
+    </div>
+
+    <div class="callout callout-info">
+      <div class="callout-icon">ℹ</div>
+      <div class="callout-body">
+        <strong>Display & Wayland</strong>
+        Raspberry Pi OS Bookworm uses the Wayland display server by default. For RViz2 and GUI tools inside Docker, you may need to switch to X11 mode: go to Raspberry Pi Configuration → Display → Wayland → X11, then reboot. Also run <code>xhost +local:docker</code> before starting GUI apps.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: ROS WORKSPACE -->
+  <section class="section fade-in" id="ros-workspace">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Setting Up Your ROS 2 Workspace</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>All custom packages — including the TurboPi hardware drivers and your own nodes — live in a <strong>colcon workspace</strong> at <code>~/ros2_ws</code>. This directory is mounted from the host filesystem so your code persists across container restarts.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Workspace Setup (Inside Container)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Install build tools and common ROS 2 packages inside the container</span>
+<span class="pr">[container]# </span>apt update && apt install -y \
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    python3-vcstool \
+    ros-jazzy-teleop-twist-keyboard \
+    ros-jazzy-teleop-twist-joy \
+    ros-jazzy-joy \
+    ros-jazzy-cv-bridge \
+    ros-jazzy-image-transport \
+    ros-jazzy-camera-info-manager \
+    ros-jazzy-rqt-image-view \
+    python3-smbus2 \
+    python3-opencv \
+    python3-numpy \
+    python3-pip \
+    i2c-tools \
+    v4l-utils \
+    git
+
+<span class="c"># Initialize rosdep (run once)</span>
+<span class="pr">[container]# </span>rosdep init 2>/dev/null || true
+<span class="pr">[container]# </span>rosdep update
+
+<span class="c"># Create workspace structure</span>
+<span class="pr">[container]# </span>cd ~/ros2_ws
+<span class="pr">[container]# </span>mkdir -p src
+
+<span class="c"># Build an empty workspace to verify everything works</span>
+<span class="pr">[container]# </span>colcon build --symlink-install
+<span class="c"># Expected: Summary: 0 packages finished [Xs]</span>
+
+<span class="c"># Source the workspace</span>
+<span class="pr">[container]# </span>source install/setup.bash</pre>
+    </div>
+  </section>
+
+  <!-- SECTION 5: TURBOPI PACKAGES -->
+  <section class="section fade-in" id="turbopi-packages">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>TurboPi ROS 2 Packages</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>The TurboPi has a community-maintained ROS 2 package set (<code>turbopi_ros</code>) that provides hardware abstraction, teleop, and launch files. The Hiwonder official image also includes their own package set available from their documentation portal.</p>
+
+    <div class="callout callout-info">
+      <div class="callout-icon">ℹ</div>
+      <div class="callout-body">
+        <strong>Two Sources for TurboPi ROS 2 Packages</strong>
+        (1) <strong>Hiwonder Official</strong>: Pre-installed on the Hiwonder OS image, sourced from their documentation at <code>docs.hiwonder.com</code>. (2) <strong>Community (turbopi_ros)</strong>: Open-source on GitHub at <code>github.com/wltjr/turbopi_ros</code> — includes URDF model, RViz2 config, Gazebo simulation, and autonomous navigation.
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Clone & Build turbopi_ros (Community Package)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Inside the container, navigate to the workspace src directory</span>
+<span class="pr">[container]# </span>cd ~/ros2_ws/src
+
+<span class="c"># Clone the turbopi_ros repository</span>
+<span class="pr">[container]# </span>git clone https://github.com/wltjr/turbopi_ros.git
+
+<span class="c"># Return to workspace root and resolve dependencies</span>
+<span class="pr">[container]# </span>cd ~/ros2_ws
+<span class="pr">[container]# </span>rosdep install --from-paths src --ignore-src -r -y
+
+<span class="c"># Install Python dependencies for TurboPi hardware</span>
+<span class="pr">[container]# </span>pip install smbus2 RPi.GPIO --break-system-packages 2>/dev/null || \
+    pip install smbus2 RPi.GPIO
+
+<span class="c"># Build the workspace (--symlink-install allows editing without rebuild)</span>
+<span class="pr">[container]# </span>colcon build --symlink-install \
+    --cmake-args -DCMAKE_BUILD_TYPE=Release
+<span class="c"># Build time: ~5-10 minutes on RPi 5 8 GB</span>
+
+<span class="c"># Source the updated workspace</span>
+<span class="pr">[container]# </span>source install/setup.bash
+
+<span class="c"># Verify packages are available</span>
+<span class="pr">[container]# </span>ros2 pkg list | grep turbopi
+<span class="c"># Expected: turbopi_ros, turbopi_description, turbopi_bringup, etc.</span></pre>
+    </div>
+
+    <h3 style="color:#fff; font-size:16px; font-weight:600; margin: 28px 0 12px;">Package Overview</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Package</th>
+          <th>Description</th>
+          <th>Key Files</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>turbopi_bringup</td>
+          <td>Launch files for the full TurboPi system</td>
+          <td><code>turbopi_ros.launch.py</code></td>
+        </tr>
+        <tr>
+          <td>turbopi_description</td>
+          <td>URDF robot model, meshes, and RViz2 config</td>
+          <td><code>turbopi.urdf.xacro</code></td>
+        </tr>
+        <tr>
+          <td>turbopi_hardware</td>
+          <td>I²C motor driver, servo control, sensor interfaces</td>
+          <td><code>motor_driver.py</code>, <code>servo_control.py</code></td>
+        </tr>
+        <tr>
+          <td>turbopi_teleop</td>
+          <td>DS4 gamepad, keyboard, and twist teleop nodes</td>
+          <td><code>teleop_turbopi.py</code></td>
+        </tr>
+        <tr>
+          <td>turbopi_vision</td>
+          <td>Camera node, OpenCV processing, YOLO inference</td>
+          <td><code>camera_node.py</code>, <code>yolo_node.py</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SECTION 6: I2C GPIO -->
+  <section class="section fade-in" id="i2c-gpio">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>I²C Bus & GPIO Configuration</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>The TurboPi expansion board communicates with the Raspberry Pi over the <strong>I²C bus</strong> to control the motor drivers, PWM servo outputs, RGB LEDs, and read sensor data. Proper configuration is critical for motor control.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Verify I²C and Scan for Devices (Host Terminal)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Verify I2C bus is active on the host</span>
+<span class="pr">$ </span>ls /dev/i2c*
+<span class="c"># Expected: /dev/i2c-1 (and possibly /dev/i2c-2, /dev/i2c-10, etc.)</span>
+
+<span class="c"># Scan I2C bus 1 for connected devices</span>
+<span class="pr">$ </span>i2cdetect -y 1</pre>
+    </div>
+
+    <p>The expected output shows the TurboPi expansion board's I²C addresses. A typical scan looks like this (addresses in hex):</p>
+
+    <div class="arch-diagram">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim); line-height:2;">
+        <span style="color:var(--text-faint)">     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f</span><br>
+        <span style="color:var(--text-faint)">00:</span>          -- -- -- -- -- -- -- -- -- -- -- -- --<br>
+        <span style="color:var(--text-faint)">10:</span> -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --<br>
+        <span style="color:var(--text-faint)">20:</span> -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --<br>
+        <span style="color:var(--text-faint)">40:</span> <span style="color:var(--green)">40</span> -- -- -- -- -- -- -- -- -- -- -- -- -- -- --<br>
+        <span style="color:var(--text-faint)">50:</span> -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --<br>
+        <span style="color:var(--text-faint)">70:</span> -- -- -- -- -- -- -- <span style="color:var(--green)">7f</span>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:20px; flex-wrap:wrap;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-faint);">
+          <span style="color:var(--green)">0x40</span> — PCA9685 PWM Driver (Servos/RGB)<br>
+          <span style="color:var(--green)">0x7F</span> — TurboPi Main Control Board
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Test I²C Motor Control (Python inside Container)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Inside the container: quick I2C connectivity test</span>
+<span class="pr">[container]# </span>python3 << 'EOF'
+import smbus2
+import time
+
+<span class="c"># Open I2C bus 1</span>
+bus = smbus2.SMBus(1)
+
+<span class="c"># TurboPi expansion board address (check your specific board)</span>
+BOARD_ADDR = 0x7f
+
+try:
+    <span class="c"># Read a register to verify communication</span>
+    data = bus.read_byte(BOARD_ADDR)
+    print(f"I2C connection OK — board responded: 0x{data:02x}")
+except Exception as e:
+    print(f"I2C error: {e}")
+    print("Check: sudo usermod -aG i2c $USER && reboot")
+finally:
+    bus.close()
+EOF</pre>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon">⚠</div>
+      <div class="callout-body">
+        <strong>Raspberry Pi 5 GPIO Note</strong>
+        The RPi 5 uses a new RP1 I/O controller chip. The GPIO library <code>RPi.GPIO</code> may not be compatible — use <code>gpiozero</code> or <code>lgpio</code> instead. Install with: <code>sudo apt install python3-gpiozero python3-lgpio</code>. The <code>smbus2</code> library for I²C works correctly on RPi 5.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: CAMERA SETUP -->
+  <section class="section fade-in" id="camera-setup">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>Camera Setup & libcamera</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>The TurboPi uses a CSI ribbon-cable camera. The Raspberry Pi 5 with Bookworm uses <strong>libcamera</strong> (replacing the legacy <code>raspicam</code> stack). For ROS 2, we expose the camera as a V4L2 device via the <code>v4l2loopback</code> kernel module.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Camera Setup on Host (Debian Bookworm)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Install libcamera tools and v4l2 utilities</span>
+<span class="pr">$ </span><span class="kw">sudo</span> apt install -y \
+    libcamera-apps \
+    v4l-utils \
+    v4l2loopback-dkms \
+    v4l2loopback-utils \
+    python3-libcamera \
+    python3-picamera2
+
+<span class="c"># Test camera with libcamera (should show a preview window)</span>
+<span class="pr">$ </span>libcamera-hello --timeout 5000
+
+<span class="c"># Create a V4L2 virtual device for Docker to access</span>
+<span class="pr">$ </span><span class="kw">sudo</span> modprobe v4l2loopback \
+    devices=1 \
+    video_nr=10 \
+    card_label="TurboPi Camera" \
+    exclusive_caps=1
+
+<span class="c"># Stream libcamera output to the virtual V4L2 device</span>
+<span class="c"># Run this in a background terminal or as a systemd service</span>
+<span class="pr">$ </span>libcamera-vid \
+    --width 640 \
+    --height 480 \
+    --framerate 30 \
+    --codec yuv420 \
+    --output - | \
+    ffmpeg -f rawvideo -pix_fmt yuv420p \
+           -s 640x480 -r 30 -i - \
+           -f v4l2 /dev/video10 &
+
+<span class="c"># Verify the virtual device is visible</span>
+<span class="pr">$ </span>v4l2-ctl --list-devices
+
+<span class="c"># Test USB cameras (if using USB webcam instead of CSI)</span>
+<span class="pr">$ </span>ls /dev/video*
+<span class="pr">$ </span>v4l2-ctl --device=/dev/video0 --all</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Camera Node in ROS 2 (Inside Container)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Install V4L2 camera package for ROS 2</span>
+<span class="pr">[container]# </span>apt install -y ros-jazzy-v4l2-camera
+
+<span class="c"># Launch camera node publishing to /camera/image_raw topic</span>
+<span class="pr">[container]# </span>ros2 run v4l2_camera v4l2_camera_node \
+    --ros-args \
+    -p video_device:=/dev/video10 \
+    -p image_size:=[640,480] \
+    -p camera_frame_id:=camera_link
+
+<span class="c"># In another terminal — view the camera feed</span>
+<span class="pr">[container]# </span>ros2 run rqt_image_view rqt_image_view
+<span class="c"># Or use: ros2 topic echo /camera/image_raw (text only)</span>
+
+<span class="c"># List all topics to verify camera is publishing</span>
+<span class="pr">[container]# </span>ros2 topic list | grep camera
+<span class="c"># Expected: /camera/camera_info  /camera/image_raw</span>
+
+<span class="c"># Check publishing rate (should be ~30 Hz)</span>
+<span class="pr">[container]# </span>ros2 topic hz /camera/image_raw</pre>
+    </div>
+  </section>
+
+  <!-- SECTION 8: ROS CONCEPTS -->
+  <section class="section fade-in" id="ros-concepts">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>ROS 2 Core Concepts for TurboPi</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>Understanding these ROS 2 concepts is essential for working with the TurboPi. The robot uses a publish/subscribe architecture where sensors publish data and control nodes subscribe to send commands.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-label">TURBOPI ROS 2 NODE GRAPH</div>
+      <div class="arch-row">
+        <div class="arch-node node-gray">/joy_node</div>
+        <div class="arch-arrow">→ /joy →</div>
+        <div class="arch-node node-green">/teleop_turbopi</div>
+        <div class="arch-arrow">→ /cmd_vel →</div>
+        <div class="arch-node node-cyan">/motor_controller</div>
+        <div class="arch-arrow">→ I²C →</div>
+        <div class="arch-node node-amber">Motors</div>
+      </div>
+      <div style="height:16px;"></div>
+      <div class="arch-row">
+        <div class="arch-node node-gray">CSI Camera</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node node-green">/camera_node</div>
+        <div class="arch-arrow">→ /image_raw →</div>
+        <div class="arch-node node-cyan">/vision_node</div>
+        <div class="arch-arrow">→ /cmd_vel →</div>
+        <div class="arch-node node-amber">Motors</div>
+      </div>
+      <div style="height:16px;"></div>
+      <div class="arch-row">
+        <div class="arch-node node-gray">/servo_node</div>
+        <div class="arch-arrow">← /servo_cmd ←</div>
+        <div class="arch-node node-green">/teleop_turbopi</div>
+        <div class="arch-arrow">← right stick ←</div>
+        <div class="arch-node node-gray">DS4 Controller</div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--cyan); font-size:14px; font-family:'Share Tech Mono',monospace; letter-spacing:2px; margin-bottom:14px;">KEY TOPICS</h3>
+        <table class="data-table">
+          <thead><tr><th>Topic</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td><code>/cmd_vel</code></td><td>geometry_msgs/Twist</td></tr>
+            <tr><td><code>/camera/image_raw</code></td><td>sensor_msgs/Image</td></tr>
+            <tr><td><code>/joy</code></td><td>sensor_msgs/Joy</td></tr>
+            <tr><td><code>/servo_cmd</code></td><td>std_msgs/Float32MultiArray</td></tr>
+            <tr><td><code>/odom</code></td><td>nav_msgs/Odometry</td></tr>
+            <tr><td><code>/scan</code></td><td>sensor_msgs/LaserScan</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-size:14px; font-family:'Share Tech Mono',monospace; letter-spacing:2px; margin-bottom:14px;">USEFUL COMMANDS</h3>
+        <table class="data-table">
+          <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>ros2 node list</code></td><td>Show all running nodes</td></tr>
+            <tr><td><code>ros2 topic list</code></td><td>Show all active topics</td></tr>
+            <tr><td><code>ros2 topic echo /cmd_vel</code></td><td>Watch velocity commands</td></tr>
+            <tr><td><code>ros2 topic pub ...</code></td><td>Publish to a topic manually</td></tr>
+            <tr><td><code>ros2 launch turbopi_bringup turbopi_ros.launch.py</code></td><td>Start full TurboPi stack</td></tr>
+            <tr><td><code>rqt_graph</code></td><td>Visualize node graph</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 9: TELEOP -->
+  <section class="section fade-in" id="teleop">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2>Teleoperation — Driving TurboPi</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>TurboPi can be controlled via a DualShock 4 gamepad (Bluetooth or USB), a keyboard, or programmatically through the <code>/cmd_vel</code> topic. Mecanum wheels support full 360° omnidirectional movement.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Launch Full TurboPi System</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Start the full TurboPi hardware stack (motor controller, servos, sensors)</span>
+<span class="pr">[container]# </span>ros2 launch turbopi_bringup turbopi_ros.launch.py
+
+<span class="c"># With optional LiDAR (if RPLidar is attached)</span>
+<span class="pr">[container]# </span>ros2 launch turbopi_bringup turbopi_ros.launch.py lidar:=True</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Keyboard Teleoperation (Second Terminal)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Open a second terminal in the container</span>
+<span class="pr">$ </span>docker exec -it turbopi_ros2 bash
+
+<span class="c"># Start keyboard teleop — publishes to /cmd_vel</span>
+<span class="pr">[container]# </span>ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
+<span class="c">
+# ── KEYBOARD CONTROLS ──────────────────────────
+# i      : forward       ,  : backward
+# j      : turn left     l  : turn right
+# u      : diagonal FL   o  : diagonal FR
+# m      : diagonal BL   .  : diagonal BR
+# k      : STOP
+# q/z    : increase/decrease speed
+# w/x    : increase/decrease only linear speed
+# e/c    : increase/decrease only angular speed
+# CTRL-C : quit
+# ───────────────────────────────────────────────</span></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">DualShock 4 Gamepad Teleoperation</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Pair DS4 via Bluetooth (on the HOST, before starting container)</span>
+<span class="pr">$ </span>bluetoothctl
+<span class="pr">[bluetooth]# </span>power on
+<span class="pr">[bluetooth]# </span>agent on
+<span class="pr">[bluetooth]# </span>scan on
+<span class="c"># Hold Share + PS button on DS4 until it flashes rapidly</span>
+<span class="pr">[bluetooth]# </span>pair XX:XX:XX:XX:XX:XX
+<span class="pr">[bluetooth]# </span>trust XX:XX:XX:XX:XX:XX
+<span class="pr">[bluetooth]# </span>connect XX:XX:XX:XX:XX:XX
+<span class="pr">[bluetooth]# </span>exit
+
+<span class="c"># Verify DS4 appears as a joystick device on host</span>
+<span class="pr">$ </span>ls /dev/input/js*
+<span class="c"># Expected: /dev/input/js0</span>
+
+<span class="c"># Inside the container — launch DS4 teleop</span>
+<span class="pr">[container]# </span>ros2 launch turbopi_teleop teleop_turbopi.launch.py
+
+<span class="c"># DS4 CONTROLS:
+# Left Joystick      : Drive (forward/backward/strafe)
+# Right Joystick     : Pan-tilt camera control
+# L1                 : Slow mode (half speed)
+# L2 + R2            : Enable movement (deadman switch)
+# Cross (X)          : Stop all motors</span>
+
+<span class="c"># Manual cmd_vel publish for testing (no gamepad needed)</span>
+<span class="pr">[container]# </span>ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
+  "{ linear: { x: 0.2, y: 0.0, z: 0.0 }, \
+     angular: { x: 0.0, y: 0.0, z: 0.0 } }"
+<span class="c"># Moves forward at 0.2 m/s for one message</span>
+
+<span class="c"># Strafe LEFT (mecanum only) — x=0, y=0.2</span>
+<span class="pr">[container]# </span>ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
+  "{ linear: { x: 0.0, y: 0.2, z: 0.0 }, \
+     angular: { x: 0.0, y: 0.0, z: 0.0 } }"</pre>
+    </div>
+  </section>
+
+  <!-- SECTION 10: CUSTOM NODES -->
+  <section class="section fade-in" id="custom-nodes">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2>Writing Custom ROS 2 Nodes</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>Create your own ROS 2 packages to add custom behaviours — obstacle avoidance, line following, or autonomous navigation. Here's a complete example of a Python node that reads the TurboPi's IR line sensors and publishes obstacle detection data.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Create a New ROS 2 Python Package</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Navigate to workspace src directory inside the container</span>
+<span class="pr">[container]# </span>cd ~/ros2_ws/src
+
+<span class="c"># Create a new Python ROS 2 package</span>
+<span class="pr">[container]# </span>ros2 pkg create my_turbopi_nodes \
+    --build-type ament_python \
+    --dependencies rclpy std_msgs sensor_msgs geometry_msgs
+
+<span class="c"># Navigate into the package</span>
+<span class="pr">[container]# </span>cd my_turbopi_nodes/my_turbopi_nodes</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">python</span>
+        <span class="code-title">line_follower_node.py — Autonomous Line Following</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c">#!/usr/bin/env python3
+"""
+TurboPi Line Follower Node
+Reads 4-channel IR sensor array via I2C and
+publishes Twist commands to /cmd_vel.
+"""</span>
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+import smbus2
+import time
+
+<span class="c"># TurboPi expansion board I2C address</span>
+BOARD_ADDR = 0x7f
+<span class="c"># Register for 4-channel IR line sensor</span>
+IR_SENSOR_REG = 0x1A
+
+<span class="kw">class</span> LineFollowerNode(Node):
+    <span class="kw">def</span> <span class="cm">__init__</span>(self):
+        super().__init__(<span class="st">'line_follower'</span>)
+
+        <span class="c"># Publisher: sends velocity commands to motor controller</span>
+        self.cmd_pub = self.create_publisher(
+            Twist, <span class="st">'/cmd_vel'</span>, 10)
+
+        <span class="c"># I2C connection to TurboPi expansion board</span>
+        self.bus = smbus2.SMBus(1)
+
+        <span class="c"># Control loop at 50 Hz</span>
+        self.timer = self.create_timer(0.02, self.control_loop)
+        self.get_logger().info(<span class="st">'Line follower node started'</span>)
+
+    <span class="kw">def</span> <span class="cm">read_ir_sensors</span>(self):
+        <span class="c">"""Read 4-channel IR sensor state from expansion board.
+        Returns list of 4 booleans: True = line detected."""</span>
+        <span class="kw">try</span>:
+            raw = self.bus.read_byte_data(BOARD_ADDR, IR_SENSOR_REG)
+            <span class="c"># Each bit represents one sensor channel</span>
+            <span class="kw">return</span> [(raw >> i) & 1 for i in range(4)]
+        <span class="kw">except</span> Exception as e:
+            self.get_logger().warn(f<span class="st">'IR read error: {e}'</span>)
+            <span class="kw">return</span> [0, 0, 0, 0]
+
+    <span class="kw">def</span> <span class="cm">control_loop</span>(self):
+        sensors = self.read_ir_sensors()
+        cmd = Twist()
+
+        <span class="c"># Simple line-following PID logic
+        # sensors[0..3] = left to right IR channels</span>
+        s = sensors
+        <span class="kw">if</span> s == [0,1,1,0]:          <span class="c"># Centered on line</span>
+            cmd.linear.x  = 0.25
+            cmd.angular.z = 0.0
+        <span class="kw">elif</span> s == [0,0,1,0] or s == [0,0,1,1]:  <span class="c"># Drift left</span>
+            cmd.linear.x  = 0.18
+            cmd.angular.z = 0.4
+        <span class="kw">elif</span> s == [0,1,0,0] or s == [1,1,0,0]:  <span class="c"># Drift right</span>
+            cmd.linear.x  = 0.18
+            cmd.angular.z = -0.4
+        <span class="kw">elif</span> s == [1,1,1,1]:        <span class="c"># Intersection — go straight</span>
+            cmd.linear.x  = 0.2
+            cmd.angular.z = 0.0
+        <span class="kw">else</span>:                        <span class="c"># Line lost — stop</span>
+            cmd.linear.x  = 0.0
+            cmd.angular.z = 0.0
+
+        self.cmd_pub.publish(cmd)
+
+    <span class="kw">def</span> <span class="cm">destroy_node</span>(self):
+        <span class="c"># Send stop command before shutting down</span>
+        self.cmd_pub.publish(Twist())
+        self.bus.close()
+        super().destroy_node()
+
+<span class="kw">def</span> <span class="cm">main</span>(args=None):
+    rclpy.init(args=args)
+    node = LineFollowerNode()
+    <span class="kw">try</span>:
+        rclpy.spin(node)
+    <span class="kw">except</span> KeyboardInterrupt:
+        pass
+    <span class="kw">finally</span>:
+        node.destroy_node()
+        rclpy.shutdown()
+
+<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:
+    main()</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Build & Run Your Custom Node</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Add entry point to setup.py of your package</span>
+<span class="c"># In ~/ros2_ws/src/my_turbopi_nodes/setup.py, add to console_scripts:</span>
+<span class="c">#   'line_follower = my_turbopi_nodes.line_follower_node:main',</span>
+
+<span class="c"># Build from workspace root</span>
+<span class="pr">[container]# </span>cd ~/ros2_ws
+<span class="pr">[container]# </span>colcon build --packages-select my_turbopi_nodes --symlink-install
+
+<span class="c"># Source the updated workspace</span>
+<span class="pr">[container]# </span>source install/setup.bash
+
+<span class="c"># Run the node (make sure turbopi_bringup is also running)</span>
+<span class="pr">[container]# </span>ros2 run my_turbopi_nodes line_follower
+
+<span class="c"># Monitor the velocity commands being published</span>
+<span class="pr">[container]# </span>ros2 topic echo /cmd_vel</pre>
+    </div>
+  </section>
+
+  <!-- SECTION 11: AI VISION -->
+  <section class="section fade-in" id="ai-vision">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2>AI Vision — OpenCV & YOLOv5</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>TurboPi's key strength is its AI vision pipeline. OpenCV handles image processing tasks (color tracking, edge detection, blob detection), while YOLOv5/YOLOv8 handles real-time multi-class object detection and autonomous driving.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Install Vision Dependencies (Inside Container)</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Install OpenCV with DNN support</span>
+<span class="pr">[container]# </span>apt install -y \
+    python3-opencv \
+    ros-jazzy-cv-bridge \
+    ros-jazzy-image-transport \
+    ros-jazzy-image-pipeline
+
+<span class="c"># Install PyTorch for YOLOv5 (ARM64 — use pip wheel)</span>
+<span class="pr">[container]# </span>pip install torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cpu
+
+<span class="c"># Install Ultralytics YOLOv8 (compatible with YOLO models)</span>
+<span class="pr">[container]# </span>pip install ultralytics
+
+<span class="c"># Verify OpenCV</span>
+<span class="pr">[container]# </span>python3 -c "import cv2; print(f'OpenCV {cv2.__version__} OK')"
+
+<span class="c"># Download YOLOv5s model (Hiwonder uses this for TurboPi)</span>
+<span class="pr">[container]# </span>python3 -c "
+from ultralytics import YOLO
+model = YOLO('yolov5su.pt')   # Downloads automatically ~28 MB
+print('YOLOv5 model loaded OK')
+"</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">python</span>
+        <span class="code-title">color_tracker_node.py — ROS 2 Color Tracking Node</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c">#!/usr/bin/env python3
+"""
+Color Tracking Node for TurboPi
+Detects a target color blob in the camera feed,
+computes error from image center, and steers the robot
+and pan-tilt to follow it.
+"""</span>
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import Image
+from geometry_msgs.msg import Twist
+from std_msgs.msg import Float32MultiArray
+from cv_bridge import CvBridge
+import cv2
+import numpy as np
+
+<span class="c"># Target color in HSV — RED example</span>
+<span class="c"># Tune these values for your specific lighting conditions</span>
+COLOR_RANGES = {
+    <span class="st">'red'</span>:    ([0,  120, 70],  [10, 255, 255]),
+    <span class="st">'green'</span>:  ([40, 60,  50],  [80, 255, 255]),
+    <span class="st">'blue'</span>:   ([100,100, 50],  [130,255, 255]),
+    <span class="st">'yellow'</span>: ([20, 100, 100], [30, 255, 255]),
+}
+
+<span class="kw">class</span> ColorTrackerNode(Node):
+    <span class="kw">def</span> <span class="cm">__init__</span>(self):
+        super().__init__(<span class="st">'color_tracker'</span>)
+        self.declare_parameter(<span class="st">'target_color'</span>, <span class="st">'red'</span>)
+        self.bridge = CvBridge()
+
+        <span class="c"># Subscribe to camera feed</span>
+        self.img_sub = self.create_subscription(
+            Image, <span class="st">'/camera/image_raw'</span>,
+            self.image_callback, 10)
+
+        <span class="c"># Publish velocity and servo commands</span>
+        self.cmd_pub   = self.create_publisher(Twist, <span class="st">'/cmd_vel'</span>, 10)
+        self.servo_pub = self.create_publisher(
+            Float32MultiArray, <span class="st">'/servo_cmd'</span>, 10)
+
+        self.get_logger().info(<span class="st">'Color tracker ready'</span>)
+
+    <span class="kw">def</span> <span class="cm">image_callback</span>(self, msg):
+        color = self.get_parameter(<span class="st">'target_color'</span>).value
+        <span class="kw">if</span> color not in COLOR_RANGES:
+            <span class="kw">return</span>
+
+        <span class="c"># Convert ROS Image → OpenCV BGR → HSV</span>
+        frame = self.bridge.imgmsg_to_cv2(msg, <span class="st">'bgr8'</span>)
+        h, w  = frame.shape[:2]
+        hsv   = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        <span class="c"># Create color mask</span>
+        lo, hi = [np.array(v) for v in COLOR_RANGES[color]]
+        mask   = cv2.inRange(hsv, lo, hi)
+        mask   = cv2.dilate(mask, None, iterations=2)
+
+        <span class="c"># Find largest contour (the target object)</span>
+        cnts, _ = cv2.findContours(
+            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        cmd = Twist()
+        <span class="kw">if</span> cnts:
+            c   = max(cnts, key=cv2.contourArea)
+            area = cv2.contourArea(c)
+            <span class="kw">if</span> area > 500:
+                M  = cv2.moments(c)
+                cx = int(M[<span class="st">'m10'</span>] / M[<span class="st">'m00'</span>])
+                cy = int(M[<span class="st">'m01'</span>] / M[<span class="st">'m00'</span>])
+
+                <span class="c"># Proportional control: error from image center</span>
+                err_x = (cx - w // 2) / (w // 2)  <span class="c"># -1 to +1</span>
+                err_y = (cy - h // 2) / (h // 2)  <span class="c"># -1 to +1</span>
+
+                <span class="c"># Rotate robot to center object horizontally</span>
+                cmd.angular.z = -0.6 * err_x
+
+                <span class="c"># Move forward if object is small, back if large</span>
+                size_err = (area - 30000) / 30000
+                cmd.linear.x = -0.15 * size_err
+
+                <span class="c"># Pan-tilt servo command [pan_angle, tilt_angle]</span>
+                servo_msg = Float32MultiArray()
+                servo_msg.data = [
+                    90.0 - err_x * 45.0,   <span class="c"># pan servo</span>
+                    90.0 - err_y * 30.0    <span class="c"># tilt servo</span>
+                ]
+                self.servo_pub.publish(servo_msg)
+
+        self.cmd_pub.publish(cmd)
+
+<span class="kw">def</span> <span class="cm">main</span>(args=None):
+    rclpy.init(args=args)
+    node = ColorTrackerNode()
+    rclpy.spin(node)
+    rclpy.shutdown()</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Launch Color Tracking & Change Target Color</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Start full system + color tracker (targeting red objects)</span>
+<span class="pr">[container]# </span>ros2 launch turbopi_bringup turbopi_ros.launch.py &
+<span class="pr">[container]# </span>ros2 run my_turbopi_nodes color_tracker \
+    --ros-args -p target_color:=red
+
+<span class="c"># Change target color at runtime (no restart needed)</span>
+<span class="pr">[container]# </span>ros2 param set /color_tracker target_color blue
+
+<span class="c"># View camera with detection overlay using rqt</span>
+<span class="pr">[container]# </span>ros2 run rqt_image_view rqt_image_view</pre>
+    </div>
+  </section>
+
+  <!-- SECTION 12: TROUBLESHOOT -->
+  <section class="section fade-in" id="troubleshoot">
+    <div class="section-header">
+      <span class="section-num">12</span>
+      <h2>Troubleshooting</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-q" onclick="toggleTrouble(this)">
+        <span>Motors don't move / No I²C response from expansion board</span>
+        <span class="icon">▶</span>
+      </div>
+      <div class="trouble-a">
+        <ul class="styled-list">
+          <li>Verify I²C is enabled: <code>ls /dev/i2c-1</code> must exist on the host.</li>
+          <li>Check the battery pack is charged and switched ON (green LED on expansion board).</li>
+          <li>Run <code>i2cdetect -y 1</code> on the host — you should see addresses. If blank, recheck ribbon connections and reboot.</li>
+          <li>Ensure the Docker container was started with <code>--device /dev/i2c-1</code> and <code>--privileged</code> flags.</li>
+          <li>Your user must be in the <code>i2c</code> group: <code>sudo usermod -aG i2c $USER</code> then reboot.</li>
+          <li>On Raspberry Pi 5, the I²C bus may be at <code>/dev/i2c-2</code> or higher — try <code>i2cdetect -l</code> to list all buses.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-q" onclick="toggleTrouble(this)">
+        <span>Camera not detected or /camera/image_raw not publishing</span>
+        <span class="icon">▶</span>
+      </div>
+      <div class="trouble-a">
+        <ul class="styled-list">
+          <li>Verify the CSI ribbon cable is properly seated and the blue side faces the correct direction.</li>
+          <li>Check camera is enabled in <code>raspi-config → Interface Options → Camera</code>.</li>
+          <li>Test with: <code>libcamera-hello --timeout 3000</code> on the host. If this fails, it's a hardware/config issue.</li>
+          <li>Ensure the v4l2loopback module is loaded and streaming is active before starting the Docker container.</li>
+          <li>Try: <code>v4l2-ctl --list-devices</code> to see available video devices and use the correct <code>/dev/videoN</code> path.</li>
+          <li>Wayland users: switch to X11 via raspi-config for RViz2/rqt camera preview to work.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-q" onclick="toggleTrouble(this)">
+        <span>Docker container runs out of memory / build fails with OOM</span>
+        <span class="icon">▶</span>
+      </div>
+      <div class="trouble-a">
+        <ul class="styled-list">
+          <li>Increase swap to 4 GB: edit <code>/etc/dphys-swapfile</code>, set <code>CONF_SWAPSIZE=4096</code>, then restart <code>dphys-swapfile</code>.</li>
+          <li>Limit parallel jobs during colcon build: <code>colcon build --parallel-workers 2</code></li>
+          <li>Use a faster SD card (A2 rating) or install an NVMe SSD — swap performance on a slow SD card causes very long build times.</li>
+          <li>Monitor memory with <code>htop</code> or <code>free -h</code> during builds and reboot if needed.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-q" onclick="toggleTrouble(this)">
+        <span>RViz2 or rqt_image_view won't start (display errors)</span>
+        <span class="icon">▶</span>
+      </div>
+      <div class="trouble-a">
+        <ul class="styled-list">
+          <li>Run <code>xhost +local:docker</code> on the host before starting GUI apps in the container.</li>
+          <li>Ensure <code>DISPLAY</code> is set correctly: <code>echo $DISPLAY</code> should return <code>:0</code> or <code>:1</code>.</li>
+          <li>Switch from Wayland to X11 in Raspberry Pi Configuration (reboot required).</li>
+          <li>If using SSH, enable X forwarding: <code>ssh -X pi@turbopi.local</code> and ensure X11Forwarding is enabled in <code>/etc/ssh/sshd_config</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-q" onclick="toggleTrouble(this)">
+        <span>colcon build fails with Python/CMake errors</span>
+        <span class="icon">▶</span>
+      </div>
+      <div class="trouble-a">
+        <ul class="styled-list">
+          <li>Ensure all dependencies are installed: <code>rosdep install --from-paths src --ignore-src -r -y</code></li>
+          <li>Try building one package at a time: <code>colcon build --packages-select PACKAGE_NAME</code></li>
+          <li>Clean build artifacts and retry: <code>rm -rf build/ install/ log/</code> then rebuild.</li>
+          <li>Check Python version matches ROS 2 Jazzy requirement (Python 3.12): <code>python3 --version</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-q" onclick="toggleTrouble(this)">
+        <span>Servos not responding / camera pan-tilt stuck</span>
+        <span class="icon">▶</span>
+      </div>
+      <div class="trouble-a">
+        <ul class="styled-list">
+          <li>Servos reset automatically on boot — wait 3–5 seconds after powering on before sending commands.</li>
+          <li>If deviation is large (>13°), you must recalibrate physically (see Hiwonder servo calibration docs).</li>
+          <li>Minor deviation (<13°) can be adjusted via the Hiwonder PC calibration tool.</li>
+          <li>Check that the PCA9685 PWM driver is visible at address 0x40 on the I²C bus.</li>
+          <li>Do not operate servos continuously for extended periods — they will overheat. Allow cooling breaks.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-q" onclick="toggleTrouble(this)">
+        <span>WonderPi app can't connect to TurboPi</span>
+        <span class="icon">▶</span>
+      </div>
+      <div class="trouble-a">
+        <ul class="styled-list">
+          <li>Ensure your phone and the TurboPi are on the same Wi-Fi network, or connect directly to TurboPi's AP.</li>
+          <li>The TurboPi broadcasts a Wi-Fi access point on startup — SSID starts with "HW-" by default.</li>
+          <li>Check that the ROS 2 system and the Hiwonder web server are running inside the container.</li>
+          <li>VNC connection: use RealVNC Viewer and connect to the robot's IP address (find with <code>hostname -I</code>).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 13: QUICK REFERENCE -->
+  <section class="section fade-in" id="reference">
+    <div class="section-header">
+      <span class="section-num">13</span>
+      <h2>Quick Reference Cheatsheet</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--green); font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:2px; margin-bottom:12px;">DAILY STARTUP SEQUENCE</h3>
+        <ol class="styled-list">
+          <li>Power on TurboPi (green LED on expansion board)</li>
+          <li>Start camera stream: <code>libcamera-vid ... | ffmpeg ... /dev/video10 &</code></li>
+          <li>Allow X11: <code>xhost +local:docker</code></li>
+          <li>Start container: <code>docker start turbopi_ros2</code></li>
+          <li>Enter container: <code>docker exec -it turbopi_ros2 bash</code></li>
+          <li>Launch robot: <code>ros2 launch turbopi_bringup turbopi_ros.launch.py</code></li>
+          <li>In new terminal: start teleop or your custom nodes</li>
+        </ol>
+      </div>
+      <div>
+        <h3 style="color:var(--amber); font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:2px; margin-bottom:12px;">ESSENTIAL ROS 2 COMMANDS</h3>
+        <table class="data-table">
+          <tbody>
+            <tr><td><code>ros2 node list</code></td><td>Running nodes</td></tr>
+            <tr><td><code>ros2 topic list -t</code></td><td>Topics + types</td></tr>
+            <tr><td><code>ros2 topic hz /topic</code></td><td>Publishing rate</td></tr>
+            <tr><td><code>ros2 topic echo /topic</code></td><td>Watch messages</td></tr>
+            <tr><td><code>ros2 param list</code></td><td>All parameters</td></tr>
+            <tr><td><code>ros2 bag record -a</code></td><td>Record all topics</td></tr>
+            <tr><td><code>ros2 bag play bag.db3</code></td><td>Play recording</td></tr>
+            <tr><td><code>rqt_graph</code></td><td>Node graph GUI</td></tr>
+            <tr><td><code>rviz2</code></td><td>Visualization GUI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:24px;">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <span class="code-title">Useful One-Liners</span>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+      <pre><span class="c"># Emergency stop — publish zero velocity</span>
+<span class="pr">[container]# </span>ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist "{}"
+
+<span class="c"># Move forward 0.3 m/s for 2 seconds</span>
+<span class="pr">[container]# </span>ros2 topic pub -r 10 --keep-alive 2 /cmd_vel \
+    geometry_msgs/msg/Twist "{ linear: { x: 0.3 } }"
+
+<span class="c"># Rotate in place at 0.5 rad/s</span>
+<span class="pr">[container]# </span>ros2 topic pub -r 10 /cmd_vel \
+    geometry_msgs/msg/Twist "{ angular: { z: 0.5 } }"
+
+<span class="c"># Record a rosbag of camera + odometry</span>
+<span class="pr">[container]# </span>ros2 bag record /camera/image_raw /odom /cmd_vel -o my_run
+
+<span class="c"># Check system health</span>
+<span class="pr">[container]# </span>ros2 doctor --report
+
+<span class="c"># View TF transforms (robot coordinate frames)</span>
+<span class="pr">[container]# </span>ros2 run tf2_tools view_frames
+
+<span class="c"># Monitor CPU / temperature on host</span>
+<span class="pr">$ </span>vcgencmd measure_temp
+<span class="pr">$ </span>htop</pre>
+    </div>
+
+    <div class="callout callout-success" style="margin-top:28px;">
+      <div class="callout-icon">🚀</div>
+      <div class="callout-body">
+        <strong>Next Steps</strong>
+        With ROS 2 running on your TurboPi, explore: <strong>Nav2</strong> (autonomous navigation + SLAM), <strong>Gazebo</strong> simulation with the TurboPi URDF model, <strong>MoveIt2</strong> motion planning, <strong>micro-ROS</strong> for low-level MCU integration, and the Hiwonder <strong>ChatGPT + Vision Language Model</strong> integration for embodied AI. Full source code and learning resources are available at <code>docs.hiwonder.com</code>.
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:12px;">
+      <div class="callout-icon">📚</div>
+      <div class="callout-body">
+        <strong>Key Resources</strong>
+        ROS 2 Jazzy documentation: <code>docs.ros.org/en/jazzy</code> · Hiwonder TurboPi docs: <code>docs.hiwonder.com/projects/TurboPi</code> · Community turbopi_ros: <code>github.com/wltjr/turbopi_ros</code> · Raspberry Pi forums: <code>forums.raspberrypi.com</code>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ── Sidebar navigation ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function closeSidebar() {
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+}
+
+// ── Scroll spy ──
+const navLinks = document.querySelectorAll('#sidebar nav a');
+const sections = document.querySelectorAll('section[id]');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      navLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+
+sections.forEach(s => observer.observe(s));
+
+// ── Fade-in on scroll ──
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
+// ── Copy code buttons ──
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  const text = pre.innerText
+    .replace(/^\$ /gm, '')
+    .replace(/^\[container\]# /gm, '')
+    .replace(/^\[bluetooth\]# /gm, '');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Trouble accordion ──
+function toggleTrouble(header) {
+  const answer = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.trouble-q.open').forEach(q => {
+    q.classList.remove('open');
+    q.nextElementSibling.classList.remove('open');
+  });
+  if (!isOpen) {
+    header.classList.add('open');
+    answer.classList.add('open');
+  }
+}
+
+// ── Highlight active link on click ──
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    navLinks.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

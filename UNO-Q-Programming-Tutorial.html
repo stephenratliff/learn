@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arduino UNO Q Programming Tutorial</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
+  h1, h2, h3 {
+    color: #005c9b;
+  }
+  h1 {
+    border-bottom: 2px solid #007acc;
+    padding-bottom: 10px;
+  }
+  code {
+    background-color: #eee;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "Courier New", Courier, monospace;
+  }
+  pre {
+    background-color: #2d2d2d;
+    color: #f1f1f1;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  .code-cpp .token.keyword { color: #c586c0; }
+  .code-cpp .token.comment { color: #6a9955; }
+  .code-cpp .token.function { color: #dcdcaa; }
+  .code-cpp .token.number { color: #b5cea8; }
+
+  .code-python .token.keyword { color: #569cd6; }
+  .code-python .token.comment { color: #6a9955; }
+  .code-python .token.string { color: #ce9178; }
+  .code-python .token.function { color: #dcdcaa; }
+
+  .callout {
+    background-color: #e7f3fe;
+    border-left: 5px solid #007acc;
+    padding: 15px;
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Getting Started with the Arduino UNO Q</h1>
+  <p>A beginner's guide to programming hardware with C++ and Python.</p>
+
+  <h2>Part 1: The C++ Sketch (Controlling the MCU)</h2>
+  <p>An Arduino "sketch" is the name for a program written for the microcontroller. It's written in C++. Every sketch has two main functions:</p>
+  <ul>
+    <li><code>void setup() { ... }</code>: This code runs <strong>once</strong> when the board first powers on. You use it for initialization, like telling the board which pins you're going to use.</li>
+    <li><code>void loop() { ... }</code>: This code runs <strong>over and over again</strong>, forever. This is where you put the main logic of your program, like blinking an LED or reading a sensor.</li>
+  </ul>
+
+  <h3>Your First Sketch: Blinking an LED</h3>
+  <p>This is the "Hello, World!" of hardware. It will blink the built-in LED on the board. This code is written in the <strong>C++ sketch</strong> file (e.g., <code>sketch.ino</code>).</p>
+
+  <div class="callout">
+    <strong>Goal:</strong> Make the onboard LED (connected to pin 13) turn on for one second, then off for one second, repeatedly.
+  </div>
+
+<pre class="code-cpp">
+<span class="token.comment">// This code runs on the MCU (the real-time brain)</span>
+
+<span class="token.keyword">const int</span> LED_PIN = 13; <span class="token.comment">// The built-in LED is on pin 13</span>
+
+<span class="token.keyword">void</span> <span class="token.function">setup</span>() {
+  <span class="token.comment">// This function runs once at the start.</span>
+  <span class="token.function">pinMode</span>(LED_PIN, OUTPUT); <span class="token.comment">// Set the LED pin as an output.</span>
+}
+
+<span class="token.keyword">void</span> <span class="token.function">loop</span>() {
+  <span class="token.comment">// This function runs in a loop, forever.</span>
+  <span class="token.function">digitalWrite</span>(LED_PIN, HIGH); <span class="token.comment">// Turn the LED on. HIGH is voltage ON.</span>
+  <span class="token.function">delay</span>(<span class="token.number">1000</span>);              <span class="token.comment">// Wait for 1000 milliseconds (1 second).</span>
+  <span class="token.function">digitalWrite</span>(LED_PIN, LOW);  <span class="token.comment">// Turn the LED off. LOW is voltage OFF.</span>
+  <span class="token.function">delay</span>(<span class="token.number">1000</span>);              <span class="token.comment">// Wait for another second.</span>
+}
+</pre>
+
+  <h2>Part 2: Python on the MPU (The Linux Brain)</h2>
+  <p>The MPU side runs Python. From here, you can't directly control the hardware pins. Instead, you use the <strong>Arduino Bridge</strong> library to talk to the C++ sketch running on the MCU.</p>
+  <p>This allows you to separate your program's logic. Python can handle the complex stuff (like timing or web requests), while the C++ sketch focuses purely on the hardware task it's told to do.</p>
+
+  <h3>Project: Control the LED from Python</h3>
+  <p>Let's modify the sketch so it waits for a command from Python before blinking the LED. This is a much more powerful way to program!</p>
+
+  <h3>Step 1: The C++ Sketch to Listen for Commands</h3>
+  <p>This sketch includes the <code>Bridge.h</code> library. It defines a "handler" named "blink" that Python can call.</p>
+<pre class="code-cpp">
+<span class="token.comment">// C++ Sketch: sketch.ino</span>
+#include &lt;Bridge.h&gt;
+
+<span class="token.keyword">const int</span> LED_PIN = 13;
+
+<span class="token.keyword">void</span> <span class="token.function">setup</span>() {
+  <span class="token.function">pinMode</span>(LED_PIN, OUTPUT);
+  <span class="token.function">Bridge.begin</span>(); <span class="token.comment">// Initialize the Bridge</span>
+  <span class="token.comment">// Register a function named 'blinkHandler' to be called</span>
+  <span class="token.comment">// when Python sends the "blink" command.</span>
+  <span class="token.function">Bridge.on</span>(<span class="token.string">"blink"</span>, blinkHandler);
+}
+
+<span class="token.keyword">void</span> <span class="token.function">loop</span>() {
+  <span class="token.comment">// The Bridge needs to check for new messages from Python.</span>
+  <span class="token.function">Bridge.process</span>();
+}
+
+<span class="token.comment">// This function is called by the Bridge when Python requests it.</span>
+<span class="token.keyword">void</span> <span class="token.function">blinkHandler</span>() {
+  <span class="token.function">digitalWrite</span>(LED_PIN, HIGH);
+  <span class="token.function">delay</span>(500);
+  <span class="token.function">digitalWrite</span>(LED_PIN, LOW);
+}
+</pre>
+
+  <h3>Step 2: The Python Script to Send Commands</h3>
+  <p>This Python script runs on the Linux side. It connects to the Bridge and calls the "blink" command every two seconds.</p>
+<pre class="code-python">
+<span class="token.comment"># Python Script: main.py</span>
+<span class="token.keyword">from</span> arduinoio <span class="token.keyword">import</span> Bridge
+<span class="token.keyword">import</span> time
+
+<span class="token.comment"># Initialize the bridge connection to the MCU</span>
+bridge = <span class="token.function">Bridge</span>()
+bridge.<span class="token.function">begin</span>()
+
+<span class="token.keyword">print</span>(<span class="token.string">"Python script started. Sending 'blink' command every 2 seconds..."</span>)
+
+<span class="token.keyword">while</span> True:
+  <span class="token.comment"># Call the handler named "blink" that we registered in the C++ sketch</span>
+  bridge.<span class="token.function">call</span>(<span class="token.string">"blink"</span>)
+  <span class="token.keyword">print</span>(<span class="token.string">"Sent 'blink' command to MCU."</span>)
+  time.<span class="token.function">sleep</span>(2) <span class="token.comment"># Wait for 2 seconds</span>
+</pre>
+
+  <div class="callout">
+    <strong>What's Happening?</strong><br>
+    The Python script is the boss. It tells the C++ sketch <i>when</i> to run its <code>blinkHandler</code> function. This "dual-brain" approach is the key to building powerful projects with the Arduino UNO Q. The C++ sketch handles the low-level hardware work, and the Python script handles the high-level logic and timing.
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rust Programming Language — Comprehensive Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rust:       #CE4A1C;
+    --rust-light: #E8622E;
+    --rust-dim:   #7A2D11;
+    --amber:      #F0A500;
+    --amber-soft: #FFC84A;
+    --carbon:     #0E0E0F;
+    --carbon-2:   #161618;
+    --carbon-3:   #1E1E21;
+    --carbon-4:   #28282D;
+    --steel:      #3A3A42;
+    --fog:        #8A8A96;
+    --mist:       #C4C4D0;
+    --white:      #F2F2F4;
+    --code-bg:    #111115;
+    --code-border:#2A2A30;
+    --green:      #4EC94E;
+    --blue:       #5BA3D9;
+    --purple:     #B07CF8;
+    --pink:       #E87DA8;
+    --yellow:     #F0D060;
+    --teal:       #3DBCB8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--carbon);
+    color: var(--mist);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--carbon-2); }
+  ::-webkit-scrollbar-thumb { background: var(--rust-dim); border-radius: 3px; }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    background: var(--carbon-2);
+    border-bottom: 2px solid var(--rust);
+    padding: 60px 40px 50px;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 80% 50%, rgba(206,74,28,0.12) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(206,74,28,0.04) 39px, rgba(206,74,28,0.04) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(206,74,28,0.04) 39px, rgba(206,74,28,0.04) 40px);
+    pointer-events: none;
+  }
+  .header-inner { max-width: 960px; margin: 0 auto; position: relative; }
+  .lang-badge {
+    display: inline-block;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust-light);
+    border: 1px solid var(--rust-dim);
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    background: rgba(206,74,28,0.08);
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--white);
+    margin-bottom: 16px;
+    letter-spacing: -0.03em;
+  }
+  h1 span { color: var(--rust-light); }
+  .header-sub {
+    font-size: 1.05rem;
+    color: var(--fog);
+    max-width: 560px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+  .rust-logo {
+    position: absolute;
+    right: 0; top: -10px;
+    font-size: 9rem;
+    line-height: 1;
+    opacity: 0.06;
+    font-weight: 900;
+    color: var(--rust);
+    font-family: 'Syne', sans-serif;
+    user-select: none;
+    letter-spacing: -0.05em;
+  }
+
+  /* ── NAV SIDEBAR ── */
+  .layout { display: flex; max-width: 1200px; margin: 0 auto; }
+
+  nav {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 0 32px 20px;
+    border-right: 1px solid var(--carbon-4);
+    background: var(--carbon);
+  }
+  nav::-webkit-scrollbar { width: 3px; }
+
+  .nav-section { margin-bottom: 28px; }
+  .nav-label {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  nav a {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--fog);
+    text-decoration: none;
+    padding: 5px 8px;
+    border-left: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    line-height: 1.4;
+  }
+  nav a:hover { color: var(--amber); border-left-color: var(--amber); }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    flex: 1;
+    padding: 40px 48px 80px;
+    min-width: 0;
+    max-width: 900px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 72px;
+    padding-bottom: 72px;
+    border-bottom: 1px solid var(--carbon-4);
+  }
+  .section:last-child { border-bottom: none; }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2::before {
+    content: attr(data-n);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: var(--rust);
+    background: rgba(206,74,28,0.1);
+    border: 1px solid var(--rust-dim);
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--amber);
+    margin: 32px 0 12px;
+    letter-spacing: -0.01em;
+  }
+  h4 {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.88rem;
+    color: var(--teal);
+    margin: 20px 0 8px;
+    font-weight: 500;
+  }
+
+  p { color: var(--mist); margin-bottom: 14px; line-height: 1.8; font-size: 0.95rem; }
+
+  .section-intro {
+    color: var(--fog);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    margin-bottom: 28px;
+    line-height: 1.9;
+    border-left: 3px solid var(--rust-dim);
+    padding-left: 16px;
+  }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-left: 3px solid var(--rust);
+    border-radius: 4px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    position: relative;
+    font-size: 0.82rem;
+    line-height: 1.75;
+  }
+  pre .file-tag {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--rust-dim);
+    color: var(--rust-light);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: 0 3px 0 4px;
+    letter-spacing: 0.1em;
+  }
+  code {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.82rem;
+  }
+  p code, li code {
+    background: rgba(206,74,28,0.12);
+    color: var(--amber-soft);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 0.8rem;
+  }
+
+  /* SYNTAX HIGHLIGHTING */
+  .kw  { color: var(--purple); font-weight: 500; }
+  .ty  { color: var(--teal); }
+  .fn  { color: var(--blue); }
+  .st  { color: var(--green); }
+  .cm  { color: #565660; font-style: italic; }
+  .nm  { color: var(--amber-soft); }
+  .mc  { color: var(--rust-light); }
+  .op  { color: var(--pink); }
+  .nb  { color: var(--yellow); }
+  .lf  { color: var(--fog); }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 0.88rem;
+  }
+  .callout.info  { border-color: var(--blue);   background: rgba(91,163,217,0.06);  }
+  .callout.warn  { border-color: var(--amber);  background: rgba(240,165,0,0.06);   }
+  .callout.tip   { border-color: var(--green);  background: rgba(78,201,78,0.06);   }
+  .callout.rust  { border-color: var(--rust);   background: rgba(206,74,28,0.06);   }
+  .callout-title {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .callout.info  .callout-title { color: var(--blue);  }
+  .callout.warn  .callout-title { color: var(--amber); }
+  .callout.tip   .callout-title { color: var(--green); }
+  .callout.rust  .callout-title { color: var(--rust-light); }
+
+  /* ── TABLES ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 0.84rem; }
+  th {
+    background: var(--carbon-3);
+    color: var(--amber);
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--rust-dim);
+  }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--carbon-4); vertical-align: top; }
+  tr:hover td { background: rgba(206,74,28,0.04); }
+  td code { font-size: 0.78rem; }
+
+  /* ── LISTS ── */
+  ul, ol { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; font-size: 0.92rem; color: var(--mist); line-height: 1.75; }
+  li::marker { color: var(--rust); }
+
+  /* ── TAGS / BADGES ── */
+  .tag {
+    display: inline-block;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin: 2px;
+  }
+  .tag.safe   { background: rgba(78,201,78,0.15);   color: var(--green);  border: 1px solid rgba(78,201,78,0.3);  }
+  .tag.unsafe { background: rgba(232,125,168,0.15); color: var(--pink);   border: 1px solid rgba(232,125,168,0.3);}
+  .tag.new    { background: rgba(240,165,0,0.15);   color: var(--amber);  border: 1px solid rgba(240,165,0,0.3);  }
+
+  /* ── CONCEPT CARDS ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 14px; margin: 20px 0; }
+  .card {
+    background: var(--carbon-2);
+    border: 1px solid var(--carbon-4);
+    border-top: 2px solid var(--rust-dim);
+    border-radius: 4px;
+    padding: 18px;
+    transition: border-top-color 0.2s;
+  }
+  .card:hover { border-top-color: var(--rust-light); }
+  .card-title { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--amber); margin-bottom: 8px; font-weight: 500; }
+  .card p { font-size: 0.82rem; color: var(--fog); margin: 0; line-height: 1.6; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--carbon-4); border-radius: 4px; overflow: hidden; margin: 16px 0; }
+  .compare-col { padding: 16px 20px; }
+  .compare-col:first-child { background: rgba(232,125,168,0.05); border-right: 1px solid var(--carbon-4); }
+  .compare-col:last-child { background: rgba(78,201,78,0.05); }
+  .compare-head { font-family: 'Fira Code', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+  .compare-col:first-child .compare-head { color: var(--pink); }
+  .compare-col:last-child .compare-head { color: var(--green); }
+
+  /* ── PROGRAM STEPS ── */
+  .step {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 28px;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--rust-dim);
+    border: 1px solid var(--rust);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: var(--rust-light);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .step-body { flex: 1; }
+  .step-body h4 { margin-top: 0; }
+
+  /* ── OUTPUT BOX ── */
+  .output {
+    background: #080A08;
+    border: 1px solid #1E2B1E;
+    border-left: 3px solid var(--green);
+    border-radius: 4px;
+    padding: 14px 20px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    color: #7ED87E;
+    margin: 0 0 20px;
+    white-space: pre;
+  }
+  .output::before {
+    content: '$ output';
+    display: block;
+    color: #3A5A3A;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* ── TOC HERO ── */
+  .toc-hero {
+    background: var(--carbon-2);
+    border: 1px solid var(--carbon-4);
+    border-radius: 6px;
+    padding: 28px 32px;
+    margin-bottom: 56px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+    gap: 8px;
+  }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 3px;
+    transition: background 0.15s;
+  }
+  .toc-item:hover { background: rgba(206,74,28,0.08); }
+  .toc-num { font-family: 'Fira Code', monospace; font-size: 0.68rem; color: var(--rust); font-weight: 600; min-width: 28px; }
+  .toc-text { font-size: 0.82rem; color: var(--fog); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--carbon-4);
+    padding: 32px 40px;
+    text-align: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    color: var(--steel);
+    background: var(--carbon-2);
+  }
+  footer span { color: var(--rust); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    nav { display: none; }
+    main { padding: 28px 24px 60px; }
+    h1 { font-size: 2.2rem; }
+    .compare { grid-template-columns: 1fr; }
+    .compare-col:first-child { border-right: none; border-bottom: 1px solid var(--carbon-4); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="rust-logo">Fe₂O₃</div>
+  <div class="header-inner">
+    <div class="lang-badge">// comprehensive guide · 2024 edition</div>
+    <h1>The <span>Rust</span> Programming<br>Language</h1>
+    <p class="header-sub">
+      A fast, safe, and concurrent systems language.<br>
+      For developers who already know how to code — and want to know how to code better.
+    </p>
+  </div>
+</header>
+
+<div class="layout">
+<nav>
+  <div class="nav-section">
+    <div class="nav-label">// foundations</div>
+    <a href="#overview">Overview &amp; Philosophy</a>
+    <a href="#setup">Installation &amp; Tooling</a>
+    <a href="#syntax">Syntax Quick-Reference</a>
+    <a href="#types">Types &amp; Variables</a>
+    <a href="#control">Control Flow</a>
+    <a href="#functions">Functions</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">// ownership</div>
+    <a href="#ownership">Ownership</a>
+    <a href="#borrowing">Borrowing &amp; References</a>
+    <a href="#lifetimes">Lifetimes</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">// structures</div>
+    <a href="#structs">Structs</a>
+    <a href="#enums">Enums &amp; Option</a>
+    <a href="#pattern">Pattern Matching</a>
+    <a href="#traits">Traits</a>
+    <a href="#generics">Generics</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">// practical</div>
+    <a href="#errors">Error Handling</a>
+    <a href="#collections">Collections</a>
+    <a href="#closures">Closures &amp; Iterators</a>
+    <a href="#modules">Modules &amp; Crates</a>
+    <a href="#hello">Hello, World!</a>
+    <a href="#project">Beginner Project</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc-hero">
+  <a href="#overview"   class="toc-item"><span class="toc-num">01</span><span class="toc-text">Overview &amp; Philosophy</span></a>
+  <a href="#setup"      class="toc-item"><span class="toc-num">02</span><span class="toc-text">Installation &amp; Tooling</span></a>
+  <a href="#syntax"     class="toc-item"><span class="toc-num">03</span><span class="toc-text">Syntax Quick-Reference</span></a>
+  <a href="#types"      class="toc-item"><span class="toc-num">04</span><span class="toc-text">Types &amp; Variables</span></a>
+  <a href="#control"    class="toc-item"><span class="toc-num">05</span><span class="toc-text">Control Flow</span></a>
+  <a href="#functions"  class="toc-item"><span class="toc-num">06</span><span class="toc-text">Functions</span></a>
+  <a href="#ownership"  class="toc-item"><span class="toc-num">07</span><span class="toc-text">Ownership</span></a>
+  <a href="#borrowing"  class="toc-item"><span class="toc-num">08</span><span class="toc-text">Borrowing &amp; References</span></a>
+  <a href="#lifetimes"  class="toc-item"><span class="toc-num">09</span><span class="toc-text">Lifetimes</span></a>
+  <a href="#structs"    class="toc-item"><span class="toc-num">10</span><span class="toc-text">Structs</span></a>
+  <a href="#enums"      class="toc-item"><span class="toc-num">11</span><span class="toc-text">Enums &amp; Option</span></a>
+  <a href="#pattern"    class="toc-item"><span class="toc-num">12</span><span class="toc-text">Pattern Matching</span></a>
+  <a href="#traits"     class="toc-item"><span class="toc-num">13</span><span class="toc-text">Traits</span></a>
+  <a href="#generics"   class="toc-item"><span class="toc-num">14</span><span class="toc-text">Generics</span></a>
+  <a href="#errors"     class="toc-item"><span class="toc-num">15</span><span class="toc-text">Error Handling</span></a>
+  <a href="#collections"class="toc-item"><span class="toc-num">16</span><span class="toc-text">Collections</span></a>
+  <a href="#closures"   class="toc-item"><span class="toc-num">17</span><span class="toc-text">Closures &amp; Iterators</span></a>
+  <a href="#modules"    class="toc-item"><span class="toc-num">18</span><span class="toc-text">Modules &amp; Crates</span></a>
+  <a href="#hello"      class="toc-item"><span class="toc-num">19</span><span class="toc-text">Hello, World!</span></a>
+  <a href="#project"    class="toc-item"><span class="toc-num">20</span><span class="toc-text">Beginner Project</span></a>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  §1  OVERVIEW
+════════════════════════════════════════════ -->
+<section class="section" id="overview">
+<h2 data-n="01">Overview &amp; Philosophy</h2>
+<p class="section-intro">Rust is a systems programming language built on three pillars: performance, reliability, and productivity. It competes with C and C++ in raw speed while eliminating entire classes of bugs at compile time.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <div class="card-title">⚡ Performance</div>
+    <p>No garbage collector. No runtime overhead. Compiled to native machine code. Zero-cost abstractions means you pay only for what you use.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🛡 Reliability</div>
+    <p>The ownership system guarantees memory safety and thread safety without a GC. If it compiles, it almost certainly won't segfault or race.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🔧 Productivity</div>
+    <p>Expressive type system, pattern matching, great tooling (Cargo), and error messages that actually help you fix the problem.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🔬 Use Cases</div>
+    <p>WebAssembly, OS kernels, game engines, CLI tools, networking, embedded systems, and anything that used to need C or C++.</p>
+  </div>
+</div>
+
+<h3>How Rust differs from languages you know</h3>
+<table>
+  <thead><tr><th>Concept</th><th>C / C++</th><th>Python / JS / Java</th><th>Rust</th></tr></thead>
+  <tbody>
+    <tr><td>Memory management</td><td>Manual <code>malloc/free</code></td><td>Garbage collector</td><td>Ownership rules (compile-time)</td></tr>
+    <tr><td>Null pointers</td><td>Yes — undefined behavior</td><td>Yes — <code>NullPointerException</code></td><td>No <code>null</code>; use <code>Option&lt;T&gt;</code></td></tr>
+    <tr><td>Runtime errors</td><td>Segfaults, UB</td><td>Exceptions at runtime</td><td>Most caught at compile time</td></tr>
+    <tr><td>Concurrency safety</td><td>Data races possible</td><td>GIL / runtime checks</td><td>Compile-time thread safety</td></tr>
+    <tr><td>Abstractions</td><td>Often have cost</td><td>Runtime cost</td><td>Zero-cost (erased at compile time)</td></tr>
+    <tr><td>Package manager</td><td>None standard</td><td>pip / npm</td><td>Cargo (built-in, excellent)</td></tr>
+  </tbody>
+</table>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §2  SETUP
+════════════════════════════════════════════ -->
+<section class="section" id="setup">
+<h2 data-n="02">Installation &amp; Tooling</h2>
+<p class="section-intro">Rust ships with the <strong>rustup</strong> toolchain manager, the <strong>rustc</strong> compiler, and <strong>Cargo</strong> — its build system and package manager. All three install together in one command.</p>
+
+<h3>Install (all platforms)</h3>
+<pre><code><span class="cm"># macOS / Linux — run in terminal:</span>
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+<span class="cm"># Windows — download rustup-init.exe from rustup.rs</span>
+
+<span class="cm"># Verify installation:</span>
+rustc --version
+cargo --version</code></pre>
+
+<h3>Essential Cargo Commands</h3>
+<table>
+  <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><code>cargo new my_project</code></td><td>Create a new binary project</td></tr>
+    <tr><td><code>cargo new --lib my_lib</code></td><td>Create a library crate</td></tr>
+    <tr><td><code>cargo build</code></td><td>Compile (debug mode)</td></tr>
+    <tr><td><code>cargo build --release</code></td><td>Compile with full optimizations</td></tr>
+    <tr><td><code>cargo run</code></td><td>Build and execute</td></tr>
+    <tr><td><code>cargo test</code></td><td>Run all tests</td></tr>
+    <tr><td><code>cargo check</code></td><td>Type-check without producing a binary (fast!)</td></tr>
+    <tr><td><code>cargo add serde</code></td><td>Add a dependency from crates.io</td></tr>
+    <tr><td><code>cargo doc --open</code></td><td>Build and open documentation</td></tr>
+    <tr><td><code>cargo fmt</code></td><td>Auto-format your code</td></tr>
+    <tr><td><code>cargo clippy</code></td><td>Lint for common mistakes and anti-patterns</td></tr>
+  </tbody>
+</table>
+
+<h3>Project Structure</h3>
+<pre><code>my_project/
+├── Cargo.toml       <span class="cm">← project manifest (dependencies, metadata)</span>
+├── Cargo.lock       <span class="cm">← locked dependency versions (commit this!)</span>
+└── src/
+    ├── main.rs      <span class="cm">← entry point for binaries</span>
+    └── lib.rs       <span class="cm">← root of a library crate</span></code></pre>
+
+<div class="callout tip">
+  <div class="callout-title">💡 Tip — Editor Setup</div>
+  Use <strong>VS Code</strong> with the <strong>rust-analyzer</strong> extension for best-in-class autocompletion, inline errors, and refactoring. JetBrains RustRover and Zed also provide excellent Rust support.
+</div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §3  SYNTAX QUICK-REFERENCE
+════════════════════════════════════════════ -->
+<section class="section" id="syntax">
+<h2 data-n="03">Syntax Quick-Reference</h2>
+<p class="section-intro">A dense cheat-sheet — every construct you'll use daily, side by side with the equivalent in C/Python to make the comparison concrete.</p>
+
+<h3>Comments</h3>
+<pre><code><span class="cm">// Single-line comment</span>
+
+<span class="cm">/* Multi-line comment */</span>
+
+<span class="cm">/// Doc comment (generates HTML docs for the item below)</span>
+<span class="cm">/// Supports **Markdown**.</span>
+<span class="kw">fn</span> <span class="fn">my_function</span>() {}</code></pre>
+
+<h3>Variables &amp; Mutability</h3>
+<pre><code><span class="kw">let</span> x <span class="op">=</span> <span class="nb">5</span>;               <span class="cm">// immutable by default — like const in JS</span>
+<span class="kw">let mut</span> y <span class="op">=</span> <span class="nb">10</span>;          <span class="cm">// mutable — you must be explicit</span>
+<span class="kw">const</span> MAX: <span class="ty">u32</span> <span class="op">=</span> <span class="nb">100_000</span>; <span class="cm">// constant — type annotation required</span>
+
+<span class="cm">// Shadowing — re-declare a name in same scope</span>
+<span class="kw">let</span> x <span class="op">=</span> x <span class="op">+</span> <span class="nb">1</span>;           <span class="cm">// x is now 6, still immutable</span>
+<span class="kw">let</span> x <span class="op">=</span> x.to_string();   <span class="cm">// can even change type via shadowing</span></code></pre>
+
+<h3>Primitive Types</h3>
+<table>
+  <thead><tr><th>Category</th><th>Types</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Signed integers</td><td><code>i8 i16 i32 i64 i128 isize</code></td><td><code>i32</code> is default</td></tr>
+    <tr><td>Unsigned integers</td><td><code>u8 u16 u32 u64 u128 usize</code></td><td><code>usize</code> for indexing</td></tr>
+    <tr><td>Floats</td><td><code>f32 f64</code></td><td><code>f64</code> is default</td></tr>
+    <tr><td>Bool</td><td><code>bool</code></td><td><code>true</code> / <code>false</code></td></tr>
+    <tr><td>Character</td><td><code>char</code></td><td>Unicode scalar, 4 bytes, <code>'A'</code></td></tr>
+    <tr><td>Tuple</td><td><code>(i32, f64, bool)</code></td><td>Fixed length, mixed types</td></tr>
+    <tr><td>Array</td><td><code>[i32; 5]</code></td><td>Fixed length, same type, stack-allocated</td></tr>
+  </tbody>
+</table>
+
+<h3>Type Annotations &amp; Casting</h3>
+<pre><code><span class="kw">let</span> n: <span class="ty">i64</span> <span class="op">=</span> <span class="nb">42</span>;
+<span class="kw">let</span> f: <span class="ty">f32</span> <span class="op">=</span> <span class="nb">3.14</span>;
+<span class="kw">let</span> b: <span class="ty">bool</span> <span class="op">=</span> <span class="kw">true</span>;
+<span class="kw">let</span> c: <span class="ty">char</span> <span class="op">=</span> <span class="st">'🦀'</span>;
+
+<span class="cm">// Explicit casting with `as`</span>
+<span class="kw">let</span> x: <span class="ty">i32</span> <span class="op">=</span> <span class="nb">5</span>;
+<span class="kw">let</span> y: <span class="ty">f64</span> <span class="op">=</span> x <span class="kw">as</span> <span class="ty">f64</span>;    <span class="cm">// Rust never implicitly casts</span></code></pre>
+
+<h3>Operators</h3>
+<table>
+  <thead><tr><th>Category</th><th>Operators</th></tr></thead>
+  <tbody>
+    <tr><td>Arithmetic</td><td><code>+  -  *  /  %</code></td></tr>
+    <tr><td>Comparison</td><td><code>==  !=  &lt;  &gt;  &lt;=  &gt;=</code></td></tr>
+    <tr><td>Logical</td><td><code>&amp;&amp;  ||  !</code></td></tr>
+    <tr><td>Bitwise</td><td><code>&amp;  |  ^  &lt;&lt;  &gt;&gt;  !</code></td></tr>
+    <tr><td>Assignment</td><td><code>=  +=  -=  *=  /=</code></td></tr>
+    <tr><td>Reference</td><td><code>&amp;  &amp;mut  *</code> (borrow / dereference)</td></tr>
+    <tr><td>Range</td><td><code>0..5</code> (exclusive), <code>0..=5</code> (inclusive)</td></tr>
+  </tbody>
+</table>
+
+<h3>Strings</h3>
+<pre><code><span class="cm">// &amp;str — string slice (borrowed, immutable view into string data)</span>
+<span class="kw">let</span> s1: <span class="op">&amp;</span><span class="ty">str</span> <span class="op">=</span> <span class="st">"Hello, world!"</span>;
+
+<span class="cm">// String — heap-allocated, growable</span>
+<span class="kw">let mut</span> s2: <span class="ty">String</span> <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Hello"</span>);
+s2.<span class="fn">push_str</span>(<span class="st">", world!"</span>);
+s2.<span class="fn">push</span>(<span class="st">'!'</span>);              <span class="cm">// push a single char</span>
+
+<span class="cm">// String formatting</span>
+<span class="kw">let</span> name <span class="op">=</span> <span class="st">"Rustacean"</span>;
+<span class="kw">let</span> greeting <span class="op">=</span> <span class="mc">format!</span>(<span class="st">"Hello, {}!"</span>, name);
+
+<span class="cm">// Common methods</span>
+s1.<span class="fn">len</span>()          <span class="cm">// byte length</span>
+s1.<span class="fn">is_empty</span>()    <span class="cm">// true if ""</span>
+s1.<span class="fn">contains</span>(<span class="st">"lo"</span>) <span class="cm">// substring check</span>
+s1.<span class="fn">to_uppercase</span>()
+s1.<span class="fn">trim</span>()         <span class="cm">// strip whitespace</span>
+s1.<span class="fn">split</span>(<span class="st">' '</span>)     <span class="cm">// returns an Iterator</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §4  TYPES & VARIABLES
+════════════════════════════════════════════ -->
+<section class="section" id="types">
+<h2 data-n="04">Types &amp; Variables</h2>
+<p class="section-intro">Rust uses static, strong typing with powerful inference. Once a variable has a type, it never changes — but shadowing lets you rebind a name to a new value of a different type.</p>
+
+<h3>Tuples</h3>
+<pre><code><span class="kw">let</span> tup: (<span class="ty">i32</span>, <span class="ty">f64</span>, <span class="ty">bool</span>) <span class="op">=</span> (<span class="nb">42</span>, <span class="nb">3.14</span>, <span class="kw">true</span>);
+
+<span class="cm">// Access by index</span>
+<span class="kw">let</span> x <span class="op">=</span> tup.<span class="nb">0</span>;   <span class="cm">// 42</span>
+
+<span class="cm">// Destructuring</span>
+<span class="kw">let</span> (a, b, c) <span class="op">=</span> tup;
+<span class="mc">println!</span>(<span class="st">"a={} b={} c={}"</span>, a, b, c);</code></pre>
+
+<h3>Arrays</h3>
+<pre><code><span class="kw">let</span> arr: [<span class="ty">i32</span>; <span class="nb">5</span>] <span class="op">=</span> [<span class="nb">1</span>, <span class="nb">2</span>, <span class="nb">3</span>, <span class="nb">4</span>, <span class="nb">5</span>];
+<span class="kw">let</span> zeros <span class="op">=</span> [<span class="nb">0</span>; <span class="nb">10</span>];      <span class="cm">// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]</span>
+
+arr[<span class="nb">0</span>]                   <span class="cm">// first element (panics if out of bounds)</span>
+arr.<span class="fn">len</span>()               <span class="cm">// 5</span>
+<span class="op">&amp;</span>arr[<span class="nb">1</span>..<span class="nb">3</span>]              <span class="cm">// slice reference: [2, 3]</span></code></pre>
+
+<h3>Type Inference in Action</h3>
+<pre><code><span class="cm">// Rust infers types from context</span>
+<span class="kw">let</span> v <span class="op">=</span> <span class="ty">Vec</span>::new();     <span class="cm">// ❌ error — can't infer T yet</span>
+<span class="kw">let</span> v: <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt; <span class="op">=</span> <span class="ty">Vec</span>::new();  <span class="cm">// ✅ annotate explicitly</span>
+<span class="kw">let</span> v <span class="op">=</span> <span class="ty">Vec</span>::&lt;<span class="ty">i32</span>&gt;::new(); <span class="cm">// ✅ turbofish syntax</span>
+<span class="kw">let mut</span> v <span class="op">=</span> <span class="ty">Vec</span>::new();
+v.<span class="fn">push</span>(<span class="nb">1_i32</span>);          <span class="cm">// ✅ inferred from first push</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §5  CONTROL FLOW
+════════════════════════════════════════════ -->
+<section class="section" id="control">
+<h2 data-n="05">Control Flow</h2>
+<p class="section-intro">Rust's control flow features are expression-oriented — most constructs return values. This is different from C/Java where they are purely statements.</p>
+
+<h3>if / else if / else</h3>
+<pre><code><span class="kw">let</span> n <span class="op">=</span> <span class="nb">7</span>;
+
+<span class="cm">// if is an expression — can return a value</span>
+<span class="kw">let</span> label <span class="op">=</span> <span class="kw">if</span> n <span class="op">%</span> <span class="nb">2</span> <span class="op">==</span> <span class="nb">0</span> { <span class="st">"even"</span> } <span class="kw">else</span> { <span class="st">"odd"</span> };
+
+<span class="kw">if</span> n <span class="op">&lt;</span> <span class="nb">0</span> {
+    <span class="mc">println!</span>(<span class="st">"negative"</span>);
+} <span class="kw">else if</span> n <span class="op">==</span> <span class="nb">0</span> {
+    <span class="mc">println!</span>(<span class="st">"zero"</span>);
+} <span class="kw">else</span> {
+    <span class="mc">println!</span>(<span class="st">"positive"</span>);
+}</code></pre>
+
+<h3>Loops</h3>
+<pre><code><span class="cm">// loop — unconditional, like while(true)</span>
+<span class="kw">let mut</span> count <span class="op">=</span> <span class="nb">0</span>;
+<span class="kw">let</span> result <span class="op">=</span> <span class="kw">loop</span> {
+    count <span class="op">+=</span> <span class="nb">1</span>;
+    <span class="kw">if</span> count <span class="op">==</span> <span class="nb">10</span> { <span class="kw">break</span> count <span class="op">*</span> <span class="nb">2</span>; } <span class="cm">// break with a value!</span>
+};
+
+<span class="cm">// while loop</span>
+<span class="kw">let mut</span> i <span class="op">=</span> <span class="nb">0</span>;
+<span class="kw">while</span> i <span class="op">&lt;</span> <span class="nb">5</span> {
+    <span class="mc">print!</span>(<span class="st">"{} "</span>, i);
+    i <span class="op">+=</span> <span class="nb">1</span>;
+}
+
+<span class="cm">// for loop — iterate over a range or collection</span>
+<span class="kw">for</span> n <span class="kw">in</span> <span class="nb">0</span>..<span class="nb">5</span> {           <span class="cm">// 0, 1, 2, 3, 4</span>
+    <span class="mc">print!</span>(<span class="st">"{} "</span>, n);
+}
+
+<span class="kw">for</span> n <span class="kw">in</span> <span class="nb">0</span>..=<span class="nb">5</span> {          <span class="cm">// 0, 1, 2, 3, 4, 5</span>
+    <span class="mc">print!</span>(<span class="st">"{} "</span>, n);
+}
+
+<span class="cm">// Iterate over a collection</span>
+<span class="kw">let</span> fruits <span class="op">=</span> [<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>];
+<span class="kw">for</span> fruit <span class="kw">in</span> fruits.<span class="fn">iter</span>() {
+    <span class="mc">println!</span>(<span class="st">"I like {}"</span>, fruit);
+}
+
+<span class="cm">// Loop with index using enumerate()</span>
+<span class="kw">for</span> (i, fruit) <span class="kw">in</span> fruits.<span class="fn">iter</span>().<span class="fn">enumerate</span>() {
+    <span class="mc">println!</span>(<span class="st">"{}: {}"</span>, i, fruit);
+}
+
+<span class="cm">// Loop labels — break outer loops</span>
+<span class="st">'outer:</span> <span class="kw">for</span> x <span class="kw">in</span> <span class="nb">0</span>..<span class="nb">5</span> {
+    <span class="kw">for</span> y <span class="kw">in</span> <span class="nb">0</span>..<span class="nb">5</span> {
+        <span class="kw">if</span> x <span class="op">+</span> y <span class="op">==</span> <span class="nb">6</span> { <span class="kw">break</span> <span class="st">'outer</span>; }
+    }
+}</code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §6  FUNCTIONS
+════════════════════════════════════════════ -->
+<section class="section" id="functions">
+<h2 data-n="06">Functions</h2>
+<p class="section-intro">Functions in Rust use the <code>fn</code> keyword. The last expression in a function body is its return value — no <code>return</code> keyword needed (though you can use it for early returns).</p>
+
+<pre><code><span class="cm">// Basic function</span>
+<span class="kw">fn</span> <span class="fn">greet</span>(name: <span class="op">&amp;</span><span class="ty">str</span>) {
+    <span class="mc">println!</span>(<span class="st">"Hello, {}!"</span>, name);
+}
+
+<span class="cm">// Function with return type</span>
+<span class="kw">fn</span> <span class="fn">add</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) <span class="op">-&gt;</span> <span class="ty">i32</span> {
+    a <span class="op">+</span> b     <span class="cm">// no semicolon = return this expression</span>
+}
+
+<span class="cm">// Explicit return (for early exit)</span>
+<span class="kw">fn</span> <span class="fn">divide</span>(a: <span class="ty">f64</span>, b: <span class="ty">f64</span>) <span class="op">-&gt;</span> <span class="ty">f64</span> {
+    <span class="kw">if</span> b <span class="op">==</span> <span class="nb">0.0</span> { <span class="kw">return</span> <span class="nb">0.0</span>; }
+    a <span class="op">/</span> b
+}
+
+<span class="cm">// Multiple return values via tuple</span>
+<span class="kw">fn</span> <span class="fn">min_max</span>(v: <span class="op">&amp;</span>[<span class="ty">i32</span>]) <span class="op">-&gt;</span> (<span class="ty">i32</span>, <span class="ty">i32</span>) {
+    <span class="kw">let</span> <span class="kw">mut</span> min <span class="op">=</span> v[<span class="nb">0</span>];
+    <span class="kw">let mut</span> max <span class="op">=</span> v[<span class="nb">0</span>];
+    <span class="kw">for</span> <span class="op">&amp;</span>n <span class="kw">in</span> <span class="op">&amp;</span>v[<span class="nb">1</span>..] {
+        <span class="kw">if</span> n <span class="op">&lt;</span> min { min <span class="op">=</span> n; }
+        <span class="kw">if</span> n <span class="op">&gt;</span> max { max <span class="op">=</span> n; }
+    }
+    (min, max)
+}
+
+<span class="kw">let</span> (lo, hi) <span class="op">=</span> <span class="fn">min_max</span>(<span class="op">&amp;</span>[<span class="nb">3</span>, <span class="nb">1</span>, <span class="nb">9</span>, <span class="nb">2</span>, <span class="nb">7</span>]);  <span class="cm">// lo=1, hi=9</span></code></pre>
+
+<div class="callout info">
+  <div class="callout-title">ℹ️ Statements vs Expressions</div>
+  In Rust, <strong>statements</strong> end with <code>;</code> and don't return a value. <strong>Expressions</strong> evaluate to a value. Adding a <code>;</code> to an expression turns it into a statement. This is why function bodies end <em>without</em> a semicolon on the return value.
+</div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §7  OWNERSHIP
+════════════════════════════════════════════ -->
+<section class="section" id="ownership">
+<h2 data-n="07">Ownership</h2>
+<p class="section-intro">Ownership is Rust's most unique feature — it's how memory safety is achieved at compile time with no garbage collector. Master this and you master Rust.</p>
+
+<h3>The Three Rules</h3>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-title">Rule 1</div>
+    <p>Every value in Rust has exactly one owner — a variable that "owns" the data.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Rule 2</div>
+    <p>There can only be one owner at a time. You can't have two variables simultaneously owning the same heap data.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Rule 3</div>
+    <p>When the owner goes out of scope, the value is automatically dropped (memory freed). No GC needed.</p>
+  </div>
+</div>
+
+<h3>Move Semantics</h3>
+<pre><code><span class="kw">let</span> s1 <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello"</span>);
+<span class="kw">let</span> s2 <span class="op">=</span> s1;   <span class="cm">// s1 is MOVED into s2. s1 is no longer valid.</span>
+<span class="cm">// println!("{}", s1);  ❌ compile error: value borrowed after move</span>
+<span class="mc">println!</span>(<span class="st">"{}"</span>, s2);   <span class="cm">// ✅ s2 owns the string now</span>
+
+<span class="cm">// Primitive types (i32, f64, bool, char) implement Copy</span>
+<span class="cm">// — they are copied rather than moved.</span>
+<span class="kw">let</span> x <span class="op">=</span> <span class="nb">5</span>;
+<span class="kw">let</span> y <span class="op">=</span> x;    <span class="cm">// x is COPIED, not moved. Both x and y are valid.</span>
+<span class="mc">println!</span>(<span class="st">"{} {}"</span>, x, y);  <span class="cm">// ✅ fine</span></code></pre>
+
+<h3>Clone — Explicit Deep Copy</h3>
+<pre><code><span class="kw">let</span> s1 <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello"</span>);
+<span class="kw">let</span> s2 <span class="op">=</span> s1.<span class="fn">clone</span>();    <span class="cm">// deep copy — both are valid but independent</span>
+<span class="mc">println!</span>(<span class="st">"{} and {}"</span>, s1, s2);  <span class="cm">// ✅</span></code></pre>
+
+<h3>Ownership and Functions</h3>
+<pre><code><span class="kw">fn</span> <span class="fn">takes_ownership</span>(s: <span class="ty">String</span>) {  <span class="cm">// s is moved in</span>
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, s);
+}   <span class="cm">// s is dropped here — memory freed</span>
+
+<span class="kw">fn</span> <span class="fn">gives_ownership</span>() <span class="op">-&gt;</span> <span class="ty">String</span> {
+    <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"mine now"</span>)  <span class="cm">// moved to the caller</span>
+}
+
+<span class="kw">let</span> my_str <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello"</span>);
+<span class="fn">takes_ownership</span>(my_str);    <span class="cm">// my_str is MOVED, invalid after this</span>
+
+<span class="kw">let</span> new_str <span class="op">=</span> <span class="fn">gives_ownership</span>();  <span class="cm">// new_str owns the returned String</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §8  BORROWING & REFERENCES
+════════════════════════════════════════════ -->
+<section class="section" id="borrowing">
+<h2 data-n="08">Borrowing &amp; References</h2>
+<p class="section-intro">Instead of transferring ownership, you can <em>borrow</em> a value by creating a reference. References let you use a value without taking ownership of it.</p>
+
+<h3>Immutable References</h3>
+<pre><code><span class="kw">fn</span> <span class="fn">calculate_length</span>(s: <span class="op">&amp;</span><span class="ty">String</span>) <span class="op">-&gt;</span> <span class="ty">usize</span> {
+    s.<span class="fn">len</span>()   <span class="cm">// we borrow s — we can read but not modify it</span>
+}   <span class="cm">// s goes out of scope but is NOT dropped (we don't own it)</span>
+
+<span class="kw">let</span> s <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello"</span>);
+<span class="kw">let</span> len <span class="op">=</span> <span class="fn">calculate_length</span>(<span class="op">&amp;</span>s);  <span class="cm">// &amp; creates a reference</span>
+<span class="mc">println!</span>(<span class="st">"'{}' has {} bytes"</span>, s, len);  <span class="cm">// s still valid!</span></code></pre>
+
+<h3>Mutable References</h3>
+<pre><code><span class="kw">fn</span> <span class="fn">append_world</span>(s: <span class="op">&amp;mut</span> <span class="ty">String</span>) {
+    s.<span class="fn">push_str</span>(<span class="st">", world!"</span>);
+}
+
+<span class="kw">let mut</span> s <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello"</span>);
+<span class="fn">append_world</span>(<span class="op">&amp;mut</span> s);
+<span class="mc">println!</span>(<span class="st">"{}"</span>, s);  <span class="cm">// "hello, world!"</span></code></pre>
+
+<h3>The Borrowing Rules</h3>
+<div class="callout rust">
+  <div class="callout-title">🔒 Rust's Borrowing Rules (enforced at compile time)</div>
+  <ul style="margin-top:8px">
+    <li>You may have <strong>any number of immutable references</strong> at one time.</li>
+    <li>OR you may have <strong>exactly one mutable reference</strong> — but not both simultaneously.</li>
+    <li>References must <strong>always be valid</strong> (no dangling pointers).</li>
+  </ul>
+</div>
+
+<pre><code><span class="kw">let mut</span> s <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello"</span>);
+
+<span class="kw">let</span> r1 <span class="op">=</span> <span class="op">&amp;</span>s;
+<span class="kw">let</span> r2 <span class="op">=</span> <span class="op">&amp;</span>s;
+<span class="cm">// let r3 = &amp;mut s;  ❌ Cannot borrow as mutable while immutably borrowed</span>
+<span class="mc">println!</span>(<span class="st">"{} {}"</span>, r1, r2);  <span class="cm">// r1 and r2 scope ends here</span>
+
+<span class="kw">let</span> r3 <span class="op">=</span> <span class="op">&amp;mut</span> s;  <span class="cm">// ✅ now fine — r1, r2 are no longer in use</span>
+r3.<span class="fn">push_str</span>(<span class="st">" world"</span>);</code></pre>
+
+<h3>Slices — References to Contiguous Data</h3>
+<pre><code><span class="kw">let</span> s <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello world"</span>);
+<span class="kw">let</span> hello: <span class="op">&amp;</span><span class="ty">str</span> <span class="op">=</span> <span class="op">&amp;</span>s[<span class="nb">0</span>..<span class="nb">5</span>];   <span class="cm">// string slice</span>
+<span class="kw">let</span> world: <span class="op">&amp;</span><span class="ty">str</span> <span class="op">=</span> <span class="op">&amp;</span>s[<span class="nb">6</span>..];    <span class="cm">// to end</span>
+
+<span class="kw">let</span> arr <span class="op">=</span> [<span class="nb">1</span>, <span class="nb">2</span>, <span class="nb">3</span>, <span class="nb">4</span>, <span class="nb">5</span>];
+<span class="kw">let</span> slice: <span class="op">&amp;</span>[<span class="ty">i32</span>] <span class="op">=</span> <span class="op">&amp;</span>arr[<span class="nb">1</span>..<span class="nb">3</span>];  <span class="cm">// [2, 3] — array slice</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §9  LIFETIMES
+════════════════════════════════════════════ -->
+<section class="section" id="lifetimes">
+<h2 data-n="09">Lifetimes</h2>
+<p class="section-intro">Lifetimes tell the compiler how long references are valid. In most cases the compiler infers them (<em>lifetime elision</em>). You only write explicit lifetimes when the compiler needs help relating multiple references.</p>
+
+<pre><code><span class="cm">// Without lifetime annotations, this would be ambiguous:</span>
+<span class="cm">// Which reference lives longer — x or y?</span>
+<span class="kw">fn</span> <span class="fn">longest</span>&lt;<span class="st">'a</span>&gt;(x: <span class="op">&amp;</span><span class="st">'a</span> <span class="ty">str</span>, y: <span class="op">&amp;</span><span class="st">'a</span> <span class="ty">str</span>) <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="st">'a</span> <span class="ty">str</span> {
+    <span class="kw">if</span> x.<span class="fn">len</span>() <span class="op">&gt;</span> y.<span class="fn">len</span>() { x } <span class="kw">else</span> { y }
+}
+<span class="cm">// 'a means: the returned reference lives as long as the shorter of x and y.</span>
+
+<span class="cm">// Lifetimes in structs holding references</span>
+<span class="kw">struct</span> <span class="ty">Excerpt</span>&lt;<span class="st">'a</span>&gt; {
+    part: <span class="op">&amp;</span><span class="st">'a</span> <span class="ty">str</span>,
+}
+
+<span class="kw">let</span> text <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Call me Ishmael. Some years ago..."</span>);
+<span class="kw">let</span> first_sentence <span class="op">=</span> text.<span class="fn">split</span>(<span class="st">'.'</span>).<span class="fn">next</span>().<span class="fn">unwrap</span>();
+<span class="kw">let</span> e <span class="op">=</span> <span class="ty">Excerpt</span> { part: first_sentence };
+<span class="cm">// e.part cannot outlive `text`</span></code></pre>
+
+<div class="callout tip">
+  <div class="callout-title">💡 Lifetime Elision Rules</div>
+  The compiler automatically adds lifetime annotations following three rules, so you often don't write them. Write explicit lifetimes only when the compiler asks you to.
+</div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §10  STRUCTS
+════════════════════════════════════════════ -->
+<section class="section" id="structs">
+<h2 data-n="10">Structs</h2>
+<p class="section-intro">Structs group related fields together. They're Rust's primary mechanism for creating custom data types — similar to classes, but without inheritance.</p>
+
+<h3>Defining and Using Structs</h3>
+<pre><code><span class="cm">// Define a struct</span>
+<span class="kw">struct</span> <span class="ty">Player</span> {
+    name:     <span class="ty">String</span>,
+    health:   <span class="ty">u32</span>,
+    level:    <span class="ty">u32</span>,
+    is_alive: <span class="ty">bool</span>,
+}
+
+<span class="cm">// Instantiate</span>
+<span class="kw">let mut</span> hero <span class="op">=</span> <span class="ty">Player</span> {
+    name:     <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Ferris"</span>),
+    health:   <span class="nb">100</span>,
+    level:    <span class="nb">1</span>,
+    is_alive: <span class="kw">true</span>,
+};
+
+<span class="cm">// Access and modify fields</span>
+hero.health <span class="op">-=</span> <span class="nb">20</span>;
+<span class="mc">println!</span>(<span class="st">"{} has {} HP"</span>, hero.name, hero.health);
+
+<span class="cm">// Struct update syntax (like spread in JS)</span>
+<span class="kw">let</span> hero2 <span class="op">=</span> <span class="ty">Player</span> {
+    name: <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Ferris Jr."</span>),
+    level: <span class="nb">5</span>,
+    ..hero    <span class="cm">// copy remaining fields from hero</span>
+};</code></pre>
+
+<h3>Methods with impl</h3>
+<pre><code><span class="kw">impl</span> <span class="ty">Player</span> {
+    <span class="cm">// Associated function (constructor pattern)</span>
+    <span class="kw">fn</span> <span class="fn">new</span>(name: <span class="op">&amp;</span><span class="ty">str</span>) <span class="op">-&gt;</span> <span class="ty">Self</span> {
+        <span class="ty">Player</span> {
+            name:     name.<span class="fn">to_string</span>(),
+            health:   <span class="nb">100</span>,
+            level:    <span class="nb">1</span>,
+            is_alive: <span class="kw">true</span>,
+        }
+    }
+
+    <span class="cm">// Method (takes self by reference)</span>
+    <span class="kw">fn</span> <span class="fn">describe</span>(<span class="op">&amp;</span><span class="kw">self</span>) {
+        <span class="mc">println!</span>(<span class="st">"[Lv{}] {} — {} HP"</span>, <span class="kw">self</span>.level, <span class="kw">self</span>.name, <span class="kw">self</span>.health);
+    }
+
+    <span class="cm">// Mutable method (takes self by mutable reference)</span>
+    <span class="kw">fn</span> <span class="fn">take_damage</span>(<span class="op">&amp;mut self</span>, dmg: <span class="ty">u32</span>) {
+        <span class="kw">self</span>.health <span class="op">=</span> <span class="kw">self</span>.health.<span class="fn">saturating_sub</span>(dmg);
+        <span class="kw">if</span> <span class="kw">self</span>.health <span class="op">==</span> <span class="nb">0</span> { <span class="kw">self</span>.is_alive <span class="op">=</span> <span class="kw">false</span>; }
+    }
+
+    <span class="cm">// Consuming method (takes ownership)</span>
+    <span class="kw">fn</span> <span class="fn">retire</span>(<span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">String</span> {
+        <span class="mc">format!</span>(<span class="st">"{} has retired!"</span>, <span class="kw">self</span>.name)
+    }
+}
+
+<span class="kw">let mut</span> p <span class="op">=</span> <span class="ty">Player</span>::<span class="fn">new</span>(<span class="st">"Ferris"</span>);
+p.<span class="fn">describe</span>();
+p.<span class="fn">take_damage</span>(<span class="nb">30</span>);
+p.<span class="fn">describe</span>();</code></pre>
+
+<h4>Tuple Structs and Unit Structs</h4>
+<pre><code><span class="cm">// Tuple struct — named tuple type</span>
+<span class="kw">struct</span> <span class="ty">Color</span>(<span class="ty">u8</span>, <span class="ty">u8</span>, <span class="ty">u8</span>);
+<span class="kw">let</span> red <span class="op">=</span> <span class="ty">Color</span>(<span class="nb">255</span>, <span class="nb">0</span>, <span class="nb">0</span>);
+<span class="mc">println!</span>(<span class="st">"R={}"</span>, red.<span class="nb">0</span>);
+
+<span class="cm">// Unit struct — no fields, used for traits</span>
+<span class="kw">struct</span> <span class="ty">AlwaysReady</span>;
+<span class="kw">let</span> _ <span class="op">=</span> <span class="ty">AlwaysReady</span>;</code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §11  ENUMS & OPTION
+════════════════════════════════════════════ -->
+<section class="section" id="enums">
+<h2 data-n="11">Enums &amp; Option&lt;T&gt;</h2>
+<p class="section-intro">Rust's enums are far more powerful than C enums — each variant can hold different types and amounts of data. They're algebraic data types.</p>
+
+<h3>Basic Enums</h3>
+<pre><code><span class="kw">enum</span> <span class="ty">Direction</span> { North, South, East, West }
+
+<span class="kw">let</span> dir <span class="op">=</span> <span class="ty">Direction</span>::<span class="ty">North</span>;
+<span class="kw">match</span> dir {
+    <span class="ty">Direction</span>::<span class="ty">North</span> <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Going north!"</span>),
+    <span class="ty">Direction</span>::<span class="ty">South</span> <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Going south!"</span>),
+    _ <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Going somewhere else"</span>),
+}</code></pre>
+
+<h3>Rich Enums — Variants with Data</h3>
+<pre><code><span class="kw">enum</span> <span class="ty">Message</span> {
+    Quit,                          <span class="cm">// no data</span>
+    Move { x: <span class="ty">i32</span>, y: <span class="ty">i32</span> },     <span class="cm">// named fields</span>
+    Write(<span class="ty">String</span>),                 <span class="cm">// single String</span>
+    ChangeColor(<span class="ty">u8</span>, <span class="ty">u8</span>, <span class="ty">u8</span>),      <span class="cm">// three u8s</span>
+}
+
+<span class="kw">fn</span> <span class="fn">handle</span>(msg: <span class="ty">Message</span>) {
+    <span class="kw">match</span> msg {
+        <span class="ty">Message</span>::<span class="ty">Quit</span>                   <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Quitting"</span>),
+        <span class="ty">Message</span>::<span class="ty">Move</span> { x, y }          <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Move ({},{})"</span>, x, y),
+        <span class="ty">Message</span>::<span class="ty">Write</span>(text)            <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Write: {}"</span>, text),
+        <span class="ty">Message</span>::<span class="ty">ChangeColor</span>(r, g, b)  <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Color ({},{},{})"</span>, r, g, b),
+    }
+}</code></pre>
+
+<h3>Option&lt;T&gt; — Replacing null</h3>
+<pre><code><span class="cm">// Option is defined as: enum Option&lt;T&gt; { Some(T), None }</span>
+<span class="kw">let</span> some_number: <span class="ty">Option</span>&lt;<span class="ty">i32</span>&gt; <span class="op">=</span> <span class="ty">Some</span>(<span class="nb">42</span>);
+<span class="kw">let</span> no_number:   <span class="ty">Option</span>&lt;<span class="ty">i32</span>&gt; <span class="op">=</span> <span class="ty">None</span>;
+
+<span class="cm">// Using Option values</span>
+<span class="kw">if let</span> <span class="ty">Some</span>(n) <span class="op">=</span> some_number {
+    <span class="mc">println!</span>(<span class="st">"Got: {}"</span>, n);
+}
+
+<span class="kw">let</span> value <span class="op">=</span> some_number.<span class="fn">unwrap_or</span>(<span class="nb">0</span>);      <span class="cm">// 42</span>
+<span class="kw">let</span> value <span class="op">=</span> no_number.<span class="fn">unwrap_or</span>(<span class="nb">0</span>);        <span class="cm">// 0</span>
+<span class="kw">let</span> value <span class="op">=</span> some_number.<span class="fn">unwrap_or_else</span>(|| <span class="mc">compute_default</span>());
+<span class="kw">let</span> doubled <span class="op">=</span> some_number.<span class="fn">map</span>(|n| n <span class="op">*</span> <span class="nb">2</span>); <span class="cm">// Some(84)</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §12  PATTERN MATCHING
+════════════════════════════════════════════ -->
+<section class="section" id="pattern">
+<h2 data-n="12">Pattern Matching</h2>
+<p class="section-intro"><code>match</code> is one of Rust's crown jewels. It's exhaustive — the compiler forces you to handle every case — and can destructure complex data in one line.</p>
+
+<h3>match</h3>
+<pre><code><span class="kw">let</span> x: <span class="ty">i32</span> <span class="op">=</span> <span class="nb">7</span>;
+<span class="kw">match</span> x {
+    <span class="nb">1</span>        <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"one"</span>),
+    <span class="nb">2</span> | <span class="nb">3</span>    <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"two or three"</span>),
+    <span class="nb">4</span>..=<span class="nb">6</span>   <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"four to six"</span>),
+    n <span class="kw">if</span> n <span class="op">%</span> <span class="nb">2</span> <span class="op">==</span> <span class="nb">0</span> <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"{} is even"</span>, n),   <span class="cm">// guard</span>
+    n        <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"other: {}"</span>, n),            <span class="cm">// catch-all binding</span>
+}
+
+<span class="cm">// match on a struct</span>
+<span class="kw">struct</span> <span class="ty">Point</span> { x: <span class="ty">i32</span>, y: <span class="ty">i32</span> }
+<span class="kw">let</span> p <span class="op">=</span> <span class="ty">Point</span> { x: <span class="nb">0</span>, y: <span class="nb">7</span> };
+<span class="kw">match</span> p {
+    <span class="ty">Point</span> { x: <span class="nb">0</span>, y } <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"on y-axis at {}"</span>, y),
+    <span class="ty">Point</span> { x, y: <span class="nb">0</span> } <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"on x-axis at {}"</span>, x),
+    <span class="ty">Point</span> { x, y }    <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"at ({}, {})"</span>, x, y),
+}</code></pre>
+
+<h3>if let — Single-arm match</h3>
+<pre><code><span class="kw">let</span> config <span class="op">=</span> <span class="ty">Some</span>(<span class="st">"dark_mode"</span>);
+
+<span class="cm">// Verbose match:</span>
+<span class="kw">match</span> config {
+    <span class="ty">Some</span>(val) <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Setting: {}"</span>, val),
+    <span class="ty">None</span>      <span class="op">=&gt;</span> {},
+}
+
+<span class="cm">// Concise if let:</span>
+<span class="kw">if let</span> <span class="ty">Some</span>(val) <span class="op">=</span> config {
+    <span class="mc">println!</span>(<span class="st">"Setting: {}"</span>, val);
+}</code></pre>
+
+<h3>while let</h3>
+<pre><code><span class="kw">let mut</span> stack <span class="op">=</span> <span class="ty">Vec</span>::<span class="fn">new</span>();
+stack.<span class="fn">push</span>(<span class="nb">1</span>); stack.<span class="fn">push</span>(<span class="nb">2</span>); stack.<span class="fn">push</span>(<span class="nb">3</span>);
+
+<span class="kw">while let</span> <span class="ty">Some</span>(top) <span class="op">=</span> stack.<span class="fn">pop</span>() {
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, top);   <span class="cm">// prints 3, 2, 1</span>
+}</code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §13  TRAITS
+════════════════════════════════════════════ -->
+<section class="section" id="traits">
+<h2 data-n="13">Traits</h2>
+<p class="section-intro">Traits define shared behavior — they're similar to interfaces in Java/Go, or abstract base classes in Python. They're the foundation of Rust's polymorphism.</p>
+
+<pre><code><span class="cm">// Define a trait</span>
+<span class="kw">trait</span> <span class="ty">Describable</span> {
+    <span class="kw">fn</span> <span class="fn">describe</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">String</span>;
+
+    <span class="cm">// Default method — can be overridden</span>
+    <span class="kw">fn</span> <span class="fn">print_description</span>(<span class="op">&amp;</span><span class="kw">self</span>) {
+        <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="kw">self</span>.<span class="fn">describe</span>());
+    }
+}
+
+<span class="kw">struct</span> <span class="ty">Car</span> { make: <span class="ty">String</span>, year: <span class="ty">u32</span> }
+<span class="kw">struct</span> <span class="ty">Bike</span> { brand: <span class="ty">String</span> }
+
+<span class="kw">impl</span> <span class="ty">Describable</span> <span class="kw">for</span> <span class="ty">Car</span> {
+    <span class="kw">fn</span> <span class="fn">describe</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">String</span> {
+        <span class="mc">format!</span>(<span class="st">"{} ({})"</span>, <span class="kw">self</span>.make, <span class="kw">self</span>.year)
+    }
+}
+
+<span class="kw">impl</span> <span class="ty">Describable</span> <span class="kw">for</span> <span class="ty">Bike</span> {
+    <span class="kw">fn</span> <span class="fn">describe</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">String</span> {
+        <span class="mc">format!</span>(<span class="st">"Bike: {}"</span>, <span class="kw">self</span>.brand)
+    }
+}
+
+<span class="cm">// Trait bounds — accept any type implementing Describable</span>
+<span class="kw">fn</span> <span class="fn">print_item</span>(item: <span class="op">&amp;</span><span class="kw">impl</span> <span class="ty">Describable</span>) {    <span class="cm">// impl Trait syntax</span>
+    item.<span class="fn">print_description</span>();
+}
+
+<span class="cm">// Generic form (equivalent)</span>
+<span class="kw">fn</span> <span class="fn">print_item</span>&lt;T: <span class="ty">Describable</span>&gt;(item: <span class="op">&amp;</span>T) {
+    item.<span class="fn">print_description</span>();
+}</code></pre>
+
+<h3>Important Standard Traits</h3>
+<table>
+  <thead><tr><th>Trait</th><th>Purpose</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>Display</code></td><td><code>println!("{}", x)</code></td><td>Human-readable output</td></tr>
+    <tr><td><code>Debug</code></td><td><code>println!("{:?}", x)</code></td><td>Debugging output — can derive</td></tr>
+    <tr><td><code>Clone</code></td><td><code>x.clone()</code></td><td>Explicit deep copy — can derive</td></tr>
+    <tr><td><code>Copy</code></td><td>Implicit copy on assignment</td><td>Only for stack types — can derive</td></tr>
+    <tr><td><code>PartialEq</code></td><td><code>==</code> operator</td><td>Can derive</td></tr>
+    <tr><td><code>Ord / PartialOrd</code></td><td>Ordering / comparison</td><td>Can derive</td></tr>
+    <tr><td><code>Default</code></td><td><code>T::default()</code></td><td>Zero-value constructor</td></tr>
+    <tr><td><code>Iterator</code></td><td>Iteration protocol</td><td>Implement <code>next()</code></td></tr>
+  </tbody>
+</table>
+
+<pre><code><span class="cm">// Deriving common traits automatically</span>
+<span class="op">#</span>[<span class="fn">derive</span>(<span class="ty">Debug</span>, <span class="ty">Clone</span>, <span class="ty">PartialEq</span>)]
+<span class="kw">struct</span> <span class="ty">Point</span> { x: <span class="ty">f64</span>, y: <span class="ty">f64</span> }
+
+<span class="kw">let</span> p <span class="op">=</span> <span class="ty">Point</span> { x: <span class="nb">1.0</span>, y: <span class="nb">2.0</span> };
+<span class="mc">println!</span>(<span class="st">"{:?}"</span>, p);         <span class="cm">// Point { x: 1.0, y: 2.0 }</span>
+<span class="kw">let</span> p2 <span class="op">=</span> p.<span class="fn">clone</span>();
+<span class="mc">println!</span>(<span class="st">"{}"</span>, p <span class="op">==</span> p2);   <span class="cm">// true</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §14  GENERICS
+════════════════════════════════════════════ -->
+<section class="section" id="generics">
+<h2 data-n="14">Generics</h2>
+<p class="section-intro">Generics let you write code that works with many different types while keeping all type-safety. Rust generics are <em>monomorphized</em> — the compiler creates specialized versions for each type used, so there's zero runtime cost.</p>
+
+<pre><code><span class="cm">// Generic function</span>
+<span class="kw">fn</span> <span class="fn">largest</span>&lt;T: <span class="ty">PartialOrd</span>&gt;(list: <span class="op">&amp;</span>[T]) <span class="op">-&gt;</span> <span class="op">&amp;</span>T {
+    <span class="kw">let mut</span> largest <span class="op">=</span> <span class="op">&amp;</span>list[<span class="nb">0</span>];
+    <span class="kw">for</span> item <span class="kw">in</span> list {
+        <span class="kw">if</span> item <span class="op">&gt;</span> largest { largest <span class="op">=</span> item; }
+    }
+    largest
+}
+
+<span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="fn">largest</span>(<span class="op">&amp;</span>[<span class="nb">34</span>, <span class="nb">50</span>, <span class="nb">25</span>, <span class="nb">100</span>]));  <span class="cm">// 100</span>
+<span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="fn">largest</span>(<span class="op">&amp;</span>[<span class="st">'y'</span>, <span class="st">'m'</span>, <span class="st">'a'</span>]));     <span class="cm">// y</span>
+
+<span class="cm">// Generic struct</span>
+<span class="kw">struct</span> <span class="ty">Pair</span>&lt;T&gt; { first: T, second: T }
+
+<span class="kw">impl</span>&lt;T: <span class="ty">Display</span> <span class="op">+</span> <span class="ty">PartialOrd</span>&gt; <span class="ty">Pair</span>&lt;T&gt; {
+    <span class="kw">fn</span> <span class="fn">cmp_display</span>(<span class="op">&amp;</span><span class="kw">self</span>) {
+        <span class="kw">if</span> <span class="kw">self</span>.first <span class="op">&gt;=</span> <span class="kw">self</span>.second {
+            <span class="mc">println!</span>(<span class="st">"first is larger: {}"</span>, <span class="kw">self</span>.first);
+        } <span class="kw">else</span> {
+            <span class="mc">println!</span>(<span class="st">"second is larger: {}"</span>, <span class="kw">self</span>.second);
+        }
+    }
+}</code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §15  ERROR HANDLING
+════════════════════════════════════════════ -->
+<section class="section" id="errors">
+<h2 data-n="15">Error Handling</h2>
+<p class="section-intro">Rust has no exceptions. Instead it uses the <code>Result&lt;T, E&gt;</code> type for recoverable errors and <code>panic!</code> for unrecoverable ones. This forces you to think about every error path.</p>
+
+<h3>Result&lt;T, E&gt;</h3>
+<pre><code><span class="cm">// Result is: enum Result&lt;T, E&gt; { Ok(T), Err(E) }</span>
+<span class="kw">use</span> std::num::ParseIntError;
+
+<span class="kw">fn</span> <span class="fn">parse_and_double</span>(s: <span class="op">&amp;</span><span class="ty">str</span>) <span class="op">-&gt;</span> <span class="ty">Result</span>&lt;<span class="ty">i32</span>, ParseIntError&gt; {
+    <span class="kw">let</span> n: <span class="ty">i32</span> <span class="op">=</span> s.<span class="fn">parse</span>()?;   <span class="cm">// ? propagates the error if Err</span>
+    <span class="ty">Ok</span>(n <span class="op">*</span> <span class="nb">2</span>)
+}
+
+<span class="kw">match</span> <span class="fn">parse_and_double</span>(<span class="st">"21"</span>) {
+    <span class="ty">Ok</span>(n)  <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Result: {}"</span>, n),     <span class="cm">// 42</span>
+    <span class="ty">Err</span>(e) <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"Error: {}"</span>, e),
+}</code></pre>
+
+<h3>The ? Operator</h3>
+<pre><code><span class="kw">use</span> std::fs;
+<span class="kw">use</span> std::io;
+
+<span class="kw">fn</span> <span class="fn">read_username_from_file</span>() <span class="op">-&gt;</span> <span class="ty">Result</span>&lt;<span class="ty">String</span>, io::Error&gt; {
+    <span class="cm">// ? unwraps Ok or returns Err early — equivalent to:</span>
+    <span class="cm">// match result { Ok(v) =&gt; v, Err(e) =&gt; return Err(e) }</span>
+    <span class="kw">let</span> content <span class="op">=</span> fs::<span class="fn">read_to_string</span>(<span class="st">"username.txt"</span>)?;
+    <span class="ty">Ok</span>(content.<span class="fn">trim</span>().<span class="fn">to_string</span>())
+}</code></pre>
+
+<h3>Common Result Methods</h3>
+<pre><code><span class="kw">let</span> r: <span class="ty">Result</span>&lt;<span class="ty">i32</span>, <span class="op">&amp;</span><span class="ty">str</span>&gt; <span class="op">=</span> <span class="ty">Ok</span>(<span class="nb">42</span>);
+
+r.<span class="fn">unwrap</span>()                  <span class="cm">// get value or panic</span>
+r.<span class="fn">unwrap_or</span>(<span class="nb">0</span>)              <span class="cm">// get value or default</span>
+r.<span class="fn">unwrap_or_else</span>(|e| <span class="nb">0</span>)    <span class="cm">// get value or compute default</span>
+r.<span class="fn">expect</span>(<span class="st">"Failed to get n"</span>) <span class="cm">// unwrap with custom panic message</span>
+r.<span class="fn">is_ok</span>()                   <span class="cm">// true</span>
+r.<span class="fn">is_err</span>()                  <span class="cm">// false</span>
+r.<span class="fn">map</span>(|n| n <span class="op">*</span> <span class="nb">2</span>)           <span class="cm">// Ok(84) — transform Ok value</span>
+r.<span class="fn">map_err</span>(|e| e.<span class="fn">len</span>())     <span class="cm">// transform Err value</span></code></pre>
+
+<h3>Custom Error Types</h3>
+<pre><code><span class="kw">use</span> std::fmt;
+
+<span class="op">#</span>[<span class="fn">derive</span>(<span class="ty">Debug</span>)]
+<span class="kw">enum</span> <span class="ty">AppError</span> {
+    IoError(std::io::Error),
+    ParseError(<span class="ty">String</span>),
+}
+
+<span class="kw">impl</span> fmt::<span class="ty">Display</span> <span class="kw">for</span> <span class="ty">AppError</span> {
+    <span class="kw">fn</span> <span class="fn">fmt</span>(<span class="op">&amp;</span><span class="kw">self</span>, f: <span class="op">&amp;mut</span> fmt::<span class="ty">Formatter</span>) <span class="op">-&gt;</span> fmt::<span class="ty">Result</span> {
+        <span class="kw">match</span> <span class="kw">self</span> {
+            <span class="ty">AppError</span>::<span class="ty">IoError</span>(e)    <span class="op">=&gt;</span> <span class="mc">write!</span>(f, <span class="st">"IO error: {}"</span>, e),
+            <span class="ty">AppError</span>::<span class="ty">ParseError</span>(s) <span class="op">=&gt;</span> <span class="mc">write!</span>(f, <span class="st">"Parse error: {}"</span>, s),
+        }
+    }
+}</code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §16  COLLECTIONS
+════════════════════════════════════════════ -->
+<section class="section" id="collections">
+<h2 data-n="16">Collections</h2>
+<p class="section-intro">The standard library provides three key heap-allocated collections: <code>Vec&lt;T&gt;</code>, <code>HashMap&lt;K,V&gt;</code>, and <code>HashSet&lt;T&gt;</code>.</p>
+
+<h3>Vec&lt;T&gt; — Dynamic Array</h3>
+<pre><code><span class="kw">let mut</span> v: <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt; <span class="op">=</span> <span class="ty">Vec</span>::<span class="fn">new</span>();
+<span class="kw">let mut</span> v <span class="op">=</span> <span class="mc">vec!</span>[<span class="nb">1</span>, <span class="nb">2</span>, <span class="nb">3</span>];          <span class="cm">// macro shorthand</span>
+
+v.<span class="fn">push</span>(<span class="nb">4</span>);
+v.<span class="fn">pop</span>();                            <span class="cm">// returns Option&lt;T&gt;</span>
+v.<span class="fn">insert</span>(<span class="nb">1</span>, <span class="nb">10</span>);                    <span class="cm">// insert at index 1</span>
+v.<span class="fn">remove</span>(<span class="nb">1</span>);                        <span class="cm">// remove at index 1</span>
+v.<span class="fn">len</span>();
+v.<span class="fn">is_empty</span>();
+v.<span class="fn">contains</span>(<span class="op">&amp;</span><span class="nb">3</span>);
+v.<span class="fn">sort</span>();
+v.<span class="fn">sort_by</span>(|a, b| b.<span class="fn">cmp</span>(a));       <span class="cm">// reverse sort</span>
+v.<span class="fn">iter</span>().<span class="fn">sum</span::&lt;<span class="ty">i32</span>&gt;()             <span class="cm">// sum all elements</span>
+
+<span class="cm">// Safe access</span>
+<span class="kw">match</span> v.<span class="fn">get</span>(<span class="nb">10</span>) {
+    <span class="ty">Some</span>(val) <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"{}"</span>, val),
+    <span class="ty">None</span>      <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"out of bounds"</span>),
+}</code></pre>
+
+<h3>HashMap&lt;K, V&gt;</h3>
+<pre><code><span class="kw">use</span> std::collections::HashMap;
+
+<span class="kw">let mut</span> scores: <span class="ty">HashMap</span>&lt;<span class="ty">String</span>, <span class="ty">u32</span>&gt; <span class="op">=</span> <span class="ty">HashMap</span>::<span class="fn">new</span>();
+
+scores.<span class="fn">insert</span>(<span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Alice"</span>), <span class="nb">100</span>);
+scores.<span class="fn">insert</span>(<span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Bob"</span>),   <span class="nb">85</span>);
+
+<span class="cm">// Only insert if key doesn't exist</span>
+scores.<span class="fn">entry</span>(<span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Alice"</span>)).<span class="fn">or_insert</span>(<span class="nb">50</span>); <span class="cm">// no-op</span>
+scores.<span class="fn">entry</span>(<span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Carol"</span>)).<span class="fn">or_insert</span>(<span class="nb">75</span>); <span class="cm">// inserts 75</span>
+
+<span class="cm">// Access</span>
+<span class="kw">if let</span> <span class="ty">Some</span>(score) <span class="op">=</span> scores.<span class="fn">get</span>(<span class="st">"Alice"</span>) {
+    <span class="mc">println!</span>(<span class="st">"Alice: {}"</span>, score);
+}
+
+<span class="cm">// Iterate</span>
+<span class="kw">for</span> (name, score) <span class="kw">in</span> <span class="op">&amp;</span>scores {
+    <span class="mc">println!</span>(<span class="st">"{}: {}"</span>, name, score);
+}
+
+<span class="cm">// Word frequency counter pattern</span>
+<span class="kw">let</span> text <span class="op">=</span> <span class="st">"hello world hello rust hello"</span>;
+<span class="kw">let mut</span> freq: <span class="ty">HashMap</span>&lt;<span class="op">&amp;</span><span class="ty">str</span>, <span class="ty">u32</span>&gt; <span class="op">=</span> <span class="ty">HashMap</span>::<span class="fn">new</span>();
+<span class="kw">for</span> word <span class="kw">in</span> text.<span class="fn">split_whitespace</span>() {
+    <span class="kw">let</span> count <span class="op">=</span> freq.<span class="fn">entry</span>(word).<span class="fn">or_insert</span>(<span class="nb">0</span>);
+    <span class="op">*</span>count <span class="op">+=</span> <span class="nb">1</span>;   <span class="cm">// dereference to modify</span>
+}
+<span class="cm">// freq: {"hello": 3, "world": 1, "rust": 1}</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §17  CLOSURES & ITERATORS
+════════════════════════════════════════════ -->
+<section class="section" id="closures">
+<h2 data-n="17">Closures &amp; Iterators</h2>
+<p class="section-intro">Closures are anonymous functions that can capture their environment. The iterator pattern in Rust is lazy and composable — chains of iterator adapters produce no intermediate allocations.</p>
+
+<h3>Closures</h3>
+<pre><code><span class="cm">// Basic closure syntax</span>
+<span class="kw">let</span> add <span class="op">=</span> |a, b| a <span class="op">+</span> b;
+<span class="mc">println!</span>(<span class="st">"{}"</span>, add(<span class="nb">3</span>, <span class="nb">4</span>));  <span class="cm">// 7</span>
+
+<span class="cm">// Closures capture their environment</span>
+<span class="kw">let</span> threshold <span class="op">=</span> <span class="nb">5</span>;
+<span class="kw">let</span> is_big <span class="op">=</span> |n| n <span class="op">&gt;</span> threshold;  <span class="cm">// captures threshold</span>
+<span class="mc">println!</span>(<span class="st">"{}"</span>, is_big(<span class="nb">10</span>));        <span class="cm">// true</span>
+
+<span class="cm">// move closure — takes ownership of captured values</span>
+<span class="kw">let</span> name <span class="op">=</span> <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"world"</span>);
+<span class="kw">let</span> greeting <span class="op">=</span> <span class="kw">move</span> || <span class="mc">println!</span>(<span class="st">"Hello, {}!"</span>, name);
+greeting();  <span class="cm">// name is moved into the closure</span></code></pre>
+
+<h3>Iterator Adapter Chain</h3>
+<pre><code><span class="kw">let</span> numbers <span class="op">=</span> <span class="mc">vec!</span>[<span class="nb">1</span>, <span class="nb">2</span>, <span class="nb">3</span>, <span class="nb">4</span>, <span class="nb">5</span>, <span class="nb">6</span>, <span class="nb">7</span>, <span class="nb">8</span>, <span class="nb">9</span>, <span class="nb">10</span>];
+
+<span class="kw">let</span> result: <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt; <span class="op">=</span> numbers
+    .<span class="fn">iter</span>()
+    .<span class="fn">filter</span>(|<span class="op">&&</span>n| n <span class="op">%</span> <span class="nb">2</span> <span class="op">==</span> <span class="nb">0</span>)   <span class="cm">// keep evens: [2,4,6,8,10]</span>
+    .<span class="fn">map</span>(|<span class="op">&amp;</span>n| n <span class="op">*</span> n)            <span class="cm">// square: [4,16,36,64,100]</span>
+    .<span class="fn">take</span>(<span class="nb">3</span>)                    <span class="cm">// first 3: [4,16,36]</span>
+    .<span class="fn">collect</span>();                 <span class="cm">// materialize into Vec</span>
+
+<span class="cm">// Common terminal operations:</span>
+<span class="kw">let</span> sum: <span class="ty">i32</span> <span class="op">=</span> numbers.<span class="fn">iter</span>().<span class="fn">sum</span>();
+<span class="kw">let</span> product: <span class="ty">i32</span> <span class="op">=</span> numbers.<span class="fn">iter</span>().<span class="fn">product</span>();
+<span class="kw">let</span> max <span class="op">=</span> numbers.<span class="fn">iter</span>().<span class="fn">max</span>();        <span class="cm">// Option&lt;&amp;i32&gt;</span>
+<span class="kw">let</span> count <span class="op">=</span> numbers.<span class="fn">iter</span>().<span class="fn">count</span>();
+
+<span class="cm">// find / any / all</span>
+<span class="kw">let</span> first_even <span class="op">=</span> numbers.<span class="fn">iter</span>().<span class="fn">find</span>(|<span class="op">&&</span>n| n <span class="op">%</span> <span class="nb">2</span> <span class="op">==</span> <span class="nb">0</span>);
+<span class="kw">let</span> has_big <span class="op">=</span> numbers.<span class="fn">iter</span>().<span class="fn">any</span>(|<span class="op">&amp;</span>n| n <span class="op">&gt;</span> <span class="nb">5</span>);
+<span class="kw">let</span> all_pos <span class="op">=</span> numbers.<span class="fn">iter</span>().<span class="fn">all</span>(|<span class="op">&amp;</span>n| n <span class="op">&gt;</span> <span class="nb">0</span>);
+
+<span class="cm">// flat_map, zip, chain, enumerate</span>
+<span class="kw">let</span> words <span class="op">=</span> <span class="mc">vec!</span>[<span class="st">"hello world"</span>, <span class="st">"foo bar"</span>];
+<span class="kw">let</span> all_words: <span class="ty">Vec</span>&lt;<span class="op">&amp;</span><span class="ty">str</span>&gt; <span class="op">=</span> words.<span class="fn">iter</span>()
+    .<span class="fn">flat_map</span>(|s| s.<span class="fn">split</span>(<span class="st">' '</span>))
+    .<span class="fn">collect</span>();  <span class="cm">// ["hello", "world", "foo", "bar"]</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §18  MODULES & CRATES
+════════════════════════════════════════════ -->
+<section class="section" id="modules">
+<h2 data-n="18">Modules &amp; Crates</h2>
+<p class="section-intro">Rust organizes code into <em>modules</em> (namespaces within a crate) and <em>crates</em> (compilation units/packages). Everything is private by default.</p>
+
+<pre><code><span class="cm">// src/lib.rs or src/main.rs</span>
+
+<span class="kw">mod</span> animals {
+    <span class="cm">// pub = visible outside the module</span>
+    <span class="kw">pub struct</span> <span class="ty">Dog</span> {
+        <span class="kw">pub</span> name: <span class="ty">String</span>,
+        age: <span class="ty">u32</span>,         <span class="cm">// private field</span>
+    }
+
+    <span class="kw">impl</span> <span class="ty">Dog</span> {
+        <span class="kw">pub fn</span> <span class="fn">new</span>(name: <span class="op">&amp;</span><span class="ty">str</span>, age: <span class="ty">u32</span>) <span class="op">-&gt;</span> <span class="ty">Dog</span> {
+            <span class="ty">Dog</span> { name: name.<span class="fn">to_string</span>(), age }
+        }
+        <span class="kw">pub fn</span> <span class="fn">bark</span>(<span class="op">&amp;</span><span class="kw">self</span>) { <span class="mc">println!</span>(<span class="st">"Woof! I'm {}"</span>, <span class="kw">self</span>.name); }
+    }
+
+    <span class="kw">mod</span> internals {              <span class="cm">// nested module</span>
+        <span class="kw">pub fn</span> <span class="fn">helper</span>() {}
+        <span class="kw">use super</span>::*;              <span class="cm">// access parent module</span>
+    }
+}
+
+<span class="cm">// Using the module</span>
+<span class="kw">use</span> animals::Dog;               <span class="cm">// bring into scope</span>
+<span class="kw">let</span> d <span class="op">=</span> <span class="ty">Dog</span>::<span class="fn">new</span>(<span class="st">"Rex"</span>, <span class="nb">3</span>);
+d.<span class="fn">bark</span>();
+
+<span class="cm">// External crates — add to Cargo.toml first:</span>
+<span class="cm">// [dependencies]</span>
+<span class="cm">// rand = "0.8"</span>
+<span class="kw">use</span> rand::Rng;
+<span class="kw">let</span> n: <span class="ty">u32</span> <span class="op">=</span> rand::<span class="fn">thread_rng</span>().<span class="fn">gen_range</span>(<span class="nb">1</span>..=<span class="nb">100</span>);</code></pre>
+
+<h3>File-based modules</h3>
+<pre><code><span class="cm">// src/main.rs</span>
+<span class="kw">mod</span> utils;   <span class="cm">// loads from src/utils.rs  OR  src/utils/mod.rs</span>
+<span class="kw">use</span> utils::some_function;</code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §19  HELLO WORLD
+════════════════════════════════════════════ -->
+<section class="section" id="hello">
+<h2 data-n="19">Hello, World!</h2>
+<p class="section-intro">The obligatory first program. Even this simple example reveals several Rust fundamentals worth understanding.</p>
+
+<pre><span class="file-tag">main.rs</span><code><span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="mc">println!</span>(<span class="st">"Hello, world!"</span>);
+}</code></pre>
+
+<div class="output">Hello, world!</div>
+
+<h3>What's happening here?</h3>
+<ul>
+  <li><code>fn main()</code> — the program entry point. Every Rust binary must have exactly one.</li>
+  <li><code>println!</code> — note the <code>!</code>: this is a <strong>macro</strong>, not a function. Macros are identified by the exclamation mark and are expanded at compile time.</li>
+  <li>Statements end with <code>;</code>.</li>
+  <li>No return type on <code>main</code> means it returns <code>()</code> — the unit type, Rust's equivalent of <code>void</code>.</li>
+</ul>
+
+<h3>Format String Variants</h3>
+<pre><code><span class="kw">let</span> name <span class="op">=</span> <span class="st">"Ferris"</span>;
+<span class="kw">let</span> age  <span class="op">=</span> <span class="nb">3</span>;
+
+<span class="mc">println!</span>(<span class="st">"Hello, {}! You are {} years old."</span>, name, age);
+<span class="mc">println!</span>(<span class="st">"Hello, {name}! You are {age} years old."</span>);  <span class="cm">// named args</span>
+<span class="mc">println!</span>(<span class="st">"{:?}"</span>, (name, age));    <span class="cm">// debug format</span>
+<span class="mc">println!</span>(<span class="st">"{:#?}"</span>, (name, age));   <span class="cm">// pretty debug</span>
+<span class="mc">println!</span>(<span class="st">"{:>10}"</span>, name);         <span class="cm">// right-align in 10 chars</span>
+<span class="mc">println!</span>(<span class="st">"{:05}"</span>, age);           <span class="cm">// zero-pad: "00003"</span>
+<span class="mc">println!</span>(<span class="st">"{:.2}"</span>, 3.14159);       <span class="cm">// 2 decimal places: "3.14"</span>
+<span class="mc">eprintln!</span>(<span class="st">"Error: something bad"</span>); <span class="cm">// print to stderr</span></code></pre>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  §20  BEGINNER PROJECT
+════════════════════════════════════════════ -->
+<section class="section" id="project">
+<h2 data-n="20">Beginner Project: Adventure RPG Engine</h2>
+<p class="section-intro">
+  This single-file program is a text-based mini RPG that exercises ownership, structs, enums, traits, pattern matching, closures, iterators, error handling, and collections — all in a cohesive, runnable project.
+</p>
+
+<div class="callout rust">
+  <div class="callout-title">📦 What This Program Covers</div>
+  <p style="margin:8px 0 0">
+    Structs &amp; impl blocks · Enums with data · Traits (Display, Debug, custom) · Pattern matching · Vec and HashMap · Closures &amp; iterators · Option and Result · Loops · Format strings · <code>rand</code> crate usage · Modules-in-miniature
+  </p>
+</div>
+
+<h3>Setup</h3>
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>Create the project</h4>
+    <pre><code>cargo new rust_rpg
+cd rust_rpg</code></pre>
+  </div>
+</div>
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>Add the rand dependency in Cargo.toml</h4>
+    <pre><code>[dependencies]
+rand = "0.8"</code></pre>
+  </div>
+</div>
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>Replace src/main.rs with the full program below</h4>
+  </div>
+</div>
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <h4>Run it</h4>
+    <pre><code>cargo run</code></pre>
+  </div>
+</div>
+
+<h3>Full Source — src/main.rs</h3>
+<pre><span class="file-tag">main.rs</span><code><span class="cm">// ═══════════════════════════════════════════════════════════
+//  Rust RPG Engine — A comprehensive beginner Rust project
+// ═══════════════════════════════════════════════════════════</span>
+
+<span class="kw">use</span> rand::Rng;
+<span class="kw">use</span> std::collections::HashMap;
+<span class="kw">use</span> std::fmt;
+
+<span class="cm">// ── SECTION 1: ENUMS WITH DATA ───────────────────────────
+// Rust enums can carry different data per variant — this is
+// what makes them "algebraic data types".</span>
+
+<span class="op">#</span>[<span class="fn">derive</span>(<span class="ty">Debug</span>, <span class="ty">Clone</span>, <span class="ty">PartialEq</span>)]
+<span class="kw">enum</span> <span class="ty">Element</span> { Fire, Ice, Lightning, Physical }
+
+<span class="op">#</span>[<span class="fn">derive</span>(<span class="ty">Debug</span>, <span class="ty">Clone</span>)]
+<span class="kw">enum</span> <span class="ty">Item</span> {
+    Potion { heal: <span class="ty">u32</span> },                   <span class="cm">// named fields</span>
+    Weapon { name: <span class="ty">String</span>, damage: <span class="ty">u32</span>, element: <span class="ty">Element</span> },
+    KeyItem(<span class="ty">String</span>),                         <span class="cm">// tuple variant</span>
+}
+
+<span class="cm">// Implement Display for our Item enum</span>
+<span class="kw">impl</span> fmt::<span class="ty">Display</span> <span class="kw">for</span> <span class="ty">Item</span> {
+    <span class="kw">fn</span> <span class="fn">fmt</span>(<span class="op">&amp;</span><span class="kw">self</span>, f: <span class="op">&amp;mut</span> fmt::<span class="ty">Formatter</span>) <span class="op">-&gt;</span> fmt::<span class="ty">Result</span> {
+        <span class="kw">match</span> <span class="kw">self</span> {
+            <span class="ty">Item</span>::<span class="ty">Potion</span> { heal }
+                <span class="op">=&gt;</span> <span class="mc">write!</span>(f, <span class="st">"Potion (+{} HP)"</span>, heal),
+            <span class="ty">Item</span>::<span class="ty">Weapon</span> { name, damage, element }
+                <span class="op">=&gt;</span> <span class="mc">write!</span>(f, <span class="st">"{} [{:?}] ({}dmg)"</span>, name, element, damage),
+            <span class="ty">Item</span>::<span class="ty">KeyItem</span>(s)
+                <span class="op">=&gt;</span> <span class="mc">write!</span>(f, <span class="st">"★ {}"</span>, s),
+        }
+    }
+}
+
+<span class="cm">// ── SECTION 2: TRAIT DEFINITION ─────────────────────────
+// Traits define shared behavior. Any type can implement
+// this trait to participate in combat.</span>
+
+<span class="kw">trait</span> <span class="ty">Combatant</span> {
+    <span class="kw">fn</span> <span class="fn">name</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="ty">str</span>;
+    <span class="kw">fn</span> <span class="fn">health</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">u32</span>;
+    <span class="kw">fn</span> <span class="fn">max_health</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">u32</span>;
+    <span class="kw">fn</span> <span class="fn">attack_power</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">u32</span>;
+    <span class="kw">fn</span> <span class="fn">take_damage</span>(<span class="op">&amp;mut self</span>, amount: <span class="ty">u32</span>);
+    <span class="kw">fn</span> <span class="fn">is_alive</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">bool</span> { <span class="kw">self</span>.<span class="fn">health</span>() <span class="op">&gt;</span> <span class="nb">0</span> }
+
+    <span class="cm">// Default method using other trait methods</span>
+    <span class="kw">fn</span> <span class="fn">health_bar</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">String</span> {
+        <span class="kw">let</span> ratio <span class="op">=</span> <span class="kw">self</span>.<span class="fn">health</span>() <span class="kw">as</span> <span class="ty">f32</span> <span class="op">/</span> <span class="kw">self</span>.<span class="fn">max_health</span>() <span class="kw">as</span> <span class="ty">f32</span>;
+        <span class="kw">let</span> filled <span class="op">=</span> (ratio <span class="op">*</span> <span class="nb">20.0</span>) <span class="kw">as</span> <span class="ty">usize</span>;
+        <span class="kw">let</span> empty  <span class="op">=</span> <span class="nb">20</span>.<span class="fn">saturating_sub</span>(filled);
+        <span class="mc">format!</span>(<span class="st">"[{}{}] {}/{}"</span>,
+            <span class="st">"█"</span>.<span class="fn">repeat</span>(filled),
+            <span class="st">"░"</span>.<span class="fn">repeat</span>(empty),
+            <span class="kw">self</span>.<span class="fn">health</span>(), <span class="kw">self</span>.<span class="fn">max_health</span>())
+    }
+}
+
+<span class="cm">// ── SECTION 3: STRUCTS AND impl BLOCKS ──────────────────
+// Hero struct — owns heap data (String, Vec, HashMap)</span>
+
+<span class="op">#</span>[<span class="fn">derive</span>(<span class="ty">Debug</span>)]
+<span class="kw">struct</span> <span class="ty">Hero</span> {
+    name:       <span class="ty">String</span>,
+    hp:         <span class="ty">u32</span>,
+    max_hp:     <span class="ty">u32</span>,
+    level:      <span class="ty">u32</span>,
+    xp:         <span class="ty">u32</span>,
+    gold:       <span class="ty">u32</span>,
+    base_atk:   <span class="ty">u32</span>,
+    inventory:  <span class="ty">Vec</span>&lt;<span class="ty">Item</span>&gt;,
+    equipped:   <span class="ty">Option</span>&lt;<span class="ty">Item</span>&gt;,       <span class="cm">// Option = might have a weapon</span>
+    kill_log:   <span class="ty">HashMap</span>&lt;<span class="ty">String</span>, <span class="ty">u32</span>&gt;, <span class="cm">// tracks kills per monster type</span>
+}
+
+<span class="kw">impl</span> <span class="ty">Hero</span> {
+    <span class="cm">// Associated function (constructor) — no `self`</span>
+    <span class="kw">fn</span> <span class="fn">new</span>(name: <span class="op">&amp;</span><span class="ty">str</span>) <span class="op">-&gt;</span> <span class="ty">Hero</span> {
+        <span class="ty">Hero</span> {
+            name:      name.<span class="fn">to_string</span>(),
+            hp:        <span class="nb">100</span>, max_hp: <span class="nb">100</span>,
+            level:     <span class="nb">1</span>,   xp:     <span class="nb">0</span>,
+            gold:      <span class="nb">50</span>,  base_atk: <span class="nb">10</span>,
+            inventory: <span class="mc">vec!</span>[
+                <span class="ty">Item</span>::<span class="ty">Potion</span> { heal: <span class="nb">30</span> },
+                <span class="ty">Item</span>::<span class="ty">Potion</span> { heal: <span class="nb">30</span> },
+            ],
+            equipped: <span class="ty">None</span>,
+            kill_log: <span class="ty">HashMap</span>::<span class="fn">new</span>(),
+        }
+    }
+
+    <span class="cm">// Heal the hero — saturating arithmetic prevents overflow</span>
+    <span class="kw">fn</span> <span class="fn">heal</span>(<span class="op">&amp;mut self</span>, amount: <span class="ty">u32</span>) {
+        <span class="kw">self</span>.hp <span class="op">=</span> (<span class="kw">self</span>.hp <span class="op">+</span> amount).<span class="fn">min</span>(<span class="kw">self</span>.max_hp);
+        <span class="mc">println!</span>(<span class="st">"  ✨ {} healed for {} HP! ({})"</span>,
+            <span class="kw">self</span>.name, amount, <span class="kw">self</span>.<span class="fn">health_bar</span>());
+    }
+
+    <span class="cm">// Try to use a potion from inventory</span>
+    <span class="cm">// Returns Result to demonstrate error handling</span>
+    <span class="kw">fn</span> <span class="fn">use_potion</span>(<span class="op">&amp;mut self</span>) <span class="op">-&gt;</span> <span class="ty">Result</span>&lt;(), <span class="ty">String</span>&gt; {
+        <span class="cm">// find_position of a Potion in inventory using iterator</span>
+        <span class="kw">let</span> pos <span class="op">=</span> <span class="kw">self</span>.inventory
+            .<span class="fn">iter</span>()
+            .<span class="fn">position</span>(|item| <span class="kw">matches!</span>(item, <span class="ty">Item</span>::<span class="ty">Potion</span> { .. }));
+
+        <span class="kw">match</span> pos {
+            <span class="ty">None</span> <span class="op">=&gt;</span> <span class="ty">Err</span>(<span class="st">"No potions in inventory!"</span>.<span class="fn">to_string</span>()),
+            <span class="ty">Some</span>(i) <span class="op">=&gt;</span> {
+                <span class="kw">if let</span> <span class="ty">Item</span>::<span class="ty">Potion</span> { heal } <span class="op">=</span> <span class="kw">self</span>.inventory.<span class="fn">remove</span>(i) {
+                    <span class="kw">self</span>.<span class="fn">heal</span>(heal);
+                }
+                <span class="ty">Ok</span>(())
+            }
+        }
+    }
+
+    <span class="cm">// Equip a weapon from inventory by name</span>
+    <span class="kw">fn</span> <span class="fn">equip_weapon</span>(<span class="op">&amp;mut self</span>, weapon_name: <span class="op">&amp;</span><span class="ty">str</span>) <span class="op">-&gt;</span> <span class="ty">Result</span>&lt;(), <span class="ty">String</span>&gt; {
+        <span class="kw">let</span> pos <span class="op">=</span> <span class="kw">self</span>.inventory
+            .<span class="fn">iter</span>()
+            .<span class="fn">position</span>(|item| <span class="kw">matches!</span>(item,
+                <span class="ty">Item</span>::<span class="ty">Weapon</span> { name, .. } <span class="kw">if</span> name <span class="op">==</span> weapon_name));
+
+        <span class="kw">match</span> pos {
+            <span class="ty">None</span> <span class="op">=&gt;</span> <span class="ty">Err</span>(<span class="mc">format!</span>(<span class="st">"No weapon named '{}' in inventory"</span>, weapon_name)),
+            <span class="ty">Some</span>(i) <span class="op">=&gt;</span> {
+                <span class="kw">let</span> weapon <span class="op">=</span> <span class="kw">self</span>.inventory.<span class="fn">remove</span>(i);
+                <span class="mc">println!</span>(<span class="st">"  ⚔ Equipped: {}"</span>, weapon);
+                <span class="kw">self</span>.equipped <span class="op">=</span> <span class="ty">Some</span>(weapon);
+                <span class="ty">Ok</span>(())
+            }
+        }
+    }
+
+    <span class="cm">// Gain experience and level up if threshold reached</span>
+    <span class="kw">fn</span> <span class="fn">gain_xp</span>(<span class="op">&amp;mut self</span>, amount: <span class="ty">u32</span>) {
+        <span class="kw">self</span>.xp <span class="op">+=</span> amount;
+        <span class="kw">let</span> xp_needed <span class="op">=</span> <span class="kw">self</span>.level <span class="op">*</span> <span class="nb">100</span>;
+        <span class="kw">if</span> <span class="kw">self</span>.xp <span class="op">&gt;=</span> xp_needed {
+            <span class="kw">self</span>.xp <span class="op">-=</span> xp_needed;
+            <span class="kw">self</span>.level <span class="op">+=</span> <span class="nb">1</span>;
+            <span class="kw">self</span>.max_hp <span class="op">+=</span> <span class="nb">20</span>;
+            <span class="kw">self</span>.hp     <span class="op">=</span> <span class="kw">self</span>.max_hp;
+            <span class="kw">self</span>.base_atk <span class="op">+=</span> <span class="nb">5</span>;
+            <span class="mc">println!</span>(<span class="st">"  🌟 LEVEL UP! {} is now level {}! HP restored."</span>,
+                <span class="kw">self</span>.name, <span class="kw">self</span>.level);
+        }
+    }
+
+    <span class="cm">// Record a kill in our HashMap</span>
+    <span class="kw">fn</span> <span class="fn">record_kill</span>(<span class="op">&amp;mut self</span>, monster: <span class="op">&amp;</span><span class="ty">str</span>) {
+        <span class="kw">let</span> count <span class="op">=</span> <span class="kw">self</span>.kill_log.<span class="fn">entry</span>(monster.<span class="fn">to_string</span>()).<span class="fn">or_insert</span>(<span class="nb">0</span>);
+        <span class="op">*</span>count <span class="op">+=</span> <span class="nb">1</span>;
+    }
+
+    <span class="cm">// Print kill log using iterator methods</span>
+    <span class="kw">fn</span> <span class="fn">print_kill_log</span>(<span class="op">&amp;</span><span class="kw">self</span>) {
+        <span class="mc">println!</span>(<span class="st">"\n  📜 Kill Log:"</span>);
+        <span class="kw">if</span> <span class="kw">self</span>.kill_log.<span class="fn">is_empty</span>() {
+            <span class="mc">println!</span>(<span class="st">"     (none yet)"</span>);
+            <span class="kw">return</span>;
+        }
+        <span class="cm">// Sort entries by kill count descending — closures + iterators</span>
+        <span class="kw">let mut</span> entries: <span class="ty">Vec</span>&lt;(<span class="op">&amp;</span><span class="ty">String</span>, <span class="op">&amp;</span><span class="ty">u32</span>)&gt; <span class="op">=</span> <span class="kw">self</span>.kill_log.<span class="fn">iter</span>().<span class="fn">collect</span>();
+        entries.<span class="fn">sort_by</span>(|a, b| b.<span class="nb">1</span>.<span class="fn">cmp</span>(a.<span class="nb">1</span>));
+        <span class="kw">for</span> (monster, count) <span class="kw">in</span> <span class="op">&amp;</span>entries {
+            <span class="mc">println!</span>(<span class="st">"     {:&lt;20} ×{}"</span>, monster, count);
+        }
+        <span class="kw">let</span> total: <span class="ty">u32</span> <span class="op">=</span> <span class="kw">self</span>.kill_log.<span class="fn">values</span>().<span class="fn">sum</span>();
+        <span class="mc">println!</span>(<span class="st">"     Total kills: {}"</span>, total);
+    }
+
+    <span class="cm">// Show full status screen</span>
+    <span class="kw">fn</span> <span class="fn">status</span>(<span class="op">&amp;</span><span class="kw">self</span>) {
+        <span class="mc">println!</span>(<span class="st">"\n╔═══════════ HERO STATUS ═══════════╗"</span>);
+        <span class="mc">println!</span>(<span class="st">"║  Name:  {}"</span>, <span class="kw">self</span>.name);
+        <span class="mc">println!</span>(<span class="st">"║  Level: {}  XP: {}/{}"</span>,
+            <span class="kw">self</span>.level, <span class="kw">self</span>.xp, <span class="kw">self</span>.level <span class="op">*</span> <span class="nb">100</span>);
+        <span class="mc">println!</span>(<span class="st">"║  HP:    {}"</span>, <span class="kw">self</span>.<span class="fn">health_bar</span>());
+        <span class="mc">println!</span>(<span class="st">"║  ATK:   {}"</span>, <span class="kw">self</span>.<span class="fn">attack_power</span>());
+        <span class="mc">println!</span>(<span class="st">"║  Gold:  {} gp"</span>, <span class="kw">self</span>.gold);
+        <span class="mc">println!</span>(<span class="st">"║  Weapon:{}"</span>,
+            <span class="kw">self</span>.equipped.<span class="fn">as_ref</span>()
+                .<span class="fn">map</span>(|w| <span class="mc">format!</span>(<span class="st">" {}"</span>, w))
+                .<span class="fn">unwrap_or_else</span>(|| <span class="st">" (none)"</span>.<span class="fn">to_string</span>()));
+        <span class="cm">// Iterator: count potions with filter</span>
+        <span class="kw">let</span> potion_count <span class="op">=</span> <span class="kw">self</span>.inventory.<span class="fn">iter</span>()
+            .<span class="fn">filter</span>(|i| <span class="kw">matches!</span>(i, <span class="ty">Item</span>::<span class="ty">Potion</span> { .. }))
+            .<span class="fn">count</span>();
+        <span class="mc">println!</span>(<span class="st">"║  Bag:   {} item(s), {} potion(s)"</span>,
+            <span class="kw">self</span>.inventory.<span class="fn">len</span>(), potion_count);
+        <span class="mc">println!</span>(<span class="st">"╚════════════════════════════════════╝"</span>);
+    }
+}
+
+<span class="cm">// Implement the Combatant trait for Hero</span>
+<span class="kw">impl</span> <span class="ty">Combatant</span> <span class="kw">for</span> <span class="ty">Hero</span> {
+    <span class="kw">fn</span> <span class="fn">name</span>(<span class="op">&amp;</span><span class="kw">self</span>)       <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="ty">str</span> { <span class="op">&amp;</span><span class="kw">self</span>.name }
+    <span class="kw">fn</span> <span class="fn">health</span>(<span class="op">&amp;</span><span class="kw">self</span>)     <span class="op">-&gt;</span> <span class="ty">u32</span>  { <span class="kw">self</span>.hp }
+    <span class="kw">fn</span> <span class="fn">max_health</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">u32</span>  { <span class="kw">self</span>.max_hp }
+    <span class="kw">fn</span> <span class="fn">attack_power</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">u32</span> {
+        <span class="cm">// Base attack + equipped weapon bonus, using Option::map</span>
+        <span class="kw">let</span> weapon_bonus <span class="op">=</span> <span class="kw">self</span>.equipped.<span class="fn">as_ref</span>()
+            .<span class="fn">and_then</span>(|item| {
+                <span class="kw">if let</span> <span class="ty">Item</span>::<span class="ty">Weapon</span> { damage, .. } <span class="op">=</span> item {
+                    <span class="ty">Some</span>(<span class="op">*</span>damage)
+                } <span class="kw">else</span> { <span class="ty">None</span> }
+            })
+            .<span class="fn">unwrap_or</span>(<span class="nb">0</span>);
+        <span class="kw">self</span>.base_atk <span class="op">+</span> weapon_bonus
+    }
+    <span class="kw">fn</span> <span class="fn">take_damage</span>(<span class="op">&amp;mut self</span>, amount: <span class="ty">u32</span>) {
+        <span class="kw">self</span>.hp <span class="op">=</span> <span class="kw">self</span>.hp.<span class="fn">saturating_sub</span>(amount);
+    }
+}
+
+<span class="cm">// ── SECTION 4: MONSTER STRUCT ────────────────────────────</span>
+
+<span class="op">#</span>[<span class="fn">derive</span>(<span class="ty">Debug</span>, <span class="ty">Clone</span>)]
+<span class="kw">struct</span> <span class="ty">Monster</span> {
+    name:      <span class="ty">String</span>,
+    hp:        <span class="ty">u32</span>,
+    max_hp:    <span class="ty">u32</span>,
+    attack:    <span class="ty">u32</span>,
+    xp_reward: <span class="ty">u32</span>,
+    gold_drop: <span class="ty">u32</span>,
+    element:   <span class="ty">Element</span>,
+    loot:      <span class="ty">Option</span>&lt;<span class="ty">Item</span>&gt;,  <span class="cm">// Some monsters drop loot</span>
+}
+
+<span class="kw">impl</span> <span class="ty">Combatant</span> <span class="kw">for</span> <span class="ty">Monster</span> {
+    <span class="kw">fn</span> <span class="fn">name</span>(<span class="op">&amp;</span><span class="kw">self</span>)         <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="ty">str</span> { <span class="op">&amp;</span><span class="kw">self</span>.name }
+    <span class="kw">fn</span> <span class="fn">health</span>(<span class="op">&amp;</span><span class="kw">self</span>)       <span class="op">-&gt;</span> <span class="ty">u32</span>  { <span class="kw">self</span>.hp }
+    <span class="kw">fn</span> <span class="fn">max_health</span>(<span class="op">&amp;</span><span class="kw">self</span>)   <span class="op">-&gt;</span> <span class="ty">u32</span>  { <span class="kw">self</span>.max_hp }
+    <span class="kw">fn</span> <span class="fn">attack_power</span>(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="ty">u32</span>  { <span class="kw">self</span>.attack }
+    <span class="kw">fn</span> <span class="fn">take_damage</span>(<span class="op">&amp;mut self</span>, amount: <span class="ty">u32</span>) {
+        <span class="kw">self</span>.hp <span class="op">=</span> <span class="kw">self</span>.hp.<span class="fn">saturating_sub</span>(amount);
+    }
+}
+
+<span class="cm">// ── SECTION 5: MONSTER CATALOG ───────────────────────────
+// A function returning a Vec of all available monsters.
+// Demonstrates struct initialization and Vec construction.</span>
+
+<span class="kw">fn</span> <span class="fn">monster_catalog</span>() <span class="op">-&gt;</span> <span class="ty">Vec</span>&lt;<span class="ty">Monster</span>&gt; {
+    <span class="mc">vec!</span>[
+        <span class="ty">Monster</span> {
+            name:      <span class="st">"Goblin Scout"</span>.<span class="fn">into</span>(),
+            hp: <span class="nb">30</span>,    max_hp: <span class="nb">30</span>,
+            attack:    <span class="nb">8</span>,
+            xp_reward: <span class="nb">40</span>,  gold_drop: <span class="nb">15</span>,
+            element:   <span class="ty">Element</span>::<span class="ty">Physical</span>,
+            loot:      <span class="ty">None</span>,
+        },
+        <span class="ty">Monster</span> {
+            name:      <span class="st">"Fire Imp"</span>.<span class="fn">into</span>(),
+            hp: <span class="nb">45</span>,    max_hp: <span class="nb">45</span>,
+            attack:    <span class="nb">14</span>,
+            xp_reward: <span class="nb">65</span>,  gold_drop: <span class="nb">20</span>,
+            element:   <span class="ty">Element</span>::<span class="ty">Fire</span>,
+            loot: <span class="ty">Some</span>(<span class="ty">Item</span>::<span class="ty">Weapon</span> {
+                name: <span class="st">"Ember Blade"</span>.<span class="fn">into</span>(),
+                damage: <span class="nb">18</span>,
+                element: <span class="ty">Element</span>::<span class="ty">Fire</span>,
+            }),
+        },
+        <span class="ty">Monster</span> {
+            name:      <span class="st">"Ice Wraith"</span>.<span class="fn">into</span>(),
+            hp: <span class="nb">60</span>,    max_hp: <span class="nb">60</span>,
+            attack:    <span class="nb">11</span>,
+            xp_reward: <span class="nb">80</span>,  gold_drop: <span class="nb">30</span>,
+            element:   <span class="ty">Element</span>::<span class="ty">Ice</span>,
+            loot: <span class="ty">Some</span>(<span class="ty">Item</span>::<span class="ty">Potion</span> { heal: <span class="nb">50</span> }),
+        },
+        <span class="ty">Monster</span> {
+            name:      <span class="st">"Storm Dragon"</span>.<span class="fn">into</span>(),
+            hp: <span class="nb">120</span>,   max_hp: <span class="nb">120</span>,
+            attack:    <span class="nb">22</span>,
+            xp_reward: <span class="nb">200</span>, gold_drop: <span class="nb">100</span>,
+            element:   <span class="ty">Element</span>::<span class="ty">Lightning</span>,
+            loot: <span class="ty">Some</span>(<span class="ty">Item</span>::<span class="ty">KeyItem</span>(<span class="st">"Dragon's Heart"</span>.<span class="fn">into</span>())),
+        },
+    ]
+}
+
+<span class="cm">// ── SECTION 6: COMBAT ENGINE ─────────────────────────────
+// Generic over any type that implements Combatant.
+// Returns true if the attacker wins (target dies).</span>
+
+<span class="kw">fn</span> <span class="fn">combat_round</span>&lt;A: <span class="ty">Combatant</span>, D: <span class="ty">Combatant</span>&gt;(
+    attacker: <span class="op">&amp;</span>A,
+    defender: <span class="op">&amp;mut</span> D,
+    rng: <span class="op">&amp;mut</span> <span class="kw">impl</span> rand::<span class="ty">Rng</span>,
+) <span class="op">-&gt;</span> <span class="ty">bool</span> {
+    <span class="cm">// 10% miss chance using random number</span>
+    <span class="kw">if</span> rng.<span class="fn">gen_bool</span>(<span class="nb">0.1</span>) {
+        <span class="mc">println!</span>(<span class="st">"  ✗ {} missed!"</span>, attacker.<span class="fn">name</span>());
+        <span class="kw">return</span> <span class="kw">false</span>;
+    }
+    <span class="cm">// Damage variance: base ± 20%</span>
+    <span class="kw">let</span> base <span class="op">=</span> attacker.<span class="fn">attack_power</span>();
+    <span class="kw">let</span> damage <span class="op">=</span> rng.<span class="fn">gen_range</span>((base <span class="op">*</span> <span class="nb">80</span> <span class="op">/</span> <span class="nb">100</span>)..=(base <span class="op">*</span> <span class="nb">120</span> <span class="op">/</span> <span class="nb">100</span>));
+    defender.<span class="fn">take_damage</span>(damage);
+    <span class="mc">println!</span>(<span class="st">"  ⚔ {} hits {} for {} damage! {}"</span>,
+        attacker.<span class="fn">name</span>(), defender.<span class="fn">name</span>(), damage,
+        defender.<span class="fn">health_bar</span>());
+    !defender.<span class="fn">is_alive</span>()
+}
+
+<span class="cm">// Full battle loop</span>
+<span class="kw">fn</span> <span class="fn">battle</span>(hero: <span class="op">&amp;mut</span> <span class="ty">Hero</span>, monster: <span class="op">&amp;mut</span> <span class="ty">Monster</span>,
+           rng: <span class="op">&amp;mut</span> <span class="kw">impl</span> rand::<span class="ty">Rng</span>) <span class="op">-&gt;</span> <span class="ty">bool</span> {
+    <span class="mc">println!</span>(<span class="st">"\n🗡 BATTLE: {} vs {}!"</span>, hero.<span class="fn">name</span>(), monster.<span class="fn">name</span>());
+    <span class="mc">println!</span>(<span class="st">"   Monster HP: {}"</span>, monster.<span class="fn">health_bar</span>());
+
+    <span class="kw">let mut</span> turn <span class="op">=</span> <span class="nb">0</span>;
+    <span class="kw">loop</span> {
+        turn <span class="op">+=</span> <span class="nb">1</span>;
+        <span class="mc">println!</span>(<span class="st">"\n  — Turn {} —"</span>, turn);
+
+        <span class="cm">// Hero attacks first each turn</span>
+        <span class="kw">if</span> <span class="fn">combat_round</span>(hero, monster, rng) {
+            <span class="mc">println!</span>(<span class="st">"  💀 {} was defeated!"</span>, monster.<span class="fn">name</span>());
+            <span class="kw">break</span>;
+        }
+
+        <span class="cm">// Monster counterattack</span>
+        <span class="cm">// NOTE: combat_round borrows hero as mutable — monster as immutable</span>
+        <span class="kw">let</span> monster_atk  <span class="op">=</span> monster.<span class="fn">attack_power</span>();
+        <span class="kw">let</span> monster_name <span class="op">=</span> monster.<span class="fn">name</span>().<span class="fn">to_string</span>();
+        <span class="kw">if</span> rng.<span class="fn">gen_bool</span>(<span class="nb">0.1</span>) {
+            <span class="mc">println!</span>(<span class="st">"  ✗ {} missed!"</span>, monster_name);
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> dmg <span class="op">=</span> rng.<span class="fn">gen_range</span>(
+                (monster_atk <span class="op">*</span> <span class="nb">80</span> <span class="op">/</span> <span class="nb">100</span>)..=(monster_atk <span class="op">*</span> <span class="nb">120</span> <span class="op">/</span> <span class="nb">100</span>));
+            hero.<span class="fn">take_damage</span>(dmg);
+            <span class="mc">println!</span>(<span class="st">"  ⚔ {} hits {} for {} damage! {}"</span>,
+                monster_name, hero.<span class="fn">name</span>(), dmg, hero.<span class="fn">health_bar</span>());
+        }
+
+        <span class="kw">if</span> !hero.<span class="fn">is_alive</span>() {
+            <span class="mc">println!</span>(<span class="st">"  💀 {} has fallen!"</span>, hero.<span class="fn">name</span>());
+            <span class="kw">return</span> <span class="kw">false</span>;    <span class="cm">// hero lost</span>
+        }
+
+        <span class="cm">// Hero auto-uses potion if HP below 30%</span>
+        <span class="kw">let</span> hp_pct <span class="op">=</span> hero.hp <span class="kw">as</span> <span class="ty">f32</span> <span class="op">/</span> hero.max_hp <span class="kw">as</span> <span class="ty">f32</span>;
+        <span class="kw">if</span> hp_pct <span class="op">&lt;</span> <span class="nb">0.3</span> {
+            <span class="kw">match</span> hero.<span class="fn">use_potion</span>() {
+                <span class="ty">Ok</span>(())  <span class="op">=&gt;</span> {},
+                <span class="ty">Err</span>(e)  <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"  ⚠ {}"</span>, e),
+            }
+        }
+    }
+    <span class="kw">true</span>   <span class="cm">// hero won</span>
+}
+
+<span class="cm">// ── SECTION 7: MAIN GAME LOOP ────────────────────────────</span>
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let mut</span> rng <span class="op">=</span> rand::<span class="fn">thread_rng</span>();
+
+    <span class="mc">println!</span>(<span class="st">"╔══════════════════════════════════════╗"</span>);
+    <span class="mc">println!</span>(<span class="st">"║     ⚔  RUST RPG ENGINE  ⚔          ║"</span>);
+    <span class="mc">println!</span>(<span class="st">"║  A Comprehensive Rust Demo Program  ║"</span>);
+    <span class="mc">println!</span>(<span class="st">"╚══════════════════════════════════════╝\n"</span>);
+
+    <span class="cm">// Struct construction via associated function</span>
+    <span class="kw">let mut</span> hero <span class="op">=</span> <span class="ty">Hero</span>::<span class="fn">new</span>(<span class="st">"Ferris"</span>);
+    <span class="mc">println!</span>(<span class="st">"Welcome, {}! Your adventure begins..."</span>, hero.<span class="fn">name</span>());
+
+    <span class="cm">// Get the monster catalog (Vec&lt;Monster&gt;)</span>
+    <span class="kw">let</span> catalog <span class="op">=</span> <span class="fn">monster_catalog</span>();
+
+    <span class="cm">// Print available enemies using iterator + formatting</span>
+    <span class="mc">println!</span>(<span class="st">"\n📖 You will face these enemies:"</span>);
+    <span class="kw">for</span> (i, m) <span class="kw">in</span> catalog.<span class="fn">iter</span>().<span class="fn">enumerate</span>() {
+        <span class="mc">println!</span>(<span class="st">"  {}. {} [{:?}] — {} HP"</span>,
+            i <span class="op">+</span> <span class="nb">1</span>, m.name, m.element, m.max_hp);
+    }
+
+    <span class="cm">// Show starting status</span>
+    hero.<span class="fn">status</span>();
+
+    <span class="cm">// Fight each monster in sequence — clone so we own the instance</span>
+    <span class="kw">for</span> template <span class="kw">in</span> <span class="op">&amp;</span>catalog {
+        <span class="kw">let mut</span> monster <span class="op">=</span> template.<span class="fn">clone</span>();
+
+        <span class="kw">let</span> hero_won <span class="op">=</span> <span class="fn">battle</span>(<span class="op">&amp;mut</span> hero, <span class="op">&amp;mut</span> monster, <span class="op">&amp;mut</span> rng);
+
+        <span class="kw">if</span> !hero_won {
+            <span class="mc">println!</span>(<span class="st">"\n💀 GAME OVER — {} was defeated."</span>, hero.<span class="fn">name</span>());
+            hero.<span class="fn">print_kill_log</span>();
+            <span class="kw">return</span>;
+        }
+
+        <span class="cm">// Victory — award loot using pattern matching on Option</span>
+        hero.<span class="fn">gain_xp</span>(monster.xp_reward);
+        hero.gold <span class="op">+=</span> monster.gold_drop;
+        <span class="mc">println!</span>(<span class="st">"  🏆 Earned {} XP and {} gold!"</span>,
+            monster.xp_reward, monster.gold_drop);
+
+        <span class="cm">// Pattern match on Option&lt;Item&gt;</span>
+        <span class="kw">if let</span> <span class="ty">Some</span>(item) <span class="op">=</span> monster.loot.<span class="fn">take</span>() {
+            <span class="mc">println!</span>(<span class="st">"  🎁 Loot dropped: {}"</span>, item);
+            <span class="kw">match</span> <span class="op">&amp;</span>item {
+                <span class="ty">Item</span>::<span class="ty">Weapon</span> { name, .. } <span class="op">=&gt;</span> {
+                    <span class="mc">println!</span>(<span class="st">"     Auto-equipping {}..."</span>, name);
+                    hero.inventory.<span class="fn">push</span>(item);
+                    <span class="kw">let</span> wname <span class="op">=</span> name.<span class="fn">clone</span>();
+                    <span class="kw">match</span> hero.<span class="fn">equip_weapon</span>(<span class="op">&amp;</span>wname) {
+                        <span class="ty">Ok</span>(()) <span class="op">=&gt;</span> {},
+                        <span class="ty">Err</span>(e) <span class="op">=&gt;</span> <span class="mc">println!</span>(<span class="st">"  ⚠ {}"</span>, e),
+                    }
+                }
+                _ <span class="op">=&gt;</span> { hero.inventory.<span class="fn">push</span>(item); }
+            }
+        }
+
+        hero.<span class="fn">record_kill</span>(<span class="op">&amp;</span>monster.name);
+        hero.<span class="fn">status</span>();
+    }
+
+    <span class="cm">// ── VICTORY SCREEN ──────────────────────────────────────</span>
+    <span class="mc">println!</span>(<span class="st">"\n\n🎉 VICTORY! {} has conquered all enemies!"</span>, hero.<span class="fn">name</span>());
+    <span class="mc">println!</span>(<span class="st">"═══════════════════════════════════════════"</span>);
+
+    hero.<span class="fn">print_kill_log</span>();
+
+    <span class="cm">// Final stats with iterator methods</span>
+    <span class="kw">let</span> total_kills: <span class="ty">u32</span> <span class="op">=</span> hero.kill_log.<span class="fn">values</span>().<span class="fn">sum</span>();
+    <span class="kw">let</span> total_monsters <span class="op">=</span> catalog.<span class="fn">len</span>();
+    <span class="kw">let</span> pct <span class="op">=</span> total_kills <span class="kw">as</span> <span class="ty">f64</span> <span class="op">/</span> total_monsters <span class="kw">as</span> <span class="ty">f64</span> <span class="op">*</span> <span class="nb">100.0</span>;
+    <span class="mc">println!</span>(<span class="st">"\n  Final level:  {}"</span>, hero.level);
+    <span class="mc">println!</span>(<span class="st">"  Final gold:   {} gp"</span>, hero.gold);
+    <span class="mc">println!</span>(<span class="st">"  Completion:   {:.1}%"</span>, pct);
+
+    <span class="cm">// Demonstrate closures in inventory summary</span>
+    <span class="mc">println!</span>(<span class="st">"\n  Final Inventory:"</span>);
+    <span class="kw">if</span> hero.inventory.<span class="fn">is_empty</span>() {
+        <span class="mc">println!</span>(<span class="st">"    (empty)"</span>);
+    } <span class="kw">else</span> {
+        hero.inventory.<span class="fn">iter</span>().<span class="fn">for_each</span>(|i| <span class="mc">println!</span>(<span class="st">"    • {}"</span>, i));
+    }
+
+    <span class="mc">println!</span>(<span class="st">"\n  Thanks for playing Rust RPG!"</span>);
+    <span class="mc">println!</span>(<span class="st">"  Written in 🦀 Rust."</span>);
+}</code></pre>
+
+<h3>Expected Output</h3>
+<div class="output">╔══════════════════════════════════════╗
+║     ⚔  RUST RPG ENGINE  ⚔          ║
+║  A Comprehensive Rust Demo Program  ║
+╚══════════════════════════════════════╝
+
+Welcome, Ferris! Your adventure begins...
+
+📖 You will face these enemies:
+  1. Goblin Scout [Physical] — 30 HP
+  2. Fire Imp [Fire] — 45 HP
+  3. Ice Wraith [Ice] — 60 HP
+  4. Storm Dragon [Lightning] — 120 HP
+
+╔═══════════ HERO STATUS ═══════════╗
+║  Name:  Ferris
+║  Level: 1  XP: 0/100
+║  HP:    [████████████████████] 100/100
+║  ATK:   10
+║  Gold:  50 gp
+║  Weapon: (none)
+╚════════════════════════════════════╝
+
+🗡 BATTLE: Ferris vs Goblin Scout!
+  — Turn 1 —
+  ⚔ Ferris hits Goblin Scout for 11 damage! [░░░░░░░░░░░░░░░] 19/30
+  ⚔ Goblin Scout hits Ferris for 8 damage! [██████████████████░░] 92/100
+  ...
+🏆 Earned 40 XP and 15 gold!
+
+🎉 VICTORY! Ferris has conquered all enemies!</div>
+
+<h3>Concepts Demonstrated — Cross-Reference</h3>
+<table>
+  <thead><tr><th>Rust Concept</th><th>Where in the Program</th></tr></thead>
+  <tbody>
+    <tr><td>Structs + impl</td><td><code>Hero</code>, <code>Monster</code> + all their methods</td></tr>
+    <tr><td>Enums with data</td><td><code>Item</code>, <code>Element</code> variants</td></tr>
+    <tr><td>Trait definition</td><td><code>trait Combatant</code></td></tr>
+    <tr><td>Trait implementation</td><td><code>impl Combatant for Hero/Monster</code></td></tr>
+    <tr><td>Default trait methods</td><td><code>health_bar()</code>, <code>is_alive()</code></td></tr>
+    <tr><td>Generics</td><td><code>fn combat_round&lt;A: Combatant, D: Combatant&gt;</code></td></tr>
+    <tr><td>Ownership + move</td><td><code>monster.loot.take()</code>, function args</td></tr>
+    <tr><td>Borrowing (<code>&amp;</code>, <code>&amp;mut</code>)</td><td>Every function parameter in combat</td></tr>
+    <tr><td>Option&lt;T&gt;</td><td><code>equipped</code>, <code>loot</code>, <code>find_position</code> returns</td></tr>
+    <tr><td>Result&lt;T, E&gt;</td><td><code>use_potion()</code>, <code>equip_weapon()</code></td></tr>
+    <tr><td>Pattern matching</td><td><code>match</code> on <code>Item</code>, <code>Option</code>, <code>Result</code></td></tr>
+    <tr><td>if let</td><td>Loot handling, potion usage</td></tr>
+    <tr><td>Vec&lt;T&gt;</td><td><code>inventory</code>, <code>catalog</code></td></tr>
+    <tr><td>HashMap&lt;K,V&gt;</td><td><code>kill_log</code></td></tr>
+    <tr><td>Closures</td><td><code>filter</code>, <code>map</code>, <code>sort_by</code>, <code>for_each</code></td></tr>
+    <tr><td>Iterators</td><td><code>iter()</code>, <code>position()</code>, <code>filter()</code>, <code>sum()</code>, <code>enumerate()</code></td></tr>
+    <tr><td>Derive macros</td><td><code>#[derive(Debug, Clone, PartialEq)]</code></td></tr>
+    <tr><td>Display trait</td><td><code>impl fmt::Display for Item</code></td></tr>
+    <tr><td>Saturating arithmetic</td><td><code>saturating_sub()</code>, <code>.min()</code></td></tr>
+    <tr><td>External crates</td><td><code>rand</code> crate for RNG</td></tr>
+    <tr><td>Format strings</td><td><code>format!</code>, <code>println!</code> with <code>{:?}</code>, <code>{:.1}</code></td></tr>
+    <tr><td>loop / for / break</td><td>Combat loop, monster iteration</td></tr>
+  </tbody>
+</table>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <span>// Rust</span> Comprehensive Guide · Built for developers who want to learn the right way · 2024 Edition
+</footer>
+
+</body>
+</html>

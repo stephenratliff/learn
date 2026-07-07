@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supacode on macOS — Comprehensive Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #0b0e13;
+  --bg2:        #0f1318;
+  --bg3:        #141920;
+  --panel:      #1a2030;
+  --border:     #1e2a3a;
+  --border2:    #243040;
+  --green:      #00e5a0;
+  --green-dim:  #00b87f;
+  --green-glow: rgba(0,229,160,0.12);
+  --green-faint:rgba(0,229,160,0.06);
+  --blue:       #4da6ff;
+  --blue-dim:   #2d7fd4;
+  --amber:      #f5a623;
+  --coral:      #ff6b6b;
+  --purple:     #b57bff;
+  --text:       #d4dde8;
+  --text2:      #8899aa;
+  --text3:      #4a5a6a;
+  --sidebar-w:  260px;
+  --code-bg:    #080c10;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.72;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SCANLINE TEXTURE (signature element) ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── SIDEBAR ──────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 10;
+  scrollbar-width: thin;
+  scrollbar-color: #1e2a3a transparent;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sidebar-brand {
+  padding: 1.4rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.brand-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.brand-badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.brand-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #f0f6fc;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.brand-title span { color: var(--green); }
+
+.nav-group-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0.85rem 1.25rem 0.3rem;
+}
+#sidebar nav a {
+  display: block;
+  padding: 0.3rem 1.25rem;
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+  border-left: 2px solid transparent;
+  transition: all 0.12s ease;
+}
+#sidebar nav a:hover, #sidebar nav a.active {
+  color: var(--green);
+  background: var(--green-faint);
+  border-left-color: var(--green);
+}
+
+.sidebar-foot {
+  padding: 1rem 1.25rem 2rem;
+  border-top: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text3);
+  line-height: 1.7;
+  margin-top: 0.5rem;
+}
+
+/* ── MAIN ────────────────────────────── */
+#main { flex: 1; min-width: 0; position: relative; z-index: 1; }
+
+/* HERO */
+.hero {
+  background: linear-gradient(160deg, #0b1a12 0%, #091018 50%, #080c13 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 4rem 3.5rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,160,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,160,0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-eyebrow::before {
+  content: '$ ';
+  opacity: 0.5;
+}
+.hero h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  color: #f0f6fc;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin-bottom: 1rem;
+  max-width: 560px;
+}
+.hero h1 em {
+  color: var(--green);
+  font-style: normal;
+}
+.hero-sub {
+  color: var(--text2);
+  font-size: 16px;
+  max-width: 520px;
+  line-height: 1.65;
+  margin-bottom: 1.75rem;
+}
+.hero-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.hero-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+.pill-g { color: var(--green);  border-color: rgba(0,229,160,0.3);  background: rgba(0,229,160,0.06); }
+.pill-b { color: var(--blue);   border-color: rgba(77,166,255,0.3);  background: rgba(77,166,255,0.06); }
+.pill-a { color: var(--amber);  border-color: rgba(245,166,35,0.3);  background: rgba(245,166,35,0.06); }
+.pill-p { color: var(--purple); border-color: rgba(181,123,255,0.3); background: rgba(181,123,255,0.06); }
+
+/* ── CONTENT ──────────────────────────── */
+.content { padding: 2.5rem 3.5rem; max-width: 900px; }
+
+/* PART BANNER */
+.part-banner {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--green);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.part-banner .pb-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.part-banner .pb-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f0f6fc;
+}
+.part-banner .pb-desc {
+  font-size: 13px;
+  color: var(--text2);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* SECTIONS */
+.section { margin-bottom: 3rem; }
+
+h2.section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #f0f6fc;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+h2.section-title .snum {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--green);
+  font-weight: 600;
+  background: var(--green-faint);
+  border: 1px solid rgba(0,229,160,0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #c8d4e0;
+  margin: 1.65rem 0 0.55rem;
+}
+h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 1.2rem 0 0.45rem;
+}
+p { margin-bottom: 0.8rem; color: var(--text2); font-size: 14.5px; }
+
+/* ── KEYS ──────────────────────────────── */
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 23px;
+  padding: 0 7px;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-bottom: 2px solid rgba(0,229,160,0.35);
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--green);
+  font-weight: 500;
+  white-space: nowrap;
+  vertical-align: middle;
+  line-height: 1;
+}
+.key-combo { display: inline-flex; align-items: center; gap: 2px; flex-wrap: nowrap; }
+
+/* ── CODE ──────────────────────────────── */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.8;
+  overflow-x: auto;
+  margin: 0.8rem 0 1.1rem;
+  position: relative;
+}
+pre .prompt { color: var(--green); }
+pre .cm     { color: #3a5a4a; font-style: italic; }
+pre .str    { color: var(--blue); }
+pre .kw     { color: var(--purple); }
+pre .num    { color: var(--amber); }
+pre .path   { color: #86efac; }
+pre .flag   { color: var(--amber); }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  background: rgba(0,229,160,0.07);
+  color: var(--green);
+  border: 1px solid rgba(0,229,160,0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+pre code { background: transparent; color: inherit; border: none; padding: 0; font-size: inherit; }
+
+/* ── CALLOUTS ──────────────────────────── */
+.note {
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin: 1rem 0;
+  border-left: 3px solid;
+  font-size: 13.5px;
+}
+.note-tip   { background: rgba(0,229,160,0.05);  border-color: var(--green); }
+.note-warn  { background: rgba(245,166,35,0.05); border-color: var(--amber); }
+.note-info  { background: rgba(77,166,255,0.05); border-color: var(--blue); }
+.note-adv   { background: rgba(181,123,255,0.05);border-color: var(--purple); }
+.note-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.note-tip  .note-title  { color: var(--green); }
+.note-warn .note-title  { color: var(--amber); }
+.note-info .note-title  { color: var(--blue); }
+.note-adv  .note-title  { color: var(--purple); }
+.note p { margin: 0; line-height: 1.6; }
+.note p + p { margin-top: 0.4rem; }
+
+/* ── TABLES ────────────────────────────── */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 0.65rem 0 1.1rem;
+}
+.tbl thead tr { border-bottom: 1px solid var(--green-dim); }
+.tbl thead th {
+  padding: 0.5rem 0.85rem;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--green-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+.tbl tbody tr { border-bottom: 1px solid var(--border); }
+.tbl tbody tr:last-child { border-bottom: none; }
+.tbl tbody tr:hover { background: rgba(255,255,255,0.02); }
+.tbl td { padding: 0.5rem 0.85rem; vertical-align: middle; }
+.tbl td:first-child { width: 40%; }
+.tbl td:last-child { color: var(--text2); font-size: 13px; }
+.tbl .cat td {
+  background: rgba(0,229,160,0.04);
+  color: var(--green-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 0.3rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+/* ── CONCEPT GRID ──────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem;
+  border-top: 2px solid var(--green-dim);
+}
+.card h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--green);
+  text-transform: none;
+  letter-spacing: normal;
+  margin: 0 0 0.3rem;
+}
+.card p { font-size: 12.5px; color: var(--text2); margin: 0; line-height: 1.55; }
+
+/* ── AGENT CARD ────────────────────────── */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0 1.25rem;
+}
+.agent-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.agent-card .a-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+  color: var(--blue);
+  font-weight: 600;
+}
+.agent-card .a-cmd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--green);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+.agent-card p { font-size: 12px; color: var(--text2); margin: 0; line-height: 1.5; }
+.agent-card .a-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--amber);
+  border: 1px solid rgba(245,166,35,0.25);
+  background: rgba(245,166,35,0.06);
+  padding: 1px 7px;
+  border-radius: 20px;
+  width: fit-content;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── STEP LIST ─────────────────────────── */
+.steps { counter-reset: step; list-style: none; margin: 0.75rem 0 1.1rem; }
+.steps li {
+  counter-increment: step;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+.steps li:last-child { border-bottom: none; }
+.steps li::before {
+  content: counter(step);
+  position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+  width: 22px; height: 22px;
+  background: var(--green); color: var(--bg);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+.steps li p { margin: 0; font-size: 14px; color: var(--text); }
+
+/* ── FLOW DIAGRAM ──────────────────────── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 1rem 0 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.flow-step {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.6rem 0.9rem;
+  text-align: center;
+  min-width: 110px;
+  flex-shrink: 0;
+}
+.flow-step .fs-label { font-size: 9.5px; color: var(--text3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.09em; display: block; margin-bottom: 3px; }
+.flow-step .fs-val   { font-size: 12.5px; color: var(--green); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.flow-arrow { color: var(--green-dim); font-size: 18px; padding: 0 6px; flex-shrink: 0; opacity: 0.6; }
+
+/* ── MISC ──────────────────────────────── */
+ul, ol { padding-left: 1.4rem; margin-bottom: 0.75rem; }
+li { font-size: 14px; color: var(--text2); margin-bottom: 0.3rem; line-height: 1.6; }
+li code { font-size: 11.5px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1rem; }
+hr.div { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+.back-top {
+  position: fixed; bottom: 2rem; right: 2rem;
+  width: 40px; height: 40px;
+  background: var(--green); color: var(--bg);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0,229,160,0.3);
+  opacity: 0.9; transition: opacity 0.2s;
+}
+.back-top:hover { opacity: 1; }
+
+.tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 20px;
+  border: 1px solid;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.tag-g { color: var(--green); border-color: rgba(0,229,160,0.3); background: var(--green-faint); }
+.tag-b { color: var(--blue);  border-color: rgba(77,166,255,0.3); background: rgba(77,166,255,0.05); }
+.tag-a { color: var(--amber); border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.05); }
+
+.file-tree {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 2;
+  color: var(--text2);
+  margin: 0.8rem 0 1.1rem;
+}
+.file-tree .ft-dir  { color: var(--blue); }
+.file-tree .ft-file { color: var(--text); }
+.file-tree .ft-note { color: var(--text3); font-size: 11px; }
+.file-tree .ft-green{ color: var(--green); }
+
+@media (max-width: 700px) {
+  .two-col { grid-template-columns: 1fr; }
+  .hero { padding: 2rem 1.5rem; }
+  .hero h1 { font-size: 30px; }
+  .content { padding: 1.5rem; }
+  #sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────── -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-badge">macOS · Native</div>
+    <div class="brand-title">Supa<span>code</span><br>Guide</div>
+  </div>
+  <nav>
+    <div class="nav-group-label">Getting Started</div>
+    <a href="#s1">1. What is Supacode?</a>
+    <a href="#s2">2. Requirements</a>
+    <a href="#s3">3. Installation</a>
+    <a href="#s4">4. First-Run Setup</a>
+
+    <div class="nav-group-label">Core Concepts</div>
+    <a href="#s5">5. Mental Model</a>
+    <a href="#s6">6. Repositories</a>
+    <a href="#s7">7. Worktrees</a>
+    <a href="#s8">8. The Terminal</a>
+
+    <div class="nav-group-label">Agents</div>
+    <a href="#s9">9. Supported Agents</a>
+    <a href="#s10">10. Auto-Starting Agents</a>
+    <a href="#s11">11. Parallel Workflows</a>
+
+    <div class="nav-group-label">Features</div>
+    <a href="#s12">12. Keyboard Shortcuts</a>
+    <a href="#s13">13. Command Palette</a>
+    <a href="#s14">14. Repository Commands</a>
+    <a href="#s15">15. GitHub Integration</a>
+    <a href="#s16">16. PR &amp; CI Workflows</a>
+    <a href="#s17">17. Notifications</a>
+
+    <div class="nav-group-label">Configuration</div>
+    <a href="#s18">18. Settings &amp; Storage</a>
+    <a href="#s19">19. Terminal Theming</a>
+    <a href="#s20">20. supacode.json</a>
+
+    <div class="nav-group-label">Reference</div>
+    <a href="#s21">21. Tips &amp; Best Practices</a>
+    <a href="#s22">22. Archive vs Delete</a>
+    <a href="#s23">23. FAQ</a>
+  </nav>
+  <div class="sidebar-foot">
+    Based on official docs<br>
+    supacode.sh · v0.10.2<br>
+    macOS 26 (Tahoe) required
+  </div>
+</nav>
+
+<!-- ── MAIN ─────────────────────────────────────────── -->
+<main id="main">
+
+<!-- HERO -->
+<div class="hero" id="top">
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">Comprehensive Reference Guide</div>
+  <h1>Supacode<br>on <em>macOS</em></h1>
+  <p class="hero-sub">A native macOS command center for running terminal coding agents in parallel across isolated git worktrees — powered by Ghostty, built in Swift.</p>
+  <div class="hero-pills">
+    <span class="hero-pill pill-g">macOS 26+ only</span>
+    <span class="hero-pill pill-b">libGhostty terminal</span>
+    <span class="hero-pill pill-a">50+ agents in parallel</span>
+    <span class="hero-pill pill-p">Free &amp; open source</span>
+    <span class="hero-pill pill-g">v0.10.2 · June 2026</span>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════════
+     S1 — WHAT IS SUPACODE
+══════════════════════════════════════ -->
+<div class="section" id="s1">
+  <h2 class="section-title"><span class="snum">01</span> What is Supacode?</h2>
+
+  <p>Supacode is a native macOS application that serves as a command center for AI coding agents. Rather than wrapping web technologies like Electron, it is written entirely in Swift using <strong>libGhostty</strong> (the GPU-accelerated terminal core from the Ghostty terminal emulator) for rendering and <strong>The Composable Architecture (TCA)</strong> for state management.</p>
+
+  <p>Its core idea is simple: modern AI-assisted development involves running multiple agents simultaneously on different tasks. Supacode solves the "1000 tabs" problem by giving each agent its own isolated git worktree, its own persistent terminal state, and a unified sidebar to manage them all.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>Native Performance</h4>
+      <p>No Electron, no web wrappers. Built on libGhostty for GPU-accelerated terminal rendering. Every keystroke responds at native speed.</p>
+    </div>
+    <div class="card">
+      <h4>Worktree Isolation</h4>
+      <p>Each agent gets its own git worktree — a separate branch and directory. Agents work in parallel without stepping on each other's changes.</p>
+    </div>
+    <div class="card">
+      <h4>BYOA Model</h4>
+      <p>Bring Your Own Agent. Any CLI-based coding agent works — Claude Code, Codex, OpenCode, Aider, custom scripts. No proprietary lock-in.</p>
+    </div>
+    <div class="card">
+      <h4>Persistent Sessions</h4>
+      <p>Sessions survive app restarts via a bundled ZMX multiplexer. Quit and relaunch Supacode; your agents keep running and reattach.</p>
+    </div>
+    <div class="card">
+      <h4>GitHub Native</h4>
+      <p>PR status, CI checks, draft/ready toggle, merge actions — all without leaving the terminal or opening a browser.</p>
+    </div>
+    <div class="card">
+      <h4>Open Source</h4>
+      <p>Full source code on GitHub. Read every line, fork it, fix it, contribute. Free to use with no paid tiers.</p>
+    </div>
+  </div>
+
+  <div class="note note-info">
+    <span class="note-title">ℹ Architecture note</span>
+    <p>Supacode is part of the growing <strong>libGhostty ecosystem</strong> — a collection of apps built on the terminal core that Mitchell Hashimoto split out from the Ghostty terminal. These apps share the same rendering engine, and crucially they all read the same <code>~/.config/ghostty/config</code> file — so your fonts, keybindings, and color themes carry across all of them automatically.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S2 — REQUIREMENTS
+══════════════════════════════════════ -->
+<div class="section" id="s2">
+  <h2 class="section-title"><span class="snum">02</span> Requirements</h2>
+
+  <p>Supacode has a strict macOS version floor due to its use of modern SwiftUI APIs and GhosttyKit.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+    <tbody>
+      <tr><td><strong>macOS version</strong></td><td>macOS 26.0 (Tahoe) or newer — strictly required</td></tr>
+      <tr><td><strong>Git</strong></td><td>Must be installed and available in your shell PATH</td></tr>
+      <tr><td><strong>GitHub CLI (<code>gh</code>)</strong></td><td>Only needed for PR and CI features — optional for basic use</td></tr>
+      <tr><td><strong>Coding agent(s)</strong></td><td>Claude Code, Codex, OpenCode, Aider, or any CLI agent</td></tr>
+      <tr><td><strong>Xcode (build from source)</strong></td><td>Xcode 26.3 specifically (see note below)</td></tr>
+      <tr><td><strong>mise (build from source)</strong></td><td>For pinned Zig, swiftlint, swift-format, xcbeautify, xcsift</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note note-warn">
+    <span class="note-title">⚠ macOS 26 required</span>
+    <p>Supacode will not run on macOS 15 or earlier. This is not a soft recommendation — the app uses SwiftUI APIs and system frameworks only available in macOS 26 (Tahoe). If you're on an older macOS, you'll need to upgrade before using Supacode.</p>
+  </div>
+
+  <h3>Checking prerequisites</h3>
+<pre><span class="prompt">$</span> sw_vers                      <span class="cm"># check macOS version</span>
+<span class="prompt">$</span> git --version                 <span class="cm"># verify git is installed</span>
+<span class="prompt">$</span> gh auth status                <span class="cm"># verify gh is installed and authenticated</span>
+<span class="prompt">$</span> claude --version              <span class="cm"># if using Claude Code</span>
+<span class="prompt">$</span> codex --version               <span class="cm"># if using Codex</span></pre>
+</div>
+
+<!-- ══════════════════════════════════════
+     S3 — INSTALLATION
+══════════════════════════════════════ -->
+<div class="section" id="s3">
+  <h2 class="section-title"><span class="snum">03</span> Installation</h2>
+
+  <h3>Option A — Homebrew (recommended)</h3>
+  <p>The fastest way to get Supacode running:</p>
+<pre><span class="prompt">$</span> brew install supacode</pre>
+
+  <p>Then launch from Spotlight (<kbd>⌘</kbd><kbd>Space</kbd> → "Supacode"), Launchpad, or from the terminal:</p>
+<pre><span class="prompt">$</span> open -a Supacode</pre>
+
+  <h3>Option B — Download from supacode.sh</h3>
+  <p>Visit <strong>supacode.sh</strong> to download the latest <code>.dmg</code>. Drag Supacode to your <code>/Applications</code> folder and launch it. macOS Gatekeeper may prompt you the first time — open <strong>System Settings → Privacy &amp; Security</strong> and click <em>Open Anyway</em>.</p>
+
+  <h3>Option C — Build from source</h3>
+  <p>For contributors and those who want to run the latest unreleased changes:</p>
+<pre><span class="prompt">$</span> git clone https://github.com/supabitapp/supacode.git
+<span class="prompt">$</span> cd supacode
+<span class="prompt">$</span> mise install                  <span class="cm"># install pinned Zig, swiftlint, etc.</span>
+<span class="prompt">$</span> make doctor                   <span class="cm"># diagnose prerequisites, prints fixes</span>
+<span class="prompt">$</span> make build-ghostty-xcframework <span class="cm"># compile GhosttyKit from Zig source</span>
+<span class="prompt">$</span> make build-app                <span class="cm"># build the macOS app (Debug)</span>
+<span class="prompt">$</span> make run-app                  <span class="cm"># build and launch</span></pre>
+
+  <div class="note note-warn">
+    <span class="note-title">⚠ Source build: Xcode version matters</span>
+    <p>Building from source requires Xcode 26.3 specifically (not 26.4+). The pinned Zig 0.15.2 can't link the macOS 26.4+ SDK due to a known linker issue. Run <code>make doctor</code> first — it checks every prerequisite and prints the exact command to fix anything missing. The build auto-detects a Zig-compatible Xcode and uses it just for that build step; your default Xcode can remain at a newer version.</p>
+  </div>
+
+  <h3>Development / quality commands</h3>
+<pre><span class="prompt">$</span> make check    <span class="cm"># run swiftformat + swiftlint</span>
+<span class="prompt">$</span> make test     <span class="cm"># run the test suite</span>
+<span class="prompt">$</span> make format   <span class="cm"># run swift-format</span></pre>
+
+  <h3>Checking for updates</h3>
+  <p>Inside Supacode: press <kbd>⌘ U</kbd> or navigate to the menu. Supacode offers both a <strong>stable</strong> channel and a <strong>tip</strong> (latest commits) build channel. Switch between them in Settings.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     S4 — FIRST RUN SETUP
+══════════════════════════════════════ -->
+<div class="section" id="s4">
+  <h2 class="section-title"><span class="snum">04</span> First-Run Setup</h2>
+
+  <ol class="steps">
+    <li><p><strong>Launch Supacode.</strong> The sidebar will be empty — no repositories yet.</p></li>
+    <li><p><strong>Add a repository.</strong> Click the <em>+</em> button in the sidebar, or press <kbd>⌘ ⇧ O</kbd>. Browse to any local git repository you want to work in. Supacode will discover all its existing worktrees automatically.</p></li>
+    <li><p><strong>Choose your default editor.</strong> Supacode can open worktrees in VS Code, Cursor, Xcode, or any editor installed via its bundle ID. Set this in <strong>Settings → General</strong>. Once set, <kbd>⌘ O</kbd> opens the selected worktree in that editor instantly.</p></li>
+    <li><p><strong>Authenticate GitHub CLI</strong> if you want PR and CI features: run <code>gh auth login</code> in your terminal, then enable GitHub integration in Supacode's Settings.</p></li>
+    <li><p><strong>Configure a repository setup script</strong> (optional but recommended). In <strong>Repository Settings → Repository Commands</strong>, add the command that boots your agent — e.g. <code>claude --dangerously-skip-permissions</code> or <code>codex</code>. This will auto-run whenever you create a new worktree.</p></li>
+    <li><p><strong>Create your first worktree</strong> with <kbd>⌘ N</kbd>. Supacode creates the git worktree, opens a terminal in it, and optionally runs your setup script.</p></li>
+  </ol>
+
+  <div class="note note-tip">
+    <span class="note-title">✦ Quick start path</span>
+    <p>The minimum viable workflow: install → add a repo → press <kbd>⌘ N</kbd> → type your agent command in the terminal. Everything else is optional enhancement.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S5 — MENTAL MODEL
+══════════════════════════════════════ -->
+<div class="section" id="s5">
+  <h2 class="section-title"><span class="snum">05</span> The Mental Model</h2>
+
+  <p>Understanding the three-layer hierarchy makes Supacode intuitive:</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <span class="fs-label">Container</span>
+      <span class="fs-val">Repository</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <span class="fs-label">Unit of work</span>
+      <span class="fs-val">Worktree</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <span class="fs-label">Where work happens</span>
+      <span class="fs-val">Terminal</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <span class="fs-label">What you run</span>
+      <span class="fs-val">Agent / CLI</span>
+    </div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>Concept</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Repository</strong></td><td>The top-level container. Corresponds to a local git repo. Can contain many worktrees.</td></tr>
+      <tr><td><strong>Worktree</strong></td><td>The unit of parallel work. A real git worktree: its own branch + directory on disk. Each agent works in one worktree.</td></tr>
+      <tr><td><strong>Terminal</strong></td><td>Each worktree has its own terminal state: tabs, splits, scroll buffer, and notifications — all preserved when you switch worktrees.</td></tr>
+      <tr><td><strong>Setup Script</strong></td><td>A per-repository command that auto-runs when a new worktree is created. Typically starts your agent or installs dependencies.</td></tr>
+      <tr><td><strong>Run Script</strong></td><td>A per-repository on-demand command for repeatable tasks like <code>pnpm dev</code> or <code>cargo test</code>. Launch with <kbd>⌘ R</kbd>.</td></tr>
+      <tr><td><strong>Archive Script</strong></td><td>A per-repository command that runs before a worktree is archived. Use it to shut down Docker, kill background processes, etc.</td></tr>
+      <tr><td><strong>Sidebar</strong></td><td>Lists all repositories and their worktrees. Worktrees with unread notifications are highlighted. Active sessions float to the top.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note note-tip">
+    <span class="note-title">✦ Archive vs Delete — a critical distinction</span>
+    <p><strong>Archive</strong> hides a worktree from the active list but keeps its directory on disk and its branch intact. <strong>Delete</strong> removes the worktree directory from disk (and optionally deletes the local branch). When in doubt, archive first — you can always come back to it.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S6 — REPOSITORIES
+══════════════════════════════════════ -->
+<div class="section" id="s6">
+  <h2 class="section-title"><span class="snum">06</span> Working with Repositories</h2>
+
+  <h3>Adding a repository</h3>
+  <p>Press <kbd>⌘ ⇧ O</kbd> or click the <em>+</em> in the sidebar. Supacode accepts both regular repositories and <strong>bare repositories</strong>. When you add a repo, it scans for and imports all existing git worktrees automatically.</p>
+
+  <h3>Repository settings</h3>
+  <p>Each repository has its own settings panel (accessible from the sidebar's context menu or via Settings). Key per-repository options:</p>
+
+  <table class="tbl">
+    <thead><tr><th>Setting</th><th>What it controls</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Base ref</strong></td><td>The default branch new worktrees are created from (e.g. <code>main</code>, <code>develop</code>)</td></tr>
+      <tr><td><strong>Worktree location</strong></td><td>Where managed worktrees are created on disk (default: <code>~/.supacode/repos/&lt;name&gt;/</code>)</td></tr>
+      <tr><td><strong>Default editor</strong></td><td>Override the global editor default for this specific repo</td></tr>
+      <tr><td><strong>Merge strategy</strong></td><td>Merge / Squash / Rebase — used by the in-app PR merge action</td></tr>
+      <tr><td><strong>Auto-archive on merge</strong></td><td>Automatically move worktrees to the archive list when their PR is merged</td></tr>
+      <tr><td><strong>Prompted worktree creation</strong></td><td>Prompt for a branch name instead of auto-generating one when pressing <kbd>⌘ N</kbd></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Where worktrees live on disk</h3>
+  <div class="file-tree">
+    <span class="ft-dir">~/.supacode/</span><br>
+    &nbsp;&nbsp;<span class="ft-dir">repos/</span>           <span class="ft-note">← managed worktrees</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-dir">my-project/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-dir">feature-auth/</span>    <span class="ft-note">← worktree 1</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-dir">fix-login-bug/</span>   <span class="ft-note">← worktree 2</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-dir">refactor-api/</span>    <span class="ft-note">← worktree 3</span><br>
+    &nbsp;&nbsp;<span class="ft-file">settings.json</span>    <span class="ft-note">← global settings</span><br>
+    <span class="ft-dir">~/my-project/</span>         <span class="ft-note">← original repo (main branch)</span><br>
+    &nbsp;&nbsp;<span class="ft-green">supacode.json</span>         <span class="ft-note">← optional per-repo config</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S7 — WORKTREES
+══════════════════════════════════════ -->
+<div class="section" id="s7">
+  <h2 class="section-title"><span class="snum">07</span> Working with Worktrees</h2>
+
+  <h3>Creating a worktree</h3>
+  <p>Press <kbd>⌘ N</kbd> from anywhere in Supacode. Depending on your repository settings:</p>
+  <ul>
+    <li><strong>Prompted mode:</strong> Supacode asks for a branch name and base ref. Use this for named, intentional work.</li>
+    <li><strong>Auto mode:</strong> Supacode generates a branch name immediately (fast creation for quick agent tasks). You can rename it afterward.</li>
+  </ul>
+
+  <h3>What happens when a worktree is created</h3>
+  <ol class="steps">
+    <li><p>Supacode creates a real git worktree under <code>~/.supacode/repos/&lt;repo&gt;/</code> on a new branch.</p></li>
+    <li><p>The worktree appears in the sidebar under its repository, selected automatically.</p></li>
+    <li><p>A dedicated terminal opens for the worktree, starting in its directory.</p></li>
+    <li><p>If a setup script is configured, Supacode runs it immediately in the first terminal tab.</p></li>
+  </ol>
+
+  <h3>Managing worktrees</h3>
+  <table class="tbl">
+    <thead><tr><th>Action</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Select worktree 1–10</td><td><kbd>⌃ 1</kbd> through <kbd>⌃ 0</kbd></td></tr>
+      <tr><td>Next / previous worktree</td><td><kbd>⌃ ⌘ ↓</kbd> / <kbd>⌃ ⌘ ↑</kbd></td></tr>
+      <tr><td>Open worktree in editor</td><td><kbd>⌘ O</kbd></td></tr>
+      <tr><td>Rename branch</td><td>Click the branch name in the toolbar</td></tr>
+      <tr><td>View archived worktrees</td><td><kbd>⌃ ⌘ A</kbd></td></tr>
+      <tr><td>Archive a worktree</td><td>Right-click in sidebar → Archive</td></tr>
+      <tr><td>Delete a worktree</td><td>Right-click in sidebar → Delete (removes directory)</td></tr>
+      <tr><td>Open PR on GitHub</td><td><kbd>⌃ ⌘ G</kbd></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Renaming branches</h3>
+  <p>Auto-generated branch names can be random or generic. Click the branch name in the <strong>toolbar</strong> to rename it without leaving the app. You can also teach your agent to rename branches automatically (see the Tips section).</p>
+
+  <div class="note note-tip">
+    <span class="note-title">✦ Bare repository support</span>
+    <p>Supacode supports bare repositories. The sidebar shows a git-branch icon for bare repos instead of a folder icon. Note that the <em>copy-ignored</em> and <em>copy-untracked</em> worktree creation flags are disabled for bare repos.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S8 — TERMINAL
+══════════════════════════════════════ -->
+<div class="section" id="s8">
+  <h2 class="section-title"><span class="snum">08</span> The Built-in Terminal</h2>
+
+  <p>Supacode embeds a full terminal powered by <strong>GhosttyKit</strong> in the detail pane. Unlike a web-based terminal, this is GPU-accelerated and handles heavy agent output without stuttering.</p>
+
+  <h3>Tabs and splits</h3>
+  <p>Each worktree's terminal is fully multi-tab and multi-pane. The recommended tab layout when running agents:</p>
+
+  <table class="tbl">
+    <thead><tr><th>Tab</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tab 1</strong></td><td>Your coding agent (Claude Code, Codex, etc.)</td></tr>
+      <tr><td><strong>Tab 2</strong></td><td>Dev server (<code>pnpm dev</code>, <code>rails s</code>, etc.)</td></tr>
+      <tr><td><strong>Tab 3</strong></td><td>Test runner (<code>pnpm test --watch</code>)</td></tr>
+      <tr><td><strong>Tab 4</strong></td><td>Git client (<code>lazygit</code>) or general shell</td></tr>
+    </tbody>
+  </table>
+
+  <p>Within a tab, splits let you keep related commands side by side. Splits support drag-and-drop reorganization and can be resized, equalized, or zoomed via Ghostty split actions.</p>
+
+  <h3>Per-worktree terminal state</h3>
+  <p>When you switch worktrees in the sidebar, Supacode <strong>restores</strong> that worktree's complete terminal state: tabs, splits, scroll position, notifications, and focused surface. Switching between worktrees is instant — it's purely a UI switch with no process teardown.</p>
+
+  <h3>Persistent sessions (ZMX)</h3>
+  <p>Supacode bundles a ZMX multiplexer. Sessions persist through app restarts and updates — if you quit Supacode, any running agents keep running in the background. When you relaunch, all your tabs reattach exactly where you left them.</p>
+
+  <h3>Tab context menu</h3>
+  <ul>
+    <li>Close Tab</li>
+    <li>Close Other Tabs</li>
+    <li>Close Tabs to the Right</li>
+    <li>Close All Tabs</li>
+  </ul>
+
+  <h3>Terminal search</h3>
+  <table class="tbl">
+    <thead><tr><th>Action</th><th>Shortcut</th></tr></thead>
+    <tbody>
+      <tr><td>Find in terminal output</td><td><kbd>⌘ F</kbd></td></tr>
+      <tr><td>Find next match</td><td><kbd>⌘ G</kbd></td></tr>
+      <tr><td>Find previous match</td><td><kbd>⇧ ⌘ G</kbd></td></tr>
+      <tr><td>Hide the Find bar</td><td><kbd>⇧ ⌘ F</kbd></td></tr>
+      <tr><td>Use selection for Find</td><td><kbd>⌘ E</kbd></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note note-info">
+    <span class="note-title">ℹ Ghostty owns the terminal</span>
+    <p>Terminal-level keybindings (new tab, close tab, split creation, split navigation) are managed by Ghostty — not by Supacode itself. To change them, modify your <code>~/.config/ghostty/config</code> file. Supacode reads those bindings and shows them in menus and tooltips automatically.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S9 — SUPPORTED AGENTS
+══════════════════════════════════════ -->
+<div class="section" id="s9">
+  <h2 class="section-title"><span class="snum">09</span> Supported Coding Agents</h2>
+
+  <p>Supacode uses a BYOA (Bring Your Own Agent) model. Any agent that runs in a terminal shell works. The four officially supported harnesses get native integration features (agent-aware notifications, the Supacode CLI, and the bundled skill file):</p>
+
+  <div class="agent-grid">
+    <div class="agent-card">
+      <div class="a-name">Claude Code</div>
+      <div class="a-cmd">claude</div>
+      <p>Anthropic's official CLI agent. Full harness integration with notification hooks.</p>
+      <div class="a-tag">Native harness</div>
+    </div>
+    <div class="agent-card">
+      <div class="a-name">Codex</div>
+      <div class="a-cmd">codex</div>
+      <p>OpenAI's CLI coding agent. Supported harness with Supacode CLI integration.</p>
+      <div class="a-tag">Native harness</div>
+    </div>
+    <div class="agent-card">
+      <div class="a-name">OpenCode</div>
+      <div class="a-cmd">opencode</div>
+      <p>Open-source agent built for the terminal. Supported harness.</p>
+      <div class="a-tag">Native harness</div>
+    </div>
+    <div class="agent-card">
+      <div class="a-name">Pi</div>
+      <div class="a-cmd">pi</div>
+      <p>Inflection AI's agent. Notification integration supported.</p>
+      <div class="a-tag">Native harness</div>
+    </div>
+    <div class="agent-card">
+      <div class="a-name">Aider</div>
+      <div class="a-cmd">aider</div>
+      <p>Open-source AI pair-programmer with strong git integration.</p>
+      <div class="a-tag">Any CLI agent</div>
+    </div>
+    <div class="agent-card">
+      <div class="a-name">Custom / Other</div>
+      <div class="a-cmd">any-cli-agent</div>
+      <p>Any terminal-based agent works. Add it as a setup script and run it in a tab.</p>
+      <div class="a-tag">Any CLI agent</div>
+    </div>
+  </div>
+
+  <h3>Harness integration features</h3>
+  <p>For the four natively-supported harnesses, Supacode provides three extra integration hooks:</p>
+  <ul>
+    <li><strong>Notifications:</strong> macOS toast notifications + in-app alerts when an agent needs attention or finishes a task.</li>
+    <li><strong>Supacode CLI:</strong> A bundled CLI the agent can invoke to drive the GUI — e.g. "open this directory as a new Supacode project" or "create a worktree for this branch".</li>
+    <li><strong>Skill file:</strong> A bundled skill definition so the agent understands how to manage Supacode itself (creating worktrees, renaming branches, etc.).</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════
+     S10 — AUTO-STARTING AGENTS
+══════════════════════════════════════ -->
+<div class="section" id="s10">
+  <h2 class="section-title"><span class="snum">10</span> Auto-Starting Agents</h2>
+
+  <p>The most powerful workflow pattern in Supacode is configuring a repository setup script that automatically boots your agent in every new worktree. This means pressing <kbd>⌘ N</kbd> and having an agent ready to work within seconds — no manual startup required.</p>
+
+  <h3>Setting up a setup script</h3>
+  <p>In Supacode: open a repository → click its settings icon → <strong>Repository Commands → Setup Script</strong>. Enter your agent command.</p>
+
+  <h3>Example setup scripts</h3>
+<pre><span class="cm"># Auto-start Claude Code (skipping permission prompts)</span>
+<span class="prompt">claude --dangerously-skip-permissions</span>
+
+<span class="cm"># Auto-start Codex</span>
+<span class="prompt">codex</span>
+
+<span class="cm"># Install dependencies first, then start agent</span>
+<span class="prompt">pnpm install &amp;&amp; pnpm prisma generate &amp;&amp; claude</span>
+
+<span class="cm"># Start the dev server in the background, then start agent</span>
+<span class="prompt">pnpm dev &amp; claude</span>
+
+<span class="cm"># Multiple steps with a custom script</span>
+<span class="prompt">./scripts/setup-dev.sh &amp;&amp; codex</span></pre>
+
+  <div class="note note-warn">
+    <span class="note-title">⚠ --dangerously-skip-permissions</span>
+    <p>The <code>--dangerously-skip-permissions</code> flag for Claude Code skips confirmation prompts, allowing the agent to write files, run commands, and make changes automatically. Only use this if you understand the implications — review the agent's work via the git diff in your worktree before merging.</p>
+  </div>
+
+  <h3>supacode.json — per-project agent instructions</h3>
+  <p>Place a <code>supacode.json</code> at the root of your repository to store Supacode configuration in version control, shareable with your team:</p>
+<pre>{
+  <span class="str">"runScript"</span>: <span class="str">"pnpm dev"</span>,
+  <span class="str">"setupScript"</span>: <span class="str">"pnpm install &amp;&amp; claude --dangerously-skip-permissions"</span>,
+  <span class="str">"archiveScript"</span>: <span class="str">"docker compose down"</span>
+}</pre>
+
+  <h3>Teaching agents about Supacode via AGENTS.md</h3>
+  <p>Add instructions to your repository's <code>AGENTS.md</code> (or <code>CLAUDE.md</code>, <code>.cursorrules</code>) so agents understand how to use Supacode's own CLI and manage worktrees:</p>
+<pre><span class="cm"># Example AGENTS.md additions</span>
+
+Before starting your task, check the current git branch name.
+If it's something generic (like a random animal name), rename it
+to something descriptive. Do not rename the main branch.
+
+Use the Supacode CLI to create new worktrees for large sub-tasks
+rather than doing everything in one worktree.
+
+When finished, run: git add -A &amp;&amp; git commit -m "feat: ..."
+then push your branch and the PR will appear in Supacode's sidebar.</pre>
+</div>
+
+<!-- ══════════════════════════════════════
+     S11 — PARALLEL WORKFLOWS
+══════════════════════════════════════ -->
+<div class="section" id="s11">
+  <h2 class="section-title"><span class="snum">11</span> Parallel Agent Workflows</h2>
+
+  <p>Supacode's core value proposition is running many agents simultaneously. Here's how to structure parallel work effectively:</p>
+
+  <h3>The isolation guarantee</h3>
+  <p>Each worktree is a completely independent git checkout on its own branch. Agent A working in <code>feature-auth</code> can never touch files in <code>feature-payments</code> — they are separate directories. Git tracks changes independently. There is no locking, no conflicts between concurrent agents.</p>
+
+  <h3>A practical parallel workflow</h3>
+<pre><span class="cm"># Worktree 1: Agent handles the API layer</span>
+<span class="prompt">⌘N</span> → branch: <span class="str">feat/api-v2-endpoints</span>
+→ Agent: "Implement the new /users/v2 endpoints from spec.md"
+
+<span class="cm"># Worktree 2: Agent writes tests</span>
+<span class="prompt">⌘N</span> → branch: <span class="str">feat/api-v2-tests</span>
+→ Agent: "Write comprehensive tests for the v2 API surface"
+
+<span class="cm"># Worktree 3: Agent updates documentation</span>
+<span class="prompt">⌘N</span> → branch: <span class="str">docs/api-v2-reference</span>
+→ Agent: "Update the API reference docs to reflect the v2 changes"
+
+<span class="cm"># You review all three in parallel in the sidebar
+# Merge the ones that look good, archive the rest</span></pre>
+
+  <h3>Navigating between parallel agents</h3>
+  <table class="tbl">
+    <thead><tr><th>Action</th><th>Shortcut</th></tr></thead>
+    <tbody>
+      <tr><td>Jump to worktree by number</td><td><kbd>⌃ 1</kbd> … <kbd>⌃ 0</kbd> (supports up to 10 at once)</td></tr>
+      <tr><td>Next worktree</td><td><kbd>⌃ ⌘ ↓</kbd></td></tr>
+      <tr><td>Previous worktree</td><td><kbd>⌃ ⌘ ↑</kbd></td></tr>
+      <tr><td>Refresh all worktrees</td><td><kbd>⌘ ⇧ R</kbd></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note note-adv">
+    <span class="note-title">⚡ 50+ agents</span>
+    <p>Supacode claims support for 50+ simultaneous agents. In practice the limit is your machine's RAM and the API rate limits of whichever agent service you're using. The GPU-accelerated terminal ensures the UI remains responsive regardless of how many active terminal sessions are open and producing output.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S12 — KEYBOARD SHORTCUTS
+══════════════════════════════════════ -->
+<div class="section" id="s12">
+  <h2 class="section-title"><span class="snum">12</span> Keyboard Shortcuts</h2>
+
+  <p>Supacode defines a lean set of app-level shortcuts. Terminal shortcuts come from your Ghostty configuration.</p>
+
+  <h3>Application shortcuts</h3>
+  <table class="tbl">
+    <thead><tr><th>Action</th><th>Shortcut</th></tr></thead>
+    <tbody>
+      <tr class="cat"><td colspan="2">Navigation</td></tr>
+      <tr><td>Command Palette</td><td><kbd>⌘ P</kbd></td></tr>
+      <tr><td>Open Settings</td><td><kbd>⌘ ,</kbd></td></tr>
+      <tr><td>Toggle Left Sidebar</td><td><kbd>⌘ [</kbd></td></tr>
+
+      <tr class="cat"><td colspan="2">Worktrees</td></tr>
+      <tr><td>New Worktree</td><td><kbd>⌘ N</kbd></td></tr>
+      <tr><td>Open Worktree in Editor</td><td><kbd>⌘ O</kbd></td></tr>
+      <tr><td>Open (Add) Repository</td><td><kbd>⌘ ⇧ O</kbd></td></tr>
+      <tr><td>Refresh Worktrees</td><td><kbd>⌘ ⇧ R</kbd></td></tr>
+      <tr><td>Select Worktree 1–10</td><td><kbd>⌃ 1</kbd> through <kbd>⌃ 0</kbd></td></tr>
+      <tr><td>Select Next Worktree</td><td><kbd>⌃ ⌘ ↓</kbd></td></tr>
+      <tr><td>Select Previous Worktree</td><td><kbd>⌃ ⌘ ↑</kbd></td></tr>
+      <tr><td>View Archived Worktrees</td><td><kbd>⌃ ⌘ A</kbd></td></tr>
+
+      <tr class="cat"><td colspan="2">Scripts</td></tr>
+      <tr><td>Run Script</td><td><kbd>⌘ R</kbd></td></tr>
+      <tr><td>Stop Script</td><td><kbd>⌘ .</kbd></td></tr>
+
+      <tr class="cat"><td colspan="2">GitHub</td></tr>
+      <tr><td>Open Pull Request on GitHub</td><td><kbd>⌃ ⌘ G</kbd></td></tr>
+
+      <tr class="cat"><td colspan="2">App</td></tr>
+      <tr><td>Check for Updates</td><td><kbd>⌘ U</kbd></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Terminal search shortcuts</h3>
+  <table class="tbl">
+    <thead><tr><th>Action</th><th>Shortcut</th></tr></thead>
+    <tbody>
+      <tr><td>Find in terminal output</td><td><kbd>⌘ F</kbd></td></tr>
+      <tr><td>Find Next</td><td><kbd>⌘ G</kbd></td></tr>
+      <tr><td>Find Previous</td><td><kbd>⇧ ⌘ G</kbd></td></tr>
+      <tr><td>Hide Find Bar</td><td><kbd>⇧ ⌘ F</kbd></td></tr>
+      <tr><td>Use Selection for Find</td><td><kbd>⌘ E</kbd></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note note-info">
+    <span class="note-title">ℹ Terminal keybindings</span>
+    <p>Shortcuts for terminal actions — new tab, close tab, close surface, creating and navigating splits — are managed by <strong>Ghostty</strong>, not Supacode. Change them in <code>~/.config/ghostty/config</code>. Supacode reads those settings and reflects them in menus and tooltips automatically.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S13 — COMMAND PALETTE
+══════════════════════════════════════ -->
+<div class="section" id="s13">
+  <h2 class="section-title"><span class="snum">13</span> Command Palette</h2>
+
+  <p>Press <kbd>⌘ P</kbd> to open the Command Palette — a fuzzy-search interface that gives you keyboard access to every action and worktree in Supacode. It's the fastest way to switch context or trigger any action without reaching for the mouse.</p>
+
+  <h3>What the Command Palette surfaces</h3>
+  <ul>
+    <li>Jump directly to any worktree across all repositories</li>
+    <li>Run any repository command (run script, setup script)</li>
+    <li>Open a worktree in your editor</li>
+    <li>Access repository settings</li>
+    <li>Create a new worktree</li>
+    <li>Archive or delete a worktree</li>
+    <li>GitHub PR actions for the current worktree</li>
+  </ul>
+
+  <div class="note note-tip">
+    <span class="note-title">✦ Make it your primary navigation method</span>
+    <p>Once you have more than 3–4 worktrees active, the Command Palette is faster than clicking in the sidebar. Type a few letters of a branch name or project name to jump directly to it. Combine with <kbd>⌃ 1</kbd>–<kbd>⌃ 0</kbd> for the most-used worktrees.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S14 — REPOSITORY COMMANDS
+══════════════════════════════════════ -->
+<div class="section" id="s14">
+  <h2 class="section-title"><span class="snum">14</span> Repository Commands</h2>
+
+  <p>Repository Commands is where you define the three repeatable command slots that Supacode reuses across a project's lifetime:</p>
+
+  <div class="two-col">
+    <div>
+      <h3>Run Script <span class="tag tag-g">⌘R</span></h3>
+      <p>The one command you run over and over in a repository. Supacode launches it in a dedicated <code>RUN SCRIPT</code> tab. If a run-script tab is already active, Supacode closes it before starting a new one.</p>
+<pre><span class="cm"># Good examples:</span>
+pnpm dev
+pnpm test --watch
+bin/rails server
+cargo test
+./gradlew run</pre>
+    </div>
+    <div>
+      <h3>Archive Script <span class="tag tag-a">on archive</span></h3>
+      <p>Runs before a worktree is archived. Use it to shut down infrastructure that shouldn't persist. If the archive script fails, the archive does not proceed.</p>
+<pre><span class="cm"># Good examples:</span>
+docker compose down
+pkill -f "rails server"
+kill $(cat .server.pid)</pre>
+    </div>
+  </div>
+
+  <h3>Setup Script <span class="tag tag-b">on create</span></h3>
+  <p>Runs once after a new worktree is created. This is the key integration point for agents — put your agent launch command here and every new worktree will boot straight into an agent session.</p>
+<pre><span class="cm"># Start Claude Code immediately</span>
+claude --dangerously-skip-permissions
+
+<span class="cm"># Install deps then start Codex</span>
+pnpm install &amp;&amp; codex
+
+<span class="cm"># Generate local artifacts before agent starts</span>
+pnpm prisma generate &amp;&amp; pnpm run seed:dev &amp;&amp; claude</pre>
+
+  <h3>Where these settings are stored</h3>
+  <p>If your repository contains <code>supacode.json</code> at its root, Supacode reads and writes values there — allowing the team to share the configuration via version control. Otherwise, values are stored in <code>~/.supacode/settings.json</code> under the <code>repositories</code> map.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     S15 — GITHUB INTEGRATION
+══════════════════════════════════════ -->
+<div class="section" id="s15">
+  <h2 class="section-title"><span class="snum">15</span> GitHub CLI Integration</h2>
+
+  <p>Supacode connects to GitHub via the official GitHub CLI (<code>gh</code>). Once enabled, it adds a layer of GitHub awareness to every worktree — PR status, CI results, and merge actions all appear in the sidebar and toolbar.</p>
+
+  <h3>Setup</h3>
+<pre><span class="cm"># 1. Install the GitHub CLI if you haven't already</span>
+<span class="prompt">$</span> brew install gh
+
+<span class="cm"># 2. Authenticate</span>
+<span class="prompt">$</span> gh auth login
+
+<span class="cm"># 3. Verify authentication</span>
+<span class="prompt">$</span> gh auth status
+
+<span class="cm"># 4. Enable in Supacode Settings → GitHub → GitHub CLI Integration</span></pre>
+
+  <h3>What GitHub integration provides</h3>
+  <table class="tbl">
+    <thead><tr><th>Feature</th><th>Details</th></tr></thead>
+    <tbody>
+      <tr><td>PR state</td><td>Open / draft / closed state shown in the sidebar alongside the worktree</td></tr>
+      <tr><td>Draft indicator</td><td>Draft vs ready-for-review shown; toggle directly from Supacode</td></tr>
+      <tr><td>CI status summary</td><td>Pass / fail / pending summary for the branch's checks</td></tr>
+      <tr><td>Failing check details</td><td>Which specific jobs failed, with links and log access</td></tr>
+      <tr><td>Workflow run state</td><td>Current branch's workflow run progress shown in toolbar</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════
+     S16 — PR & CI WORKFLOWS
+══════════════════════════════════════ -->
+<div class="section" id="s16">
+  <h2 class="section-title"><span class="snum">16</span> PR &amp; CI Workflows</h2>
+
+  <p>With GitHub integration enabled, Supacode attaches pull request data to any worktree whose branch maps to an open PR. The result is a full PR review experience without opening a browser.</p>
+
+  <h3>PR actions available in Supacode</h3>
+  <ul>
+    <li>Open the PR on GitHub (<kbd>⌃ ⌘ G</kbd>)</li>
+    <li>Mark a draft PR ready for review</li>
+    <li>Merge the PR (using the configured merge strategy)</li>
+    <li>Close the PR</li>
+    <li>Open failing check details</li>
+    <li>Copy the failing job URL</li>
+    <li>Copy failing CI logs to clipboard</li>
+    <li>Re-run failed CI jobs</li>
+  </ul>
+
+  <h3>Merge strategies</h3>
+  <p>Set your preferred merge strategy per repository in <strong>Repository Settings</strong>:</p>
+  <ul>
+    <li><strong>Merge</strong> — creates a merge commit</li>
+    <li><strong>Squash</strong> — squashes all commits into one</li>
+    <li><strong>Rebase</strong> — rebases commits onto the base branch</li>
+  </ul>
+
+  <h3>Auto-archive after merge</h3>
+  <p>Enable <strong>Automatically archive merged worktrees</strong> in Repository Settings. When a PR is merged, Supacode runs the archive script (if configured) and moves the worktree out of the active list automatically — keeping your sidebar clean without manual housekeeping.</p>
+
+  <h3>A complete agent-to-PR workflow</h3>
+
+  <div class="flow">
+    <div class="flow-step"><span class="fs-label">Create</span><span class="fs-val">⌘N</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="fs-label">Agent runs</span><span class="fs-val">auto setup</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="fs-label">Review diff</span><span class="fs-val">lazygit</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="fs-label">Push + PR</span><span class="fs-val">gh pr create</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="fs-label">CI passes</span><span class="fs-val">toolbar</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="fs-label">Merge</span><span class="fs-val">in-app</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="fs-label">Auto-archive</span><span class="fs-val">clean up</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S17 — NOTIFICATIONS
+══════════════════════════════════════ -->
+<div class="section" id="s17">
+  <h2 class="section-title"><span class="snum">17</span> Notifications</h2>
+
+  <p>Running many agents in parallel creates an attention management problem — how do you know which worktree needs your review without constantly checking every terminal? Supacode's notification system solves this.</p>
+
+  <h3>How notifications work</h3>
+  <p>Notifications are generated from terminal activity and attached to the specific worktree surface that produced them. For supported harnesses (Claude Code, Codex, Pi), the agent itself can signal when it's finished or needs input.</p>
+
+  <h3>Where notifications appear</h3>
+  <ul>
+    <li><strong>Sidebar:</strong> An unread indicator on the worktree row so you see at a glance which sessions need attention</li>
+    <li><strong>Toolbar:</strong> An aggregated notifications popover showing all pending notifications across all worktrees</li>
+    <li><strong>macOS system notifications:</strong> Toast notifications so you can be notified even when Supacode is not the focused window</li>
+  </ul>
+
+  <h3>Notification navigation</h3>
+  <p>Selecting a notification in the popover jumps you back to the exact terminal surface (tab and pane) that produced it — not just the worktree, but the precise split.</p>
+
+  <div class="note note-tip">
+    <span class="note-title">✦ Active sessions in the sidebar</span>
+    <p>Worktrees with active, pinned, or notified sessions float to the top of the sidebar and are marked with the supported-harness logo. This means the worktrees that need your attention are always visible without scrolling.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S18 — SETTINGS & STORAGE
+══════════════════════════════════════ -->
+<div class="section" id="s18">
+  <h2 class="section-title"><span class="snum">18</span> Settings &amp; Storage</h2>
+
+  <h3>Where Supacode stores data</h3>
+  <div class="file-tree">
+    <span class="ft-dir">~/.supacode/</span><br>
+    &nbsp;&nbsp;<span class="ft-file">settings.json</span>        <span class="ft-note">← global settings (editors, GitHub, update channel)</span><br>
+    &nbsp;&nbsp;<span class="ft-dir">repos/</span>                <span class="ft-note">← managed worktree directories</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-dir">&lt;repo-name&gt;/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-dir">&lt;branch-name&gt;/</span>  <span class="ft-note">← individual worktree checkout</span><br>
+    <br>
+    <span class="ft-dir">~/&lt;your-repo&gt;/</span><br>
+    &nbsp;&nbsp;<span class="ft-green">supacode.json</span>         <span class="ft-note">← optional per-repo config (version-controlled)</span>
+  </div>
+
+  <h3>Global settings (settings.json)</h3>
+  <table class="tbl">
+    <thead><tr><th>Setting</th><th>What it controls</th></tr></thead>
+    <tbody>
+      <tr><td>Default editor</td><td>Which app opens when you press <kbd>⌘ O</kbd> (VS Code, Cursor, Xcode, etc.)</td></tr>
+      <tr><td>GitHub integration</td><td>Enable/disable the GitHub CLI connection</td></tr>
+      <tr><td>Update channel</td><td>Stable or tip (latest commits) build channel</td></tr>
+      <tr><td>Appearance mode</td><td>Light / dark / system — controls Supacode's UI chrome</td></tr>
+      <tr><td>Repositories map</td><td>Per-repo scripts and settings (if no supacode.json in the repo)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>supacode.json (per-repository)</h3>
+  <p>Place this file at the root of your repository to store per-project configuration in version control, making it shareable with your team:</p>
+<pre>{
+  <span class="str">"runScript"</span>:     <span class="str">"pnpm dev"</span>,
+  <span class="str">"setupScript"</span>:   <span class="str">"pnpm install &amp;&amp; claude --dangerously-skip-permissions"</span>,
+  <span class="str">"archiveScript"</span>: <span class="str">"docker compose down"</span>
+}</pre>
+
+  <p>When <code>supacode.json</code> exists in a repository, Supacode reads and writes settings there instead of to <code>~/.supacode/settings.json</code>.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     S19 — TERMINAL THEMING
+══════════════════════════════════════ -->
+<div class="section" id="s19">
+  <h2 class="section-title"><span class="snum">19</span> Terminal Theming</h2>
+
+  <p>Supacode's UI chrome (sidebar, toolbar, backgrounds) respects macOS appearance — Light, Dark, or System. The <strong>terminal itself</strong> is themed via your Ghostty configuration file.</p>
+
+  <h3>Ghostty config location</h3>
+<pre><span class="path">~/.config/ghostty/config</span></pre>
+
+  <h3>Key terminal appearance settings</h3>
+<pre><span class="cm"># ~/.config/ghostty/config — affects Supacode's terminal</span>
+
+<span class="cm"># Font</span>
+font-family = "JetBrains Mono"
+font-size = 14
+
+<span class="cm"># Color scheme (pick a built-in or define custom)</span>
+theme = "Catppuccin Mocha"
+<span class="cm"># or: theme = "Dracula"</span>
+<span class="cm"># or: theme = "Tokyo Night"</span>
+<span class="cm"># or: theme = "Gruvbox Dark"</span>
+
+<span class="cm"># Light/dark adaptive theme</span>
+theme = light:rose-pine-dawn,dark:catppuccin-mocha
+
+<span class="cm"># Transparency (0 = opaque, 1 = fully transparent)</span>
+background-opacity = 0.92
+
+<span class="cm"># Padding inside the terminal</span>
+window-padding-x = 12
+window-padding-y = 8
+
+<span class="cm"># Cursor style: block, bar, underline</span>
+cursor-style = bar
+
+<span class="cm"># Bold text rendering</span>
+bold-is-bright = true</pre>
+
+  <h3>Custom color palettes</h3>
+<pre><span class="cm"># Define a fully custom color scheme in Ghostty config</span>
+palette = 0=#1e1e2e   <span class="cm"># black (background)</span>
+palette = 1=#f38ba8   <span class="cm"># red</span>
+palette = 2=#a6e3a1   <span class="cm"># green</span>
+palette = 3=#f9e2af   <span class="cm"># yellow</span>
+palette = 4=#89b4fa   <span class="cm"># blue</span>
+palette = 5=#cba6f7   <span class="cm"># magenta</span>
+palette = 6=#89dceb   <span class="cm"># cyan</span>
+palette = 7=#cdd6f4   <span class="cm"># white</span>
+background = 1e1e2e
+foreground = cdd6f4</pre>
+
+  <div class="note note-tip">
+    <span class="note-title">✦ Shared config across apps</span>
+    <p>Because all libGhostty apps share the same config file, any font or theme change you make in <code>~/.config/ghostty/config</code> applies to Supacode, Ghostty terminal, and any other libGhostty app you use — without any per-app configuration.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S20 — supacode.json
+══════════════════════════════════════ -->
+<div class="section" id="s20">
+  <h2 class="section-title"><span class="snum">20</span> supacode.json Reference</h2>
+
+  <p>A <code>supacode.json</code> file at the root of your repository is the cleanest way to configure Supacode per-project and share settings with your team via version control.</p>
+
+<pre><span class="cm">// supacode.json — place at repository root</span>
+{
+  <span class="cm">// The command run when pressing ⌘R</span>
+  <span class="str">"runScript"</span>: <span class="str">"pnpm dev"</span>,
+
+  <span class="cm">// Runs once in a new worktree's terminal after creation</span>
+  <span class="str">"setupScript"</span>: <span class="str">"pnpm install &amp;&amp; claude --dangerously-skip-permissions"</span>,
+
+  <span class="cm">// Runs before a worktree is archived</span>
+  <span class="str">"archiveScript"</span>: <span class="str">"docker compose down"</span>
+}</pre>
+
+  <h3>Integration with CLAUDE.md / AGENTS.md</h3>
+  <p>Pair <code>supacode.json</code> with an instructions file for your agent. The Supacode documentation recommends a section in <code>AGENTS.md</code> (or <code>CLAUDE.md</code> for Claude Code) that teaches the agent how to use Supacode:</p>
+<pre><span class="cm"># AGENTS.md — agent instructions for this repo</span>
+
+## Supacode Conventions
+
+- Check the current branch name before starting. If it's generic
+  (animal name, random string), rename it to reflect the task.
+  Do NOT rename `main`.
+
+- When creating a PR, use a clear conventional commit title.
+  Format: `feat: &lt;description&gt;` or `fix: &lt;description&gt;`
+
+- After completing changes: `git add -A &amp;&amp; git commit -m "&lt;msg&gt;"`
+  then `git push -u origin HEAD`
+
+- If the task is too large, split it into sub-tasks. Use the
+  Supacode CLI to create additional worktrees for parallel work.</pre>
+</div>
+
+<!-- ══════════════════════════════════════
+     S21 — TIPS
+══════════════════════════════════════ -->
+<div class="section" id="s21">
+  <h2 class="section-title"><span class="snum">21</span> Tips &amp; Best Practices</h2>
+
+  <h3>Name your worktrees meaningfully</h3>
+  <p>Auto-generated branch names are fast but hard to navigate when 10 worktrees are active. Use one of these approaches:</p>
+  <ul>
+    <li>Enable <strong>prompted worktree creation</strong> in Repository Settings so you name the branch up front.</li>
+    <li>Click the branch name in the toolbar to rename it after creation.</li>
+    <li>Add instructions to your <code>AGENTS.md</code> to have the agent rename the branch before starting work.</li>
+  </ul>
+
+<pre><span class="cm"># Add to AGENTS.md to make agents rename generic branches:</span>
+Before you start your task, check the current git branch name.
+If it is something generic like an animal name, rename the branch
+to match your task. Example: git branch -m feat/add-user-auth
+Do not rename main, develop, or staging.</pre>
+
+  <h3>Archive aggressively, delete deliberately</h3>
+  <p>If you're not 100% sure a branch's work is fully done or fully merged, <strong>archive it</strong>. Archiving is reversible — it just removes the worktree from the active list. Deletion removes the directory from disk and cannot be undone without the git branch still existing.</p>
+
+  <h3>Use the run script for repeated commands</h3>
+  <p>Every time you type the same command in multiple worktrees, that's a signal to put it in the Repository Commands run script. <kbd>⌘ R</kbd> is faster than your shell history across worktrees.</p>
+
+  <h3>Keep setup scripts idempotent</h3>
+  <p>Your setup script will run in fresh worktrees. Make sure it works cleanly from a blank slate: install dependencies before starting the agent, handle missing <code>.env</code> files gracefully, and don't assume anything from a previous session.</p>
+
+  <h3>Use lazygit inside worktrees</h3>
+  <p>Open a second tab in any worktree and run <code>lazygit</code> for a visual git interface. This lets you review your agent's changes, stage selective hunks, and manage commits without leaving Supacode.</p>
+
+  <h3>Pin your most-used worktrees</h3>
+  <p>Pinned sessions float to the top of the sidebar. Use pinning for long-running worktrees (the main dev server, a long-running agent task) to keep them accessible via <kbd>⌃ 1</kbd>/<kbd>⌃ 2</kbd>.</p>
+
+  <h3>Use Ghostty's native keybindings</h3>
+  <p>Since Supacode uses Ghostty under the hood, any Ghostty power-user features work: custom keybindings, quick terminal actions, and vim-mode navigation if configured. Customize in <code>~/.config/ghostty/config</code>.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     S22 — ARCHIVE VS DELETE
+══════════════════════════════════════ -->
+<div class="section" id="s22">
+  <h2 class="section-title"><span class="snum">22</span> Archive vs Delete</h2>
+
+  <p>This is the most important operational distinction in Supacode. Understanding it prevents accidental data loss.</p>
+
+  <table class="tbl">
+    <thead><tr><th></th><th>Archive</th><th>Delete</th></tr></thead>
+    <tbody>
+      <tr><td><strong>What happens</strong></td><td>Worktree is hidden from the active list</td><td>Worktree directory is removed from disk</td></tr>
+      <tr><td><strong>Worktree directory</strong></td><td>Kept on disk, untouched</td><td>Permanently deleted</td></tr>
+      <tr><td><strong>Git branch</strong></td><td>Kept; still exists locally</td><td>Optionally deleted (configurable)</td></tr>
+      <tr><td><strong>Archive script</strong></td><td>Runs (if configured); stops archive if it fails</td><td>Does not run</td></tr>
+      <tr><td><strong>Reversible?</strong></td><td>Yes — restore from archived list at any time</td><td>No — data is gone (unless pushed to remote)</td></tr>
+      <tr><td><strong>View archived</strong></td><td><kbd>⌃ ⌘ A</kbd></td><td>—</td></tr>
+      <tr><td><strong>When to use</strong></td><td>Work is done or paused; may return later</td><td>Work is fully merged; no need to ever revisit</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note note-warn">
+    <span class="note-title">⚠ Always archive first</span>
+    <p>When in doubt, archive. You can always delete an archived worktree later. You cannot un-delete a deleted one unless you have a remote backup of the branch. The archive keyboard shortcut is right-click → Archive in the sidebar; deletion also requires confirmation.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S23 — FAQ
+══════════════════════════════════════ -->
+<div class="section" id="s23">
+  <h2 class="section-title"><span class="snum">23</span> Frequently Asked Questions</h2>
+
+  <h3>Does Supacode work on macOS 15 or earlier?</h3>
+  <p>No. Supacode requires macOS 26.0 (Tahoe) or newer. The requirement is strict — the app uses SwiftUI APIs and system frameworks that only exist in macOS 26+. There is no workaround.</p>
+
+  <h3>Do I need GitHub CLI to use Supacode?</h3>
+  <p>No. The GitHub CLI (<code>gh</code>) is only required for PR and CI features. Repository management, worktree creation, the built-in terminal, and agent integration all work without <code>gh</code>.</p>
+
+  <h3>Can I use any AI coding agent?</h3>
+  <p>Yes — any agent that runs in a terminal shell works. Claude Code, Codex, OpenCode, Aider, or custom scripts all work fine. The four natively-supported harnesses (Claude Code, Codex, OpenCode, Pi) get additional notification and CLI integration features.</p>
+
+  <h3>How do I theme the terminal?</h3>
+  <p>Edit <code>~/.config/ghostty/config</code>. Supacode uses GhosttyKit for terminal rendering and inherits all of Ghostty's theming system. Changes take effect the next time a terminal opens.</p>
+
+  <h3>Where are my worktrees stored?</h3>
+  <p>Managed worktrees live under <code>~/.supacode/repos/&lt;repository-name&gt;/</code>. You can change the location per-repository in Repository Settings.</p>
+
+  <h3>Can I use bare repositories?</h3>
+  <p>Yes. Supacode supports bare repositories — they show with a git-branch icon instead of a folder icon. Note that the copy-ignored and copy-untracked worktree creation options are disabled for bare repos.</p>
+
+  <h3>What is the difference between archive and delete?</h3>
+  <p>Archive hides the worktree from the active list but keeps it on disk and keeps the branch. Delete removes the worktree directory from disk. When uncertain, always archive first.</p>
+
+  <h3>How do I get meaningful branch names?</h3>
+  <p>Three options: (1) enable prompted worktree creation, (2) click the branch name in the toolbar to rename it, or (3) add instructions in <code>AGENTS.md</code> to have your agent rename branches before starting work.</p>
+
+  <h3>Can I run Supacode alongside Ghostty?</h3>
+  <p>Yes. Both use GhosttyKit and share <code>~/.config/ghostty/config</code> for theming, so your font and color settings are consistent between them. They're separate apps and can run simultaneously.</p>
+
+  <h3>Is Supacode free?</h3>
+  <p>Yes — Supacode is free and open source. There is no paid tier. The source code is at <code>github.com/supabitapp/supacode</code>. It uses a custom license (not a standard SPDX open-source license), so review the LICENSE file before using in commercial contexts.</p>
+
+  <h3>How do I report a bug or request a feature?</h3>
+  <p>Open an issue at <strong>github.com/supabitapp/supacode/issues</strong>. The maintainer prefers detailed written issues over unreviewed pull requests.</p>
+
+  <h3>How do sessions persist when I quit Supacode?</h3>
+  <p>Supacode bundles a ZMX multiplexer. When you quit the app, any running processes (agents, dev servers, etc.) keep running in background ZMX sessions. When you relaunch, Supacode reattaches to those sessions and restores your tabs, splits, and scroll state as if you never quit.</p>
+
+  <div class="note note-info">
+    <span class="note-title">ℹ Official resources</span>
+    <p><strong>Website:</strong> supacode.sh &nbsp;·&nbsp; <strong>Docs:</strong> docs.supacode.sh &nbsp;·&nbsp; <strong>GitHub:</strong> github.com/supabitapp/supacode &nbsp;·&nbsp; <strong>Issues:</strong> github.com/supabitapp/supacode/issues</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+</main>
+
+<a href="#top" class="back-top" aria-label="Back to top">↑</a>
+
+<script>
+const links = document.querySelectorAll('#sidebar nav a[href^="#"]');
+const sects = document.querySelectorAll('.section[id]');
+
+links.forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (en.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar nav a[href="#' + en.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sects.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

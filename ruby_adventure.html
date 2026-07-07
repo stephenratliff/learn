@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruby Adventure — Interactive Learning Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,900;1,300;1,600&family=JetBrains+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   ROOT VARIABLES
+═══════════════════════════════════════════════════════════════════ */
+:root {
+  --bg:         #0d0f14;
+  --bg2:        #13161e;
+  --bg3:        #1a1d28;
+  --panel:      #1e2130;
+  --border:     #2a2e40;
+  --border2:    #343850;
+  --ruby:       #e8314a;
+  --ruby-glow:  #ff4d66;
+  --ruby-dark:  #9b1a2e;
+  --ruby-dim:   #3d1520;
+  --gold:       #f0b429;
+  --gold-dim:   #3a2d0a;
+  --green:      #3ecf8e;
+  --green-dim:  #0a2d1e;
+  --blue:       #61afef;
+  --blue-dim:   #0d2035;
+  --purple:     #c678dd;
+  --orange:     #e5986a;
+  --teal:       #56b6c2;
+  --text:       #c8cfe8;
+  --text-dim:   #7a8099;
+  --text-faint: #3d4260;
+  --white:      #eef0fa;
+  --sidebar-w:  280px;
+  --header-h:   64px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ruby-dark); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOP HEADER
+═══════════════════════════════════════════════════════════════════ */
+.top-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--header-h);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+}
+
+.header-gem {
+  font-size: 22px;
+  filter: drop-shadow(0 0 8px var(--ruby));
+  animation: pulse-gem 3s ease-in-out infinite;
+}
+@keyframes pulse-gem {
+  0%,100% { filter: drop-shadow(0 0 6px var(--ruby)); }
+  50%      { filter: drop-shadow(0 0 18px var(--ruby-glow)); }
+}
+
+.header-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--white);
+  letter-spacing: -0.5px;
+}
+.header-title span { color: var(--ruby); }
+
+.header-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: 4px;
+  letter-spacing: 1px;
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.header-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--ruby-dim);
+  color: var(--ruby);
+  border: 1px solid var(--ruby-dark);
+}
+
+.progress-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+.progress-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.progress-bar-outer {
+  width: 120px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ruby), var(--gold));
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════════════════════ */
+.layout {
+  display: flex;
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════════════ */
+.sidebar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  width: var(--sidebar-w);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 20px 0 40px;
+  z-index: 50;
+}
+
+.sidebar-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 12px 20px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 400;
+}
+.nav-item:hover {
+  background: var(--bg3);
+  color: var(--white);
+  border-left-color: var(--border2);
+}
+.nav-item.active {
+  background: var(--ruby-dim);
+  color: var(--ruby-glow);
+  border-left-color: var(--ruby);
+}
+.nav-item .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  min-width: 20px;
+}
+.nav-item.active .num { color: var(--ruby-dark); }
+.nav-item .icon { font-size: 14px; min-width: 18px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════════════════════════ */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  max-width: calc(100% - var(--sidebar-w));
+  padding: 0;
+}
+
+/* ── HERO ── */
+.hero {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 60px 64px 52px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(232,49,74,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '💎';
+  position: absolute;
+  right: 60px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 140px;
+  opacity: 0.05;
+  pointer-events: none;
+}
+.hero-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--ruby);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: clamp(42px, 5vw, 72px);
+  color: var(--white);
+  line-height: 1;
+  letter-spacing: -2px;
+  margin-bottom: 6px;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--ruby);
+}
+.hero-desc {
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 520px;
+  margin: 16px 0 24px;
+  line-height: 1.65;
+}
+.hero-stats {
+  display: flex; gap: 28px; flex-wrap: wrap;
+}
+.stat-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  color: var(--text-dim);
+}
+.stat-pill.highlight {
+  background: var(--ruby-dim);
+  border-color: var(--ruby-dark);
+  color: var(--ruby-glow);
+}
+
+/* ── SECTION WRAPPERS ── */
+.section {
+  padding: 48px 64px;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: calc(var(--header-h) + 20px);
+}
+.section:last-child { border-bottom: none; }
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--ruby);
+  background: var(--ruby-dim);
+  border: 1px solid var(--ruby-dark);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+.section-title-wrap h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.section-title-wrap .tagline {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+}
+
+/* ── PROSE ── */
+.prose {
+  font-size: 14.5px;
+  color: var(--text);
+  line-height: 1.75;
+  margin-bottom: 20px;
+  max-width: 720px;
+}
+.prose strong { color: var(--gold); font-weight: 500; }
+.prose code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  background: var(--bg3);
+  color: var(--orange);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* ── CONCEPT PILLS ── */
+.concept-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 24px;
+}
+.concept-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  color: var(--text-dim);
+  background: var(--bg3);
+}
+
+/* ── CODE BLOCK ── */
+.code-wrap {
+  position: relative;
+  margin: 20px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+.code-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.dot { width: 11px; height: 11px; border-radius: 50%; }
+.dot-r { background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.code-filename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: 4px;
+  flex: 1;
+}
+.copy-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--bg3);
+  color: var(--text-dim);
+  border: 1px solid var(--border2);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.copy-btn:hover { background: var(--border2); color: var(--white); }
+.copy-btn.copied { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+
+pre.ruby-code {
+  background: var(--bg);
+  padding: 24px 28px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  tab-size: 2;
+  counter-reset: line;
+}
+
+/* ── SYNTAX COLORS ── */
+.kw   { color: #e06c75; font-weight: 500; }   /* keywords */
+.kw2  { color: #c678dd; }                      /* def/class/module/end */
+.str  { color: #98c379; }                      /* strings */
+.str2 { color: #98c379; opacity: 0.8; }        /* heredoc */
+.num  { color: #d19a66; }                      /* numbers */
+.cmt  { color: #5c6370; font-style: italic; }  /* comments */
+.cls  { color: #61afef; font-weight: 500; }    /* class names */
+.sym  { color: #e5c07b; }                      /* symbols */
+.met  { color: #61dafb; }                      /* method calls */
+.ivar { color: #c678dd; }                      /* @instance vars */
+.cvar { color: #e06c75; }                      /* @@class vars */
+.const{ color: #61afef; font-weight:500; }     /* CONSTANTS */
+.op   { color: #abb2bf; }                      /* operators */
+.paren{ color: #56b6c2; }                      /* brackets */
+.here { color: #98c379; opacity:0.9; }         /* heredoc text */
+.self { color: #e06c75; font-style: italic; }  /* self */
+.intp { color: #e5c07b; }                      /* #{} interpolation marker */
+
+/* ── CALLOUT BOXES ── */
+.callout {
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  border: 1px solid;
+  font-size: 13.5px;
+  line-height: 1.65;
+  max-width: 780px;
+}
+.callout .cb-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.callout code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.callout.tip   { background: var(--green-dim); border-color: #1d5c3e; }
+.callout.tip   .cb-title { color: var(--green); }
+.callout.tip   code { background: rgba(62,207,142,0.1); color: var(--green); }
+.callout.warn  { background: var(--gold-dim); border-color: #5a4210; }
+.callout.warn  .cb-title { color: var(--gold); }
+.callout.warn  code { background: rgba(240,180,41,0.1); color: var(--gold); }
+.callout.info  { background: var(--blue-dim); border-color: #163150; }
+.callout.info  .cb-title { color: var(--blue); }
+.callout.info  code { background: rgba(97,175,239,0.1); color: var(--blue); }
+.callout.ruby  { background: var(--ruby-dim); border-color: var(--ruby-dark); }
+.callout.ruby  .cb-title { color: var(--ruby-glow); }
+.callout.ruby  code { background: rgba(232,49,74,0.12); color: var(--ruby-glow); }
+
+/* ── COMPARE TABLE ── */
+.compare-table {
+  width: 100%; border-collapse: collapse;
+  margin: 20px 0; font-size: 13px;
+  max-width: 780px;
+}
+.compare-table th {
+  background: var(--panel);
+  color: var(--gold);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 10px 16px; text-align: left;
+  border-bottom: 2px solid var(--ruby-dark);
+}
+.compare-table td {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+}
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table td code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--bg3); color: var(--orange);
+}
+
+/* ── TWO-COLUMN ── */
+.two-col {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin: 16px 0; max-width: 900px;
+}
+@media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── OUTPUT BLOCK ── */
+.output-wrap {
+  margin: 16px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.output-label {
+  background: var(--bg3);
+  padding: 7px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--green);
+  border-bottom: 1px solid var(--border);
+}
+pre.output {
+  background: #050608;
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #a8ff78;
+  overflow-x: auto;
+}
+
+/* ── SECTION DIVIDER ── */
+.section-rule {
+  display: flex; align-items: center; gap: 16px;
+  margin: 0 64px;
+  padding: 0;
+}
+.section-rule hr {
+  flex: 1; border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 40px 64px;
+  margin-left: 0;
+}
+.footer-inner {
+  max-width: 680px;
+}
+.footer-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px; font-weight: 600;
+  color: var(--white); margin-bottom: 12px;
+}
+.footer-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-top: 20px;
+}
+.footer-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg3);
+}
+.footer-item span { color: var(--ruby); margin-right: 6px; }
+
+/* ── MOBILE TOGGLE ── */
+.sidebar-toggle {
+  display: none;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+@media (max-width: 900px) {
+  .sidebar-toggle { display: block; }
+  .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; max-width: 100%; }
+  .section, .hero { padding: 32px 24px; }
+  footer { padding: 32px 24px; }
+}
+
+/* ── FADE-IN ANIMATION ── */
+.section {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.hero { opacity: 1; transform: none; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════ TOP HEADER ═══════════════════════════════════════════ -->
+<header class="top-header">
+  <span class="header-gem">💎</span>
+  <span class="header-title">Ruby <em style="font-style:normal;font-family:'Fraunces',serif;font-weight:300;color:var(--text-dim)">Adventure</em><span style="color:var(--ruby)">.</span></span>
+  <span class="header-subtitle">// Interactive Learning Guide</span>
+  <div class="header-right">
+    <div class="progress-wrap">
+      <span class="progress-label">PROGRESS</span>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+    </div>
+    <span class="header-badge">Ruby 3.3+</span>
+    <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+  </div>
+</header>
+
+<!-- ═══════ LAYOUT ═══════════════════════════════════════════════ -->
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════════════════ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-section-label">Foundations</div>
+    <a class="nav-item" href="#s1"><span class="num">01</span><span class="icon">🔤</span>Variables &amp; Types</a>
+    <a class="nav-item" href="#s2"><span class="num">02</span><span class="icon">📝</span>Strings</a>
+    <a class="nav-item" href="#s3"><span class="num">03</span><span class="icon">🔢</span>Numbers &amp; Math</a>
+    <a class="nav-item" href="#s4"><span class="num">04</span><span class="icon">🏷</span>Symbols</a>
+    <div class="sidebar-section-label">Collections</div>
+    <a class="nav-item" href="#s5"><span class="num">05</span><span class="icon">📦</span>Arrays</a>
+    <a class="nav-item" href="#s6"><span class="num">06</span><span class="icon">🗂</span>Hashes</a>
+    <a class="nav-item" href="#s7"><span class="num">07</span><span class="icon">🔀</span>Ranges</a>
+    <div class="sidebar-section-label">Logic &amp; Flow</div>
+    <a class="nav-item" href="#s8"><span class="num">08</span><span class="icon">🔀</span>Control Flow</a>
+    <a class="nav-item" href="#s9"><span class="num">09</span><span class="icon">🔁</span>Loops &amp; Iteration</a>
+    <div class="sidebar-section-label">Functions</div>
+    <a class="nav-item" href="#s10"><span class="num">10</span><span class="icon">⚙️</span>Methods</a>
+    <a class="nav-item" href="#s11"><span class="num">11</span><span class="icon">📦</span>Blocks, Procs &amp; Lambdas</a>
+    <div class="sidebar-section-label">Object-Oriented</div>
+    <a class="nav-item" href="#s12"><span class="num">12</span><span class="icon">🏗</span>Classes &amp; OOP</a>
+    <a class="nav-item" href="#s13"><span class="num">13</span><span class="icon">🧬</span>Inheritance</a>
+    <a class="nav-item" href="#s14"><span class="num">14</span><span class="icon">🧩</span>Modules &amp; Mixins</a>
+    <a class="nav-item" href="#s15"><span class="num">15</span><span class="icon">⚖️</span>Comparable</a>
+    <div class="sidebar-section-label">Advanced</div>
+    <a class="nav-item" href="#s16"><span class="num">16</span><span class="icon">🚨</span>Exception Handling</a>
+    <a class="nav-item" href="#s17"><span class="num">17</span><span class="icon">💾</span>File I/O</a>
+    <a class="nav-item" href="#s18"><span class="num">18</span><span class="icon">🎮</span>Mini RPG Project</a>
+  </nav>
+
+  <!-- ══ MAIN ═════════════════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-tag">// A Complete Beginner's Program</div>
+      <h1>Ruby <em>Adventure</em></h1>
+      <p class="hero-desc">
+        A single, self-running Ruby program covering 18 core language concepts — from variables to a working Mini RPG.
+        Each section is annotated with explanations, tips, and expected output.
+      </p>
+      <div class="hero-stats">
+        <span class="stat-pill highlight">18 Sections</span>
+        <span class="stat-pill">~450 lines of Ruby</span>
+        <span class="stat-pill">Zero Dependencies</span>
+        <span class="stat-pill">Run: <code style="background:none;color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px;">ruby ruby_adventure.rb</code></span>
+      </div>
+    </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 1 — VARIABLES & DATA TYPES
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">§ 01</span>
+    <div class="section-title-wrap">
+      <h2>Variables &amp; Data Types</h2>
+      <span class="tagline">Everything in Ruby is an object — even nil.</span>
+    </div>
+  </div>
+
+  <div class="concept-list">
+    <span class="concept-pill">Integer</span><span class="concept-pill">Float</span>
+    <span class="concept-pill">String</span><span class="concept-pill">Boolean</span>
+    <span class="concept-pill">NilClass</span><span class="concept-pill">Symbol</span>
+    <span class="concept-pill">Dynamic Typing</span><span class="concept-pill">Truthiness</span>
+  </div>
+
+  <p class="prose">Ruby is <strong>dynamically typed</strong> — you never declare a type. Variables are created the moment you assign a value. Every value, including <code>nil</code> and <code>false</code>, is a full object with its own methods.</p>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 1</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="cmt"># Ruby is dynamically typed — no type declarations needed.</span>
+<span class="cmt"># Variables are created the moment you assign them.</span>
+
+integer_val   = <span class="num">42</span>
+float_val     = <span class="num">3.14159</span>
+string_val    = <span class="str">"Hello, Ruby!"</span>
+boolean_true  = <span class="kw">true</span>
+boolean_false = <span class="kw">false</span>
+nil_val       = <span class="kw">nil</span>            <span class="cmt"># nil is Ruby's "nothing" — it IS an object</span>
+symbol_val    = <span class="sym">:my_symbol</span>     <span class="cmt"># Symbols: immutable, memory-efficient identifiers</span>
+
+puts <span class="str">"Integer  : #{integer_val}  (class: #{integer_val.class})"</span>
+puts <span class="str">"Float    : #{float_val}  (class: #{float_val.class})"</span>
+puts <span class="str">"String   : #{string_val}  (class: #{string_val.class})"</span>
+puts <span class="str">"Boolean  : #{boolean_true} / #{boolean_false}"</span>
+puts <span class="str">"Nil      : #{nil_val.inspect}  (class: #{nil_val.class})"</span>
+puts <span class="str">"Symbol   : #{symbol_val}  (class: #{symbol_val.class})"</span>
+
+<span class="cmt"># ── IMPORTANT: Ruby's Truthiness Rule ──────────────────────────</span>
+<span class="cmt"># ONLY false and nil are falsy. 0, "", [] — all TRUTHY! (unlike Python/JS)</span>
+[<span class="num">0</span>, <span class="str">""</span>, <span class="paren">[]</span>, <span class="kw">false</span>, <span class="kw">nil</span>, <span class="str">"hello"</span>].<span class="met">each</span> <span class="kw">do</span> |val|
+  puts <span class="str">"  #{val.inspect.ljust(10)} is #{val ? 'TRUTHY' : 'FALSY'}"</span>
+<span class="kw">end</span></pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="cb-title">⚡ Coming from Python or JavaScript?</div>
+    <strong>0 and "" are TRUTHY in Ruby.</strong> This trips up almost every newcomer. Only <code>false</code> and <code>nil</code> are falsy. That means <code>if 0</code> will execute its body, unlike Python where it wouldn't.
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-label">▶ Expected Output</div>
+<pre class="output">Integer  : 42  (class: Integer)
+Float    : 3.14159  (class: Float)
+String   : Hello, Ruby!  (class: String)
+Boolean  : true / false
+Nil      : nil  (class: NilClass)
+Symbol   : my_symbol  (class: Symbol)
+  0          is TRUTHY
+  ""         is TRUTHY
+  []         is TRUTHY
+  false      is FALSY
+  nil        is FALSY
+  "hello"    is TRUTHY</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2 — STRINGS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">§ 02</span>
+    <div class="section-title-wrap">
+      <h2>Strings</h2>
+      <span class="tagline">Interpolation, heredocs, and a rich method library.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">Interpolation</span><span class="concept-pill">Single vs Double Quotes</span>
+    <span class="concept-pill">Heredoc</span><span class="concept-pill">strip/upcase/split</span>
+    <span class="concept-pill">gsub/include?</span><span class="concept-pill">printf formatting</span>
+  </div>
+
+  <p class="prose"><strong>Double-quoted strings</strong> support interpolation (<code>#{expr}</code>) and escape sequences (<code>\n</code>, <code>\t</code>). <strong>Single-quoted strings</strong> are completely literal — no interpolation, no escape processing. Use <code>&lt;&lt;~HEREDOC</code> for clean multi-line strings.</p>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 2</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code">name = <span class="str">"Ruby"</span>
+year = <span class="num">1995</span>
+
+<span class="cmt"># String interpolation: only works in double-quoted strings</span>
+puts <span class="str">"#{name} was created in #{year}."</span>           <span class="cmt"># interpolation ✓</span>
+puts <span class="str">'#{name} — single quotes are LITERAL'</span>        <span class="cmt"># no interpolation ✗</span>
+puts <span class="str">"Math inside interpolation: #{2 ** 10}"</span>        <span class="cmt"># => 1024</span>
+
+<span class="cmt"># Common string methods</span>
+sentence = <span class="str">"  the quick brown fox  "</span>
+puts sentence.<span class="met">strip</span>                   <span class="cmt"># remove whitespace</span>
+puts sentence.<span class="met">strip</span>.<span class="met">capitalize</span>         <span class="cmt"># first letter uppercase</span>
+puts sentence.<span class="met">strip</span>.<span class="met">upcase</span>             <span class="cmt"># ALL CAPS</span>
+puts sentence.<span class="met">strip</span>.<span class="met">split</span>(<span class="str">" "</span>).<span class="met">inspect</span>  <span class="cmt"># split into Array</span>
+puts <span class="str">"hello"</span>.<span class="met">center</span>(<span class="num">20</span>, <span class="str">"-"</span>)             <span class="cmt"># ------- hello -------</span>
+puts <span class="str">"ha"</span> * <span class="num">5</span>                            <span class="cmt"># hahahahaha</span>
+puts <span class="str">"hello world"</span>.<span class="met">gsub</span>(<span class="str">"o"</span>, <span class="str">"0"</span>)       <span class="cmt"># replace all</span>
+puts <span class="str">"hello world"</span>.<span class="met">include?</span>(<span class="str">"fox"</span>)      <span class="cmt"># => false</span>
+
+<span class="cmt"># Multiline string (heredoc) — the ~ strips leading whitespace</span>
+poem = <span class="str">&lt;&lt;~HEREDOC
+  Roses are red,
+  Violets are blue,
+  Ruby is awesome,
+  And so are you.
+HEREDOC</span>
+puts poem
+
+<span class="cmt"># String formatting</span>
+printf <span class="str">"%-15s %5d\n"</span>, <span class="str">"Count:"</span>, <span class="num">42</span>            <span class="cmt"># left-align, right-align</span>
+puts <span class="str">"Pi is approximately %.4f"</span> % Math::PI      <span class="cmt"># 4 decimal places</span></pre>
+  </div>
+
+  <div class="callout tip">
+    <div class="cb-title">✦ Key Methods Quick Reference</div>
+    <code>.strip</code> · <code>.chomp</code> · <code>.upcase</code> · <code>.downcase</code> · <code>.capitalize</code> · <code>.split(delim)</code> · <code>.join(glue)</code> · <code>.gsub(from, to)</code> · <code>.include?(str)</code> · <code>.start_with?</code> · <code>.end_with?</code> · <code>.chars</code> · <code>.length</code> · <code>.reverse</code> · <code>.to_i</code> · <code>.to_f</code>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3 — NUMBERS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num">§ 03</span>
+    <div class="section-title-wrap">
+      <h2>Numbers &amp; Math</h2>
+      <span class="tagline">Integer vs Float division is the #1 gotcha.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">Integer / Float</span><span class="concept-pill">Arithmetic Operators</span>
+    <span class="concept-pill">ceil/floor/round/abs</span><span class="concept-pill">rand</span><span class="concept-pill">Underscores</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 3</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code">puts <span class="num">10</span> / <span class="num">3</span>           <span class="cmt"># => 3   (INTEGER division — truncates!)</span>
+puts <span class="num">10.0</span> / <span class="num">3</span>         <span class="cmt"># => 3.333...  (Float division)</span>
+puts <span class="num">10</span> % <span class="num">3</span>           <span class="cmt"># => 1   (modulo / remainder)</span>
+puts <span class="num">2</span> ** <span class="num">8</span>           <span class="cmt"># => 256 (exponent — NOT ^ like other languages)</span>
+puts <span class="num">-7</span>.<span class="met">abs</span>            <span class="cmt"># => 7</span>
+puts <span class="num">3.7</span>.<span class="met">ceil</span>          <span class="cmt"># => 4   (round up)</span>
+puts <span class="num">3.7</span>.<span class="met">floor</span>         <span class="cmt"># => 3   (round down)</span>
+puts <span class="num">3.567</span>.<span class="met">round</span>(<span class="num">2</span>)   <span class="cmt"># => 3.57</span>
+
+<span class="cmt"># Underscores in large numbers (readability only)</span>
+puts <span class="num">1_000_000</span>         <span class="cmt"># => 1000000</span>
+puts <span class="num">255</span>.<span class="met">to_s</span>(<span class="num">16</span>)      <span class="cmt"># => "ff"  (to hex string)</span>
+puts <span class="num">0xFF</span>              <span class="cmt"># => 255   (hex literal)</span>
+puts <span class="num">42</span>.<span class="met">between?</span>(<span class="num">1</span>, <span class="num">100</span>) <span class="cmt"># => true</span>
+
+<span class="cmt"># Random numbers</span>
+puts rand(<span class="num">10</span>)          <span class="cmt"># random Integer 0..9</span>
+puts rand(<span class="num">1.0</span>..<span class="num">2.0</span>).<span class="met">round</span>(<span class="num">3</span>)  <span class="cmt"># random Float in range</span>
+puts [*<span class="num">1</span>..<span class="num">10</span>].<span class="met">sample</span>    <span class="cmt"># random element from range-array</span></pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="cb-title">⚠ Integer Division Trap</div>
+    <code>10 / 3</code> returns <code>3</code>, not <code>3.333</code>. To get float division, make at least one operand a Float: <code>10.0 / 3</code> or <code>10.to_f / 3</code>. This catches everyone at least once.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 4 — SYMBOLS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num">§ 04</span>
+    <div class="section-title-wrap">
+      <h2>Symbols</h2>
+      <span class="tagline">Immutable, interned identifiers — not strings.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">:symbol syntax</span><span class="concept-pill">Immutability</span>
+    <span class="concept-pill">object_id</span><span class="concept-pill">Hash keys</span><span class="concept-pill">State flags</span>
+  </div>
+
+  <p class="prose">A Symbol is written with a leading colon: <code>:name</code>. The same symbol always resolves to the <strong>exact same object</strong> in memory — unlike strings, which create a new object each time. This makes symbols perfect for hash keys, method names, and status flags.</p>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 4</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code">a = <span class="sym">:status</span>
+b = <span class="sym">:status</span>
+puts <span class="str">"Same object? #{a.object_id == b.object_id}"</span>  <span class="cmt"># => true ✓</span>
+
+<span class="cmt"># Strings with same content are DIFFERENT objects</span>
+puts <span class="str">"status"</span>.<span class="met">object_id</span> == <span class="str">"status"</span>.<span class="met">object_id</span>        <span class="cmt"># => false ✗</span>
+
+<span class="cmt"># Common uses: hash keys, method names, status flags</span>
+status = <span class="sym">:active</span>
+puts status           <span class="cmt"># active</span>
+puts status.<span class="met">to_s</span>      <span class="cmt"># "active"</span>
+puts <span class="str">"active"</span>.<span class="met">to_sym</span>  <span class="cmt"># :active</span>
+puts <span class="sym">:hello</span>.<span class="met">upcase</span>    <span class="cmt"># :HELLO</span>
+
+<span class="cmt"># Symbols as status flags in a hash</span>
+order = { id: <span class="num">1001</span>, status: <span class="sym">:pending</span>, priority: <span class="sym">:high</span> }
+<span class="kw">case</span> order[<span class="sym">:status</span>]
+<span class="kw">when</span> <span class="sym">:pending</span>   <span class="kw">then</span> puts <span class="str">"Order is pending"</span>
+<span class="kw">when</span> <span class="sym">:shipped</span>   <span class="kw">then</span> puts <span class="str">"Order shipped!"</span>
+<span class="kw">when</span> <span class="sym">:delivered</span> <span class="kw">then</span> puts <span class="str">"Delivered"</span>
+<span class="kw">end</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 5 — ARRAYS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">§ 05</span>
+    <div class="section-title-wrap">
+      <h2>Arrays</h2>
+      <span class="tagline">Ordered, flexible, mixed-type collections with a powerful API.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">push/pop/shift/unshift</span><span class="concept-pill">map/select/reject</span>
+    <span class="concept-pill">reduce/sum/min/max</span><span class="concept-pill">flatten/compact/uniq</span>
+    <span class="concept-pill">Negative indexing</span><span class="concept-pill">Set operations</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 5</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code">fruits = <span class="paren">[</span><span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>, <span class="str">"date"</span>, <span class="str">"elderberry"</span><span class="paren">]</span>
+
+<span class="cmt"># ── Accessing ───────────────────────────────────────────────────</span>
+puts fruits[<span class="num">0</span>]             <span class="cmt"># "apple"      (first element)</span>
+puts fruits[<span class="num">-1</span>]            <span class="cmt"># "elderberry" (last — negative index!)</span>
+puts fruits[<span class="num">1</span>, <span class="num">3</span>].<span class="met">inspect</span>  <span class="cmt"># start index=1, take 3 items</span>
+puts fruits[<span class="num">0</span>..<span class="num">2</span>].<span class="met">inspect</span>  <span class="cmt"># range slice</span>
+puts fruits.<span class="met">first</span>(<span class="num">2</span>).<span class="met">inspect</span>
+puts fruits.<span class="met">last</span>(<span class="num">2</span>).<span class="met">inspect</span>
+
+<span class="cmt"># ── Modifying ───────────────────────────────────────────────────</span>
+fruits.<span class="met">push</span>(<span class="str">"fig"</span>)       <span class="cmt"># add to end</span>
+fruits <span class="op">&lt;&lt;</span> <span class="str">"grape"</span>        <span class="cmt"># &lt;&lt; is the append "shovel" operator</span>
+fruits.<span class="met">unshift</span>(<span class="str">"avocado"</span>) <span class="cmt"># add to front</span>
+popped  = fruits.<span class="met">pop</span>     <span class="cmt"># remove & return last element</span>
+shifted = fruits.<span class="met">shift</span>   <span class="cmt"># remove & return first element</span>
+
+<span class="cmt"># ── Transformation (non-destructive — returns new array) ────────</span>
+nums = <span class="paren">[</span><span class="num">4</span>, <span class="num">8</span>, <span class="num">15</span>, <span class="num">16</span>, <span class="num">23</span>, <span class="num">42</span><span class="paren">]</span>
+puts nums.<span class="met">map</span>    { |n| n * <span class="num">2</span> }.<span class="met">inspect</span>          <span class="cmt"># transform each element</span>
+puts nums.<span class="met">select</span> { |n| n.<span class="met">even?</span> }.<span class="met">inspect</span>        <span class="cmt"># keep matching elements</span>
+puts nums.<span class="met">reject</span> { |n| n.<span class="met">even?</span> }.<span class="met">inspect</span>        <span class="cmt"># keep NON-matching</span>
+puts nums.<span class="met">sort_by</span> { |n| -n }.<span class="met">inspect</span>            <span class="cmt"># sort descending</span>
+
+<span class="cmt"># ── Aggregating ─────────────────────────────────────────────────</span>
+puts nums.<span class="met">sum</span>                                    <span class="cmt"># => 108</span>
+puts nums.<span class="met">reduce</span>(<span class="sym">:+</span>)                            <span class="cmt"># same — symbol shorthand</span>
+puts nums.<span class="met">reduce</span>(<span class="num">1</span>, <span class="sym">:*</span>)                         <span class="cmt"># product of all</span>
+puts nums.<span class="met">count</span> { |n| n.<span class="met">even?</span> }               <span class="cmt"># count matching a condition</span>
+puts nums.<span class="met">any?</span>  { |n| n > <span class="num">40</span> }               <span class="cmt"># => true</span>
+puts nums.<span class="met">all?</span>  { |n| n > <span class="num">0</span> }                <span class="cmt"># => true</span>
+puts nums.<span class="met">none?</span> { |n| n > <span class="num">100</span> }              <span class="cmt"># => true</span>
+
+<span class="cmt"># ── Flatten, Compact & Set Operations ───────────────────────────</span>
+puts <span class="paren">[</span><span class="num">1</span>, <span class="paren">[</span><span class="num">2</span>, <span class="num">3</span><span class="paren">]</span>, <span class="paren">[</span><span class="num">4</span>, <span class="paren">[</span><span class="num">5</span><span class="paren">]]</span><span class="paren">]</span>.<span class="met">flatten</span>.<span class="met">inspect</span>       <span class="cmt"># [1,2,3,4,5]</span>
+puts <span class="paren">[</span><span class="num">1</span>, <span class="kw">nil</span>, <span class="num">2</span>, <span class="kw">nil</span>, <span class="num">3</span><span class="paren">]</span>.<span class="met">compact</span>.<span class="met">inspect</span>         <span class="cmt"># remove nils</span>
+puts <span class="paren">(</span><span class="paren">[</span><span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span><span class="paren">]</span> &amp; <span class="paren">[</span><span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span><span class="paren">]</span><span class="paren">)</span>.<span class="met">inspect</span>                <span class="cmt"># intersection [2,3]</span>
+puts <span class="paren">(</span><span class="paren">[</span><span class="num">1</span>,<span class="num">2</span><span class="paren">]</span> | <span class="paren">[</span><span class="num">2</span>,<span class="num">3</span><span class="paren">]</span><span class="paren">)</span>.<span class="met">inspect</span>                    <span class="cmt"># union     [1,2,3]</span>
+puts <span class="paren">(</span><span class="paren">[</span><span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span><span class="paren">]</span> - <span class="paren">[</span><span class="num">2</span><span class="paren">]</span><span class="paren">)</span>.<span class="met">inspect</span>                    <span class="cmt"># difference [1,3]</span></pre>
+  </div>
+
+  <div class="callout info">
+    <div class="cb-title">ℹ Bang Methods (!) — In-place vs Copy</div>
+    Methods without <code>!</code> return a <em>new</em> array: <code>nums.sort</code> leaves <code>nums</code> unchanged. Methods with <code>!</code> mutate the original: <code>nums.sort!</code> modifies <code>nums</code> directly. Same rule applies to <code>map!</code>, <code>select!</code>, <code>reverse!</code>, etc.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 6 — HASHES
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <span class="section-num">§ 06</span>
+    <div class="section-title-wrap">
+      <h2>Hashes</h2>
+      <span class="tagline">Key-value maps — the workhorse of Ruby data structures.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">Symbol keys</span><span class="concept-pill">Hash rocket =></span>
+    <span class="concept-pill">fetch with default</span><span class="concept-pill">merge</span>
+    <span class="concept-pill">transform_values</span><span class="concept-pill">select on Hash</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 6</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="cmt"># Modern style uses symbol keys (key: value) ───────────────────</span>
+person = <span class="paren">{</span>
+  <span class="sym">name:</span> <span class="str">"Alice"</span>,
+  <span class="sym">age:</span>  <span class="num">30</span>,
+  <span class="sym">city:</span> <span class="str">"Atlanta"</span>,
+  <span class="sym">hobbies:</span> <span class="paren">[</span><span class="str">"reading"</span>, <span class="str">"hiking"</span>, <span class="str">"ruby"</span><span class="paren">]</span>
+<span class="paren">}</span>
+
+<span class="cmt"># Old "hash rocket" style: any type can be a key</span>
+old_style = <span class="paren">{</span> <span class="str">"name"</span> => <span class="str">"Alice"</span>, <span class="num">42</span> => <span class="str">"the answer"</span> <span class="paren">}</span>
+
+<span class="cmt"># ── Accessing ───────────────────────────────────────────────────</span>
+puts person[<span class="sym">:name</span>]                      <span class="cmt"># => "Alice"</span>
+puts person[<span class="sym">:missing</span>].<span class="met">inspect</span>           <span class="cmt"># => nil  (no error!)</span>
+puts person.<span class="met">fetch</span>(<span class="sym">:age</span>)                 <span class="cmt"># => 30</span>
+puts person.<span class="met">fetch</span>(<span class="sym">:missing</span>, <span class="str">"N/A"</span>)     <span class="cmt"># => "N/A"  (safe default)</span>
+
+<span class="cmt"># ── Modifying ───────────────────────────────────────────────────</span>
+person[<span class="sym">:email</span>] = <span class="str">"alice@example.com"</span>   <span class="cmt"># add or update</span>
+person.<span class="met">delete</span>(<span class="sym">:city</span>)                   <span class="cmt"># remove a key</span>
+
+<span class="cmt"># ── Iterating ───────────────────────────────────────────────────</span>
+person.<span class="met">each</span> { |key, val| puts <span class="str">"  #{key}: #{val}"</span> }
+
+<span class="cmt"># ── Useful methods ──────────────────────────────────────────────</span>
+puts person.<span class="met">keys</span>.<span class="met">inspect</span>
+puts person.<span class="met">values</span>.<span class="met">inspect</span>
+puts person.<span class="met">key?</span>(<span class="sym">:name</span>)
+puts person.<span class="met">value?</span>(<span class="num">31</span>)
+
+<span class="cmt"># ── Merge & Transform ───────────────────────────────────────────</span>
+defaults = <span class="paren">{</span> <span class="sym">role:</span> <span class="str">"user"</span>, <span class="sym">active:</span> <span class="kw">true</span>, <span class="sym">score:</span> <span class="num">0</span> <span class="paren">}</span>
+settings = <span class="paren">{</span> <span class="sym">score:</span> <span class="num">100</span>, <span class="sym">theme:</span> <span class="str">"dark"</span> <span class="paren">}</span>
+merged   = defaults.<span class="met">merge</span>(settings)     <span class="cmt"># second hash wins on conflicts</span>
+puts merged.<span class="met">inspect</span>
+
+scores = <span class="paren">{</span> <span class="sym">alice:</span> <span class="num">95</span>, <span class="sym">bob:</span> <span class="num">72</span>, <span class="sym">carol:</span> <span class="num">88</span>, <span class="sym">dave:</span> <span class="num">55</span> <span class="paren">}</span>
+passing = scores.<span class="met">select</span> { |_, score| score >= <span class="num">70</span> }
+puts passing.<span class="met">inspect</span>
+
+doubled = scores.<span class="met">transform_values</span> { |v| v * <span class="num">2</span> }
+puts doubled.<span class="met">inspect</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 7 — RANGES
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <span class="section-num">§ 07</span>
+    <div class="section-title-wrap">
+      <h2>Ranges</h2>
+      <span class="tagline">Inclusive (..) vs exclusive (...) — and they work on strings too.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">.. inclusive</span><span class="concept-pill">... exclusive</span>
+    <span class="concept-pill">step</span><span class="concept-pill">include?</span><span class="concept-pill">to_a</span><span class="concept-pill">case/when</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 7</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code">inclusive = (<span class="num">1</span>..<span class="num">10</span>)     <span class="cmt"># 1 to 10  (includes 10)</span>
+exclusive = (<span class="num">1</span>...<span class="num">10</span>)    <span class="cmt"># 1 to 9   (excludes 10)</span>
+letters   = (<span class="str">'a'</span>..<span class="str">'f'</span>)  <span class="cmt"># works on strings!</span>
+
+puts inclusive.<span class="met">to_a</span>.<span class="met">inspect</span>    <span class="cmt"># [1,2,3,4,5,6,7,8,9,10]</span>
+puts exclusive.<span class="met">to_a</span>.<span class="met">inspect</span>    <span class="cmt"># [1,2,3,4,5,6,7,8,9]</span>
+puts letters.<span class="met">to_a</span>.<span class="met">inspect</span>      <span class="cmt"># ["a","b","c","d","e","f"]</span>
+
+puts inclusive.<span class="met">include?</span>(<span class="num">10</span>)   <span class="cmt"># => true</span>
+puts exclusive.<span class="met">include?</span>(<span class="num">10</span>)   <span class="cmt"># => false</span>
+puts inclusive.<span class="met">sum</span>            <span class="cmt"># => 55</span>
+
+<span class="cmt"># step — iterate with custom increment</span>
+print <span class="str">"step by 5: "</span>
+(<span class="num">0</span>..<span class="num">20</span>).<span class="met">step</span>(<span class="num">5</span>) { |n| print <span class="str">"#{n} "</span> }
+puts
+
+<span class="cmt"># Ranges as case/when conditions (uses === internally)</span>
+[<span class="num">5</span>, <span class="num">13</span>, <span class="num">25</span>, <span class="num">67</span>].<span class="met">each</span> <span class="kw">do</span> |age|
+  category = <span class="kw">case</span> age
+    <span class="kw">when</span> <span class="num">0</span>..<span class="num">12</span>   <span class="kw">then</span> <span class="str">"Child"</span>
+    <span class="kw">when</span> <span class="num">13</span>..<span class="num">17</span>  <span class="kw">then</span> <span class="str">"Teenager"</span>
+    <span class="kw">when</span> <span class="num">18</span>..<span class="num">64</span>  <span class="kw">then</span> <span class="str">"Adult"</span>
+    <span class="kw">else</span>              <span class="str">"Senior"</span>
+  <span class="kw">end</span>
+  puts <span class="str">"  #{age} => #{category}"</span>
+<span class="kw">end</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 8 — CONTROL FLOW
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <span class="section-num">§ 08</span>
+    <div class="section-title-wrap">
+      <h2>Control Flow</h2>
+      <span class="tagline">if, unless, ternary, case/when — Ruby's logic tools.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">if/elsif/else</span><span class="concept-pill">unless</span>
+    <span class="concept-pill">Postfix if/unless</span><span class="concept-pill">Ternary ?:</span>
+    <span class="concept-pill">case/when</span><span class="concept-pill">Range in case</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 8</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code">temperature = <span class="num">72</span>
+
+<span class="cmt"># Standard if/elsif/else</span>
+<span class="kw">if</span> temperature > <span class="num">90</span>
+  puts <span class="str">"Hot day!"</span>
+<span class="kw">elsif</span> temperature > <span class="num">70</span>
+  puts <span class="str">"Nice day — #{temperature}°F"</span>
+<span class="kw">else</span>
+  puts <span class="str">"Cool day"</span>
+<span class="kw">end</span>
+
+<span class="cmt"># unless = "if not" — reads naturally</span>
+<span class="kw">unless</span> temperature < <span class="num">60</span>
+  puts <span class="str">"No jacket needed"</span>
+<span class="kw">end</span>
+
+<span class="cmt"># Postfix (one-liner) — very idiomatic Ruby!</span>
+puts <span class="str">"Perfect temperature!"</span> <span class="kw">if</span>     temperature.<span class="met">between?</span>(<span class="num">68</span>, <span class="num">76</span>)
+puts <span class="str">"Bring a coat!"</span>        <span class="kw">unless</span> temperature > <span class="num">60</span>
+
+<span class="cmt"># Ternary operator</span>
+label = temperature > <span class="num">80</span> ? <span class="str">"Warm"</span> : <span class="str">"Comfortable"</span>
+puts <span class="str">"It's: #{label}"</span>
+
+<span class="cmt"># case/when — uses === internally so ranges, regex, classes all work</span>
+grade_score = <span class="num">87</span>
+grade = <span class="kw">case</span> grade_score
+  <span class="kw">when</span> <span class="num">90</span>..<span class="num">100</span> <span class="kw">then</span> <span class="str">"A"</span>
+  <span class="kw">when</span> <span class="num">80</span>..<span class="num">89</span>  <span class="kw">then</span> <span class="str">"B"</span>
+  <span class="kw">when</span> <span class="num">70</span>..<span class="num">79</span>  <span class="kw">then</span> <span class="str">"C"</span>
+  <span class="kw">when</span> <span class="num">60</span>..<span class="num">69</span>  <span class="kw">then</span> <span class="str">"D"</span>
+  <span class="kw">else</span>              <span class="str">"F"</span>
+<span class="kw">end</span>
+puts <span class="str">"Score #{grade_score} => Grade #{grade}"</span>
+
+<span class="cmt"># case with no argument acts as if/elsif chain</span>
+x = <span class="num">42</span>
+<span class="kw">case</span>
+<span class="kw">when</span> x < <span class="num">0</span>   <span class="kw">then</span> puts <span class="str">"Negative"</span>
+<span class="kw">when</span> x == <span class="num">0</span>  <span class="kw">then</span> puts <span class="str">"Zero"</span>
+<span class="kw">when</span> x < <span class="num">100</span> <span class="kw">then</span> puts <span class="str">"#{x} is a smallish positive number"</span>
+<span class="kw">else</span>              puts <span class="str">"Large"</span>
+<span class="kw">end</span></pre>
+  </div>
+
+  <div class="callout tip">
+    <div class="cb-title">✦ Postfix Style — The Ruby Way</div>
+    <code>return if condition</code> and <code>raise unless valid</code> are deeply idiomatic Ruby. They read like English and make guard clauses at the top of methods incredibly clean. Embrace them early.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 9 — LOOPS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s9">
+  <div class="section-header">
+    <span class="section-num">§ 09</span>
+    <div class="section-title-wrap">
+      <h2>Loops &amp; Iteration</h2>
+      <span class="tagline">Ruby prefers .each and iterators over traditional for loops.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">times/upto/downto</span><span class="concept-pill">while/until</span>
+    <span class="concept-pill">loop do</span><span class="concept-pill">each</span><span class="concept-pill">each_with_index</span>
+    <span class="concept-pill">next/break/redo</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 9</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="cmt"># times — simplest counted loop (block variable is 0-based)</span>
+<span class="num">5</span>.<span class="met">times</span> { |i| print <span class="str">"#{i} "</span> }   <span class="cmt"># 0 1 2 3 4</span>
+
+<span class="cmt"># upto / downto</span>
+<span class="num">1</span>.<span class="met">upto</span>(<span class="num">5</span>)   { |i| print <span class="str">"#{i} "</span> }  <span class="cmt"># 1 2 3 4 5</span>
+<span class="num">5</span>.<span class="met">downto</span>(<span class="num">1</span>) { |i| print <span class="str">"#{i} "</span> }  <span class="cmt"># 5 4 3 2 1</span>
+
+<span class="cmt"># step</span>
+(<span class="num">0</span>..<span class="num">20</span>).<span class="met">step</span>(<span class="num">5</span>) { |n| print <span class="str">"#{n} "</span> }  <span class="cmt"># 0 5 10 15 20</span>
+
+<span class="cmt"># while</span>
+i = <span class="num">1</span>
+<span class="kw">while</span> i <= <span class="num">5</span>
+  print <span class="str">"#{i} "</span>
+  i += <span class="num">1</span>
+<span class="kw">end</span>
+
+<span class="cmt"># until = "while not"</span>
+i = <span class="num">5</span>
+<span class="kw">until</span> i == <span class="num">0</span>
+  print <span class="str">"#{i} "</span>
+  i -= <span class="num">1</span>
+<span class="kw">end</span>
+
+<span class="cmt"># loop — explicit infinite loop with break</span>
+count = <span class="num">0</span>
+<span class="kw">loop</span> <span class="kw">do</span>
+  print <span class="str">"#{count} "</span>
+  count += <span class="num">1</span>
+  <span class="kw">break</span> <span class="kw">if</span> count >= <span class="num">5</span>
+<span class="kw">end</span>
+
+<span class="cmt"># each — most common Ruby loop</span>
+[<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>].<span class="met">each</span> { |n| print <span class="str">"#{n} "</span> }
+
+<span class="cmt"># each_with_index — when you need the index</span>
+[<span class="str">"alpha"</span>, <span class="str">"beta"</span>, <span class="str">"gamma"</span>].<span class="met">each_with_index</span> <span class="kw">do</span> |word, idx|
+  puts <span class="str">"  [#{idx}] #{word}"</span>
+<span class="kw">end</span>
+
+<span class="cmt"># next (like continue) and break</span>
+(<span class="num">1</span>..<span class="num">10</span>).<span class="met">each</span> <span class="kw">do</span> |n|
+  <span class="kw">next</span>  <span class="kw">if</span> n.<span class="met">even?</span>   <span class="cmt"># skip even numbers</span>
+  <span class="kw">break</span> <span class="kw">if</span> n > <span class="num">7</span>    <span class="cmt"># stop when n exceeds 7</span>
+  print <span class="str">"#{n} "</span>
+<span class="kw">end</span>
+<span class="cmt"># prints: 1 3 5 7</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 10 — METHODS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s10">
+  <div class="section-header">
+    <span class="section-num">§ 10</span>
+    <div class="section-title-wrap">
+      <h2>Methods</h2>
+      <span class="tagline">Implicit return, keyword arguments, splat — Ruby methods are flexible.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">def/end</span><span class="concept-pill">Implicit return</span>
+    <span class="concept-pill">Default args</span><span class="concept-pill">Keyword args</span>
+    <span class="concept-pill">*splat</span><span class="concept-pill">**double splat</span>
+    <span class="concept-pill">? and ! naming</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 10</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="cmt"># Last expression is automatically returned — no return keyword needed</span>
+<span class="kw2">def</span> <span class="met">square</span>(n)
+  n ** <span class="num">2</span>
+<span class="kw2">end</span>
+puts square(<span class="num">7</span>)  <span class="cmt"># => 49</span>
+
+<span class="cmt"># Default parameters</span>
+<span class="kw2">def</span> <span class="met">greet</span>(name, greeting = <span class="str">"Hello"</span>, punctuation = <span class="str">"!"</span>)
+  <span class="str">"#{greeting}, #{name}#{punctuation}"</span>
+<span class="kw2">end</span>
+puts greet(<span class="str">"Alice"</span>)             <span class="cmt"># => "Hello, Alice!"</span>
+puts greet(<span class="str">"Bob"</span>, <span class="str">"Hi"</span>)        <span class="cmt"># => "Hi, Bob!"</span>
+
+<span class="cmt"># Keyword arguments (named, order-independent, self-documenting)</span>
+<span class="kw2">def</span> <span class="met">create_profile</span>(name:, age:, city: <span class="str">"Unknown"</span>, active: <span class="kw">true</span>)
+  <span class="str">"#{name}, #{age}, #{city} [active: #{active}]"</span>
+<span class="kw2">end</span>
+puts create_profile(name: <span class="str">"Dave"</span>, age: <span class="num">28</span>, city: <span class="str">"Denver"</span>)
+puts create_profile(age: <span class="num">22</span>, name: <span class="str">"Eve"</span>)   <span class="cmt"># order doesn't matter!</span>
+
+<span class="cmt"># Splat *args — captures extra positional args as an Array</span>
+<span class="kw2">def</span> <span class="met">sum_all</span>(*numbers)
+  numbers.<span class="met">reduce</span>(<span class="num">0</span>, <span class="sym">:+</span>)
+<span class="kw2">end</span>
+puts sum_all(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>)   <span class="cmt"># => 15</span>
+
+<span class="cmt"># Double splat **kwargs — captures extra keyword args as a Hash</span>
+<span class="kw2">def</span> <span class="met">log_event</span>(event, **metadata)
+  puts <span class="str">"EVENT: #{event}"</span>
+  metadata.<span class="met">each</span> { |k, v| puts <span class="str">"  #{k}: #{v}"</span> }
+<span class="kw2">end</span>
+log_event(<span class="str">"login"</span>, user: <span class="str">"alice"</span>, ip: <span class="str">"127.0.0.1"</span>, success: <span class="kw">true</span>)
+
+<span class="cmt"># ? suffix — predicate methods (returns boolean by convention)</span>
+<span class="kw2">def</span> <span class="met">palindrome?</span>(str)
+  str == str.<span class="met">reverse</span>
+<span class="kw2">end</span>
+puts palindrome?(<span class="str">"racecar"</span>)  <span class="cmt"># => true</span>
+
+<span class="cmt"># Multiple return values via Array (destructure on the caller's side)</span>
+<span class="kw2">def</span> <span class="met">min_max</span>(arr)
+  [arr.<span class="met">min</span>, arr.<span class="met">max</span>]
+<span class="kw2">end</span>
+low, high = min_max([<span class="num">4</span>, <span class="num">1</span>, <span class="num">9</span>, <span class="num">2</span>, <span class="num">7</span>])
+puts <span class="str">"min=#{low}, max=#{high}"</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 11 — BLOCKS, PROCS, LAMBDAS
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s11">
+  <div class="section-header">
+    <span class="section-num">§ 11</span>
+    <div class="section-title-wrap">
+      <h2>Blocks, Procs &amp; Lambdas</h2>
+      <span class="tagline">Ruby's most distinctive feature — code you pass around like data.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">{ } block</span><span class="concept-pill">do..end block</span>
+    <span class="concept-pill">yield</span><span class="concept-pill">block_given?</span>
+    <span class="concept-pill">Proc.new</span><span class="concept-pill">-> lambda</span>
+    <span class="concept-pill">&:symbol shorthand</span><span class="concept-pill">Chaining</span>
+  </div>
+
+  <p class="prose">A <strong>block</strong> is an anonymous chunk of code attached to a method call. <strong>Procs</strong> are saved blocks. <strong>Lambdas</strong> are stricter procs (check argument count, have their own return scope). The <code>&:method_name</code> trick converts a symbol to a proc — one of Ruby's most-used idioms.</p>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 11</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="cmt"># yield — calls the block passed to a method</span>
+<span class="kw2">def</span> <span class="met">measure</span>(label)
+  start  = Time.<span class="met">now</span>
+  result = <span class="kw">yield</span>              <span class="cmt"># executes the caller's block</span>
+  elapsed = Time.<span class="met">now</span> - start
+  puts <span class="str">"#{label}: #{result.inspect} (#{elapsed.round(6)}s)"</span>
+<span class="kw2">end</span>
+measure(<span class="str">"square of 1000"</span>) { <span class="num">1000</span> ** <span class="num">2</span> }
+
+<span class="cmt"># block_given? — check if a block was passed</span>
+<span class="kw2">def</span> <span class="met">optional_block</span>(x)
+  block_given? ? <span class="kw">yield</span>(x) : x * <span class="num">2</span>
+<span class="kw2">end</span>
+puts optional_block(<span class="num">5</span>)                      <span class="cmt"># => 10</span>
+puts optional_block(<span class="num">5</span>) { |n| n + <span class="num">100</span> }     <span class="cmt"># => 105</span>
+
+<span class="cmt"># Proc — a saved, reusable block</span>
+double = <span class="cls">Proc</span>.<span class="met">new</span> { |n| n * <span class="num">2</span> }
+triple = proc { |n| n * <span class="num">3</span> }
+puts double.<span class="met">call</span>(<span class="num">7</span>)   <span class="cmt"># => 14</span>
+puts triple.(<span class="num">4</span>)       <span class="cmt"># .() is shorthand for .call()</span>
+puts double[<span class="num">9</span>]        <span class="cmt"># [] also calls a Proc</span>
+
+<span class="cmt"># Lambda — stricter Proc (checks arg count, return stays in lambda)</span>
+square_it = <span class="kw">lambda</span> { |n| n ** <span class="num">2</span> }
+add_one   = ->(n) { n + <span class="num">1</span> }    <span class="cmt"># stabby lambda syntax (preferred)</span>
+puts square_it.<span class="met">call</span>(<span class="num">6</span>)          <span class="cmt"># => 36</span>
+puts add_one.(<span class="num">9</span>)                 <span class="cmt"># => 10</span>
+
+<span class="cmt"># &:symbol — converts a symbol to a block (very idiomatic!)</span>
+words = [<span class="str">"hello"</span>, <span class="str">"WORLD"</span>, <span class="str">"Ruby"</span>]
+puts words.<span class="met">map</span>(<span class="op">&</span><span class="sym">:downcase</span>).<span class="met">inspect</span>   <span class="cmt"># same as .map { |w| w.downcase }</span>
+puts words.<span class="met">map</span>(<span class="op">&</span><span class="sym">:length</span>).<span class="met">inspect</span>    <span class="cmt"># [5, 5, 4]</span>
+
+<span class="cmt"># Method chaining — a functional pipeline</span>
+result = (<span class="num">1</span>..<span class="num">20</span>)
+  .<span class="met">select</span>(<span class="op">&</span><span class="sym">:odd?</span>)          <span class="cmt"># keep odd numbers</span>
+  .<span class="met">map</span> { |n| n ** <span class="num">2</span> }     <span class="cmt"># square them</span>
+  .<span class="met">reject</span> { |n| n > <span class="num">100</span> } <span class="cmt"># drop those over 100</span>
+  .<span class="met">reduce</span>(<span class="sym">:+</span>)             <span class="cmt"># sum</span>
+puts <span class="str">"Pipeline result: #{result}"</span>  <span class="cmt"># => 1+9+25+49+81 = 165</span></pre>
+  </div>
+
+  <div class="callout ruby">
+    <div class="cb-title">💎 Most Idiomatic Ruby Pattern</div>
+    <code>[&quot;a&quot;,&quot;b&quot;].map(&amp;:upcase)</code> is equivalent to <code>[&quot;a&quot;,&quot;b&quot;].map { |s| s.upcase }</code>.
+    The <code>&amp;</code> converts <code>:upcase</code> into a block. This works with any method name as a symbol, and is used constantly throughout Ruby codebases.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 12 — CLASSES
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s12">
+  <div class="section-header">
+    <span class="section-num">§ 12</span>
+    <div class="section-title-wrap">
+      <h2>Classes &amp; OOP</h2>
+      <span class="tagline">attr_accessor, initialize, class methods, to_s — all the essentials.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">class/end</span><span class="concept-pill">initialize</span>
+    <span class="concept-pill">@instance vars</span><span class="concept-pill">@@class vars</span>
+    <span class="concept-pill">attr_accessor/reader/writer</span>
+    <span class="concept-pill">self.class_method</span><span class="concept-pill">to_s</span>
+    <span class="concept-pill">CONSTANTS</span><span class="concept-pill">private</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 12</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="kw2">class</span> <span class="cls">BankAccount</span>
+  <span class="const">INTEREST_RATE</span> = <span class="num">0.035</span>   <span class="cmt"># Constant — never changes</span>
+
+  <span class="cmt"># attr_accessor :x  creates  def x; @x; end  AND  def x=(v); @x=v; end</span>
+  <span class="cmt"># attr_reader   :x  creates getter only (read-only from outside)</span>
+  attr_reader   <span class="sym">:owner</span>, <span class="sym">:account_number</span>
+  attr_accessor <span class="sym">:balance</span>
+
+  <span class="cvar">@@total_accounts</span> = <span class="num">0</span>   <span class="cmt"># Class variable — shared across ALL instances</span>
+
+  <span class="kw2">def</span> <span class="met">initialize</span>(owner, initial_balance = <span class="num">0</span>)
+    <span class="ivar">@owner</span>          = owner
+    <span class="ivar">@balance</span>        = initial_balance.<span class="met">to_f</span>
+    <span class="cvar">@@total_accounts</span> += <span class="num">1</span>
+    <span class="ivar">@account_number</span>  = <span class="str">"ACC-%04d"</span> % <span class="cvar">@@total_accounts</span>
+    <span class="ivar">@transactions</span>   = []
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">deposit</span>(amount)
+    <span class="kw">raise</span> <span class="cls">ArgumentError</span>, <span class="str">"Deposit must be positive"</span> <span class="kw">unless</span> amount > <span class="num">0</span>
+    <span class="ivar">@balance</span> += amount
+    <span class="ivar">@transactions</span> << <span class="paren">{</span> <span class="sym">type:</span> <span class="sym">:deposit</span>, <span class="sym">amount:</span> amount <span class="paren">}</span>
+    puts <span class="str">"  Deposited $#{"%.2f" % amount} → Balance: $#{"%.2f" % @balance}"</span>
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">withdraw</span>(amount)
+    <span class="kw">raise</span> <span class="cls">ArgumentError</span>, <span class="str">"Must be positive"</span> <span class="kw">unless</span> amount > <span class="num">0</span>
+    <span class="kw">raise</span> <span class="str">"Insufficient funds"</span> <span class="kw">if</span> amount > <span class="ivar">@balance</span>
+    <span class="ivar">@balance</span> -= amount
+    <span class="ivar">@transactions</span> << <span class="paren">{</span> <span class="sym">type:</span> <span class="sym">:withdrawal</span>, <span class="sym">amount:</span> amount <span class="paren">}</span>
+    puts <span class="str">"  Withdrew  $#{"%.2f" % amount} → Balance: $#{"%.2f" % @balance}"</span>
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">apply_interest</span>
+    deposit(<span class="ivar">@balance</span> * <span class="const">INTEREST_RATE</span>)
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">overdrawn?</span> = <span class="ivar">@balance</span> < <span class="num">0</span>   <span class="cmt"># one-line method (Ruby 3+)</span>
+
+  <span class="kw2">def</span> <span class="kw">self</span>.<span class="met">total_accounts</span>            <span class="cmt"># Class method — called on BankAccount</span>
+    <span class="cvar">@@total_accounts</span>
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">to_s</span>                           <span class="cmt"># called when object is printed</span>
+    <span class="str">"#{@account_number} [#{@owner}] $#{"%.2f" % @balance}"</span>
+  <span class="kw2">end</span>
+<span class="kw2">end</span>
+
+alice_acc = <span class="cls">BankAccount</span>.<span class="met">new</span>(<span class="str">"Alice"</span>, <span class="num">1000</span>)
+puts alice_acc
+alice_acc.<span class="met">deposit</span>(<span class="num">250</span>)
+alice_acc.<span class="met">withdraw</span>(<span class="num">150</span>)
+alice_acc.<span class="met">apply_interest</span>
+puts <span class="str">"Total accounts: #{BankAccount.total_accounts}"</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 13 — INHERITANCE
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s13">
+  <div class="section-header">
+    <span class="section-num">§ 13</span>
+    <div class="section-title-wrap">
+      <h2>Inheritance</h2>
+      <span class="tagline">Single inheritance with super, polymorphism, and is_a?</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">class Child &lt; Parent</span><span class="concept-pill">super</span>
+    <span class="concept-pill">Method overriding</span><span class="concept-pill">Polymorphism</span>
+    <span class="concept-pill">is_a? / class</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 13</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="kw2">class</span> <span class="cls">Animal</span>
+  attr_accessor <span class="sym">:name</span>, <span class="sym">:age</span>
+
+  <span class="kw2">def</span> <span class="met">initialize</span>(name, age)
+    <span class="ivar">@name</span> = name
+    <span class="ivar">@age</span>  = age
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">speak</span> = <span class="str">"..."</span>         <span class="cmt"># base — to be overridden by subclasses</span>
+
+  <span class="kw2">def</span> <span class="met">describe</span>
+    <span class="str">"#{@name} (#{@age} yrs) says: #{speak}"</span>
+  <span class="kw2">end</span>
+<span class="kw2">end</span>
+
+<span class="kw2">class</span> <span class="cls">Dog</span> &lt; <span class="cls">Animal</span>              <span class="cmt"># &lt; means "inherits from"</span>
+  attr_accessor <span class="sym">:breed</span>
+
+  <span class="kw2">def</span> <span class="met">initialize</span>(name, age, breed)
+    <span class="kw">super</span>(name, age)             <span class="cmt"># calls Animal#initialize</span>
+    <span class="ivar">@breed</span> = breed
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">speak</span> = <span class="str">"Woof! Woof!"</span>   <span class="cmt"># override the parent method</span>
+  <span class="kw2">def</span> <span class="met">fetch</span>(item) = <span class="str">"#{@name} fetches the #{item}!"</span>
+<span class="kw2">end</span>
+
+<span class="kw2">class</span> <span class="cls">Cat</span> &lt; <span class="cls">Animal</span>
+  <span class="kw2">def</span> <span class="met">initialize</span>(name, age, indoor: <span class="kw">true</span>)
+    <span class="kw">super</span>(name, age)
+    <span class="ivar">@indoor</span> = indoor
+  <span class="kw2">end</span>
+  <span class="kw2">def</span> <span class="met">speak</span>  = <span class="str">"Meow~"</span>
+  <span class="kw2">def</span> <span class="met">indoor?</span> = <span class="ivar">@indoor</span>
+<span class="kw2">end</span>
+
+<span class="kw2">class</span> <span class="cls">Parrot</span> &lt; <span class="cls">Animal</span>
+  <span class="kw2">def</span> <span class="met">initialize</span>(name, age, phrase)
+    <span class="kw">super</span>(name, age)
+    <span class="ivar">@phrase</span> = phrase
+  <span class="kw2">end</span>
+  <span class="kw2">def</span> <span class="met">speak</span> = <span class="str">"#{@phrase}! Squawk!"</span>
+<span class="kw2">end</span>
+
+animals = [
+  <span class="cls">Dog</span>.<span class="met">new</span>(<span class="str">"Rex"</span>, <span class="num">3</span>, <span class="str">"Labrador"</span>),
+  <span class="cls">Cat</span>.<span class="met">new</span>(<span class="str">"Whiskers"</span>, <span class="num">5</span>),
+  <span class="cls">Parrot</span>.<span class="met">new</span>(<span class="str">"Polly"</span>, <span class="num">7</span>, <span class="str">"Pretty bird"</span>)
+]
+
+<span class="cmt"># Polymorphism — each object responds to .describe differently</span>
+animals.<span class="met">each</span> { |a| puts a.<span class="met">describe</span> }
+
+puts animals[<span class="num">0</span>].<span class="met">is_a?</span>(<span class="cls">Animal</span>)   <span class="cmt"># => true  (Dog IS AN Animal)</span>
+puts animals[<span class="num">0</span>].<span class="met">is_a?</span>(<span class="cls">Cat</span>)     <span class="cmt"># => false</span>
+puts animals[<span class="num">0</span>].<span class="met">class</span>           <span class="cmt"># => Dog</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 14 — MODULES
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s14">
+  <div class="section-header">
+    <span class="section-num">§ 14</span>
+    <div class="section-title-wrap">
+      <h2>Modules &amp; Mixins</h2>
+      <span class="tagline">Share behavior across classes without multiple inheritance.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">module/end</span><span class="concept-pill">include</span>
+    <span class="concept-pill">extend</span><span class="concept-pill">||= lazy init</span>
+    <span class="concept-pill">Namespace</span><span class="concept-pill">::</span>
+  </div>
+
+  <p class="prose">Ruby has single inheritance (one parent class), but you can <code>include</code> as many modules as you want. This is the primary way to share behavior across unrelated classes. Modules also serve as <strong>namespaces</strong> — use <code>Module::ClassName</code> to prevent naming collisions.</p>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 14</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="kw2">module</span> <span class="cls">Describable</span>
+  <span class="kw2">def</span> <span class="met">full_description</span>
+    vars = instance_variables.<span class="met">map</span> <span class="kw">do</span> |var|
+      <span class="str">"#{var}=#{instance_variable_get(var).inspect}"</span>
+    <span class="kw">end</span>
+    <span class="str">"#{self.class.name}(#{vars.join(', ')})"</span>
+  <span class="kw2">end</span>
+<span class="kw2">end</span>
+
+<span class="kw2">module</span> <span class="cls">Taggable</span>
+  <span class="kw2">def</span> <span class="met">tag_list</span>
+    <span class="ivar">@tags</span> ||= []    <span class="cmt"># ||= : assign only if @tags is nil or false</span>
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">add_tag</span>(tag)
+    tag_list << tag.<span class="met">to_sym</span> <span class="kw">unless</span> tag_list.<span class="met">include?</span>(tag.<span class="met">to_sym</span>)
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">tagged_with?</span>(tag) = tag_list.<span class="met">include?</span>(tag.<span class="met">to_sym</span>)
+<span class="kw2">end</span>
+
+<span class="kw2">module</span> <span class="cls">Serializable</span>
+  <span class="kw2">def</span> <span class="met">to_csv</span>
+    instance_variables.<span class="met">map</span> { |v| instance_variable_get(v) }.<span class="met">join</span>(<span class="str">","</span>)
+  <span class="kw2">end</span>
+<span class="kw2">end</span>
+
+<span class="kw2">class</span> <span class="cls">Product</span>
+  <span class="kw">include</span> <span class="cls">Describable</span>    <span class="cmt"># adds instance methods from module</span>
+  <span class="kw">include</span> <span class="cls">Taggable</span>
+  <span class="kw">include</span> <span class="cls">Serializable</span>
+
+  attr_accessor <span class="sym">:name</span>, <span class="sym">:price</span>, <span class="sym">:category</span>
+
+  <span class="kw2">def</span> <span class="met">initialize</span>(name, price, category)
+    <span class="ivar">@name</span> = name; <span class="ivar">@price</span> = price; <span class="ivar">@category</span> = category
+  <span class="kw2">end</span>
+<span class="kw2">end</span>
+
+laptop = <span class="cls">Product</span>.<span class="met">new</span>(<span class="str">"ThinkPad X1"</span>, <span class="num">1299.99</span>, <span class="sym">:electronics</span>)
+laptop.<span class="met">add_tag</span>(<span class="str">"portable"</span>)
+laptop.<span class="met">add_tag</span>(<span class="str">"business"</span>)
+
+puts laptop.<span class="met">full_description</span>
+puts laptop.<span class="met">to_csv</span>
+puts laptop.<span class="met">tagged_with?</span>(<span class="sym">:business</span>)   <span class="cmt"># => true</span>
+puts laptop.<span class="met">tagged_with?</span>(<span class="sym">:gaming</span>)     <span class="cmt"># => false</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 15 — COMPARABLE
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s15">
+  <div class="section-header">
+    <span class="section-num">§ 15</span>
+    <div class="section-title-wrap">
+      <h2>Comparable Mixin</h2>
+      <span class="tagline">Define &lt;=&gt; once and get sort, min, max, and comparison operators free.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">include Comparable</span><span class="concept-pill">Spaceship &lt;=&gt;</span>
+    <span class="concept-pill">.sort .min .max</span><span class="concept-pill">between? clamp</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 15</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="kw2">class</span> <span class="cls">Student</span>
+  <span class="kw">include</span> <span class="cls">Comparable</span>   <span class="cmt"># gives &lt;, &gt;, &lt;=, &gt;=, ==, between?, sort</span>
+
+  attr_accessor <span class="sym">:name</span>, <span class="sym">:gpa</span>
+
+  <span class="kw2">def</span> <span class="met">initialize</span>(name, gpa)
+    <span class="ivar">@name</span> = name
+    <span class="ivar">@gpa</span>  = gpa
+  <span class="kw2">end</span>
+
+  <span class="cmt"># Define the spaceship operator — Comparable does the rest!</span>
+  <span class="cmt"># Returns: -1 (less), 0 (equal), 1 (greater)</span>
+  <span class="kw2">def</span> <=>(other)
+    <span class="ivar">@gpa</span> &lt;=&gt; other.gpa
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">to_s</span> = <span class="str">"#{@name}(#{@gpa})"</span>
+<span class="kw2">end</span>
+
+students = [
+  <span class="cls">Student</span>.<span class="met">new</span>(<span class="str">"Alice"</span>, <span class="num">3.9</span>),
+  <span class="cls">Student</span>.<span class="met">new</span>(<span class="str">"Bob"</span>,   <span class="num">3.1</span>),
+  <span class="cls">Student</span>.<span class="met">new</span>(<span class="str">"Carol"</span>, <span class="num">3.7</span>),
+  <span class="cls">Student</span>.<span class="met">new</span>(<span class="str">"Dave"</span>,  <span class="num">2.8</span>)
+]
+
+puts students.<span class="met">sort</span>.<span class="met">map</span>(<span class="op">&</span><span class="sym">:to_s</span>).<span class="met">inspect</span>
+puts <span class="str">"Top:    #{students.max}"</span>
+puts <span class="str">"Lowest: #{students.min}"</span>
+
+honor_roll = students.<span class="met">select</span> { |s| s.gpa >= <span class="num">3.5</span> }
+puts <span class="str">"Honor roll: #{honor_roll.map(&:name).inspect}"</span>
+
+puts students[<span class="num">0</span>] > students[<span class="num">1</span>]  <span class="cmt"># => true  (Alice GPA 3.9 > Bob GPA 3.1)</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 16 — EXCEPTION HANDLING
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s16">
+  <div class="section-header">
+    <span class="section-num">§ 16</span>
+    <div class="section-title-wrap">
+      <h2>Exception Handling</h2>
+      <span class="tagline">begin/rescue/else/ensure/retry — and custom exception classes.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">begin/rescue/ensure</span><span class="concept-pill">raise</span>
+    <span class="concept-pill">retry</span><span class="concept-pill">else clause</span>
+    <span class="concept-pill">Custom exceptions</span><span class="concept-pill">Multiple rescue</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 16</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="cmt"># Custom exception class — inherit from StandardError</span>
+<span class="kw2">class</span> <span class="cls">InsufficientFundsError</span> &lt; <span class="cls">StandardError</span>
+  <span class="kw2">def</span> <span class="met">initialize</span>(needed, available)
+    <span class="kw">super</span>(<span class="str">"Need $#{needed}, but only $#{available} available"</span>)
+  <span class="kw2">end</span>
+<span class="kw2">end</span>
+
+<span class="cmt"># Full begin/rescue/else/ensure structure</span>
+<span class="kw2">def</span> <span class="met">safe_divide</span>(a, b)
+  <span class="kw">begin</span>
+    result = a / b
+  <span class="kw">rescue</span> <span class="cls">ZeroDivisionError</span> => e
+    puts <span class="str">"  ✗ ZeroDivision: #{e.message}"</span>
+    result = <span class="kw">nil</span>
+  <span class="kw">rescue</span> <span class="cls">TypeError</span> => e
+    puts <span class="str">"  ✗ TypeError: #{e.message}"</span>
+    result = <span class="kw">nil</span>
+  <span class="kw">else</span>
+    puts <span class="str">"  ✓ #{a} / #{b} = #{result}"</span>   <span class="cmt"># only if NO exception raised</span>
+  <span class="kw">ensure</span>
+    puts <span class="str">"  (ensure always runs — like finally)"</span>
+  <span class="kw">end</span>
+  result
+<span class="kw2">end</span>
+
+safe_divide(<span class="num">10</span>, <span class="num">2</span>)
+safe_divide(<span class="num">10</span>, <span class="num">0</span>)
+
+<span class="cmt"># retry — reattempt the block on failure</span>
+attempts = <span class="num">0</span>
+<span class="kw">begin</span>
+  attempts += <span class="num">1</span>
+  <span class="kw">raise</span> <span class="str">"Flaky error"</span> <span class="kw">if</span> attempts < <span class="num">3</span>
+  puts <span class="str">"Succeeded after #{attempts} attempt(s)"</span>
+<span class="kw">rescue</span> <span class="cls">RuntimeError</span> => e
+  puts <span class="str">"  Attempt #{attempts} failed. Retrying..."</span>
+  <span class="kw">retry</span> <span class="kw">if</span> attempts < <span class="num">3</span>
+<span class="kw">end</span>
+
+<span class="cmt"># raise with custom exception + guard clauses</span>
+<span class="kw2">def</span> <span class="met">transfer</span>(amount, from_balance)
+  <span class="kw">raise</span> <span class="cls">ArgumentError</span>,               <span class="str">"Amount must be positive"</span> <span class="kw">if</span> amount &lt;= <span class="num">0</span>
+  <span class="kw">raise</span> <span class="cls">InsufficientFundsError</span>.<span class="met">new</span>(amount, from_balance)     <span class="kw">if</span> amount > from_balance
+  from_balance - amount
+<span class="kw2">end</span>
+
+[[-<span class="num">50</span>, <span class="num">500</span>], [<span class="num">200</span>, <span class="num">100</span>], [<span class="num">100</span>, <span class="num">500</span>]].<span class="met">each</span> <span class="kw">do</span> |amount, balance|
+  <span class="kw">begin</span>
+    result = transfer(amount, balance)
+    puts <span class="str">"  ✓ Transferred $#{amount}. New balance: $#{result}"</span>
+  <span class="kw">rescue</span> <span class="cls">ArgumentError</span>, <span class="cls">InsufficientFundsError</span> => e
+    puts <span class="str">"  ✗ #{e.class}: #{e.message}"</span>
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+  </div>
+
+  <table class="compare-table">
+    <tr><th>Clause</th><th>When it runs</th><th>Equivalent in other languages</th></tr>
+    <tr><td><code>rescue</code></td><td>When the specified error is raised</td><td><code>catch</code></td></tr>
+    <tr><td><code>else</code></td><td>Only if NO exception was raised</td><td>No direct equivalent</td></tr>
+    <tr><td><code>ensure</code></td><td>Always — exception or not</td><td><code>finally</code></td></tr>
+    <tr><td><code>retry</code></td><td>Inside rescue — jumps back to begin</td><td>No direct equivalent</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 17 — FILE I/O
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s17">
+  <div class="section-header">
+    <span class="section-num">§ 17</span>
+    <div class="section-title-wrap">
+      <h2>File I/O</h2>
+      <span class="tagline">Read, write, append — File.open blocks auto-close the file handle.</span>
+    </div>
+  </div>
+  <div class="concept-list">
+    <span class="concept-pill">File.open</span><span class="concept-pill">File.read</span>
+    <span class="concept-pill">File.foreach</span><span class="concept-pill">File.write</span>
+    <span class="concept-pill">gets.chomp</span><span class="concept-pill">Append mode "a"</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 17</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code">filename = <span class="str">"ruby_output.txt"</span>
+
+<span class="cmt"># Writing — block form auto-closes the file</span>
+<span class="cls">File</span>.<span class="met">open</span>(filename, <span class="str">"w"</span>) <span class="kw">do</span> |f|   <span class="cmt"># "w" = write (overwrites)</span>
+  f.<span class="met">puts</span> <span class="str">"Ruby Adventure Output"</span>
+  f.<span class="met">puts</span> <span class="str">"Generated at: #{Time.now}"</span>
+  f.<span class="met">puts</span> <span class="str">"─" * 30</span>
+<span class="kw">end</span>   <span class="cmt"># file is automatically closed here</span>
+
+<span class="cmt"># Appending — "a" mode adds to end of file</span>
+<span class="cls">File</span>.<span class="met">open</span>(filename, <span class="str">"a"</span>) <span class="kw">do</span> |f|   <span class="cmt"># "a" = append</span>
+  f.<span class="met">puts</span> <span class="str">"Another line added later"</span>
+<span class="kw">end</span>
+
+<span class="cmt"># Reading entire file at once</span>
+content = <span class="cls">File</span>.<span class="met">read</span>(filename)
+puts content
+
+<span class="cmt"># Reading line by line (memory efficient for large files)</span>
+line_count = <span class="num">0</span>
+<span class="cls">File</span>.<span class="met">foreach</span>(filename) { |_| line_count += <span class="num">1</span> }
+puts <span class="str">"Lines: #{line_count}"</span>
+
+<span class="cmt"># Metadata</span>
+puts <span class="cls">File</span>.<span class="met">size</span>(filename)     <span class="cmt"># bytes</span>
+puts <span class="cls">File</span>.<span class="met">exist?</span>(filename)   <span class="cmt"># true/false</span>
+
+<span class="cmt"># User input from terminal (interactive programs)</span>
+<span class="cmt"># print "Enter your name: "</span>
+<span class="cmt"># name = gets.chomp   # gets reads a line, chomp removes the trailing \n</span>
+
+<span class="cmt"># Cleanup</span>
+<span class="cls">File</span>.<span class="met">delete</span>(filename)
+puts <span class="str">"File deleted."</span>
+
+<span class="cmt"># Directory operations</span>
+puts <span class="cls">Dir</span>.<span class="met">exist?</span>(<span class="str">"."</span>)     <span class="cmt"># true</span>
+puts <span class="cls">Dir</span>.<span class="met">glob</span>(<span class="str">"*.rb"</span>).<span class="met">inspect</span>   <span class="cmt"># list all .rb files</span></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 18 — MINI RPG PROJECT
+═══════════════════════════════════════════════════════════════════ -->
+<section class="section" id="s18">
+  <div class="section-header">
+    <span class="section-num">§ 18</span>
+    <div class="section-title-wrap">
+      <h2>🎮 Mini Text RPG — Putting It All Together</h2>
+      <span class="tagline">All 17 concepts wired into a working, self-running program.</span>
+    </div>
+  </div>
+
+  <div class="callout ruby">
+    <div class="cb-title">💎 What This Section Demonstrates</div>
+    <strong>Modules as mixins</strong> (Combatant) · <strong>Classes &amp; inheritance</strong> (Hero, Monster) · <strong>Symbols as hash keys</strong> (TYPES hash) · <strong>Constants</strong> (LEVEL_XP) · <strong>@@class vars</strong> · <strong>Ranges for random rolls</strong> · <strong>Blocks, iterators, reduce</strong> · <strong>Guard clauses</strong> · <strong>each_with_index</strong> · <strong>Multiple assignment</strong> (h, m = divmod) · <strong>Ternary operators</strong> · All running together in a mini game loop.
+  </div>
+
+  <div class="concept-list">
+    <span class="concept-pill">All previous concepts combined</span>
+    <span class="concept-pill">Module mixin</span><span class="concept-pill">Class constants</span>
+    <span class="concept-pill">Symbol hash keys</span><span class="concept-pill">rand with Range</span>
+    <span class="concept-pill">Self-running demo</span>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 18 (Part A: Module &amp; Hero)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="kw2">module</span> <span class="cls">Combatant</span>
+  <span class="kw2">def</span> <span class="met">alive?</span>  = <span class="ivar">@hp</span> > <span class="num">0</span>
+  <span class="kw2">def</span> <span class="met">dead?</span>   = !<span class="met">alive?</span>
+  <span class="kw2">def</span> <span class="met">hp_bar</span>
+    filled = (<span class="ivar">@hp</span>.<span class="met">to_f</span> / <span class="ivar">@max_hp</span> * <span class="num">20</span>).<span class="met">round</span>
+    <span class="str">"["</span> + <span class="str">"█"</span> * filled + <span class="str">"░"</span> * (<span class="num">20</span> - filled) + <span class="str">"] #{@hp}/#{@max_hp}"</span>
+  <span class="kw2">end</span>
+<span class="kw2">end</span>
+
+<span class="kw2">class</span> <span class="cls">Hero</span>
+  <span class="kw">include</span> <span class="cls">Combatant</span>
+  attr_reader <span class="sym">:name</span>, <span class="sym">:hp</span>, <span class="sym">:level</span>, <span class="sym">:gold</span>, <span class="sym">:inventory</span>
+
+  <span class="const">LEVEL_XP</span> = [<span class="num">0</span>, <span class="num">100</span>, <span class="num">250</span>, <span class="num">450</span>, <span class="num">700</span>]   <span class="cmt"># XP threshold per level</span>
+
+  <span class="kw2">def</span> <span class="met">initialize</span>(name)
+    <span class="ivar">@name</span>      = name
+    <span class="ivar">@level</span>     = <span class="num">1</span>
+    <span class="ivar">@hp</span>        = <span class="ivar">@max_hp</span> = <span class="num">30</span>
+    <span class="ivar">@attack</span>    = <span class="num">8</span>
+    <span class="ivar">@xp</span>        = <span class="num">0</span>
+    <span class="ivar">@gold</span>      = <span class="num">10</span>
+    <span class="ivar">@inventory</span> = []
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">attack_roll</span>
+    base  = rand(<span class="ivar">@attack</span>..<span class="ivar">@attack</span> * <span class="num">2</span>)       <span class="cmt"># Range for random roll</span>
+    bonus = <span class="ivar">@inventory</span>.<span class="met">include?</span>(<span class="sym">:sword</span>) ? <span class="num">5</span> : <span class="num">0</span>
+    base + bonus
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">take_damage</span>(dmg) = <span class="ivar">@hp</span> = [<span class="ivar">@hp</span> - dmg, <span class="num">0</span>].<span class="met">max</span>  <span class="cmt"># clamp to 0</span>
+  <span class="kw2">def</span> <span class="met">heal</span>(amount)      = <span class="ivar">@hp</span> = [<span class="ivar">@hp</span> + amount, <span class="ivar">@max_hp</span>].<span class="met">min</span>
+
+  <span class="kw2">def</span> <span class="met">gain_xp</span>(xp)
+    <span class="ivar">@xp</span> += xp
+    threshold = <span class="const">LEVEL_XP</span>[<span class="ivar">@level</span>] || <span class="num">999</span>
+    <span class="kw">if</span> <span class="ivar">@xp</span> >= threshold && <span class="ivar">@level</span> < <span class="num">4</span>
+      <span class="ivar">@level</span>   += <span class="num">1</span>
+      <span class="ivar">@max_hp</span>  += <span class="num">10</span>
+      <span class="ivar">@hp</span>       = <span class="ivar">@max_hp</span>
+      <span class="ivar">@attack</span>  += <span class="num">3</span>
+      puts <span class="str">"  ⬆  #{@name} reached Level #{@level}! HP ↑ ATK ↑"</span>
+    <span class="kw">end</span>
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">to_s</span>
+    <span class="str">"#{@name} Lv#{@level} #{hp_bar} ATK:#{@attack} GOLD:#{@gold}g"</span>
+  <span class="kw2">end</span>
+<span class="kw2">end</span></pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-titlebar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="code-filename">ruby_adventure.rb — Section 18 (Part B: Monster &amp; Game Loop)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre class="ruby-code"><span class="kw2">class</span> <span class="cls">Monster</span>
+  <span class="kw">include</span> <span class="cls">Combatant</span>
+  attr_reader <span class="sym">:name</span>, <span class="sym">:xp_reward</span>, <span class="sym">:gold_reward</span>
+
+  <span class="cmt"># Symbols as keys in a nested Hash of monster stats</span>
+  <span class="const">TYPES</span> = <span class="paren">{</span>
+    <span class="sym">slime:</span>  <span class="paren">{</span> <span class="sym">hp:</span> <span class="num">8</span>,  <span class="sym">atk:</span> <span class="num">2</span>..<span class="num">4</span>,  <span class="sym">xp:</span> <span class="num">30</span>,  <span class="sym">gold:</span> <span class="num">2</span>..<span class="num">5</span>   <span class="paren">}</span>,
+    <span class="sym">goblin:</span> <span class="paren">{</span> <span class="sym">hp:</span> <span class="num">15</span>, <span class="sym">atk:</span> <span class="num">3</span>..<span class="num">7</span>,  <span class="sym">xp:</span> <span class="num">60</span>,  <span class="sym">gold:</span> <span class="num">5</span>..<span class="num">10</span>  <span class="paren">}</span>,
+    <span class="sym">orc:</span>    <span class="paren">{</span> <span class="sym">hp:</span> <span class="num">25</span>, <span class="sym">atk:</span> <span class="num">5</span>..<span class="num">10</span>, <span class="sym">xp:</span> <span class="num">120</span>, <span class="sym">gold:</span> <span class="num">8</span>..<span class="num">15</span>  <span class="paren">}</span>,
+    <span class="sym">dragon:</span> <span class="paren">{</span> <span class="sym">hp:</span> <span class="num">50</span>, <span class="sym">atk:</span> <span class="num">8</span>..<span class="num">18</span>, <span class="sym">xp:</span> <span class="num">300</span>, <span class="sym">gold:</span> <span class="num">20</span>..<span class="num">40</span> <span class="paren">}</span>
+  <span class="paren">}</span>
+
+  <span class="kw2">def</span> <span class="met">initialize</span>(type)
+    data         = <span class="const">TYPES</span>[type]
+    <span class="ivar">@name</span>        = type.<span class="met">to_s</span>.<span class="met">capitalize</span>
+    <span class="ivar">@hp</span>          = <span class="ivar">@max_hp</span> = data[<span class="sym">:hp</span>]
+    <span class="ivar">@atk_range</span>   = data[<span class="sym">:atk</span>]
+    <span class="ivar">@xp_reward</span>   = data[<span class="sym">:xp</span>]
+    <span class="ivar">@gold_reward</span> = rand(data[<span class="sym">:gold</span>])
+  <span class="kw2">end</span>
+
+  <span class="kw2">def</span> <span class="met">attack_roll</span> = rand(<span class="ivar">@atk_range</span>)
+  <span class="kw2">def</span> <span class="met">to_s</span>         = <span class="str">"#{@name} #{hp_bar}"</span>
+<span class="kw2">end</span>
+
+<span class="cmt"># battle method — uses blocks, symbols, conditional logic</span>
+<span class="kw2">def</span> <span class="met">battle</span>(hero, monster)
+  puts <span class="str">"  ⚔  #{hero.name} VS #{monster.name}!"</span>
+  round = <span class="num">0</span>
+  <span class="kw">while</span> hero.<span class="met">alive?</span> && monster.<span class="met">alive?</span>
+    round += <span class="num">1</span>
+    dmg_to_monster = hero.<span class="met">attack_roll</span>
+    monster.<span class="met">take_damage</span>(dmg_to_monster)
+    dmg_to_hero = monster.<span class="met">alive?</span> ? monster.<span class="met">attack_roll</span> : <span class="num">0</span>
+    hero.<span class="met">take_damage</span>(dmg_to_hero)
+    puts <span class="str">"  Round #{round}: Hero hits #{dmg_to_monster} / #{monster.name} hits #{dmg_to_hero}"</span>
+    <span class="kw">break</span> <span class="kw">unless</span> monster.<span class="met">alive?</span>
+  <span class="kw">end</span>
+  <span class="kw">if</span> hero.<span class="met">alive?</span>
+    hero.<span class="met">gain_xp</span>(monster.xp_reward)
+    puts <span class="str">"  ✓ #{hero.name} wins! +#{monster.xp_reward}XP +#{monster.gold_reward}G"</span>
+  <span class="kw">else</span>
+    puts <span class="str">"  ✗ #{hero.name} was defeated..."</span>
+  <span class="kw">end</span>
+  puts <span class="str">"  Hero: #{hero}"</span>
+  hero.<span class="met">alive?</span>
+<span class="kw2">end</span>
+
+<span class="cmt"># ── Run the demo adventure ────────────────────────────────────────</span>
+hero = <span class="cls">Hero</span>.<span class="met">new</span>(<span class="str">"Rubyist"</span>)
+puts <span class="str">"#{hero.name} begins their adventure!"</span>
+puts hero
+
+[:slime, :slime, :goblin, :orc].<span class="met">each</span> <span class="kw">do</span> |type|
+  puts
+  monster = <span class="cls">Monster</span>.<span class="met">new</span>(type)
+  <span class="kw">break</span> <span class="kw">unless</span> battle(hero, monster)
+  hero.<span class="met">heal</span>(<span class="num">5</span>)
+<span class="kw">end</span>
+
+puts <span class="str">"\nAdventure complete!"</span>
+puts hero</pre>
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-label">▶ Sample Output</div>
+<pre class="output">Rubyist begins their adventure!
+Rubyist Lv1 [████████████████████] 30/30 ATK:8 GOLD:10g
+
+  ⚔  Rubyist VS Slime!
+  Round 1: Hero hits 14 / Slime hits 3
+  ✓ Rubyist wins! +30XP +3G
+  Hero: Rubyist Lv1 [████████████████░░░░] 27/30 ATK:8 GOLD:10g
+
+  ⚔  Rubyist VS Slime!
+  Round 1: Hero hits 9 / Slime hits 4
+  ✓ Rubyist wins! +30XP +4G
+  ⬆  Rubyist reached Level 2! HP ↑ ATK ↑
+  Hero: Rubyist Lv2 [████████████████████] 40/40 ATK:11 GOLD:10g
+
+  ⚔  Rubyist VS Goblin!
+  Round 1: Hero hits 16 / Goblin hits 5
+  Round 2: Hero hits 12 / Goblin hits 0
+  ✓ Rubyist wins! +60XP +7G
+  Hero: Rubyist Lv2 [█████████████████░░░] 35/40 ATK:11 GOLD:10g
+
+Adventure complete!
+Rubyist Lv2 [█████████████████░░░] 35/40 ATK:11 GOLD:10g</pre>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-title">💎 You've reached the end of Ruby Adventure.</div>
+    <p style="font-size:13px;color:var(--text-dim);margin-top:8px;max-width:560px;">
+      Save the <code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg3);padding:2px 6px;border-radius:3px;">ruby_adventure.rb</code> file and run it with <code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg3);padding:2px 6px;border-radius:3px;">ruby ruby_adventure.rb</code> to see all 18 sections execute live. Next steps: explore Bundler, RSpec, Rake, Sinatra, and Rails.
+    </p>
+    <div class="footer-grid">
+      <div class="footer-item"><span>01</span>Variables</div>
+      <div class="footer-item"><span>02</span>Strings</div>
+      <div class="footer-item"><span>03</span>Numbers</div>
+      <div class="footer-item"><span>04</span>Symbols</div>
+      <div class="footer-item"><span>05</span>Arrays</div>
+      <div class="footer-item"><span>06</span>Hashes</div>
+      <div class="footer-item"><span>07</span>Ranges</div>
+      <div class="footer-item"><span>08</span>Control Flow</div>
+      <div class="footer-item"><span>09</span>Loops</div>
+      <div class="footer-item"><span>10</span>Methods</div>
+      <div class="footer-item"><span>11</span>Blocks/Procs</div>
+      <div class="footer-item"><span>12</span>Classes</div>
+      <div class="footer-item"><span>13</span>Inheritance</div>
+      <div class="footer-item"><span>14</span>Modules</div>
+      <div class="footer-item"><span>15</span>Comparable</div>
+      <div class="footer-item"><span>16</span>Exceptions</div>
+      <div class="footer-item"><span>17</span>File I/O</div>
+      <div class="footer-item"><span>18</span>Mini RPG</div>
+    </div>
+  </div>
+</footer>
+
+  </main>
+</div><!-- /layout -->
+
+<script>
+/* ── Copy to clipboard ── */
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+/* ── Active nav on scroll ── */
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.nav-item[href]');
+const progressBar = document.getElementById('progressBar');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const active = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+      if (active) {
+        active.classList.add('active');
+        active.scrollIntoView({ block: 'nearest' });
+      }
+      // Progress
+      const ids = [...sections].map(s => s.id);
+      const idx = ids.indexOf(entry.target.id);
+      const pct = ((idx + 1) / ids.length) * 100;
+      progressBar.style.width = pct + '%';
+    }
+  });
+}, { threshold: 0.25, rootMargin: '-64px 0px -40% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+/* ── Fade-in on scroll ── */
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+sections.forEach(s => fadeObserver.observe(s));
+
+/* ── Close sidebar on nav click (mobile) ── */
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 900) {
+      document.querySelector('.sidebar').classList.remove('open');
+    }
+  });
+});
+</script>
+</body>
+</html>
