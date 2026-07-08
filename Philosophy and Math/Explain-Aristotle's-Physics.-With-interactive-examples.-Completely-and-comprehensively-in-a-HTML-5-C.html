@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aristotle's Physics — An Interactive Guide</title>
+<style>
+:root {
+  --parchment: #fcf8f0;
+  --parchment-2: #f4ede0;
+  --parchment-3: #ede4d3;
+  --ink: #221f1b;
+  --ink-2: #524b42;
+  --blue: #1d3a5f;
+  --blue-2: #2f5d8a;
+  --terracotta: #b65a3a;
+  --terracotta-2: #d07958;
+  --gold: #b8955a;
+  --earth: #8b5e34;
+  --water: #4a7d95;
+  --air: #b8d4e3;
+  --fire: #e07a4f;
+  --aether: #2e3150;
+  --shadow: 0 4px 24px rgba(34,31,27,0.08);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--parchment);
+  color: var(--ink);
+  line-height: 1.7;
+  background-image: 
+    radial-gradient(ellipse at top, rgba(184,149,90,0.08), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(29,58,95,0.06), transparent 60%);
+}
+h1, h2, h3 {
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  color: var(--blue);
+  line-height: 1.2;
+  font-weight: 600;
+}
+h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); margin: 0; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-top: 0; border-bottom: 2px solid var(--parchment-3); padding-bottom: 0.4em; }
+h3 { color: var(--terracotta); font-size: 1.25rem; margin: 1.5em 0 0.5em; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+.hero {
+  padding: 3.5rem 0 2.5rem;
+  text-align: center;
+  background: linear-gradient(180deg, var(--parchment-2), var(--parchment));
+  border-bottom: 1px solid var(--parchment-3);
+}
+.hero .save-note {
+  display: inline-block;
+  background: var(--blue);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+  margin-bottom: 1.5rem;
+}
+.subtitle {
+  font-family: Georgia, serif;
+  font-size: 1.25rem;
+  color: var(--ink-2);
+  margin: 0.5rem 0 0;
+  font-style: italic;
+}
+.quote {
+  margin: 2rem auto 0;
+  max-width: 700px;
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  color: var(--terracotta);
+  padding: 1rem 1.5rem;
+  border-left: 3px solid var(--gold);
+  background: rgba(184,149,90,0.07);
+  text-align: left;
+}
+.quote cite { display: block; font-size: 0.9rem; color: var(--ink-2); margin-top: 0.5rem; font-style: normal; }
+
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(252,248,240,0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--parchment-3);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+.nav-inner {
+  display: flex;
+  gap: 0.5rem 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0.75rem 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+nav a {
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 6px 2px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+nav a:hover { color: var(--blue); border-color: var(--terracotta-2); }
+
+main { padding: 2rem 0 4rem; }
+.section {
+  margin: 3.5rem 0;
+  scroll-margin-top: 80px;
+}
+.lead {
+  font-size: 1.15rem;
+  color: var(--ink-2);
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+@media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.card {
+  background: white;
+  border: 1px solid var(--parchment-3);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+.card h3 { margin-top: 0; }
+
+ul.clean { padding-left: 1.2rem; }
+ul.clean li { margin: 0.5rem 0; }
+
+.tag {
+  display: inline-block;
+  background: var(--parchment-2);
+  color: var(--ink-2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  margin-right: 6px;
+}
+
+/* Four Causes */
+.cause-controls { margin: 1rem 0 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+select {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--parchment-3);
+  background: white;
+  color: var(--ink);
+}
+.causes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 640px) { .causes-grid { grid-template-columns: 1fr; } }
+.cause-card {
+  background: linear-gradient(180deg, white, var(--parchment));
+  border: 1px solid var(--parchment-3);
+  border-left: 4px solid var(--terracotta);
+  padding: 1.2rem;
+  border-radius: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cause-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.cause-card h4 {
+  margin: 0 0 0.4rem;
+  font-family: Georgia, serif;
+  color: var(--blue);
+  font-size: 1.05rem;
+}
+.cause-card p { margin: 0; color: var(--ink-2); }
+.cause-card .latin {
+  font-size: 0.8rem;
+  color: var(--terracotta);
+  font-style: italic;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* Elements & Place */
+.natural-place-wrap {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 2rem;
+  align-items: stretch;
+}
+@media (max-width: 860px) { .natural-place-wrap { grid-template-columns: 1fr; } }
+.place-column {
+  position: relative;
+  height: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--parchment-3);
+  box-shadow: var(--shadow);
+  background: var(--aether);
+}
+.layer {
+  position: absolute;
+  left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1rem;
+  color: white;
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+}
+.layer span { font-size: 0.8rem; opacity: 0.85; font-family: sans-serif; }
+.layer.aether { top: 0; height: 18%; background: linear-gradient(180deg, #1e2140, #2e3150); }
+.layer.fire { top: 18%; height: 18%; background: linear-gradient(180deg, #c45a2f, var(--fire)); }
+.layer.air { top: 36%; height: 22%; background: linear-gradient(180deg, #8fb9d1, var(--air)); color: var(--ink); }
+.layer.water { top: 58%; height: 22%; background: linear-gradient(180deg, #3a6a85, var(--water)); }
+.layer.earth { top: 80%; height: 20%; background: linear-gradient(180deg, #6b4a2e, var(--earth)); }
+
+.draggables {
+  position: relative;
+  min-height: 420px;
+}
+.draggable {
+  position: absolute;
+  left: 10px;
+  width: 180px;
+  padding: 0.7rem 1rem;
+  background: white;
+  border: 1px solid var(--parchment-3);
+  border-radius: 10px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  display: flex; align-items: center; gap: 0.7rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  transition: left 0.6s cubic-bezier(.2,.8,.2,1), top 0.6s cubic-bezier(.2,.8,.2,1), box-shadow 0.2s;
+}
+.draggable:active { cursor: grabbing; box-shadow: 0 6px 18px rgba(0,0,0,0.12); z-index: 10; }
+.draggable .icon { font-size: 1.5rem; }
+.draggable.settled { border-color: var(--gold); background: #fffaf0; }
+#drag-rock { top: 20px; }
+#drag-wood { top: 100px; }
+#drag-bubble { top: 180px; }
+#drag-flame { top: 260px; }
+
+/* Motion */
+.motion-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+.btn {
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid var(--parchment-3);
+  background: white;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.btn:hover { border-color: var(--blue-2); color: var(--blue); }
+.btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+.btn.primary { background: var(--terracotta); color: white; border-color: var(--terracotta); }
+.btn.primary:hover { background: var(--terracotta-2); }
+canvas {
+  width: 100%; height: auto; background: white; border-radius: 12px;
+  border: 1px solid var(--parchment-3); box-shadow: var(--shadow);
+}
+.formula {
+  margin-top: 0.7rem; font-family: Georgia, serif; color: var(--blue);
+  background: var(--parchment-2); display: inline-block; padding: 0.4rem 0.8rem; border-radius: 6px;
+}
+
+/* Cosmos */
+.cosmos-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: center; }
+@media (max-width: 860px) { .cosmos-wrap { grid-template-columns: 1fr; } }
+#cosmosSvg { max-width: 500px; margin: 0 auto; display: block; }
+.cosmos-circle { fill: none; stroke-width: 2; cursor: pointer; transition: all 0.2s; }
+.cosmos-circle:hover { stroke-width: 3; filter: drop-shadow(0 0 6px rgba(182,90,58,0.5)); }
+.cosmos-label { font-size: 11px; fill: var(--ink-2); text-anchor: middle; pointer-events: none; font-family: sans-serif; }
+#cosmosTooltip {
+  position: absolute; background: var(--ink); color: white; padding: 8px 12px;
+  border-radius: 6px; font-size: 0.85rem; pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  max-width: 240px; line-height: 1.4; z-index: 50;
+}
+
+/* Time & Void */
+.slider-wrap { margin: 1.5rem 0; }
+input[type="range"] { width: 100%; accent-color: var(--terracotta); }
+.void-display {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;
+  font-family: Georgia, serif; color: var(--blue);
+}
+#voidWarning {
+  margin-top: 1rem; padding: 0.8rem 1rem; background: #fff4f0; border-left: 4px solid var(--terracotta);
+  color: var(--terracotta); border-radius: 6px; display: none;
+}
+
+footer {
+  margin-top: 4rem; padding: 2rem 0; border-top: 1px solid var(--parchment-3);
+  color: var(--ink-2); font-size: 0.9rem; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="save-note">This page is self-contained — save as .html to keep</div>
+    <h1>Aristotle's Physics</h1>
+    <p class="subtitle">An Interactive Guide to Nature, Change, and Motion</p>
+    <div class="quote">
+      “Nature is everywhere the cause of order.”
+      <cite>— Aristotle, Physics VIII.1</cite>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#overview">Overview</a>
+    <a href="#causes">Change & Causes</a>
+    <a href="#elements">Elements & Place</a>
+    <a href="#motion">Motion</a>
+    <a href="#cosmos">Cosmos</a>
+    <a href="#time">Time & Void</a>
+    <a href="#legacy">Legacy</a>
+  </div>
+</nav>
+
+<main class="container">
+
+<section id="overview" class="section">
+  <h2>1. Overview — The Study of Physis</h2>
+  <div class="grid-2">
+    <div>
+      <p class="lead">For Aristotle (384–322 BC), <em>physics</em> (from <em>physis</em>, nature) was not about equations, but about understanding why things change.</p>
+      <p>His treatise <em>Physics</em> in eight books asks: What is nature? What is change (<em>kinesis</em>)? What makes motion possible? His answers dominated Western thought for nearly two thousand years.</p>
+      <p><strong>Key distinction from modern physics:</strong> Aristotle explains the world in terms of purposes, qualities, and natural tendencies — not universal mathematical laws, forces, or atoms in a void. A stone falls not because of gravity, but because its nature is to seek its proper place at the center of the cosmos.</p>
+    </div>
+    <div class="card">
+      <h3>Physics in Eight Books</h3>
+      <ul class="clean">
+        <li><span class="tag">I–II</span> Principles, nature, and the four causes</li>
+        <li><span class="tag">III–IV</span> Change, the infinite, place, void, time</li>
+        <li><span class="tag">V–VI</span> Kinds of change and continuity</li>
+        <li><span class="tag">VII–VIII</span> Motion, the first mover</li>
+      </ul>
+      <p style="margin-top:1rem; font-size:0.95rem; color:var(--ink-2)">Nature, for Aristotle, is an <em>inner principle</em> of motion and rest. Artifacts have no such principle — they are moved from without.</p>
+    </div>
+  </div>
+</section>
+
+<section id="causes" class="section">
+  <h2>2. Change & The Four Causes</h2>
+  <p>All change is the actualization of potentiality. A block of marble is <em>potentially</em> a statue; the sculptor makes it <em>actually</em> a statue.</p>
+  
+  <p>Aristotle identifies <strong>four kinds of change</strong>:</p>
+  <ul>
+    <li><strong>Substantial</strong> — coming-to-be and passing-away (a seed becomes a tree)</li>
+    <li><strong>Qualitative</strong> — alteration (green to red, hot to cold)</li>
+    <li><strong>Quantitative</strong> — growth and diminution</li>
+    <li><strong>Local</strong> — change of place, or locomotion</li>
+  </ul>
+
+  <div class="card" style="margin-top:2rem;">
+    <h3>Interactive: The Four Causes Explorer</h3>
+    <p>To truly know a thing, Aristotle says, we must know its four causes — its <em>whys</em>.</p>
+    <div class="cause-controls">
+      <label for="causeSelect">Choose an object:</label>
+      <select id="causeSelect">
+        <option>Bronze Statue</option>
+        <option>Oak Tree</option>
+        <option>House</option>
+        <option>Eye</option>
+      </select>
+    </div>
+    <div class="causes-grid" id="causesGrid">
+      <div class="cause-card">
+        <span class="latin">causa materialis</span>
+        <h4>Material Cause</h4>
+        <p id="cause-material">—</p>
+      </div>
+      <div class="cause-card">
+        <span class="latin">causa formalis</span>
+        <h4>Formal Cause</h4>
+        <p id="cause-formal">—</p>
+      </div>
+      <div class="cause-card">
+        <span class="latin">causa efficiens</span>
+        <h4>Efficient Cause</h4>
+        <p id="cause-efficient">—</p>
+      </div>
+      <div class="cause-card">
+        <span class="latin">causa finalis</span>
+        <h4>Final Cause</h4>
+        <p id="cause-final">—</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="elements" class="section">
+  <h2>3. Elements & Natural Place</h2>
+  <div class="grid-2">
+    <div>
+      <p>The sublunary world (below the Moon) is made of four elements, defined by two pairs of contraries: <strong>hot/cold</strong> and <strong>wet/dry</strong>.</p>
+      <ul>
+        <li><strong>Earth</strong> — cold & dry — heaviest, moves down</li>
+        <li><strong>Water</strong> — cold & wet</li>
+        <li><strong>Air</strong> — hot & wet</li>
+        <li><strong>Fire</strong> — hot & dry — lightest, moves up</li>
+      </ul>
+      <p>The heavens are made of a perfect fifth element, <strong>aether</strong>, which moves naturally in circles forever.</p>
+      <p><strong>Natural Place:</strong> Each element seeks its proper layer in the cosmos. Motion is not neutral; it is homecoming. Stop interfering, and things return where they belong.</p>
+    </div>
+    <div class="card">
+      <h3>The Four Qualities</h3>
+      <svg viewBox="0 0 200 200" width="100%" style="max-width:260px; margin:auto; display:block;">
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#ddd" />
+        <line x1="100" y1="20" x2="100" y2="180" stroke="#ccc"/>
+        <line x1="20" y1="100" x2="180" y2="100" stroke="#ccc"/>
+        <text x="100" y="15" text-anchor="middle" font-family="Georgia" fill="var(--fire)">Hot</text>
+        <text x="100" y="195" text-anchor="middle" font-family="Georgia" fill="var(--water)">Cold</text>
+        <text x="10" y="105" font-family="Georgia" fill="var(--water)">Wet</text>
+        <text x="170" y="105" font-family="Georgia" fill="var(--earth)">Dry</text>
+        <text x="140" y="60" fill="var(--fire)" font-size="14">Fire</text>
+        <text x="50" y="60" fill="var(--ink)" font-size="14">Air</text>
+        <text x="50" y="150" fill="var(--water)" font-size="14">Water</text>
+        <text x="130" y="150" fill="var(--earth)" font-size="14">Earth</text>
+      </svg>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem;">
+    <h3>Interactive: Drag to Natural Place</h3>
+    <p>Drag each object. Release it, and watch it seek its natural place in Aristotle's cosmos.</p>
+    <div class="natural-place-wrap">
+      <div class="place-column" id="placeColumn">
+        <div class="layer aether">Aether <span>perfect, unchanging</span></div>
+        <div class="layer fire">Fire <span>hot & dry</span></div>
+        <div class="layer air">Air <span>hot & wet</span></div>
+        <div class="layer water">Water <span>cold & wet</span></div>
+        <div class="layer earth">Earth <span>cold & dry</span></div>
+      </div>
+      <div class="draggables" id="dragWrap">
+        <div class="draggable" id="drag-rock" data-target="earth"><span class="icon">🪨</span> Rock (mostly earth)</div>
+        <div class="draggable" id="drag-wood" data-target="water"><span class="icon">🪵</span> Wood (earth + air)</div>
+        <div class="draggable" id="drag-bubble" data-target="air"><span class="icon">🫧</span> Bubble (air)</div>
+        <div class="draggable" id="drag-flame" data-target="fire"><span class="icon">🔥</span> Flame (fire)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="motion" class="section">
+  <h2>4. Motion: Natural and Violent</h2>
+  <p><strong>Natural motion</strong> requires no continuous force — it follows the element's inner nature (stone down, fire up). <strong>Violent (forced) motion</strong> requires a constant pusher. Remove the pusher, motion stops.</p>
+  
+  <div class="card">
+    <h3>Aristotle's Law of Motion</h3>
+    <p>Speed is proportional to weight and inversely proportional to the resistance of the medium.</p>
+    <div class="formula">v ∝ (weight) / (density of medium)</div>
+    <p style="margin-top:0.8rem; font-size:0.95rem;">No void can exist — in a void, resistance = 0, so speed would be infinite, which is absurd.</p>
+  </div>
+
+  <div style="margin-top:2rem;">
+    <h3>Interactive: Falling in Different Media</h3>
+    <div class="motion-controls">
+      <button class="btn active" data-medium="air">Air (ρ=1)</button>
+      <button class="btn" data-medium="water">Water (ρ=3)</button>
+      <button class="btn" data-medium="honey">Honey (ρ=8)</button>
+      <button class="btn primary" id="dropBtn">Drop Objects</button>
+    </div>
+    <canvas id="motionCanvas" width="900" height="300"></canvas>
+  </div>
+
+  <div style="margin-top:2.5rem;">
+    <h3>Projectiles: The Air-Push Theory</h3>
+    <p>Aristotle struggled with thrown objects. His solution: the thrower moves the air, and the air rushes around to keep pushing the arrow from behind. Later thinkers like Philoponus proposed <em>impetus</em> — a quality impressed in the object itself.</p>
+    <canvas id="projectileCanvas" width="900" height="180"></canvas>
+    <p style="text-align:center; color:var(--ink-2); font-size:0.9rem; margin-top:0.5rem;">Click or tap to launch</p>
+  </div>
+</section>
+
+<section id="cosmos" class="section">
+  <h2>5. The Cosmos: Spheres Within Spheres</h2>
+  <div class="cosmos-wrap">
+    <div style="position:relative;">
+      <svg id="cosmosSvg" viewBox="0 0 500 500">
+        <defs>
+          <radialGradient id="earthGrad"><stop offset="0%" stop-color="#7a9ab8"/><stop offset="100%" stop-color="#2f5d8a"/></radialGradient>
+        </defs>
+        <circle cx="250" cy="250" r="12" fill="url(#earthGrad)" stroke="#1d3a5f" stroke-width="2"/>
+        <text x="250" y="255" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Earth</text>
+        
+        <g class="sphere" data-name="Moon">
+          <circle class="cosmos-circle" cx="250" cy="250" r="45" stroke="#b8955a"/>
+          <text class="cosmos-label" x="295" y="250">Moon</text>
+        </g>
+        <g class="sphere" data-name="Mercury">
+          <circle class="cosmos-circle" cx="250" cy="250" r="70" stroke="#a0a0a0"/>
+          <text class="cosmos-label" x="320" y="250">Mercury</text>
+        </g>
+        <g class="sphere" data-name="Venus">
+          <circle class="cosmos-circle" cx="250" cy="250" r="95" stroke="#d4a76a"/>
+          <text class="cosmos-label" x="345" y="250">Venus</text>
+        </g>
+        <g class="sphere" data-name="Sun">
+          <circle class="cosmos-circle" cx="250" cy="250" r="125" stroke="#e0a040" stroke-width="2.5"/>
+          <text class="cosmos-label" x="250" y="125" font-weight="bold">Sun</text>
+        </g>
+        <g class="sphere" data-name="Mars">
+          <circle class="cosmos-circle" cx="250" cy="250" r="155" stroke="#b65a3a"/>
+          <text class="cosmos-label" x="250" y="95">Mars</text>
+        </g>
+        <g class="sphere" data-name="Jupiter">
+          <circle class="cosmos-circle" cx="250" cy="250" r="185" stroke="#c9a86a"/>
+          <text class="cosmos-label" x="250" y="65">Jupiter</text>
+        </g>
+        <g class="sphere" data-name="Saturn">
+          <circle class="cosmos-circle" cx="250" cy="250" r="215" stroke="#8a7a5a"/>
+          <text class="cosmos-label" x="250" y="35">Saturn</text>
+        </g>
+        <g class="sphere" data-name="Fixed Stars">
+          <circle class="cosmos-circle" cx="250" cy="250" r="240" stroke="#1d3a5f" stroke-dasharray="3 3"/>
+          <text class="cosmos-label" x="250" y="12" font-style="italic">Fixed Stars</text>
+        </g>
+      </svg>
+      <div id="cosmosTooltip"></div>
+    </div>
+    <div>
+      <h3>Two Realms</h3>
+      <p><strong>Sublunary</strong> (Earth to Moon): realm of generation, corruption, and the four elements. Things change.</p>
+      <p><strong>Superlunary</strong> (Moon outward): made of aether, perfect, eternal, moving in unceasing circles.</p>
+      <p>Beyond the outermost sphere is the <strong>Unmoved Mover</strong> — pure actuality, thinking itself, the final cause that draws all motion as love draws the lover, without itself moving.</p>
+    </div>
+  </div>
+</section>
+
+<section id="time" class="section">
+  <h2>6. Time, Place, Void & the Continuum</h2>
+  <div class="grid-2">
+    <div>
+      <p><strong>Place (topos)</strong> is not space, but the inner surrounding surface of a container — like a vessel holding water.</p>
+      <p><strong>Time</strong> is “the number of change with respect to before and after.” No change, no time.</p>
+      <p><strong>Continuum:</strong> magnitudes, time, and motion are infinitely divisible — not made of indivisible atoms. Between any two points, there is always another.</p>
+    </div>
+    <div class="card">
+      <h3>Why No Void?</h3>
+      <ol style="padding-left:1.2rem; margin:0;">
+        <li>In a void, no directions (up/down) exist</li>
+        <li>Speed would be infinite (v ∝ 1/0)</li>
+        <li>No medium to transmit forced motion</li>
+        <li>Bodies would not know where to rest</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:2rem;">
+    <h3>Interactive: Approaching the Void</h3>
+    <p>Drag the slider to reduce the medium's density. Watch Aristotelian speed increase.</p>
+    <div class="slider-wrap">
+      <input type="range" id="densitySlider" min="0.2" max="10" step="0.1" value="3">
+      <div class="void-display">
+        <span>Medium density (ρ): <strong id="densityValue">3.0</strong></span>
+        <span>Predicted speed: <strong id="velocityValue">v ∝ 0.33</strong></span>
+      </div>
+      <div id="voidWarning">⚠ As ρ → 0, v → ∞. Aristotle: this is impossible. Therefore nature abhors a vacuum.</div>
+    </div>
+  </div>
+</section>
+
+<section id="legacy" class="section">
+  <h2>7. Legacy — Why It Lasted 2,000 Years</h2>
+  <p>Aristotle's physics was comprehensive, commonsensical, and teleological — it explained the <em>why</em>, not just the <em>how</em>. It fit everyday experience: heavy things do fall faster (in air), flames do rise, rest seems natural.</p>
+  
+  <div class="grid-2" style="margin-top:1.5rem;">
+    <div class="card">
+      <h3>Medieval Critiques</h3>
+      <p><strong>John Philoponus (6th c.):</strong> Dropped weights — they fell at nearly the same rate. Proposed impetus theory.</p>
+      <p><strong>Avicenna & Averroes:</strong> Refined motion theory in the Islamic world.</p>
+      <p><strong>Jean Buridan (14th c.):</strong> Developed impetus as a permanent impressed quality.</p>
+    </div>
+    <div class="card">
+      <h3>Galileo & Newton</h3>
+      <p>Galileo's inclined planes showed acceleration is independent of weight (ignoring air resistance). Newton replaced natural place with inertia and universal gravitation: F=ma, not v∝W/R.</p>
+      <p>Yet Aristotle's questions — about causation, actuality, and the nature of change — remain alive in philosophy of science.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>Based on Aristotle's <em>Physics</em>, Books I–VIII; Stanford Encyclopedia of Philosophy; Wikipedia Aristotelian physics</p>
+    <p style="font-size:0.8rem; margin-top:0.5rem;">Crafted as an educational, interactive museum exhibit. All content rendered client-side.</p>
+  </div>
+</footer>
+
+<div id="cosmosTooltip"></div>
+
+<script>
+// Four Causes Data
+const causesData = {
+  "Bronze Statue": {
+    material: "The bronze alloy — the underlying matter that persists through the change.",
+    formal: "The shape of Apollo, the definition and proportions that make it a statue and not a lump.",
+    efficient: "The sculptor, with art and tools, who imposes form on matter.",
+    final: "To honor the god, to beautify the polis, to be an object of contemplation."
+  },
+  "Oak Tree": {
+    material: "Earth and water, sap and wood — the material substrate.",
+    formal: "The form 'oak' — the soul (psyche) that organizes growth into trunk, branches, leaves.",
+    efficient: "The parent oak (via the acorn) and nature itself as the internal principle of change.",
+    final: "To fully actualize oak-ness: to grow, flourish, and produce more acorns."
+  },
+  "House": {
+    material: "Stones, timber, tiles, and mortar.",
+    formal: "The blueprint or logos — the arrangement for shelter, with rooms and roof.",
+    efficient: "The builder, the carpenter and mason, exercising the art of house-building.",
+    final: "The purpose of sheltering and the good life — protection from weather and a place for the household."
+  },
+  "Eye": {
+    material: "The transparent humors, membranes, and flesh of the organ.",
+    formal: "The organized structure capable of receiving visible form without matter.",
+    efficient: "Nature in generation — the formative power of the parent.",
+    final: "To see. The eye's ergon (function) is sight; a blind eye is an eye in name only."
+  }
+};
+const causeSelect = document.getElementById('causeSelect');
+function updateCauses() {
+  const data = causesData[causeSelect.value];
+  document.getElementById('cause-material').textContent = data.material;
+  document.getElementById('cause-formal').textContent = data.formal;
+  document.getElementById('cause-efficient').textContent = data.efficient;
+  document.getElementById('cause-final').textContent = data.final;
+}
+causeSelect.addEventListener('change', updateCauses);
+updateCauses();
+
+// Natural Place Dragging
+const targets = {
+  earth: 0.88,
+  water: 0.68,
+  air: 0.46,
+  fire: 0.26
+};
+const placeColumn = document.getElementById('placeColumn');
+const dragWrap = document.getElementById('dragWrap');
+
+document.querySelectorAll('.draggable').forEach(el => {
+  let dragging = false, offsetX=0, offsetY=0;
+  
+  const start = (e) => {
+    dragging = true;
+    el.setPointerCapture(e.pointerId);
+    const rect = el.getBoundingClientRect();
+    const clientX = e.clientX || e.touches?.[0].clientX;
+    const clientY = e.clientY || e.touches?.[0].clientY;
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+    el.style.transition = 'none';
+    el.classList.remove('settled');
+  };
+  const move = (e) => {
+    if(!dragging) return;
+    e.preventDefault();
+    const wrapRect = dragWrap.getBoundingClientRect();
+    const clientX = e.clientX || e.touches?.[0].clientX;
+    const clientY = e.clientY || e.touches?.[0].clientY;
+    let x = clientX - wrapRect.left - offsetX;
+    let y = clientY - wrapRect.top - offsetY;
+    x = Math.max(0, Math.min(x, wrapRect.width - el.offsetWidth));
+    y = Math.max(0, Math.min(y, wrapRect.height - el.offsetHeight));
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+  };
+  const end = (e) => {
+    if(!dragging) return;
+    dragging = false;
+    el.style.transition = 'left 0.7s cubic-bezier(.2,.8,.2,1), top 0.7s cubic-bezier(.2,.8,.2,1)';
+    const target = el.dataset.target;
+    const colRect = placeColumn.getBoundingClientRect();
+    const wrapRect = dragWrap.getBoundingClientRect();
+    const targetY = colRect.top - wrapRect.top + colRect.height * targets[target] - el.offsetHeight/2;
+    const targetX = colRect.left - wrapRect.left + colRect.width/2 - el.offsetWidth/2;
+    el.style.left = targetX + 'px';
+    el.style.top = targetY + 'px';
+    setTimeout(()=> el.classList.add('settled'), 700);
+  };
+  
+  el.addEventListener('pointerdown', start);
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', end);
+  el.addEventListener('touchstart', start, {passive:false});
+  window.addEventListener('touchmove', move, {passive:false});
+  window.addEventListener('touchend', end);
+});
+
+// Motion Simulation
+const motionCanvas = document.getElementById('motionCanvas');
+const mCtx = motionCanvas.getContext('2d');
+let medium = 'air';
+const densities = {air:1, water:3, honey:8};
+const objects = [
+  {type:'stone', weight:10, x:150, y:60, r:22, color:'#6b6b6b', label:'Stone (W=10)'},
+  {type:'wood', weight:4, x:400, y:60, r:20, color:'#8b5e34', label:'Wood (W=4)'},
+  {type:'smoke', weight:-3, x:650, y:240, r:18, color:'#999', label:'Smoke (W=-3)'}
+];
+let animating = false;
+let startTime = 0;
+
+function drawMedium() {
+  const d = densities[medium];
+  let bg = '#eef6fc';
+  if(medium==='water') bg = '#d4e8f2';
+  if(medium==='honey') bg = '#f5e7c9';
+  mCtx.fillStyle = bg;
+  mCtx.fillRect(0,0,motionCanvas.width, motionCanvas.height);
+  
+  mCtx.fillStyle = 'rgba(0,0,0,0.05)';
+  mCtx.font = '14px Georgia';
+  mCtx.fillText(`Medium: ${medium} (resistance ρ=${d})`, 20, 30);
+  mCtx.fillText('Aristotle: v ∝ W / ρ', 20, 52);
+}
+
+function drawObjects() {
+  objects.forEach(o => {
+    mCtx.save();
+    mCtx.translate(o.x, o.y);
+    if(o.type==='stone') {
+      mCtx.fillStyle = o.color;
+      mCtx.beginPath(); mCtx.arc(0,0,o.r,0,Math.PI*2); mCtx.fill();
+      mCtx.fillStyle = '#444'; mCtx.beginPath(); mCtx.arc(-6,-6,5,0,Math.PI*2); mCtx.fill();
+    } else if(o.type==='wood') {
+      mCtx.fillStyle = o.color;
+      mCtx.fillRect(-o.r,-o.r,o.r*2,o.r*2);
+      mCtx.strokeStyle = '#5a3f24'; mCtx.lineWidth=2; mCtx.strokeRect(-o.r,-o.r,o.r*2,o.r*2);
+    } else {
+      mCtx.fillStyle = 'rgba(120,120,120,0.25)';
+      mCtx.beginPath(); mCtx.arc(0,0,o.r,0,Math.PI*2); mCtx.fill();
+      mCtx.beginPath(); mCtx.arc(-10,-5,o.r*0.7,0,Math.PI*2); mCtx.fill();
+      mCtx.beginPath(); mCtx.arc(8,-8,o.r*0.6,0,Math.PI*2); mCtx.fill();
+    }
+    mCtx.restore();
+    
+    mCtx.fillStyle = '#333';
+    mCtx.font = '12px sans-serif';
+    mCtx.fillText(o.label, o.x - 40, o.y + o.r + 18);
+    const v = (o.weight / densities[medium]).toFixed(2);
+    mCtx.fillStyle = '#1d3a5f';
+    mCtx.fillText(`v ≈ ${v}`, o.x - 20, o.y + o.r + 34);
+  });
+}
+
+function animateMotion(ts) {
+  if(!startTime) startTime = ts;
+  const elapsed = (ts - startTime)/1000;
+  
+  drawMedium();
+  
+  let allDone = true;
+  objects.forEach(o => {
+    const v = o.weight / densities[medium] * 40; // scale
+    o.y += v * 0.016; // per frame approx
+    if(o.type==='smoke') {
+      if(o.y > 40) allDone = false;
+      else o.y = 40;
+    } else {
+      if(o.y < motionCanvas.height - 60) allDone = false;
+      else o.y = motionCanvas.height - 60;
+    }
+  });
+  
+  drawObjects();
+  
+  if(!allDone && animating) requestAnimationFrame(animateMotion);
+  else animating = false;
+}
+
+function resetMotion() {
+  objects[0].y = 60; objects[1].y = 60; objects[2].y = 240;
+  startTime = 0;
+  drawMedium(); drawObjects();
+}
+resetMotion();
+
+document.querySelectorAll('[data-medium]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-medium]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    medium = btn.dataset.medium;
+    resetMotion();
+  });
+});
+document.getElementById('dropBtn').addEventListener('click', () => {
+  resetMotion();
+  animating = true;
+  requestAnimationFrame(animateMotion);
+});
+
+// Projectile
+const pCanvas = document.getElementById('projectileCanvas');
+const pCtx = pCanvas.getContext('2d');
+let proj = null;
+
+function drawProjectileScene() {
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  // ground
+  pCtx.fillStyle = '#f0e9dc';
+  pCtx.fillRect(0, pCanvas.height-30, pCanvas.width, 30);
+  
+  // bow
+  pCtx.strokeStyle = '#8b5e34'; pCtx.lineWidth = 4;
+  pCtx.beginPath(); pCtx.arc(60, pCanvas.height-70, 35, -0.5, 0.5); pCtx.stroke();
+  
+  if(proj) {
+    // air currents behind
+    pCtx.strokeStyle = 'rgba(29,58,95,0.4)';
+    pCtx.lineWidth = 1.5;
+    for(let i=0;i<5;i++) {
+      const ax = proj.x - 20 - i*12;
+      const ay = proj.y + (Math.random()-0.5)*10;
+      pCtx.beginPath();
+      pCtx.moveTo(ax, ay);
+      pCtx.bezierCurveTo(ax-8, ay-6, ax-16, ay+6, ax-24, ay);
+      pCtx.stroke();
+      // arrowhead for air
+      pCtx.beginPath(); pCtx.moveTo(ax-2, ay-3); pCtx.lineTo(ax+3, ay); pCtx.lineTo(ax-2, ay+3); pCtx.stroke();
+    }
+    // arrow
+    pCtx.save();
+    pCtx.translate(proj.x, proj.y);
+    pCtx.fillStyle = '#5a3f24';
+    pCtx.fillRect(-25, -2, 50, 4);
+    pCtx.fillStyle = '#b65a3a';
+    pCtx.beginPath(); pCtx.moveTo(25,0); pCtx.lineTo(15,-6); pCtx.lineTo(15,6); pCtx.closePath(); pCtx.fill();
+    pCtx.strokeStyle = '#1d3a5f'; pCtx.beginPath(); pCtx.moveTo(-25,0); pCtx.lineTo(-30,-5); pCtx.moveTo(-25,0); pCtx.lineTo(-30,5); pCtx.stroke();
+    pCtx.restore();
+  } else {
+    pCtx.fillStyle = '#aaa'; pCtx.font = '16px Georgia'; pCtx.fillText('Click to launch — air pushes from behind', pCanvas.width/2 - 140, pCanvas.height/2);
+  }
+}
+drawProjectileScene();
+
+function launch() {
+  proj = {x:70, y:pCanvas.height-70, vx:9, vy:-0.2};
+  function step() {
+    if(!proj) return;
+    proj.x += proj.vx;
+    proj.y += proj.vy;
+    proj.vx *= 0.988; // air resistance
+    proj.vy += 0.04; // slight fall after impetus fades (Aristotle would say it stops then falls straight)
+    if(proj.vx < 0.5) proj.vx = 0;
+    
+    drawProjectileScene();
+    if(proj.x < pCanvas.width - 20 && proj.vx > 0) requestAnimationFrame(step);
+    else setTimeout(()=>{proj=null; drawProjectileScene();}, 800);
+  }
+  step();
+}
+pCanvas.addEventListener('click', launch);
+pCanvas.addEventListener('touchstart', e=>{e.preventDefault(); launch();});
+
+// Cosmos tooltip
+const tooltip = document.getElementById('cosmosTooltip');
+const cosmosData = {
+  'Moon': 'Boundary of change. Below: generation & corruption. Above: eternal.',
+  'Mercury': 'Swiftest planet, closest to Sun.',
+  'Venus': 'Morning and evening star.',
+  'Sun': 'Source of heat and light, moves in ecliptic.',
+  'Mars': 'Reddish wanderer.',
+  'Jupiter': 'King of planets.',
+  'Saturn': 'Slowest visible planet.',
+  'Fixed Stars': 'Perfection of circular motion, carried by outermost sphere.',
+};
+document.querySelectorAll('.sphere').forEach(g => {
+  const name = g.dataset.name;
+  g.addEventListener('mouseenter', e => {
+    tooltip.textContent = `${name}: ${cosmosData[name]}`;
+    tooltip.style.opacity = '1';
+  });
+  g.addEventListener('mousemove', e => {
+    tooltip.style.left = (e.pageX + 12) + 'px';
+    tooltip.style.top = (e.pageY - 10) + 'px';
+  });
+  g.addEventListener('mouseleave', () => tooltip.style.opacity = '0');
+});
+
+// Void slider
+const densitySlider = document.getElementById('densitySlider');
+const densityValue = document.getElementById('densityValue');
+const velocityValue = document.getElementById('velocityValue');
+const voidWarning = document.getElementById('voidWarning');
+
+function updateVoid() {
+  const d = parseFloat(densitySlider.value);
+  densityValue.textContent = d.toFixed(1);
+  const v = 10 / d;
+  velocityValue.textContent = `v ∝ ${v.toFixed(2)}`;
+  if(d < 1) {
+    voidWarning.style.display = 'block';
+  } else {
+    voidWarning.style.display = 'none';
+  }
+}
+densitySlider.addEventListener('input', updateVoid);
+updateVoid();
+
+// Resize canvases for crispness
+function resizeCanvas(c) {
+  const rect = c.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  c.width = rect.width * ratio;
+  c.height = rect.height * ratio;
+  c.getContext('2d').setTransform(ratio,0,0,ratio,0,0);
+}
+window.addEventListener('load', ()=>{
+  [motionCanvas, pCanvas].forEach(c=>{ c.style.height = (c===motionCanvas?300:180)+'px'; });
+  resetMotion(); drawProjectileScene();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xenophon's Anabasis: The March of the Ten Thousand</title>
+<style>
+:root{
+  --parchment:#f6f0d8;
+  --parchment-2:#ede4c3;
+  --ink:#221c12;
+  --red:#7a1c1c;
+  --red-dark:#5c1414;
+  --bronze:#a67c00;
+  --bronze-light:#c99a2e;
+  --shadow:0 10px 30px rgba(0,0,0,.15);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  color:var(--ink);
+  background-color:var(--parchment);
+  background-image:
+    radial-gradient(ellipse at top, rgba(255,255,255,.6), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  line-height:1.65;
+}
+h1,h2,h3{
+  font-family:Garamond,Georgia,"Times New Roman",serif;
+  font-weight:700;
+  color:var(--red-dark);
+  line-height:1.2;
+  letter-spacing:.2px;
+}
+h1{font-size:clamp(2rem,5vw,3.2rem);margin:.2em 0}
+h2{font-size:clamp(1.6rem,3.5vw,2.2rem);margin-top:2.5rem;border-bottom:3px double var(--bronze);padding-bottom:.3rem}
+h3{font-size:1.3rem;color:var(--red);margin:1.5rem 0 .5rem}
+p{margin:1rem 0}
+a{color:var(--red);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.hero{
+  position:relative;
+  padding:4rem 1.5rem 3rem;
+  text-align:center;
+  background:linear-gradient(180deg, var(--parchment-2), var(--parchment));
+  border-bottom:4px solid var(--bronze);
+  box-shadow:var(--shadow);
+}
+.hero::before{
+  content:"";
+  position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='800' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 150 Q200 100 400 150 T800 130' stroke='%23a67c00' stroke-opacity='.15' fill='none' stroke-width='3'/%3E%3C/svg%3E") center bottom no-repeat;
+  opacity:.5;
+}
+.kicker{
+  display:inline-block;
+  font-variant:small-caps;
+  letter-spacing:2px;
+  color:var(--bronze);
+  font-weight:600;
+}
+.subtitle{max-width:800px;margin:1rem auto 0;font-size:1.15rem;color:#3d3525}
+
+.note{
+  max-width:1050px;margin:1rem auto;padding:.8rem 1rem;
+  background:#fff8e1;border:1px solid var(--bronze-light);border-left:6px solid var(--bronze);
+  font-size:.95rem;border-radius:6px;
+}
+
+nav#toc{
+  position:sticky;top:0;z-index:50;
+  background:rgba(246,240,216,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--bronze-light);
+  overflow-x:auto;
+}
+nav#toc .inner{
+  max-width:1100px;margin:auto;display:flex;gap:.8rem;padding:.6rem 1rem;white-space:nowrap;
+}
+nav#toc a{
+  padding:.45rem .8rem;border-radius:999px;border:1px solid transparent;font-size:.9rem;font-weight:600;color:#4a3c22
+}
+nav#toc a:hover, nav#toc a.active{background:var(--red);color:#fff;border-color:var(--red-dark)}
+
+main{max-width:1050px;margin:0 auto;padding:1.5rem}
+section.card{
+  background:linear-gradient(180deg,#fffdf3, #fbf6e2);
+  border:1px solid #e0d5b3;
+  border-radius:14px;
+  padding:1.5rem clamp(1rem,3vw,2rem);
+  margin:2rem 0;
+  box-shadow:var(--shadow);
+}
+.grid{display:grid;gap:1.2rem}
+.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.three{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+.lead{font-size:1.15rem}
+
+.character-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem}
+.char{
+  background:#fff; border:1px solid #e5d9b7; border-radius:10px; padding:1rem; cursor:pointer; transition:.2s; text-align:center;
+}
+.char:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.1); border-color:var(--bronze)}
+.char .name{font-family:Garamond,serif;font-weight:700;color:var(--red-dark)}
+.char .role{font-size:.85rem;color:#6b5d41}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:1rem;z-index:100}
+.modal.open{display:flex}
+.modal .panel{background:#fffdf5;max-width:560px;border-radius:12px;padding:1.5rem;border:2px solid var(--bronze);box-shadow:var(--shadow)}
+
+.btn{
+  display:inline-block;background:var(--red);color:#fff;border:none;padding:.7rem 1.1rem;border-radius:8px;font-weight:600;cursor:pointer;transition:.2s;box-shadow:0 3px 0 var(--red-dark)
+}
+.btn:hover{transform:translateY(-1px);background:#8a2020}
+.btn.secondary{background:var(--bronze);box-shadow:0 3px 0 #7a5e00}
+.btn.ghost{background:transparent;color:var(--red);border:1px solid var(--red);box-shadow:none}
+
+.interactive{
+  background:#fff; border:1px dashed var(--bronze-light); border-radius:12px; padding:1rem; margin:1.2rem 0;
+}
+.map-wrap{position:relative}
+svg.route{width:100%;height:auto;display:block;background:linear-gradient(#e3f2fd,#f1f8e9);border-radius:8px;border:1px solid #c8b98f}
+.route-label{font-size:11px;fill:#4e342e;font-weight:600}
+.distance{font-variant-numeric:tabular-nums;font-weight:700;color:var(--red-dark)}
+
+canvas{width:100%;max-width:800px;height:auto;background:#f9f6ea;border:1px solid #d7c99f;border-radius:8px;display:block;margin:.5rem auto}
+
+.decision{display:flex;gap:.6rem;flex-wrap:wrap;margin:.8rem 0}
+.decision button{flex:1 1 160px}
+.answer{display:none;background:#fff9e6;border-left:4px solid var(--bronze);padding:1rem;border-radius:6px;margin-top:.8rem}
+.answer.show{display:block}
+
+.elev-controls{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+input[type=range]{accent-color:var(--red)}
+
+.theches{
+  position:relative;height:380px;border-radius:12px;overflow:hidden;background:linear-gradient(#87ceeb 0%, #b0e0f5 40%, #d7c99f 40%, #a09370 100%);border:1px solid #c8b98f;margin:1rem 0
+}
+.hill{
+  position:absolute;bottom:0;left:0;right:0;height:60%;background:#6b5b3a;clip-path:polygon(0 60%,15% 45%,30% 55%,45% 35%,60% 50%,75% 30%,90% 45%,100% 40%,100% 100%,0 100%);
+  transition:transform 1.2s ease;
+}
+.sea{
+  position:absolute;top:15%;left:5%;right:5%;height:30%;background:linear-gradient(#1e88e5,#0d47a1);opacity:0;transform:translateY(30px);transition:1s ease;border-radius:50% 50% 0 0;filter:blur(1px)
+}
+.soldiers{
+  position:absolute;bottom:35%;left:10%;display:flex;gap:8px;opacity:0;transform:translateY(20px);transition:1s .3s
+}
+.soldier{width:14px;height:28px;background:#2c2416;border-radius:3px;position:relative}
+.soldier::after{content:"";position:absolute;top:-8px;left:2px;width:10px;height:10px;background:#3e3220;border-radius:50%}
+.theches.revealed .sea{opacity:1;transform:translateY(0)}
+.theches.revealed .soldiers{opacity:1;transform:translateY(0)}
+.theches.revealed .hill{transform:translateY(10px)}
+.cry{
+  position:absolute;top:55%;width:100%;text-align:center;font-family:Garamond,serif;font-size:2.2rem;color:#fff;text-shadow:0 2px 8px #000;opacity:0;transition:.8s .8s
+}
+.theches.revealed .cry{opacity:1}
+
+.timeline{background:#fff;padding:1rem;border-radius:10px;border:1px solid #e0d5b3}
+.meter{height:14px;background:#eee;border-radius:7px;overflow:hidden;border:1px solid #ccc}
+.meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--bronze));width:70%;transition:.4s}
+
+.quotes{position:relative;background:#fffdf5;border:1px solid #e5d9b7;border-radius:10px;padding:1.5rem;min-height:180px}
+.quote{font-family:Garamond,serif;font-size:1.25rem;display:none}
+.quote.active{display:block;animation:fade .5s}
+.quote cite{display:block;margin-top:.6rem;font-size:.9rem;color:#6b5d41;font-style:normal}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+
+.footnotes{font-size:.9rem;color:#5a4f3a;border-top:1px solid #d8cba3;padding-top:1rem;margin-top:2rem}
+.footnotes ol{padding-left:1.2rem}
+
+footer{max-width:1050px;margin:3rem auto;padding:2rem 1rem;color:#6a5e46;text-align:center;font-size:.9rem}
+
+@media (max-width:700px){
+  nav#toc .inner{gap:.4rem}
+  .hero{padding:3rem 1rem}
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <span class="kicker">Xenophon • c. 370s BCE</span>
+  <h1>Xenophon's Anabasis: The March of the Ten Thousand</h1>
+  <p class="subtitle">An interactive guide to the most famous retreat in ancient history, from the plains of Babylon to the cry of "The sea! The sea!" on the Black Sea coast.</p>
+</header>
+
+<div class="note">Classroom tip: this is a single file. Press Ctrl + P or Cmd + P to print to PDF and keep all text and illustrations. Spelling note: the correct form is <strong>Xenophon</strong>, not "Xenvphone".</div>
+
+<nav id="toc" aria-label="Sections">
+  <div class="inner">
+    <a href="#intro">Intro</a>
+    <a href="#context">1 Context</a>
+    <a href="#marchup">2 March Up</a>
+    <a href="#cunaxa">3 Cunaxa</a>
+    <a href="#betrayal">4 Betrayal</a>
+    <a href="#retreat">5 Retreat</a>
+    <a href="#thalatta">6 Thalatta</a>
+    <a href="#coast">7 Coast</a>
+    <a href="#themes">8 Themes</a>
+    <a href="#why">9 Why It Matters</a>
+  </div>
+</nav>
+
+<main>
+<section id="intro" class="card">
+  <p class="lead">Xenophon of Athens, about 431 to 354 BCE, was a student of Socrates, a cavalry officer, an exile, and one of antiquity's clearest prose writers. His <em>Anabasis</em>, Greek for a march inland or up country, is a memoir written in the 370s BCE about events he lived through thirty years earlier. Though Xenophon writes about himself in the third person, as Xenophon the Athenian, the voice is unmistakably his own, practical, pious, and curious.</p>
+  <p>The book recounts the years 401 to 399 BCE. Cyrus the Younger, satrap of western Asia Minor and younger brother of the Persian King Artaxerxes II, recruited a large Greek mercenary force to help him seize the throne. The Greeks, later called the Ten Thousand, marched from Sardis on the Aegean coast all the way to central Mesopotamia. At Cunaxa near Babylon, Cyrus was killed. His cause collapsed in an afternoon, but his Greek soldiers were left deep inside the Persian Empire, unpaid, leaderless, and surrounded by hostile armies.</p>
+  <p>What follows is not a tragedy but a feat of endurance. Over the next eighteen months the Greeks fought their way north through the mountains of Kurdistan and the snows of Armenia, until from a ridge near Trapezus on the Black Sea they shouted the famous cry, Thalatta, thalatta, the sea, the sea. They then marched west along the coast to Byzantium, quarreling, plundering, and slowly disbanding. Xenophon turned a desperate retreat into a case study in leadership that would be read by Alexander, Julius Caesar, and generations of officers and students.</p>
+</section>
+
+<section id="context" class="card">
+  <h2>1. Context: Why Greeks Marched for a Persian Prince</h2>
+  <p>To understand why ten thousand Greeks would march for a Persian prince, we must start with the end of the Peloponnesian War in 404 BCE. Sparta had won, but only because Cyrus had supplied the Spartan fleet with Persian gold. Cyrus was ambitious, generous to his Greek friends, and he believed Greek heavy infantry could decide any battle in the East.</p>
+  <p>When their father Darius II died in 404, the throne passed to the elder son Artaxerxes II. Cyrus, then about twenty, was summoned to court and accused of plotting murder. His mother Parysatis saved him, and he returned to Sardis nursing a grievance. Over the next three years he quietly built an army. Officially he was gathering troops to suppress the wild Pisidian tribes in the Taurus mountains. In truth he was hiring the best unemployed soldiers in Greece, men left adrift after Sparta demobilized its war fleets.</p>
+  <p>Clearchus the Spartan exile, Proxenus the Boeotian friend of Xenophon, Menon the Thessalian, and others each raised regiments. At Sardis in spring 401 Cyrus mustered about 10,400 hoplites, armored spearmen, and about 2,500 light troops, peltasts, archers, and slingers. With his own Asian troops the total approached 20,000. Xenophon tells us the Greeks did not know the real objective until they were deep in Cilicia. Many protested at Tarsus, but Cyrus raised their pay and promised a daric and a half per month, and they followed.</p>
+  <p>The expedition was a gamble on two beliefs. Cyrus believed personal bravery and Greek discipline could overcome numbers. The Greeks believed Cyrus was the kind of paymaster they needed, open handed, respectful, and philhellene. Artaxerxes, for his part, commanded the resources of an empire stretching from Egypt to India, and he had the loyalty of satraps like Tissaphernes, Cyrus's old rival in Ionia. The collision was set for the plains of Babylonia.<sup>1</sup></p>
+
+  <div class="character-cards">
+    <div class="char" data-id="xen"><div class="name">Xenophon</div><div class="role">Athenian, student of Socrates</div></div>
+    <div class="char" data-id="cyrus"><div class="name">Cyrus the Younger</div><div class="role">Prince, satrap of Sardis</div></div>
+    <div class="char" data-id="art"><div class="name">Artaxerxes II</div><div class="role">Great King of Persia</div></div>
+    <div class="char" data-id="clear"><div class="name">Clearchus</div><div class="role">Spartan general</div></div>
+    <div class="char" data-id="tiss"><div class="name">Tissaphernes</div><div class="role">Persian satrap</div></div>
+  </div>
+</section>
+
+<section id="marchup" class="card">
+  <h2>2. Book I: The March Up (Anabasis Proper)</h2>
+  <div class="grid two">
+    <div>
+      <p>The march up, the anabasis proper, covers Anabasis Book 1, chapters 1 to 7. Cyrus led his army east from Sardis in March 401. The route followed the Royal Road through Lydia and Phrygia to Celaenae, then forced the narrow Cilician Gates, a defile where a handful of men could stop an army. Syennesis, king of Cilicia, let them pass. At Tarsus the Greeks mutinied, Clearchus barely calmed them by pretending to share their anger at Cyrus.</p>
+      <p>From Tarsus they crossed into Syria, skirted the Gulf of Issus, where Alexander would later defeat Darius III, and reached Thapsacus on the Euphrates in July. There Cyrus finally revealed his purpose, to march against the Great King at Babylon. Again pay persuaded the men. They crossed the river on foot, the water reaching their chests, an omen of a dry season and a vulnerable empire.</p>
+      <p>The pace was grueling, about fifteen to twenty miles a day across arid plains. Supplies came from friendly cities, from forced markets, and from the army's own herds. Cyrus maintained strict discipline, riding among the Greeks, learning names, and promising land and silver. Tissaphernes had ridden ahead to warn Artaxerxes, who gathered a vast host behind the trench and wall at the entrance to Babylonia.</p>
+    </div>
+    <div>
+      <div class="interactive map-wrap">
+        <svg class="route" viewBox="0 0 1000 420" aria-label="Map of Cyrus march">
+          <!-- base -->
+          <path id="routePath" d="M70,300 C160,290 190,310 260,285 S340,260 380,305 S460,295 520,300 S650,265 730,275 S830,295 920,330" fill="none" stroke="#7a1c1c" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8" opacity=".8"/>
+          <g id="stops"></g>
+          <circle id="marchDot" r="7" fill="#a67c00" stroke="#5c3d00" stroke-width="2" cx="70" cy="300"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.6rem;flex-wrap:wrap;gap:.5rem">
+          <button class="btn" id="playMarch">Animate March Up</button>
+          <div>Distance marched: <span class="distance" id="dist">0</span> / 1,500 miles</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p>Cyrus bypassed the defenses by a feint, and on a hot September morning near the village of Cunaxa, about forty miles north of Babylon, scouts reported the royal army approaching. The Greeks formed on the right beside the river. Cyrus placed himself in the center with his 600 Persian cavalry, wearing a Greek cuirass and determined to kill his brother with his own hand. The stage was set for a battle that would make the Greeks tactically victorious and strategically stranded.<sup>2</sup></p>
+</section>
+
+<section id="cunaxa" class="card">
+  <h2>3. Book I climax: Battle of Cunaxa (September 401 BCE)</h2>
+  <p>Anabasis 1.8 describes Cunaxa with the clarity of an eyewitness. Artaxerxes' army approached slowly, a dense mass of infantry with scythed chariots in front. The Greeks, on the extreme right, sang the paean and advanced at a deliberate pace, then charged the last hundred yards. The Persian left broke before contact, terrified by the flashing bronze and the shouted eleleu. The Greeks pursued, killing many.</p>
+  <p>In the center Cyrus saw his brother under a royal standard. With his six hundred horsemen he charged through the Persian line, killed Artagerses, commander of the guard, and struck at Artaxerxes himself. Xenophon reports that Cyrus wounded the king but was struck under the eye with a javelin and fell dead. His head and right hand were cut off.</p>
+  <p>With Cyrus dead, his Asian troops fled. The Greeks returned from pursuit to find their camp plundered but their phalanx intact. They had not lost a man in the main fight, yet they had lost the war. Tissaphernes, now in command, offered a truce and promised provisions for a return home. The Greeks had won the field at Cunaxa but stood alone, a thousand miles from the sea, in the heart of a hostile empire.</p>
+  <p>The battle proved two enduring lessons. First, Greek hoplite discipline could shatter larger levies. Second, without a legitimate cause or cavalry support, infantry alone could not hold an empire. Alexander would remember both.<sup>3</sup></p>
+
+  <div class="interactive">
+    <canvas id="cunaxaCanvas" width="800" height="340" aria-label="Battle of Cunaxa diagram"></canvas>
+    <div style="text-align:center"><button class="btn secondary" id="playCunaxa">Play Cunaxa</button></div>
+    <p style="font-size:.9rem;text-align:center;color:#5a4f3a">Gold squares, Greeks on right. Red blocks, Persians. Gold dot, Cyrus charges center.</p>
+  </div>
+</section>
+
+<section id="betrayal" class="card">
+  <h2>4. Books II–III: Betrayal and Leadership Vacuum</h2>
+  <p>Books 2 and 3 mark the turn from adventure to survival. After Cunaxa, Clearchus negotiated with Tissaphernes. The Persians needed the Greeks gone but feared them. For twenty days the armies marched north together along the Tigris, tense and suspicious. Then Tissaphernes invited the Greek generals and captains to a conference. Clearchus, Proxenus, Menon, Agias, and Socrates, not the philosopher, went with about twenty officers. At a signal they were seized. Clearchus and the generals were sent to Artaxerxes and executed. The captains were killed on the spot.</p>
+  <p>The army camped near the Greater Zab river was now leaderless, without guides, without cavalry, and deep in enemy territory. Xenophon records the despair, men lying in their cloaks, refusing food, longing for home. In this vacuum he steps forward for the first time as a leader.</p>
+  <p>He describes a dream in which lightning struck his father's house, a sign from Zeus. He rose, gathered Proxenus's former officers, and argued that surrender meant slavery or death. He reminded them of their oaths, of the gods, and of Greek resourcefulness. He proposed electing new generals immediately. The men chose Timasion, Xanthicles, Cleanor, Philesius, and Xenophon himself for the rear guard.</p>
+  <p>This moment in Anabasis 3.1 is the moral core of the book. Xenophon articulates principles that still shape military doctrine. Lead from the front, but consult the ranks. Share hardship, he walked while others rode. Maintain piety, sacrifice before every risk. Speak plainly, use rhetoric not to deceive but to clarify. And adapt, create new units as needed. Over the next weeks he would form a corps of Rhodian slingers to outrange Persian archers, and a small cavalry troop from captured horses.</p>
+  
+  <div class="interactive">
+    <h3>Decision: What would you do after the generals are murdered?</h3>
+    <div class="decision">
+      <button class="btn ghost" data-choice="surrender">Surrender to the King</button>
+      <button class="btn ghost" data-choice="negotiate">Negotiate with Tissaphernes</button>
+      <button class="btn ghost" data-choice="march">Elect new leaders, march north</button>
+    </div>
+    <div id="ans-surrender" class="answer"><strong>Surrender:</strong> Xenophon warns this means disarmament, then slavery in Persian estates or execution as rebels. The Greeks remembered how Persians treated defeated mercenaries. Historically, surrender was a death sentence.</div>
+    <div id="ans-negotiate" class="answer"><strong>Negotiate:</strong> Clearchus tried this and was betrayed. Tissaphernes wanted the Greeks dispersed, not escorted. Trust was broken at the Zab.</div>
+    <div id="ans-march" class="answer"><strong>March north:</strong> Xenophon's choice. Choose immediate leadership, keep arms, aim for the Black Sea where Greek cities could provide ships. It required discipline and shared suffering, and it worked. <em>Anabasis 3.1.38–47</em></div>
+  </div>
+</section>
+
+<section id="retreat" class="card">
+  <h2>5. Books III–IV: The Retreat Through Kurdistan and Armenia</h2>
+  <p>Books 3 and 4 describe one of the hardest winter marches in recorded history. From the Zab the Greeks moved up the Tigris into the mountains of the Carduchians, ancestors of the Kurds, who had never submitted to Persia. For seven days they fought uphill against rolling stones and arrows, using storming parties at night and covering fire by day. Xenophon, commanding the rear, learned to keep a mobile reserve, and to divide the army into independent columns that could support each other.</p>
+  <p>Emerging into Armenia, they made a treaty with the satrap Tiribazus, then broke it when he attacked. Winter closed in. Near the sources of the Euphrates the snow lay six feet deep. Men suffered frostbite, snow blindness, and hunger. Xenophon records men refusing to rise, and his constant encouragement, rubbing them with oil, sharing firewood, forbidding selfishness.</p>
+  <p>A famous dilemma arose at a mountain village. The army needed shelter but the villagers had fled to a hill fort. Should they burn the houses to deny shelter to the enemy, or preserve them for their own men. Xenophon argued for restraint, promising safety to the villagers in exchange for guides. The policy of calculated clemency saved lives and won provisions.</p>
+  <p>By January 400 the army had crossed the high plateau. Xenophon improvised logistics, appointing officers to count fires, to organize baggage, to enforce night watches. He created a corps of slingers using lead bullets, which outranged Persian bows, and he trained fifty horsemen to protect the flanks. These reforms, born of necessity, anticipated combined arms warfare that Philip and Alexander would perfect a generation later.<sup>4</sup></p>
+
+  <div class="interactive">
+    <h3>Elevation and Cold</h3>
+    <canvas id="elevCanvas" width="800" height="260"></canvas>
+    <div class="elev-controls">
+      <label for="temp">Simulated temperature:</label>
+      <input type="range" id="temp" min="-20" max="5" value="-8" step="1">
+      <span id="tempOut" style="font-weight:700">-8 °C</span>
+      <span id="tempNote" style="color:#5a3d1a"></span>
+    </div>
+  </div>
+</section>
+
+<section id="thalatta" class="card">
+  <h2>6. The Cry: Thalatta! Thalatta! (Book IV.7)</h2>
+  <p>The emotional climax arrives in Anabasis 4.7. After months of snow, the army approached a mountain the locals called Theches, near the Greek colony of Trapezus on the Black Sea. The vanguard climbed the summit and began shouting. Xenophon, in the rear, thought it was an attack and rode forward. As he reached the crest he heard the cry spreading from rank to rank.</p>
+  <p style="font-family:Garamond,serif;font-size:1.4rem;text-align:center;color:var(--red-dark)">Thalatta, thalatta, the sea, the sea.</p>
+  <p>Men wept, embraced, and built a cairn of stones, piling captured shields and skins as an offering to the gods. For Greeks raised on the Aegean, the sea meant safety, communication, and home. From Trapezus ships could carry them west. They were not home yet, they still faced hostile tribes and greedy Greek cities along the coast, but the worst of the unknown was over.</p>
+  
+  <div class="theches" id="thechesScene" aria-label="Mount Theches animation">
+    <div class="sea"></div>
+    <div class="hill"></div>
+    <div class="soldiers" aria-hidden="true">
+      <div class="soldier"></div><div class="soldier"></div><div class="soldier"></div><div class="soldier"></div><div class="soldier"></div>
+    </div>
+    <div class="cry">θάλαττα θάλαττα</div>
+  </div>
+  <p>Xenophon deliberately stages the scene. The advance guard sees first, the shouting spreads, the rear hurries, then all share the vision. It is a model of morale, a shared visual goal after long suffering. The Greek words, θάλαττα θάλαττα, in the Attic dialect θάλασσα, have echoed in classrooms for two thousand years because they compress relief, identity, and hope into two repeated syllables. The date was probably February in 400 BCE. The army had marched about fifteen hundred miles from Sardis.<sup>5</sup></p>
+</section>
+
+<section id="coast" class="card">
+  <h2>7. Books V–VII: The March Down (Parabasis) and Disintegration</h2>
+  <p>The rest of the story, Books 5 through 7, is sometimes called the parabasis, the march alongside the sea, and it is messier than the heroic retreat. At Trapezus the Greeks sacrificed and held games, then moved west by land and sea. They extorted supplies from the Macronians, fought the Colchians, and at Cerasus held a review. Xenophon counts the survivors, about 8,600 hoplites from the original 10,400, proof of remarkable cohesion given the losses.</p>
+  <p>Factionalism returned once safety seemed near. At Cotyora some men proposed founding a new city on the Black Sea. Xenophon considered it but was accused of tyranny. Cleared by a vote, he led the army to Sinope, then by ship to Heraclea and to Calpe Harbor. There they were trapped by hostile Bithynians until a disciplined breakout saved them.</p>
+  <p>At Chrysopolis opposite Byzantium, the Spartan admiral Anaxibius tried to use them, then abandon them. The men, hungry and angry, nearly sacked Byzantium. Xenophon restrained them, arguing that lawlessness would make all Greeks their enemies. Finally they entered the service of Seuthes, a Thracian prince, for winter wages. Seuthes cheated them, and Xenophon again had to argue for pay.</p>
+  <p>In spring 399 the remnants, now under Spartan command, were incorporated into the army of Thibron fighting Persia in Asia Minor. Xenophon left for home, later exiled from Athens for serving Sparta, and settled at Scillus near Olympia. He wrote the Anabasis years later, perhaps to explain his actions and to preserve a manual of leadership under extreme uncertainty.<sup>6</sup></p>
+
+  <div class="interactive timeline">
+    <h3>Timeline 401 – 399 BCE</h3>
+    <input type="range" id="timeSlider" min="0" max="7" value="0" step="1" style="width:100%">
+    <div style="display:flex;justify-content:space-between;font-size:.85rem;color:#6b5d41"><span>Sep 401</span><span>Feb 400</span><span>Spring 399</span></div>
+    <p id="timeEvent" style="margin:.8rem 0 0;font-weight:600"></p>
+    <p>Estimated strength: <span id="timeStrength"></span></p>
+    <div class="meter" aria-label="morale"><span id="moraleBar"></span></div>
+  </div>
+</section>
+
+<section id="themes" class="card">
+  <h2>8. Themes and Techniques</h2>
+  <p>Xenophon writes in the third person, calling himself Xenophon rather than I, a device that gives the narrative the objectivity of history while retaining memoir immediacy. Scholars call it the first true military memoir in the West. His style is simple, deliberate, and full of direct speech. More than half the book is speeches, because for Xenophon leadership is persuasion.</p>
+  <div class="grid two">
+    <div>
+      <p>Several Socratic themes run throughout. First, virtue is practical. Courage without forethought is useless, thus Xenophon always sacrifices to the gods and scouts the ground. Second, the leader must earn obedience through competence and shared toil. Xenophon carries logs, wades streams, and refuses luxuries. Third, unity overcomes stasis, civil strife, the plague of Greek cities. The Ten Thousand are a polis on the march, holding assemblies, electing officers, and voting on policy.</p>
+      <p>Xenophon is also an ethnographer. He describes the strange clothes of the Mossynoecians, the beekeeping of the Macronians, the tunnel villages of Armenia where families lived underground with livestock to survive winter. These details made the Anabasis a geography textbook for Alexander, who carried a copy on his own march into Persia seventy years later.</p>
+    </div>
+    <div>
+      <div class="quotes" id="quotes">
+        <div class="quote active">“The sea! The sea!”<cite>— Anabasis 4.7.24, the shout from Mount Theches</cite></div>
+        <div class="quote">“I had a dream. In the night, amid my distress, Zeus sent a thunderbolt...”<cite>— Anabasis 3.1.11, Xenophon addresses the officers</cite></div>
+        <div class="quote">“Obedience is the greatest security in battle.”<cite>— Clearchus to his men, Anabasis 1.3.9</cite></div>
+        <div class="quote">“Wherever we go, we shall have our country with us.”<cite>— Xenophon, encouraging the army after Cunaxa, 3.2.26</cite></div>
+        <div class="quote">“It seemed best to burn the wagons and tents, so that the beasts should not be our masters.”<cite>— Anabasis 3.3.1, lightening the column</cite></div>
+      </div>
+      <div style="text-align:center;margin-top:.6rem"><button class="btn ghost" id="prevQuote">Prev</button> <button class="btn ghost" id="nextQuote">Next</button></div>
+    </div>
+  </div>
+  <p>Militarily, the book shows the birth of combined arms. Lacking cavalry, Xenophon creates it. Outranged by archers, he recruits slingers. Facing mountains, he develops light infantry. Julius Caesar studied these improvisations, and modern infantry manuals still cite the rear guard actions in Carduchia.</p>
+  <p>The moral ambiguity remains. Were they mercenaries or liberators, victims or plunderers. Xenophon does not hide their pillaging. He presents leadership not as idealism but as the art of keeping free men together when fear and hunger pull them apart.</p>
+</section>
+
+<section id="why" class="card">
+  <h2>9. Why It Matters</h2>
+  <p>The March of the Ten Thousand endured because it answers a timeless question, what do you do when your plan collapses. Cyrus lost, the generals were dead, the map was wrong, winter was coming, and home was a thousand miles away across hostile mountains. Xenophon's answer was disciplined initiative, share the facts, propose a feasible goal, the sea, and keep moving.</p>
+  <p>Militarily, the Anabasis demonstrated that a small professional force could penetrate the Persian Empire and survive. Alexander explicitly modeled his invasion on that precedent. Roman generals read Xenophon in Greek to learn rearguard tactics. In the 19th century British officers in Afghanistan carried translations, and in the 20th century the book became required reading at military academies for its lessons in morale.</p>
+  <p>Culturally, the text has been a schoolbook for two millennia because its Greek is clear and its story is gripping. It shaped the Western idea of the East as both wealthy and vulnerable. It gave us the enduring image of soldiers cresting a hill to see salvation.</p>
+  <p>For readers today, the value is human rather than purely strategic. Xenophon shows that leadership is not rank but behavior, speaking truth in council, walking in the snow when you could ride, honoring the gods and the fallen. The Ten Thousand were not saints, they quarreled and stole, but they endured because enough of them chose common purpose over panic.</p>
+  <p>Their cry still resonates because every person at some point faces a long march without a map. Thalatta, thalatta reminds us that perseverance can bring even a battered company within sight of home.</p>
+
+  <div class="footnotes">
+    <strong>Key passages</strong>
+    <ol>
+      <li>Context and recruitment: Anabasis 1.1–1.4</li>
+      <li>March up and Tarsus mutiny: 1.2–1.5</li>
+      <li>Battle of Cunaxa: 1.8</li>
+      <li>Seizure of generals and Xenophon's dream: 2.5, 3.1</li>
+      <li>Carduchians and Armenia snow: 3.5, 4.3–4.5</li>
+      <li>Thalatta moment: 4.7.21–25</li>
+      <li>Coastal quarrels to Thrace: 5.1–7.7</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer>
+  Interactive guide designed with classical Greek aesthetics. Text paraphrases Xenophon, not a full translation. For study, pair with a modern translation, for example Brownson or Waterfield.
+</footer>
+
+<div class="modal" id="charModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="panel">
+    <h3 id="modalTitle"></h3>
+    <p id="modalBody"></p>
+    <div style="text-align:right"><button class="btn" id="closeModal">Close</button></div>
+  </div>
+</div>
+
+<script>
+/* Sticky nav active */
+const sections = [...document.querySelectorAll('main section[id]')];
+const navLinks = [...document.querySelectorAll('#toc a')];
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(a=>a.classList.toggle('active', a.getAttribute('href')==='#'+e.target.id));
+    }
+  })
+},{rootMargin:'-40% 0px -55% 0px', threshold:0});
+sections.forEach(s=>obs.observe(s));
+
+/* Character cards */
+const chars = {
+  xen:{t:'Xenophon (c. 431–354)',b:'Athenian aristocrat and student of Socrates. Joined expedition at invitation of Proxenus, not as general but as volunteer. After the generals were killed he was elected to lead the rear guard. He emphasizes piety, clear speech, and sharing hardship.'},
+  cyrus:{t:'Cyrus the Younger',b:'Younger son of Darius II, satrap at Sardis. Funded Sparta in the Peloponnesian War. Charismatic, philhellene, and brave to a fault. Killed at Cunaxa while trying to kill his brother personally. Anabasis 1.8.26–29.'},
+  art:{t:'Artaxerxes II Mnemon',b:'Great King from 404 to 358. Faced revolts but held the empire together. At Cunaxa he relied on numbers and the loyalty of Tissaphernes. Later had the captured Greek generals executed.'},
+  clear:{t:'Clearchus of Sparta',b:'Exiled Spartan harmost, stern disciplinarian. Commanded the Greek right at Cunaxa. Trusted Tissaphernes after the battle and paid with his life. Xenophon admires his military skill while noting his harshness.'},
+  tiss:{t:'Tissaphernes',b:'Satrap of Caria, rival of Cyrus. Warned Artaxerxes, commanded royal troops at Cunaxa, then negotiated the truce. Lured the Greek generals to his tent and arrested them, a famous act of betrayal.'}
+};
+document.querySelectorAll('.char').forEach(c=>{
+  c.addEventListener('click',()=>{
+    const d = chars[c.dataset.id];
+    document.getElementById('modalTitle').textContent = d.t;
+    document.getElementById('modalBody').textContent = d.b;
+    document.getElementById('charModal').classList.add('open');
+  })
+});
+document.getElementById('closeModal').onclick=()=>document.getElementById('charModal').classList.remove('open');
+document.getElementById('charModal').addEventListener('click',e=>{if(e.target.id==='charModal')e.currentTarget.classList.remove('open')});
+
+/* Map animation */
+const stops = [
+  {x:70,y:300,n:'Sardis'},
+  {x:150,y:295,n:'Sardis ->'},
+  {x:260,y:285,n:'Celaenae'},
+  {x:330,y:270,n:'Iconium'},
+  {x:380,y:305,n:'Cilician Gates'},
+  {x:420,y:315,n:'Tarsus'},
+  {x:520,y:300,n:'Issus'},
+  {x:620,y:280,n:'Thapsacus'},
+  {x:730,y:275,n:'Euphrates'},
+  {x:810,y:292,n:'Corsote'},
+  {x:870,y:310,n:'Sitace'},
+  {x:920,y:330,n:'Cunaxa'}
+];
+const stopsG = document.getElementById('stops');
+stops.forEach((s,i)=>{
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',s.x); c.setAttribute('cy',s.y); c.setAttribute('r',i===0||i===stops.length-1?5:3);
+  c.setAttribute('fill',i===0?'#2e7d32':i===stops.length-1?'#7a1c1c':'#a67c00');
+  stopsG.appendChild(c);
+  const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',s.x); t.setAttribute('y',s.y-10); t.setAttribute('text-anchor','middle'); t.classList.add('route-label'); t.textContent=s.n;
+  stopsG.appendChild(t);
+});
+const path = document.getElementById('routePath');
+const dot = document.getElementById('marchDot');
+const distEl = document.getElementById('dist');
+let len = path.getTotalLength();
+document.getElementById('playMarch').addEventListener('click',()=>{
+  let start=null; const dur=8000;
+  function anim(ts){
+    if(!start) start=ts;
+    const p = Math.min((ts-start)/dur,1);
+    const pt = path.getPointAtLength(p*len);
+    dot.setAttribute('cx',pt.x); dot.setAttribute('cy',pt.y);
+    distEl.textContent = Math.round(p*1500).toLocaleString();
+    if(p<1) requestAnimationFrame(anim);
+  }
+  requestAnimationFrame(anim);
+});
+
+/* Cunaxa battle canvas */
+const bc = document.getElementById('cunaxaCanvas');
+const bctx = bc.getContext('2d');
+function drawBattle(t=0){
+  bctx.clearRect(0,0,800,340);
+  // ground
+  bctx.fillStyle='#e8dfc3'; bctx.fillRect(0,0,800,340);
+  bctx.fillStyle='#bca97a'; bctx.fillRect(0,260,800,80); // river bank
+  bctx.fillStyle='#8ec0f0'; bctx.fillRect(0,300,800,40); // euphrates
+  // Persians left
+  bctx.fillStyle='#7a1c1c';
+  for(let i=0;i<12;i++){ for(let j=0;j<5;j++){ bctx.fillRect(80+i*28 - t*60, 60+j*28, 18,18)}}
+  // Greeks right
+  bctx.fillStyle='#a67c00';
+  const greekX = 560 - t*100;
+  for(let i=0;i<8;i++){ for(let j=0;j<6;j++){ bctx.fillRect(greekX + i*22, 70+j*22, 16,16)}}
+  // Cyrus
+  bctx.beginPath(); bctx.arc(380 + t*120, 150 - (t>0.5?(t-0.5)*80:0), 8,0,Math.PI*2); bctx.fillStyle='#d4af37'; bctx.fill();
+  bctx.fillStyle='#222'; bctx.font='12px sans-serif'; bctx.fillText('Greeks', greekX, 50); bctx.fillText('Persians', 80,50); bctx.fillText('Cyrus', 370,130)
+}
+drawBattle();
+document.getElementById('playCunaxa').addEventListener('click',()=>{
+  let start=null; const dur=3500;
+  function a(ts){ if(!start) start=ts; const p=Math.min((ts-start)/dur,1); drawBattle(p); if(p<1) requestAnimationFrame(a); else setTimeout(()=>drawBattle(0),800) }
+  requestAnimationFrame(a);
+});
+
+/* Decision tree */
+document.querySelectorAll('.decision button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.answer').forEach(a=>a.classList.remove('show'));
+    document.getElementById('ans-'+b.dataset.choice).classList.add('show');
+  })
+});
+
+/* Elevation */
+const ec = document.getElementById('elevCanvas'); const ectx = ec.getContext('2d');
+const elevData = [
+  {d:0,e:200,l:'Cunaxa'},
+  {d:150,e:300,l:'Zab'},
+  {d:300,e:800,l:'Carduchians'},
+  {d:500,e:1500,l:'Armenia foothills'},
+  {d:700,e:2100,l:'Plateau'},
+  {d:850,e:2400,l:'Snow pass'},
+  {d:1000,e:1200,l:'Gymnias'},
+  {d:1150,e:0,l:'Trapezus'}
+];
+function drawElev(){
+  ectx.clearRect(0,0,800,260);
+  ectx.fillStyle='#f5f0dd'; ectx.fillRect(0,0,800,260);
+  ectx.beginPath(); ectx.moveTo(40,220);
+  elevData.forEach(p=>{ const x=40 + p.d/1150*720; const y=220 - p.e/2500*180; ectx.lineTo(x,y) });
+  ectx.lineTo(760,220); ectx.closePath(); ectx.fillStyle='#d2c29a'; ectx.fill();
+  ectx.strokeStyle='#7a1c1c'; ectx.lineWidth=3; ectx.beginPath();
+  elevData.forEach((p,i)=>{ const x=40 + p.d/1150*720; const y=220 - p.e/2500*180; if(i===0) ectx.moveTo(x,y); else ectx.lineTo(x,y) }); ectx.stroke();
+  ectx.fillStyle='#5a4a2a'; ectx.font='11px sans-serif';
+  elevData.forEach(p=>{ const x=40 + p.d/1150*720; const y=220 - p.e/2500*180; ectx.fillText(p.l, x-20, y-6) })
+}
+drawElev();
+const temp = document.getElementById('temp'), tempOut=document.getElementById('tempOut'), tempNote=document.getElementById('tempNote');
+function updateTemp(){
+  tempOut.textContent = temp.value + ' °C';
+  const v=+temp.value;
+  let note = v>0?'Mud, rain': v>-5?'Cold, frost at night': v>-12?'Severe, frostbite risk, men collapse':'Deadly, snow blindness, many die';
+  tempNote.textContent = ' – ' + note;
+}
+temp.addEventListener('input',updateTemp); updateTemp();
+
+/* Thalatta scroll animation + sound */
+const theches = document.getElementById('thechesScene');
+let played=false;
+const io = new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){
+    theches.classList.add('revealed');
+    if(!played){
+      played=true;
+      // simple cheer with WebAudio
+      try{
+        const ac = new (window.AudioContext||window.webkitAudioContext)();
+        const now = ac.currentTime;
+        for(let i=0;i<3;i++){
+          const o = ac.createOscillator(); const g=ac.createGain();
+          o.type='triangle'; o.frequency.setValueAtTime(300+i*20, now+i*.3);
+          o.frequency.exponentialRampToValueAtTime(600, now+i*.3+.4);
+          g.gain.setValueAtTime(.0001, now+i*.3); g.gain.exponentialRampToValueAtTime(.2, now+i*.3+.05); g.gain.exponentialRampToValueAtTime(.0001, now+i*.3+.5);
+          o.connect(g).connect(ac.destination); o.start(now+i*.3); o.stop(now+i*.3+.6);
+        }
+      }catch(e){}
+    }
+  }
+},{threshold:.5});
+io.observe(theches);
+
+/* Timeline */
+const timeData=[
+  {e:'Sep 401 – Cunaxa, Cyrus falls', s:'~12,900', m:85},
+  {e:'Oct 401 – Generals murdered at Zab', s:'~12,500', m:40},
+  {e:'Nov 401 – Fight through Carduchians', s:'~11,800', m:55},
+  {e:'Dec 400 – Armenia snow, starvation', s:'~10,600', m:35},
+  {e:'Feb 400 – Mount Theches, Thalatta', s:'~9,800', m:90},
+  {e:'Summer 400 – Cotyora, near mutiny', s:'~9,200', m:60},
+  {e:'Winter 400 – Service under Seuthes in Thrace', s:'~8,800', m:50},
+  {e:'Spring 399 – Absorbed by Spartans at Pergamon', s:'~8,600', m:70},
+];
+const slider = document.getElementById('timeSlider'), timeEvent=document.getElementById('timeEvent'), timeStrength=document.getElementById('timeStrength'), moraleBar=document.getElementById('moraleBar');
+function updateTime(){ const d=timeData[+slider.value]; timeEvent.textContent=d.e; timeStrength.textContent=d.s; moraleBar.style.width=d.m+'%';}
+slider.addEventListener('input',updateTime); updateTime();
+
+/* Quotes carousel */
+const quotes=[...document.querySelectorAll('.quote')]; let qi=0;
+function showQ(i){ quotes.forEach((q,idx)=>q.classList.toggle('active',idx===i)) }
+document.getElementById('nextQuote').onclick=()=>{ qi=(qi+1)%quotes.length; showQ(qi) };
+document.getElementById('prevQuote').onclick=()=>{ qi=(qi-1+quotes.length)%quotes.length; showQ(qi) };
+setInterval(()=>{ qi=(qi+1)%quotes.length; showQ(qi)},7000);
+</script>
+</body>
+</html>

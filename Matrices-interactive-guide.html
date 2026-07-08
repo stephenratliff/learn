@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrices — Complete Interactive Guide</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --panel: #111827;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #38bdf8;
+  --accent2: #a78bfa;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(180deg, #0b1023, #0f172a 30%);
+  color: var(--text);
+  line-height: 1.6;
+}
+header {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  background: radial-gradient(800px 400px at 50% -100px, rgba(56,189,248,0.25), transparent);
+}
+h1 { font-size: 2.4rem; margin: 0; letter-spacing: 0.3px; }
+h2 { color: var(--accent); margin-top: 2.5rem; border-bottom: 1px solid #1f2937; padding-bottom: 0.4rem; }
+h3 { color: var(--accent2); margin-top: 1.8rem; }
+main { max-width: 1000px; margin: 0 auto; padding: 1.5rem; }
+section { background: rgba(17,24,39,0.6); border: 1px solid #1f2937; border-radius: 16px; padding: 1.5rem; margin: 1.5rem 0; backdrop-filter: blur(6px); }
+code, pre { background: #0b1220; color: #d1fae5; border-radius: 8px; }
+code { padding: 0.15rem 0.4rem; }
+pre { padding: 1rem; overflow-x: auto; border: 1px solid #1e293b; }
+.grid { display: grid; gap: 1rem; }
+.two { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.card { background: #0b1220; border: 1px solid #1f2937; border-radius: 12px; padding: 1rem; }
+input[type="number"] { width: 4.2rem; padding: 0.4rem; background: #0f172a; color: var(--text); border: 1px solid #334155; border-radius: 6px; text-align: center; }
+button { background: var(--accent); color: #001018; border: none; padding: 0.6rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+button:hover { filter: brightness(1.1); }
+.muted { color: var(--muted); }
+.matrix { display: inline-grid; gap: 4px; margin: 0.5rem; }
+.matrix input { width: 3.5rem; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { border: 1px solid #334155; padding: 0.6rem; text-align: left; }
+th { background: #0b1220; color: var(--accent); }
+.kbd { font-family: ui-monospace, monospace; background: #111827; padding: 0.1rem 0.35rem; border-radius: 4px; border: 1px solid #374151; }
+footer { text-align: center; color: var(--muted); padding: 2rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Matrices in Depth</h1>
+  <p class="muted">Theory, properties, interactive calculators, and GNU Octave lab</p>
+</header>
+<main>
+
+<section id="what">
+<h2>1. What is a matrix</h2>
+<p>A matrix is a rectangular array of numbers arranged in rows and columns. We write an $m 	imes n$ matrix $A$ as:</p>
+<p>$$A = egin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \ a_{21} & a_{22} & \cdots & a_{2n} \ dots & dots & \ddots & dots \ a_{m1} & a_{m2} & \cdots & a_{mn} \end{bmatrix}$$</p>
+<p>where $a_{ij}$ is the entry in row $i$, column $j$. Matrices encode linear transformations, systems of equations, data tables, graphs, and more.</p>
+<h3>Core vocabulary</h3>
+<ul>
+  <li><strong>Dimension</strong>: $m$ rows by $n$ columns.</li>
+  <li><strong>Square matrix</strong>: $m = n$.</li>
+  <li><strong>Vector</strong>: an $m 	imes 1$ column or $1 	imes n$ row matrix.</li>
+  <li><strong>Equality</strong>: $A = B$ iff same size and $a_{ij}=b_{ij}$ for all $i,j$.</li>
+</ul>
+</section>
+
+<section id="types">
+<h2>2. Important types</h2>
+<table>
+<tr><th>Type</th><th>Definition</th><th>Notation</th></tr>
+<tr><td>Zero</td><td>All entries 0</td><td>$0_{m 	imes n}$</td></tr>
+<tr><td>Identity</td><td>1s on diagonal, 0s elsewhere</td><td>$I_n$</td></tr>
+<tr><td>Diagonal</td><td>Nonzero only on $a_{ii}$</td><td>$\operatorname{diag}(d_1,\dots,d_n)$</td></tr>
+<tr><td>Upper triangular</td><td>$a_{ij}=0$ for $i>j$</td><td></td></tr>
+<tr><td>Lower triangular</td><td>$a_{ij}=0$ for $i<j$</td><td></td></tr>
+<tr><td>Symmetric</td><td>$A^T = A$</td><td></td></tr>
+<tr><td>Skew-symmetric</td><td>$A^T = -A$</td><td></td></tr>
+<tr><td>Orthogonal</td><td>$Q^T Q = I$</td><td>columns are orthonormal</td></tr>
+<tr><td>Idempotent</td><td>$A^2 = A$</td><td>projectors</td></tr>
+<tr><td>Invertible</td><td>Exists $A^{-1}$ with $AA^{-1}=I$</td><td>$\det A 
+eq 0$</td></tr>
+</table>
+</section>
+
+<section id="ops">
+<h2>3. Operations and properties</h2>
+<div class="grid two">
+<div class="card">
+<h3>Addition and scalar multiplication</h3>
+<p>$(A+B)_{ij}=a_{ij}+b_{ij}$, $(cA)_{ij}=c a_{ij}$. Same size required for addition.</p>
+<p>Properties: commutative $A+B=B+A$, associative, distributive $c(A+B)=cA+cB$.</p>
+</div>
+<div class="card">
+<h3>Matrix multiplication</h3>
+<p>For $A$ ($m 	imes k$) and $B$ ($k 	imes n$): $(AB)_{ij} = \sum_{t=1}^k a_{it} b_{tj}$.</p>
+<p>Not commutative in general: $AB 
+eq BA$. Associative: $(AB)C = A(BC)$. Distributive over addition.</p>
+</div>
+<div class="card">
+<h3>Transpose</h3>
+<p>$(A^T)_{ij}=a_{ji}$. Properties: $(AB)^T = B^T A^T$, $(A^T)^T = A$.</p>
+</div>
+<div class="card">
+<h3>Trace</h3>
+<p>$\operatorname{tr}(A)=\sum_i a_{ii}$. $\operatorname{tr}(AB)=\operatorname{tr}(BA)$.</p>
+</div>
+</div>
+
+<h3>Interactive: addition</h3>
+<div>
+  <div class="matrix" id="addA"></div> + <div class="matrix" id="addB"></div> = <div class="matrix" id="addC"></div><br>
+  <button onclick="doAdd()">Compute A+B</button>
+</div>
+
+<h3>Interactive: multiplication (2x2)</h3>
+<div>
+  <div class="matrix" id="mulA"></div> × <div class="matrix" id="mulB"></div> = <div class="matrix" id="mulC"></div><br>
+  <button onclick="doMul()">Compute AB</button>
+</div>
+</section>
+
+<section id="detinv">
+<h2>4. Determinant, inverse, rank</h2>
+<p><strong>Determinant</strong> measures volume scaling. For 2x2: $\detegin{bmatrix}a&b\c&d\end{bmatrix}=ad-bc$.</p>
+<p>For 3x3 use rule of Sarrus or cofactor expansion.</p>
+<p><strong>Inverse</strong>: $A^{-1}$ exists iff $\det A 
+eq 0$. For 2x2: $A^{-1} = rac1{ad-bc}egin{bmatrix}d&-b\-c&a\end{bmatrix}$.</p>
+<p><strong>Rank</strong>: dimension of column space. $\operatorname{rank}(A) \le \min(m,n)$. Full rank means invertible for square matrices.</p>
+
+<h3>Interactive: determinant and inverse (2x2)</h3>
+<div>
+  <div class="matrix" id="invA"></div><br>
+  <button onclick="doDetInv()">Compute det and inverse</button>
+  <p id="detOut" class="muted"></p>
+  <div id="invOut"></div>
+</div>
+</section>
+
+<section id="eig">
+<h2>5. Eigenvalues and eigenvectors</h2>
+<p>$Av = \lambda v$ for nonzero $v$. $\lambda$ is eigenvalue, $v$ eigenvector.</p>
+<p>Characteristic polynomial: $p(\lambda)=\det(A-\lambda I)=0$.</p>
+<p>Diagonalization: if $A$ has $n$ independent eigenvectors, $A = PDP^{-1}$ with $D=\operatorname{diag}(\lambda_i)$. Symmetric real matrices are orthogonally diagonalizable.</p>
+</section>
+
+<section id="decomp">
+<h2>6. Decompositions</h2>
+<ul>
+  <li><strong>LU</strong>: $PA = LU$, with $L$ lower triangular, $U$ upper. Used for solving systems efficiently.</li>
+  <li><strong>QR</strong>: $A = QR$, $Q$ orthogonal, $R$ upper triangular. Stable for least squares.</li>
+  <li><strong>SVD</strong>: $A = U \Sigma V^T$. Works for any $m 	imes n$. $\Sigma$ contains singular values. Foundation of PCA, compression, pseudoinverse.</li>
+  <li><strong>Eigendecomposition</strong>: $A = PDP^{-1}$ when diagonalizable.</li>
+</ul>
+</section>
+
+<section id="systems">
+<h2>7. Solving linear systems</h2>
+<p>System $Ax=b$. If $A$ invertible: $x = A^{-1}b$. In practice use Gaussian elimination or $x = A ackslash b$ in Octave.</p>
+<p>Consistency: solution exists iff $\operatorname{rank}(A)=\operatorname{rank}([A|b])$. Unique iff rank equals $n$.</p>
+</section>
+
+<section id="octave">
+<h2>8. GNU Octave lab</h2>
+<p>Octave syntax mirrors MATLAB. Copy these into Octave.</p>
+<pre>
+% Basics
+A = [1 2; 3 4]
+B = [5 6; 7 8]
+A + B
+2 * A
+A * B
+A'          % transpose
+
+% Determinant, inverse, rank, trace
+det(A)
+inv(A)
+rank(A)
+trace(A)
+
+% Solve Ax = b
+b = [5; 11]
+x = A \ b   % preferred over inv(A)*b
+
+% Eigen
+[V, D] = eig(A)   % V columns are eigenvectors, D diagonal eigenvalues
+
+% LU decomposition with partial pivoting
+[L, U, P] = lu(A)
+P*A - L*U   % should be near zero
+
+% QR
+[Q, R] = qr(A)
+Q'*Q        % identity check
+
+% SVD
+[U, S, V] = svd(A)
+U*S*V' - A  % reconstruction error
+
+% Create special matrices
+I = eye(3)
+Z = zeros(2,4)
+O = ones(3)
+D = diag([2, -1, 4])
+R = rand(3)   % uniform random
+
+% Symmetric positive definite test
+M = A'*A
+eig(M)   % all >0
+</pre>
+
+<h3>Octave tips</h3>
+<ul>
+<li>Use semicolon to suppress output.</li>
+<li>Indexing starts at 1: <code>A(2,1)</code> is row 2 col 1.</li>
+<li>Colon ranges: <code>A(1:2, :)</code> first two rows.</li>
+<li>Elementwise ops use dot: <code>A .* B</code>, <code>A .^ 2</code>.</li>
+</ul>
+</section>
+
+<section id="apps">
+<h2>9. Why matrices matter</h2>
+<ul>
+<li><strong>Computer graphics</strong>: rotations, scaling, projections via $3	imes3$ and $4	imes4$ matrices.</li>
+<li><strong>Machine learning</strong>: data matrices $X$, weights $W$, predictions $XW$.</li>
+<li><strong>Networks</strong>: adjacency matrices encode graphs.</li>
+<li><strong>Differential equations</strong>: state transition $x' = Ax$.</li>
+<li><strong>Statistics</strong>: covariance matrices, PCA via SVD.</li>
+</ul>
+</section>
+
+<section id="practice">
+<h2>10. Practice problems</h2>
+<ol>
+<li>Compute $AB$ for $A=egin{bmatrix}1&2&3\0&1&4\end{bmatrix}$, $B=egin{bmatrix}1&0\-1&2\3&1\end{bmatrix}$.</li>
+<li>Find $\det$ and $A^{-1}$ for $A=egin{bmatrix}2&5\1&3\end{bmatrix}$.</li>
+<li>Show that if $Q$ is orthogonal, $\|Qx\|=\|x\|$.</li>
+<li>In Octave, generate random $4	imes4$ $A$, compute its SVD, verify reconstruction error norm is $<10^{-12}$.</li>
+<li>Diagonalize $A=egin{bmatrix}4&1\2&3\end{bmatrix}$ using <code>eig</code>.</li>
+</ol>
+</section>
+
+</main>
+<footer>
+Built for deep study. Use the interactive widgets above, then replicate in GNU Octave.
+</footer>
+
+<script>
+function makeMatrix(containerId, rows, cols, values) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  c.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  for (let i=0;i<rows*cols;i++) {
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.step = 'any';
+    inp.value = values ? values[i] : (Math.floor(Math.random()*5)-2);
+    c.appendChild(inp);
+  }
+}
+function readMatrix(containerId, rows, cols) {
+  const inputs = document.querySelectorAll('#'+containerId+' input');
+  const M = [];
+  for (let i=0;i<rows;i++) {
+    M[i]=[];
+    for (let j=0;j<cols;j++) M[i][j]= parseFloat(inputs[i*cols+j].value)||0;
+  }
+  return M;
+}
+function showMatrix(containerId, M) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  const rows = M.length, cols = M[0].length;
+  c.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  M.forEach(row=>row.forEach(v=>{
+    const d=document.createElement('div');
+    d.textContent = Number(v.toFixed(4));
+    d.style.padding='0.4rem'; d.style.textAlign='center'; d.style.background='#0f172a'; d.style.border='1px solid #334155'; d.style.borderRadius='6px';
+    c.appendChild(d);
+  }));
+}
+function addMat(A,B){ return A.map((r,i)=>r.map((v,j)=>v+B[i][j])); }
+function mulMat(A,B){
+  const m=A.length, k=A[0].length, n=B[0].length;
+  const C = Array.from({length:m},()=>Array(n).fill(0));
+  for(let i=0;i<m;i++) for(let j=0;j<n;j++) for(let t=0;t<k;t++) C[i][j]+=A[i][t]*B[t][j];
+  return C;
+}
+function doAdd(){ const A=readMatrix('addA',2,2), B=readMatrix('addB',2,2); showMatrix('addC', addMat(A,B)); }
+function doMul(){ const A=readMatrix('mulA',2,2), B=readMatrix('mulB',2,2); showMatrix('mulC', mulMat(A,B)); }
+function doDetInv(){
+  const A=readMatrix('invA',2,2);
+  const [a,b]=A[0], [c,d]=A[1];
+  const det = a*d - b*c;
+  document.getElementById('detOut').textContent = 'det = ' + det.toFixed(4);
+  const out = document.getElementById('invOut');
+  out.innerHTML='';
+  if (Math.abs(det) < 1e-9) { out.textContent = 'Not invertible (det = 0)'; return; }
+  const inv = [[d/det, -b/det], [-c/det, a/det]];
+  showMatrix('invOut', inv);
+}
+// init
+makeMatrix('addA',2,2,[1,2,3,4]);
+makeMatrix('addB',2,2,[5,6,7,8]);
+makeMatrix('addC',2,2,[0,0,0,0]);
+makeMatrix('mulA',2,2,[1,2,3,4]);
+makeMatrix('mulB',2,2,[2,0,1,2]);
+makeMatrix('mulC',2,2,[0,0,0,0]);
+makeMatrix('invA',2,2,[4,7,2,6]);
+</script>
+</body>
+</html>

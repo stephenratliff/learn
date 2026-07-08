@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stephen Hawking & Euler's Formula — The Mathematics of Black Holes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:      #03050d;
+  --deep:      #070c1a;
+  --panel:     #0c1225;
+  --border:    #1a2540;
+  --ink:       #dde4f0;
+  --dim:       #7a8aaa;
+  --gold:      #f5c842;
+  --gold2:     #d97706;
+  --nebula:    #a855f7;
+  --nebula2:   #7c3aed;
+  --cyan:      #22d3ee;
+  --cyan2:     #0891b2;
+  --rose:      #fb7185;
+  --green:     #34d399;
+  --blue:      #60a5fa;
+  --font-head: 'Playfair Display', Georgia, serif;
+  --font-body: 'Lato', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:17px;
+  line-height:1.8;
+  overflow-x:hidden;
+}
+/* ── STARFIELD ── */
+#starfield{position:fixed;inset:0;pointer-events:none;z-index:0;}
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  background:rgba(3,5,13,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 1.5rem;height:52px;overflow-x:auto;
+  gap:0;
+}
+nav::-webkit-scrollbar{display:none;}
+.nav-brand{
+  font-family:var(--font-head);font-size:.95rem;font-weight:700;
+  color:var(--gold);letter-spacing:.04em;white-space:nowrap;
+  text-decoration:none;margin-right:1.5rem;
+}
+nav a.nl{
+  font-family:var(--font-mono);font-size:.65rem;color:var(--dim);
+  text-decoration:none;padding:0 .7rem;height:52px;display:flex;
+  align-items:center;border-bottom:2px solid transparent;
+  transition:color .2s,border-color .2s;white-space:nowrap;letter-spacing:.05em;
+  text-transform:uppercase;
+}
+nav a.nl:hover{color:var(--ink);border-color:var(--nebula);}
+nav a.nl.active{color:var(--nebula);border-color:var(--nebula);}
+/* ── LAYOUT ── */
+section{position:relative;z-index:1;padding:5.5rem 2rem 4rem;max-width:1080px;margin:0 auto;}
+section.full{max-width:100%;padding-left:0;padding-right:0;}
+.inner{max-width:1080px;margin:0 auto;padding:0 2rem;}
+/* ── HERO ── */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding-top:52px;max-width:100%;
+}
+.hero-kicker{
+  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--nebula);margin-bottom:1.2rem;
+}
+.hero-title{
+  font-family:var(--font-head);font-weight:900;
+  font-size:clamp(2.2rem,5.5vw,4.8rem);line-height:1.05;
+  color:var(--ink);margin-bottom:.6rem;
+}
+.hero-title span{
+  background:linear-gradient(120deg,var(--gold) 0%,var(--nebula) 55%,var(--cyan) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  font-family:var(--font-body);font-size:1.05rem;color:var(--dim);
+  max-width:580px;margin:.8rem auto 2.5rem;
+}
+#bh-canvas{
+  border-radius:50%;
+  box-shadow:0 0 80px rgba(168,85,247,.25),0 0 160px rgba(168,85,247,.1),0 0 8px rgba(245,200,66,.3);
+  margin-bottom:2.5rem;
+}
+.scroll-cue{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--dim);
+  animation:float 2.2s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(9px);}}
+/* ── TYPOGRAPHY ── */
+.sec-tag{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.25em;
+  text-transform:uppercase;color:var(--nebula);margin-bottom:.6rem;display:block;
+}
+h2.sec-title{
+  font-family:var(--font-head);font-size:clamp(1.7rem,3.5vw,2.8rem);
+  font-weight:700;color:var(--ink);line-height:1.15;margin-bottom:1.2rem;
+}
+h3.sub{
+  font-family:var(--font-head);font-size:1.25rem;font-weight:700;
+  color:var(--gold);margin:2rem 0 .6rem;
+}
+h4.mini{
+  font-family:var(--font-mono);font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--cyan);margin:1.5rem 0 .4rem;
+}
+/* ── MATH ── */
+.math{
+  font-family:var(--font-head);font-size:clamp(1.2rem,2.5vw,1.9rem);
+  text-align:center;padding:1.2rem 1.5rem;margin:1.2rem 0;
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  color:var(--gold);letter-spacing:.04em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 4px 20px rgba(0,0,0,.3);
+}
+.math.big{font-size:clamp(1.5rem,3vw,2.4rem);border-color:var(--gold);}
+.math.nebula{color:var(--nebula);border-color:var(--nebula2);}
+.math.cyan{color:var(--cyan);border-color:var(--cyan2);}
+.mi{font-family:var(--font-head);color:var(--gold);font-style:italic;}
+/* ── CALLOUTS ── */
+.call{
+  border-left:3px solid var(--nebula2);background:rgba(168,85,247,.06);
+  padding:1.1rem 1.4rem;margin:1.5rem 0;border-radius:0 8px 8px 0;font-size:.97rem;
+}
+.call.gold{border-color:var(--gold2);background:rgba(245,200,66,.05);}
+.call.cyan{border-color:var(--cyan2);background:rgba(34,211,238,.05);}
+.call.rose{border-color:var(--rose);background:rgba(251,113,133,.05);}
+.call.green{border-color:var(--green);background:rgba(52,211,153,.05);}
+/* ── TABS ── */
+.tabs{margin:1.5rem 0;}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:0;}
+.tbtn{
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:.6rem 1rem;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--dim);cursor:pointer;transition:color .2s,border-color .2s;
+  margin-bottom:-1px;white-space:nowrap;
+}
+.tbtn:hover{color:var(--ink);}
+.tbtn.active{color:var(--nebula);border-color:var(--nebula);}
+.tpanel{display:none;padding:1.5rem 0;}
+.tpanel.active{display:block;}
+/* ── CODE ── */
+.cw{position:relative;margin:1.2rem 0;}
+pre.code{
+  background:#060910;border:1px solid var(--border);border-radius:10px;
+  padding:1.3rem 1.5rem;overflow-x:auto;font-family:var(--font-mono);
+  font-size:.78rem;line-height:1.7;color:#cdd6f4;
+}
+pre.code .c{color:#556070;font-style:italic;}
+pre.code .k{color:#cba6f7;}
+pre.code .s{color:#a6e3a1;}
+pre.code .n{color:var(--cyan);}
+pre.code .m{color:#fab387;}
+pre.code .fn{color:#89b4fa;}
+.cpybtn{
+  position:absolute;top:.5rem;right:.5rem;
+  font-family:var(--font-mono);font-size:.65rem;
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;
+  color:var(--dim);padding:.25rem .6rem;cursor:pointer;letter-spacing:.06em;
+  transition:color .2s,border-color .2s;
+}
+.cpybtn:hover{color:var(--nebula);border-color:var(--nebula);}
+/* ── CANVAS PANELS ── */
+.cpanel{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:1.4rem;margin:1.2rem 0;display:flex;flex-direction:column;
+  align-items:center;gap:.9rem;
+}
+.cpanel canvas{border-radius:6px;max-width:100%;}
+.ctrl{
+  display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;
+  justify-content:center;width:100%;
+}
+.ctrl label{font-family:var(--font-mono);font-size:.72rem;color:var(--dim);letter-spacing:.05em;}
+.ctrl input[type=range]{accent-color:var(--nebula);width:140px;}
+.vd{font-family:var(--font-mono);font-size:.78rem;color:var(--gold);min-width:4rem;}
+.ctrl button{
+  font-family:var(--font-mono);font-size:.72rem;background:none;
+  border:1px solid var(--nebula2);color:var(--nebula);border-radius:5px;
+  padding:.35rem .8rem;cursor:pointer;transition:background .2s;letter-spacing:.05em;
+}
+.ctrl button:hover{background:rgba(168,85,247,.1);}
+.ctrl button.on{background:rgba(168,85,247,.15);}
+.cstat{font-family:var(--font-mono);font-size:.72rem;color:var(--dim);text-align:center;min-height:1.1em;}
+/* ── GRIDS ── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;align-items:start;}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;}
+@media(max-width:700px){.two{grid-template-columns:1fr;}}
+@media(max-width:860px){.three{grid-template-columns:1fr 1fr;}}
+@media(max-width:520px){.three{grid-template-columns:1fr;}}
+/* ── CARDS ── */
+.card{
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:1.3rem;transition:border-color .25s,box-shadow .25s;
+}
+.card:hover{border-color:var(--nebula2);box-shadow:0 4px 20px rgba(168,85,247,.1);}
+.card-ico{font-size:1.8rem;margin-bottom:.6rem;display:block;}
+.card h4{font-family:var(--font-head);font-size:1rem;color:var(--gold);margin-bottom:.4rem;}
+.card p{font-size:.9rem;color:var(--dim);line-height:1.6;}
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:2rem;margin:1.5rem 0;}
+.timeline::before{
+  content:'';position:absolute;left:.5rem;top:0;bottom:0;
+  width:2px;background:linear-gradient(var(--nebula2),var(--gold2));
+}
+.tl-item{position:relative;margin-bottom:1.8rem;padding-left:.5rem;}
+.tl-item::before{
+  content:'';position:absolute;left:-1.5rem;top:.45rem;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--gold);border:2px solid var(--void);
+}
+.tl-item .yr{font-family:var(--font-mono);font-size:.72rem;color:var(--nebula);letter-spacing:.1em;}
+.tl-item h4{font-family:var(--font-head);font-size:1.05rem;color:var(--ink);margin:.1rem 0 .3rem;}
+.tl-item p{font-size:.92rem;color:var(--dim);}
+/* ── TABLE ── */
+table.st{width:100%;border-collapse:collapse;font-size:.92rem;margin:1.2rem 0;}
+table.st th{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--cyan2);border-bottom:1px solid var(--border);
+  padding:.5rem .9rem;text-align:left;
+}
+table.st td{padding:.5rem .9rem;border-bottom:1px solid rgba(26,37,64,.5);color:var(--ink);}
+table.st td.g{color:var(--gold);font-family:var(--font-head);}
+table.st tr:last-child td{border-bottom:none;}
+/* ── DIVIDER ── */
+hr.div{border:none;border-top:1px solid var(--border);margin:4rem 0;}
+/* ── STEP ── */
+.step{
+  border-left:2px solid var(--border);padding:.6rem 0 .6rem 1.4rem;
+  margin:.4rem 0;position:relative;
+}
+.step::before{
+  content:attr(data-n);position:absolute;left:-1rem;top:.75rem;
+  width:1.7rem;height:1.7rem;background:var(--deep);border:1px solid var(--border);
+  border-radius:50%;font-family:var(--font-mono);font-size:.65rem;color:var(--nebula);
+  display:flex;align-items:center;justify-content:center;line-height:1.7rem;text-align:center;
+}
+.step p{font-size:.97rem;margin-bottom:.4rem;}
+/* ── REVEAL ── */
+.rev{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s;}
+.rev.vis{opacity:1;transform:none;}
+/* ── QUOTE ── */
+blockquote.hq{
+  border-left:3px solid var(--gold2);padding:1rem 1.5rem;margin:1.5rem 0;
+  background:rgba(245,200,66,.04);border-radius:0 8px 8px 0;
+  font-family:var(--font-head);font-style:italic;font-size:1.1rem;color:var(--ink);
+}
+blockquote.hq cite{
+  display:block;margin-top:.5rem;font-style:normal;
+  font-family:var(--font-mono);font-size:.7rem;color:var(--dim);letter-spacing:.08em;
+}
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--border);
+  font-family:var(--font-mono);font-size:.68rem;color:var(--dim);
+  letter-spacing:.08em;position:relative;z-index:1;
+}
+</style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-brand">⚫ Hawking</a>
+  <a href="#legacy" class="nl">Legacy</a>
+  <a href="#singularity" class="nl">Singularity</a>
+  <a href="#thermodynamics" class="nl">BH Thermo</a>
+  <a href="#radiation" class="nl">Radiation</a>
+  <a href="#imaginary" class="nl">Imaginary Time</a>
+  <a href="#noboundary" class="nl">No-Boundary</a>
+  <a href="#information" class="nl">Info Paradox</a>
+  <a href="#euler-role" class="nl">Euler's Role</a>
+  <a href="#octave" class="nl">Octave Code</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="full">
+<div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:52px 2rem 0;">
+  <div class="hero-kicker">Stephen W. Hawking · 1942 – 2018</div>
+  <h1 class="hero-title">
+    Black Holes,<br><span>Quantum Gravity</span><br>&amp; Euler's Formula
+  </h1>
+  <p class="hero-sub">
+    How a physicist confined to a wheelchair rewrote the laws of the universe —
+    and how the equation e<sup>iθ</sup> = cos θ + i sin θ runs through
+    every major discovery he made.
+  </p>
+  <canvas id="bh-canvas" width="360" height="360"></canvas>
+  <div class="scroll-cue">▼ &nbsp; enter the event horizon &nbsp; ▼</div>
+</div>
+</section>
+<hr class="div" style="max-width:1080px;margin:0 auto;">
+
+<!-- LEGACY -->
+<section id="legacy">
+<span class="sec-tag">Section 01</span>
+<h2 class="sec-title">Stephen Hawking — Life &amp; Legacy</h2>
+<p>Born January 8, 1942, in Oxford, England — sharing a birthday with Galileo Galilei —
+Stephen William Hawking became the most celebrated theoretical physicist of the modern era.
+Diagnosed with motor neurone disease (ALS) at age 21, given two years to live,
+he went on to work for more than five more decades, revolutionising our understanding of
+black holes, cosmology, and the quantum nature of spacetime.</p>
+
+<blockquote class="hq">
+  "My goal is simple. It is a complete understanding of the universe, why it is as it is and
+  why it exists at all."
+  <cite>— Stephen Hawking</cite>
+</blockquote>
+
+<div class="two" style="margin-top:1.5rem;">
+<div>
+<h3 class="sub">Major Theoretical Contributions</h3>
+<div class="timeline">
+  <div class="tl-item">
+    <span class="yr">1970</span>
+    <h4>Area Theorem</h4>
+    <p>The total surface area of black hole event horizons never decreases — the first hint of a
+    connection between gravity and thermodynamics.</p>
+  </div>
+  <div class="tl-item">
+    <span class="yr">1971–73</span>
+    <h4>Black Hole Thermodynamics</h4>
+    <p>With Bardeen, Carter, and others, established the four laws of black hole mechanics,
+    mirroring the four laws of thermodynamics exactly.</p>
+  </div>
+  <div class="tl-item">
+    <span class="yr">1974–75</span>
+    <h4>Hawking Radiation</h4>
+    <p>Showed that black holes are not truly black — quantum mechanics forces them to emit
+    thermal radiation with temperature T = ℏc³/8πGMk<sub>B</sub>.</p>
+  </div>
+  <div class="tl-item">
+    <span class="yr">1971</span>
+    <h4>Penrose–Hawking Singularity Theorems</h4>
+    <p>With Roger Penrose, proved that singularities (points of infinite density) are
+    inevitable inside black holes and at the Big Bang, under GR.</p>
+  </div>
+  <div class="tl-item">
+    <span class="yr">1983</span>
+    <h4>Hartle–Hawking No-Boundary Proposal</h4>
+    <p>With James Hartle, proposed that the universe has no initial boundary in
+    <em>imaginary time</em> — a radical use of Euler's formula and Wick rotation.</p>
+  </div>
+  <div class="tl-item">
+    <span class="yr">1970s–2016</span>
+    <h4>Information Paradox</h4>
+    <p>Identified then spent decades revisiting the question: does information fall into a
+    black hole forever, or does it leak out via Hawking radiation?</p>
+  </div>
+</div>
+</div>
+<div>
+<h3 class="sub">Where Euler's Formula Appears</h3>
+<p>At every major junction of Hawking's work, complex exponentials and the formula
+<span class="mi">e<sup>iθ</sup> = cos θ + i sin θ</span> play a central role:</p>
+<table class="st">
+<thead><tr><th>Theory</th><th>Role of e<sup>iθ</sup></th></tr></thead>
+<tbody>
+<tr><td class="g">Hawking Radiation</td><td>Quantum field mode expansions e<sup>±iωt</sup>; thermal spectrum derivation via analytic continuation</td></tr>
+<tr><td class="g">Imaginary Time</td><td>Wick rotation t→−iτ transforms oscillatory e<sup>iS/ℏ</sup> to damped e<sup>−S<sub>E</sub>/ℏ</sup></td></tr>
+<tr><td class="g">No-Boundary Proposal</td><td>Path integral over Euclidean geometries; wave function Ψ = ∫ D[g] e<sup>−S<sub>E</sub>/ℏ</sup></td></tr>
+<tr><td class="g">BH Thermodynamics</td><td>Partition function Z = Tr e<sup>−βH</sup>; Green's functions periodic in imaginary time</td></tr>
+<tr><td class="g">Penrose Diagrams</td><td>Conformal transformations use complex coordinates; Kruskal extension via complex rotation</td></tr>
+</tbody>
+</table>
+<div class="call gold">
+<strong>The thread:</strong> Euler's formula is the bridge between quantum mechanics (wavefunctions
+oscillate as e<sup>iθ</sup>) and statistical mechanics (partition functions decay as e<sup>−E/kT</sup>).
+Hawking's deepest insights all live at exactly this bridge.
+</div>
+</div>
+</div>
+</section>
+<hr class="div">
+
+<!-- SINGULARITY THEOREMS -->
+<section id="singularity">
+<span class="sec-tag">Section 02</span>
+<h2 class="sec-title">The Penrose–Hawking Singularity Theorems</h2>
+<p>In 1965, Roger Penrose proved that black holes must contain singularities. Hawking
+extended this to the Big Bang itself (1966–70). Together, these theorems shattered the
+hope that singularities were mere artifacts of symmetry — they are mathematically <em>inevitable</em>
+within Einstein's General Relativity.</p>
+
+<h3 class="sub">What Is a Singularity?</h3>
+<p>A singularity is a point (or region) where spacetime curvature becomes infinite and the
+equations of General Relativity break down. At a singularity, density, tidal forces, and
+spacetime curvature all blow up — the theory predicts its own failure.</p>
+
+<div class="two">
+<div>
+<h3 class="sub">The Key Ingredients</h3>
+<h4 class="mini">1. Geodesic Incompleteness</h4>
+<p>A spacetime is singular if some freely-falling particle (geodesic) reaches the end of
+its proper time in finite time — it "hits" the singularity and ceases to exist.</p>
+<h4 class="mini">2. Trapped Surfaces</h4>
+<p>A trapped surface is a 2D surface where even outward-pointing light rays are converging.
+Once matter collapses past a certain point, trapped surfaces form, and the singularity theorems
+guarantee a singularity must follow.</p>
+<h4 class="mini">3. Energy Conditions</h4>
+<p>The theorems require that matter obey the <em>strong energy condition</em>:
+gravity must always attract, never repel. This holds for classical matter
+(though quantum effects can violate it).</p>
+</div>
+<div>
+<div class="cpanel">
+  <canvas id="trapped-canvas" width="360" height="320"></canvas>
+  <div class="ctrl">
+    <label>Mass/Collapse:</label>
+    <input type="range" id="trap-mass" min="0" max="100" value="60">
+    <span class="vd" id="trap-mass-val">60%</span>
+  </div>
+  <div class="cstat" id="trap-status">Adjust collapse to see trapped surface formation</div>
+</div>
+</div>
+</div>
+
+<h3 class="sub">The Theorems (Simplified)</h3>
+<div class="step" data-n="1">
+  <p><strong style="color:var(--cyan)">Penrose (1965) — Black Hole Singularity:</strong>
+  If spacetime contains a trapped surface and energy conditions hold, then at least one
+  geodesic is incomplete — a singularity exists.</p>
+</div>
+<div class="step" data-n="2">
+  <p><strong style="color:var(--cyan)">Hawking (1966) — Big Bang Singularity:</strong>
+  Time-reversing Penrose's argument: if the universe is expanding (as observed), and energy
+  conditions hold, then geodesics are incomplete in the past — the Big Bang is a singularity.</p>
+</div>
+<div class="step" data-n="3">
+  <p><strong style="color:var(--gold)">The Implication:</strong>
+  GR predicts its own breakdown. A theory of quantum gravity — combining GR with quantum mechanics —
+  is needed to describe the Planck-scale physics near singularities. This quest drove
+  Hawking's entire career.</p>
+</div>
+
+<h3 class="sub">The Raychaudhuri Equation — Mathematics of Focusing</h3>
+<p>The mathematical heart of the singularity theorems is the <em>Raychaudhuri equation</em>,
+which describes how a family of geodesics converges or diverges:</p>
+<div class="math">dθ/dτ = −(1/3)θ² − σ<sub>μν</sub>σ<sup>μν</sup> + ω<sub>μν</sub>ω<sup>μν</sup> − R<sub>μν</sub>u<sup>μ</sup>u<sup>ν</sup></div>
+<p>Here θ is the expansion of geodesics, σ is shear, ω is rotation, and R<sub>μν</sub> is the
+Ricci curvature. The energy condition forces R<sub>μν</sub>u<sup>μ</sup>u<sup>ν</sup> ≥ 0,
+making the right side negative — geodesics <em>must</em> converge and eventually cross, signalling a
+singularity.</p>
+
+<div class="call rose">
+<strong>Euler's formula enters here via complex null coordinates.</strong> The Penrose diagram —
+the conformal map of all of spacetime onto a finite page — is constructed using complex
+coordinate transformations of the form u + iv = f(t + x) that involve exactly the rotational
+structure of e<sup>iθ</sup>.
+</div>
+</section>
+<hr class="div">
+
+<!-- BLACK HOLE THERMODYNAMICS -->
+<section id="thermodynamics">
+<span class="sec-tag">Section 03</span>
+<h2 class="sec-title">Black Hole Thermodynamics</h2>
+<p>In the early 1970s, Hawking, Bardeen, Carter, and Bekenstein uncovered a perfect mathematical
+analogy between the laws of thermodynamics and the mechanics of black holes. This analogy,
+initially thought to be mere coincidence, turned out to be deep physical reality once
+Hawking radiation was discovered.</p>
+
+<h3 class="sub">The Four Laws</h3>
+<table class="st">
+<thead><tr><th>Law</th><th>Thermodynamics</th><th>Black Hole Mechanics</th></tr></thead>
+<tbody>
+<tr><td class="g">Zeroth</td>
+  <td>Temperature T is uniform in thermal equilibrium</td>
+  <td>Surface gravity κ is constant on the event horizon of a stationary black hole</td></tr>
+<tr><td class="g">First</td>
+  <td>dE = T dS − P dV (energy conservation)</td>
+  <td>dM = (κ/8π)dA + Ω dJ + Φ dQ (mass-energy conservation)</td></tr>
+<tr><td class="g">Second</td>
+  <td>Entropy S never decreases: dS ≥ 0</td>
+  <td>Total horizon area A never decreases: dA ≥ 0 (Hawking's Area Theorem)</td></tr>
+<tr><td class="g">Third</td>
+  <td>Cannot reach T = 0 by finite processes</td>
+  <td>Cannot reduce κ to zero by finite physical processes</td></tr>
+</tbody>
+</table>
+
+<div class="two" style="margin-top:1.5rem;">
+<div>
+<h3 class="sub">The Bekenstein–Hawking Entropy</h3>
+<p>Jacob Bekenstein (1972) proposed that black holes carry entropy proportional to their
+horizon area. Hawking initially resisted — if a black hole has entropy, it must have
+temperature, and something hot must radiate. But black holes absorb everything...</p>
+<p>Then Hawking calculated it properly using quantum field theory in 1974 and found
+that black holes <em>do</em> radiate. The entropy is:</p>
+<div class="math big">S<sub>BH</sub> = k<sub>B</sub> A / 4ℓ<sub>P</sub>²</div>
+<p>where A is the horizon area and ℓ<sub>P</sub> = √(ℏG/c³) ≈ 1.6 × 10<sup>−35</sup> m is
+the Planck length. This is one of the most important formulas in theoretical physics —
+it relates a macroscopic quantity (area) to a microscopic one (entropy), but requires
+both GR (area) and quantum mechanics (ℏ).</p>
+<div class="call gold">
+<strong>Why is this profound?</strong> For any other physical system, entropy is extensive
+(scales with volume). Black holes are the first objects whose entropy scales with <em>area</em> —
+the holographic principle. This suggests our 3D universe might be encoded on a 2D surface.
+</div>
+</div>
+<div>
+<div class="cpanel">
+  <canvas id="entropy-canvas" width="360" height="300"></canvas>
+  <div class="ctrl">
+    <label>Black Hole Mass M (M☉):</label>
+    <input type="range" id="ent-mass" min="1" max="100" value="10">
+    <span class="vd" id="ent-mass-val">10 M☉</span>
+  </div>
+  <div class="cstat" id="ent-status"></div>
+</div>
+<h3 class="sub">The Area Theorem</h3>
+<p>Hawking's 1971 Area Theorem states: the total area of all black hole event horizons
+can never decrease in any physical process. Formally, if A<sub>total</sub> is the total
+horizon area at late times and early times:</p>
+<div class="math" style="font-size:1.2rem;">A<sub>final</sub> ≥ A<sub>initial</sub></div>
+<p>This mirrors the second law of thermodynamics (entropy never decreases) and was the
+first hint that black holes have a thermodynamic nature.</p>
+</div>
+</div>
+
+<h3 class="sub">The Partition Function — Euler's Formula Hidden in Temperature</h3>
+<p>The temperature of a black hole is connected to a deep quantum statistical mechanics
+result. The thermal partition function is:</p>
+<div class="math nebula">Z = Tr[e<sup>−βH</sup>] = Tr[e<sup>−H/k<sub>B</sub>T</sup>]</div>
+<p>Compare this to the quantum time-evolution operator:</p>
+<div class="math cyan">U(t) = e<sup>−iHt/ℏ</sup></div>
+<p>They are related by <strong>Wick rotation</strong>: setting <span class="mi">t = −iτ</span>
+(i.e., rotating time by 90° in the complex plane using Euler's formula),
+we get <span class="mi">e<sup>−iHt/ℏ</sup> → e<sup>−Hτ/ℏ</sup></span>.
+The partition function is <em>quantum time evolution in imaginary time</em>.
+For a black hole, periodicity in imaginary time with period β = ℏ/k<sub>B</sub>T
+<em>defines</em> the temperature.</p>
+<div class="call">
+<strong>The Hawking Temperature:</strong> T<sub>H</sub> = ℏc³ / (8πGMk<sub>B</sub>). For a
+solar-mass black hole, T<sub>H</sub> ≈ 6×10<sup>−8</sup> K — colder than the CMB
+(2.7 K). Only primordial micro–black holes would be hot enough to observe directly.
+</div>
+</section>
+<hr class="div">
+
+<!-- HAWKING RADIATION -->
+<section id="radiation">
+<span class="sec-tag">Section 04</span>
+<h2 class="sec-title">Hawking Radiation — The Quantum Miracle</h2>
+<p>In 1974, Hawking published what is widely considered the most important result in theoretical
+physics of the 20th century: <strong>black holes are not black</strong>. They emit thermal
+radiation due to quantum effects near the event horizon, with a perfect Planck spectrum at
+temperature T<sub>H</sub>. This result combines <em>all three</em> great theories of physics:
+general relativity (black holes), quantum mechanics (particle creation), and thermodynamics (temperature).</p>
+
+<div class="call rose">
+<strong>Why this was shocking:</strong> Classically, nothing escapes a black hole — not even light.
+Hawking showed that quantum mechanics changes this fundamentally. The derivation relies entirely
+on how quantum fields (described by complex exponential modes e<sup>±iωt</sup>) behave across
+the event horizon.
+</div>
+
+<h3 class="sub">The Physical Picture — Pair Creation</h3>
+<p>Near the horizon, quantum fluctuations continuously create virtual particle–antiparticle pairs.
+Near the event horizon, one particle of a pair can fall in while the other escapes. The infalling
+particle carries negative energy (relative to infinity), reducing the black hole's mass, while
+the escaping particle carries positive energy — this is the Hawking radiation.</p>
+
+<div class="cpanel">
+  <canvas id="radiation-canvas" width="680" height="300"></canvas>
+  <div class="ctrl">
+    <label>BH Mass M:</label>
+    <input type="range" id="rad-mass" min="5" max="100" value="50">
+    <span class="vd" id="rad-mass-val">50</span>
+    <label>Time:</label>
+    <input type="range" id="rad-time" min="0" max="200" value="0">
+    <span class="vd" id="rad-time-val">t=0</span>
+    <button id="rad-anim-btn">▶ Evaporate</button>
+    <button id="rad-reset-btn">Reset</button>
+  </div>
+  <div class="cstat" id="rad-status">Hawking radiation: virtual pair creation near the horizon</div>
+</div>
+
+<h3 class="sub">The Mathematical Derivation — Euler's Formula at the Core</h3>
+<p>The full derivation uses quantum field theory (QFT) in curved spacetime.
+Here are the key steps, each involving complex exponentials:</p>
+
+<div class="step" data-n="1">
+  <p><strong style="color:var(--cyan)">Mode Expansion</strong> — A quantum field φ in flat spacetime
+  is expanded in frequency modes. Each mode is a complex exponential:</p>
+  <div class="math" style="font-size:1.15rem;">φ = ∫dω [a<sub>ω</sub> · e<sup>−iωt+ikx</sup> + a<sup>†</sup><sub>ω</sub> · e<sup>+iωt−ikx</sup>] / √(2ω)</div>
+  <p>Here a<sub>ω</sub> and a<sup>†</sup><sub>ω</sub> are annihilation/creation operators,
+  and e<sup>iωt</sup> is directly Euler's formula. In flat spacetime, this defines the
+  <em>vacuum state</em> |0⟩.</p>
+</div>
+
+<div class="step" data-n="2">
+  <p><strong style="color:var(--cyan)">The Bogoliubov Transformation</strong> — Near a black hole, 
+  the notion of "positive frequency" changes across the horizon. The modes seen by a distant observer
+  (Schwarzschild coordinates) and by a freely-falling observer (Kruskal coordinates) are related by
+  a Bogoliubov transformation:</p>
+  <div class="math" style="font-size:1.1rem;">ã<sub>ω</sub> = ∫dω′ [α<sub>ωω′</sub> a<sub>ω′</sub> + β<sub>ωω′</sub> a<sup>†</sup><sub>ω′</sub>]</div>
+  <p>The β coefficients are nonzero — the vacuums are different. Particles seen by one observer
+  are not particles to another. The β coefficients involve analytic continuation of mode functions
+  through the complex plane.</p>
+</div>
+
+<div class="step" data-n="3">
+  <p><strong style="color:var(--gold)">Analytic Continuation Across the Horizon</strong> — The
+  key insight: a mode function e<sup>−iωu</sup> (where u is a retarded time coordinate) must be
+  analytically continued through the horizon. Near the horizon, u = −(1/κ) log(−v) where κ is
+  the surface gravity. Continuing to the other side of the horizon (v → 0⁺) requires:</p>
+  <div class="math nebula">e<sup>−iω·(−1/κ)log(−v)</sup> = e<sup>−iω·(−1/κ)[log|v| − iπ]</sup> = e<sup>−πω/κ</sup> · e<sup>iωlog|v|/κ</sup></div>
+  <p>The factor <span class="mi">e<sup>−πω/κ</sup></span> comes from the imaginary part of
+  log(−v) = log|v| − iπ (rotating around the branch cut), which is precisely Euler's formula
+  applied to the complex logarithm.</p>
+</div>
+
+<div class="step" data-n="4">
+  <p><strong style="color:var(--gold)">The Planck Spectrum</strong> — The Bogoliubov coefficients
+  satisfy |β<sub>ωω′</sub>|²/|α<sub>ωω′</sub>|² = e<sup>−2πω/κ</sup>, giving a
+  <em>thermal</em> particle number:</p>
+  <div class="math big">⟨N<sub>ω</sub>⟩ = 1 / (e<sup>ℏω/k<sub>B</sub>T<sub>H</sub></sup> − 1)</div>
+  <p>This is exactly the Planck blackbody distribution at temperature T<sub>H</sub> = ℏκ/2πk<sub>B</sub>c.
+  The exponential in the denominator traces directly to the phase factor from step 3 — from
+  Euler's formula applied to the complex log.</p>
+</div>
+
+<div class="cpanel" style="margin-top:1.5rem;">
+  <canvas id="planck-canvas" width="580" height="280"></canvas>
+  <div class="ctrl">
+    <label>T<sub>H</sub> (nK):</label>
+    <input type="range" id="planck-T" min="1" max="100" value="20">
+    <span class="vd" id="planck-T-val">20 nK</span>
+    <label>Compare:</label>
+    <select id="planck-compare" style="background:var(--panel);border:1px solid var(--border);color:var(--ink);font-family:var(--font-mono);font-size:.72rem;padding:.3rem .5rem;border-radius:4px;">
+      <option value="none">None</option>
+      <option value="cmb">CMB (2.7K)</option>
+      <option value="sun">Sun (5778K)</option>
+    </select>
+  </div>
+  <div class="cstat">Planck blackbody spectrum ⟨N_ω⟩ = 1/(e^(ℏω/kT)−1) — the Hawking radiation distribution</div>
+</div>
+
+<h3 class="sub">The Temperature Formula</h3>
+<div class="math big">T<sub>H</sub> = ℏc³ / (8πGMk<sub>B</sub>)</div>
+<p>For a Schwarzschild black hole of mass M:</p>
+<table class="st">
+<thead><tr><th>Object</th><th>Mass</th><th>T<sub>H</sub></th><th>Evaporation Time</th></tr></thead>
+<tbody>
+<tr><td class="g">Solar-mass BH</td><td>2×10³⁰ kg</td><td>6×10⁻⁸ K</td><td>~10⁶⁷ years</td></tr>
+<tr><td class="g">Stellar BH (10M☉)</td><td>2×10³¹ kg</td><td>6×10⁻⁹ K</td><td>~10⁷⁰ years</td></tr>
+<tr><td class="g">Supermassive BH</td><td>10⁹ M☉</td><td>6×10⁻¹⁷ K</td><td>~10⁹⁶ years</td></tr>
+<tr><td class="g">Primordial Micro-BH</td><td>10⁻⁸ kg (Planck)</td><td>~10³¹ K</td><td>~10⁻⁴³ s</td></tr>
+</tbody>
+</table>
+</section>
+<hr class="div">
+
+<!-- IMAGINARY TIME -->
+<section id="imaginary">
+<span class="sec-tag">Section 05</span>
+<h2 class="sec-title">Imaginary Time &amp; Wick Rotation</h2>
+<p>One of Hawking's most powerful and elegant tools is <strong>imaginary time</strong> —
+replacing real time t with imaginary time τ = it. This is not a physical observation
+but a mathematical technique, enabled entirely by Euler's formula, that converts
+quantum mechanics problems into statistical mechanics ones.</p>
+
+<h3 class="sub">The Wick Rotation</h3>
+<p>In quantum mechanics, the time-evolution operator is:</p>
+<div class="math">U(t) = e<sup>−iHt/ℏ</sup></div>
+<p>This is an oscillatory complex exponential — directly Euler's formula. Now perform the
+substitution <span class="mi">t = −iτ</span> (rotate by 90° in the complex time plane):</p>
+<div class="math nebula">U(−iτ) = e<sup>−iH(−iτ)/ℏ</sup> = e<sup>−Hτ/ℏ</sup></div>
+<p>The oscillatory factor e<sup>iθ</sup> becomes a <em>real decaying exponential</em> e<sup>−θ</sup>.
+This transformation — the Wick rotation — converts between:</p>
+<div class="two">
+  <div class="call">
+    <strong style="color:var(--cyan)">Real time (Minkowski)</strong><br>
+    Path integral: Z = ∫D[φ] e<sup>iS[φ]/ℏ</sup><br>
+    Highly oscillatory, hard to compute<br>
+    Spacetime metric: ds² = −c²dt² + dx²
+  </div>
+  <div class="call gold">
+    <strong style="color:var(--gold)">Imaginary time (Euclidean)</strong><br>
+    Path integral: Z = ∫D[φ] e<sup>−S<sub>E</sub>[φ]/ℏ</sup><br>
+    Rapidly damped, easier to define<br>
+    Metric: ds² = +c²dτ² + dx² (positive definite!)
+  </div>
+</div>
+
+<div class="cpanel">
+  <canvas id="wick-canvas" width="620" height="340"></canvas>
+  <div class="ctrl">
+    <label>Rotation angle:</label>
+    <input type="range" id="wick-angle" min="0" max="90" value="0">
+    <span class="vd" id="wick-angle-val">0°</span>
+    <button id="wick-anim-btn">▶ Rotate to iτ</button>
+    <button id="wick-reset-btn">Reset</button>
+  </div>
+  <div class="cstat" id="wick-status">Real time axis: e^(−iHt/ℏ) oscillates</div>
+</div>
+
+<h3 class="sub">Temperature from Periodicity</h3>
+<p>Hawking's deepest use of imaginary time is to <em>derive</em> the temperature of a black hole
+from the geometry of spacetime in imaginary time.</p>
+<p>Near a black hole horizon, the Schwarzschild metric in imaginary time (τ = it) looks like:</p>
+<div class="math" style="font-size:1.1rem;">ds²<sub>E</sub> = (1 − 2GM/rc²) c²dτ² + dr²/(1 − 2GM/rc²) + r²dΩ²</div>
+<p>Near the horizon r = r<sub>s</sub> = 2GM/c², this simplifies to:</p>
+<div class="math">ds²<sub>E</sub> ≈ ρ²d(κτ)² + dρ²</div>
+<p>where ρ = √(r − r<sub>s</sub>) is the proper distance and κ is the surface gravity.
+This is the metric of a <em>flat plane in polar coordinates</em> — but only if
+<span class="mi">κτ</span> is periodic with period <strong>2π</strong>!</p>
+<div class="math nebula">κτ ~ κτ + 2π &nbsp;⟹&nbsp; τ ~ τ + 2π/κ &nbsp;⟹&nbsp; β = ℏ/k<sub>B</sub>T = 2πℏ/κ</div>
+<div class="call green">
+<strong>The magic:</strong> If we demand that the imaginary-time geometry be non-singular
+(no conical singularity at the horizon), time must be periodic. This <em>forces</em> a specific
+temperature: T<sub>H</sub> = ℏκ/2πk<sub>B</sub>. The periodicity is exactly the
+e<sup>i·2π</sup> = 1 property of Euler's formula — going around a full circle in the
+complex time plane brings you back to the start.
+</div>
+
+<h3 class="sub">The Conical Singularity</h3>
+<p>If the periodicity is wrong, the imaginary-time metric has a conical singularity —
+like a cone with a deficit angle — at the horizon. This would represent a physical
+singularity (infinite curvature). The Hawking temperature is exactly the value that
+makes the cone into a smooth flat plane (zero deficit angle).</p>
+<div class="cpanel">
+  <canvas id="cone-canvas" width="480" height="300"></canvas>
+  <div class="ctrl">
+    <label>Period β:</label>
+    <input type="range" id="cone-beta" min="20" max="180" value="100">
+    <span class="vd" id="cone-beta-val">Exact T<sub>H</sub></span>
+  </div>
+  <div class="cstat" id="cone-status">At exact Hawking temperature: flat plane, no conical singularity</div>
+</div>
+</section>
+<hr class="div">
+
+<!-- NO-BOUNDARY PROPOSAL -->
+<section id="noboundary">
+<span class="sec-tag">Section 06</span>
+<h2 class="sec-title">The Hartle–Hawking No-Boundary Proposal</h2>
+<p>In 1983, Stephen Hawking and James Hartle proposed one of the most radical ideas in the
+history of cosmology: the universe has no boundary in imaginary time, and therefore
+<em>no initial singularity</em>. The Big Bang is replaced by a smooth, rounded beginning —
+like the South Pole of a sphere. There is no "before" the Big Bang, not because time
+began, but because the question is ill-formed.</p>
+
+<blockquote class="hq">
+  "The boundary condition of the universe is that it has no boundary."
+  <cite>— Stephen Hawking, A Brief History of Time (1988)</cite>
+</blockquote>
+
+<h3 class="sub">The Wave Function of the Universe</h3>
+<p>Quantum cosmology seeks a wave function Ψ for the universe itself. In the path integral
+formulation, Ψ is defined by summing over all possible spacetime geometries that satisfy
+certain boundary conditions:</p>
+<div class="math big">Ψ[h<sub>ij</sub>] = ∫ D[g<sub>μν</sub>] D[φ] · e<sup>iS[g,φ]/ℏ</sup></div>
+<p>Here h<sub>ij</sub> is the induced metric on a 3-surface (what we can observe),
+and the integral is over all 4D spacetimes with that boundary. This is quantum mechanics —
+specifically Euler's formula in the path integral — applied to all of spacetime at once.</p>
+
+<h3 class="sub">Wick-Rotating the Universe</h3>
+<p>The oscillatory path integral e<sup>iS/ℏ</sup> is formally ill-defined. The Hartle-Hawking
+proposal is to evaluate it in <em>Euclidean</em> (imaginary) time, where it becomes the
+much better-behaved:</p>
+<div class="math nebula">Ψ[h<sub>ij</sub>] = ∫ D[g] e<sup>−S<sub>E</sub>[g]/ℏ</sup></div>
+<p>And crucially: sum only over <strong>compact</strong>, <strong>boundaryless</strong> Euclidean
+geometries — 4D manifolds with no edges. This removes the initial singularity by fiat:
+there simply is no boundary of the universe in (imaginary) time.</p>
+
+<div class="cpanel">
+  <canvas id="noboundary-canvas" width="620" height="340"></canvas>
+  <div class="ctrl">
+    <button id="nb-toggle-btn">Toggle: Singular vs No-Boundary</button>
+  </div>
+  <div class="cstat" id="nb-status">No-Boundary: the universe begins as a smooth 4-sphere in imaginary time</div>
+</div>
+
+<div class="two" style="margin-top:1.5rem;">
+<div>
+<h3 class="sub">The Saddle-Point Approximation</h3>
+<p>The Euclidean path integral is dominated by the <em>saddle point</em> — the geometry
+that minimises the Euclidean action S<sub>E</sub>. For the no-boundary proposal, this is
+the de Sitter space (a 4-sphere):</p>
+<div class="math" style="font-size:1.1rem;">Ψ ≈ e<sup>−S<sub>E</sub>[g<sub>saddle</sub>]/ℏ</sup></div>
+<p>Computing S<sub>E</sub> for the de Sitter saddle gives:</p>
+<div class="math">Ψ ≈ exp(+3/8Λℓ<sub>P</sub>²)</div>
+<p>where Λ is the cosmological constant. The probability of creating a large universe
+P ∝ |Ψ|² ≈ exp(+3/4Λℓ<sub>P</sub>²) — it <em>prefers</em> small Λ, i.e., large universes.</p>
+</div>
+<div>
+<h3 class="sub">What the Proposal Implies</h3>
+<div class="call">
+<strong style="color:var(--nebula)">No Initial Singularity:</strong> In Euclidean (imaginary)
+time, the universe begins smoothly with no boundary — no moment before which the theory
+breaks down.
+</div>
+<div class="call gold">
+<strong>Quantum Creation from Nothing:</strong> The universe spontaneously nucleates from
+a quantum fluctuation in nothing. There is no external "creator" — the wave function
+evaluates to a finite, calculable probability.
+</div>
+<div class="call cyan">
+<strong>Inflation:</strong> The no-boundary wave function naturally selects an early
+inflationary phase, explaining the large-scale homogeneity and isotropy of the universe
+observed today.
+</div>
+<div class="call rose">
+<strong>The Role of Euler's Formula:</strong> Every step of this argument requires
+t → −iτ (Wick rotation), which is a rotation in the complex plane via e<sup>iθ</sup>.
+Without Euler's formula, imaginary time has no meaning.
+</div>
+</div>
+</div>
+</section>
+<hr class="div">
+
+<!-- INFORMATION PARADOX -->
+<section id="information">
+<span class="sec-tag">Section 07</span>
+<h2 class="sec-title">The Black Hole Information Paradox</h2>
+<p>Hawking's 1974 calculation of black hole radiation contained a devastating implication
+that haunted him for the rest of his life: <strong>information might be destroyed</strong>.
+If true, this would violate one of the most fundamental principles of quantum mechanics —
+unitarity.</p>
+
+<h3 class="sub">The Paradox</h3>
+<div class="two">
+<div>
+<h4 class="mini">Quantum Mechanics Says:</h4>
+<p>The quantum state of a system always evolves unitarily — via a unitary operator
+U = e<sup>−iHt/ℏ</sup>. This is Euler's formula applied to quantum time evolution.
+Unitarity means: information is <em>never lost</em>. If you know the final state exactly,
+you can always reconstruct the initial state.</p>
+<div class="math">|ψ(t)⟩ = e<sup>−iHt/ℏ</sup>|ψ(0)⟩</div>
+<p>U is unitary: U†U = 1. No information can be created or destroyed.</p>
+</div>
+<div>
+<h4 class="mini">Hawking Radiation Says:</h4>
+<p>Hawking radiation is <em>thermal</em> — it carries no information about what fell into the
+black hole. An encyclopedia thrown into a black hole and a chair made of the same mass produce
+identical radiation. When the black hole evaporates, all that information is gone.</p>
+<div class="call rose">
+<strong>The contradiction:</strong> Quantum mechanics says information cannot be destroyed.
+Hawking's calculation says it is. One of them must be wrong.
+</div>
+</div>
+</div>
+
+<h3 class="sub">Timeline of the Debate</h3>
+<div class="timeline">
+<div class="tl-item">
+  <span class="yr">1974–75</span>
+  <h4>Hawking's Original Claim</h4>
+  <p>Information is lost when black holes evaporate. Hawking argued this requires a modification
+  of quantum mechanics — pure states could evolve into mixed states.</p>
+</div>
+<div class="tl-item">
+  <span class="yr">1981</span>
+  <h4>The Black Hole War Begins</h4>
+  <p>Leonard Susskind and Gerard 't Hooft argued vigorously that information must be preserved,
+  setting off decades of debate. They bet against Hawking.</p>
+</div>
+<div class="tl-item">
+  <span class="yr">1997</span>
+  <h4>Maldacena's AdS/CFT Correspondence</h4>
+  <p>A duality between gravity in Anti-de Sitter space and a conformal field theory on its
+  boundary, where unitarity is manifest. Information is preserved in the boundary theory.</p>
+</div>
+<div class="tl-item">
+  <span class="yr">2004</span>
+  <h4>Hawking Concedes</h4>
+  <p>At a conference in Dublin, Hawking publicly conceded that information is preserved —
+  it leaks out via subtle correlations in Hawking radiation. He paid his bets to Preskill.</p>
+</div>
+<div class="tl-item">
+  <span class="yr">2012</span>
+  <h4>The Firewall Paradox</h4>
+  <p>AMPS (Almheiri, Marolf, Polchinski, Sully) argued that information preservation leads
+  to a "firewall" — infalling observers would be incinerated at the horizon.</p>
+</div>
+<div class="tl-item">
+  <span class="yr">2016–2022</span>
+  <h4>The Island Formula</h4>
+  <p>New calculations using quantum extremal surfaces and "islands" show the Page curve
+  (entropy first rising, then decreasing) can be reproduced, suggesting information is
+  indeed encoded in late Hawking radiation.</p>
+</div>
+</div>
+
+<div class="call gold">
+<strong>Where Euler's formula matters:</strong> The information paradox is fundamentally about
+whether the time-evolution operator e<sup>−iHt/ℏ</sup> — which embeds Euler's formula —
+remains unitary throughout black hole evaporation. Every proposed resolution (AdS/CFT,
+firewalls, islands) can be formulated as a question about the analyticity of complex
+exponentials describing quantum states across the horizon.
+</div>
+
+<div class="cpanel">
+  <canvas id="page-canvas" width="580" height="280"></canvas>
+  <div class="ctrl">
+    <label>Time (evaporation %):</label>
+    <input type="range" id="page-t" min="0" max="100" value="0">
+    <span class="vd" id="page-t-val">0%</span>
+    <button id="page-anim-btn">▶ Animate</button>
+  </div>
+  <div class="cstat" id="page-status">The Page curve: entropy of Hawking radiation over evaporation time</div>
+</div>
+</section>
+<hr class="div">
+
+<!-- EULER'S ROLE — SYNTHESIS -->
+<section id="euler-role">
+<span class="sec-tag">Section 08</span>
+<h2 class="sec-title">Euler's Formula: The Mathematical Spine of Hawking's Work</h2>
+<p>Let us now trace the precise role of e<sup>iθ</sup> = cos θ + i sin θ through every
+major result of Hawking's career.</p>
+
+<div class="tabs" id="euler-role-tabs">
+<div class="tab-bar">
+  <button class="tbtn active" data-tab="er-1">Mode Expansions</button>
+  <button class="tbtn" data-tab="er-2">Wick Rotation</button>
+  <button class="tbtn" data-tab="er-3">Thermal Green's Fn</button>
+  <button class="tbtn" data-tab="er-4">Path Integrals</button>
+  <button class="tbtn" data-tab="er-5">Unitarity</button>
+</div>
+
+<div id="er-1" class="tpanel active">
+<h3 class="sub">Mode Expansions — Quantum Fields as Euler Waves</h3>
+<p>Every quantum field is a collection of harmonic oscillators. Each mode is a complex
+exponential solution to the wave equation:</p>
+<div class="math">φ<sub>k</sub>(x,t) = A · e<sup>i(k·x − ωt)</sup> = A · e<sup>ikx</sup> · e<sup>−iωt</sup></div>
+<p>This is Euler's formula twice over: once in space (e<sup>ikx</sup>) and once in time
+(e<sup>−iωt</sup>). The vacuum state |0⟩ is defined as the state annihilated by a<sub>k</sub>
+for all k, where a<sub>k</sub> and a<sup>†</sup><sub>k</sub> satisfy:</p>
+<div class="math" style="font-size:1.1rem;">[a<sub>k</sub>, a<sup>†</sup><sub>k′</sub>] = δ(k − k′)</div>
+<p>The crucial point for Hawking radiation: near a black hole horizon, the natural modes
+for an infalling observer differ from those for a distant observer. The two are related
+by Bogoliubov transformations, and the mismatch (the β coefficients) grows exponentially
+due to the analytic structure of e<sup>iωt</sup> near the horizon.</p>
+<div class="cpanel">
+  <canvas id="mode-canvas" width="560" height="240"></canvas>
+  <div class="ctrl">
+    <label>Frequency ω:</label>
+    <input type="range" id="mode-omega" min="1" max="10" value="3">
+    <span class="vd" id="mode-omega-val">3</span>
+    <label>Damping κ:</label>
+    <input type="range" id="mode-kappa" min="0" max="50" value="10">
+    <span class="vd" id="mode-kappa-val">0.10</span>
+  </div>
+  <div class="cstat">Mode expansion across horizon: blue=flat spacetime, gold=near-horizon modified mode</div>
+</div>
+</div>
+
+<div id="er-2" class="tpanel">
+<h3 class="sub">Wick Rotation — Rotating the Complex Time Plane</h3>
+<p>The Wick rotation t = −iτ is a rotation in the complex time plane by 90°:</p>
+<div class="math">e<sup>−iH·t/ℏ</sup> → e<sup>−iH·(−iτ)/ℏ</sup> = e<sup>−Hτ/ℏ</sup></div>
+<p>This is exactly the rotation e<sup>iθ</sup> with θ = −π/2. The oscillatory quantum
+evolution becomes the thermal Boltzmann weight. The implications are profound:</p>
+<ul style="padding-left:1.5rem;margin:.75rem 0;line-height:2;">
+  <li><strong style="color:var(--cyan)">Quantum ↔ Statistical:</strong> The path integral in imaginary time computes thermodynamic partition functions</li>
+  <li><strong style="color:var(--gold)">Geometry ↔ Temperature:</strong> Periodicity in imaginary time = inverse temperature β = 1/k<sub>B</sub>T</li>
+  <li><strong style="color:var(--nebula)">Euclidean geometry:</strong> The Minkowski metric −dt² + dx² becomes +dτ² + dx², making calculations well-defined</li>
+</ul>
+<div class="math nebula" style="font-size:1.05rem;">t = −iτ : e<sup>iθ</sup> = e<sup>i·(−iτ·ω)</sup> = e<sup>ωτ</sup> &nbsp;(real, no oscillation)</div>
+</div>
+
+<div id="er-3" class="tpanel">
+<h3 class="sub">Thermal Green's Functions — KMS Condition</h3>
+<p>A thermal quantum field theory at temperature T has a Green's function that satisfies the
+<em>KMS condition</em> (Kubo–Martin–Schwinger). For the two-point function:</p>
+<div class="math">G(t) = G(t + iβ) &nbsp;&nbsp; where β = ℏ/k<sub>B</sub>T</div>
+<p>This periodicity in <em>imaginary</em> time — a shift by iβ in the complex t-plane — is
+the defining property of a thermal state. It follows directly from the cyclic property of the
+trace in Z = Tr[e<sup>−βH</sup>] and the Heisenberg equation:</p>
+<div class="math" style="font-size:1.1rem;">O(t) = e<sup>iHt/ℏ</sup> O(0) e<sup>−iHt/ℏ</sup></div>
+<p>For Hawking radiation, the fact that the quantum field state outside a black hole is
+<em>thermal</em> means it automatically satisfies the KMS condition with β = 2πℏ/κ.
+This periodicity is equivalent to saying the state is periodic under t → t + 2πi/κ —
+a complex shift, underpinned by Euler's formula.</p>
+<div class="cpanel">
+  <canvas id="kms-canvas" width="560" height="260"></canvas>
+  <div class="ctrl">
+    <label>β (inverse temp):</label>
+    <input type="range" id="kms-beta" min="5" max="60" value="20">
+    <span class="vd" id="kms-beta-val">20</span>
+  </div>
+  <div class="cstat">KMS condition: G(t) = G(t+iβ) — thermal periodicity in imaginary time</div>
+</div>
+</div>
+
+<div id="er-4" class="tpanel">
+<h3 class="sub">Path Integrals — Euler's Formula Over All Spacetimes</h3>
+<p>The quantum gravity path integral sums over all possible 4D geometries with given
+boundary conditions. In Lorentzian signature:</p>
+<div class="math">Z = ∫D[g] D[φ] e<sup>iS[g,φ]/ℏ</sup></div>
+<p>Every geometry contributes a phase factor e<sup>iS/ℏ</sup> — exactly Euler's formula with
+the action S as the angle. Geometries that extremise S contribute most (stationary phase
+approximation, i.e., classically allowed paths).</p>
+<p>After Wick rotation to Euclidean time, this becomes:</p>
+<div class="math nebula">Z<sub>E</sub> = ∫D[g] D[φ] e<sup>−S<sub>E</sub>[g,φ]/ℏ</sup></div>
+<p>The Hartle-Hawking wave function uses this directly, summing over compact Euclidean
+4-manifolds with no boundary. The saddle-point (dominant contribution) is the 4-sphere —
+de Sitter space in imaginary time — and gives the probability for the universe to nucleate.</p>
+</div>
+
+<div id="er-5" class="tpanel">
+<h3 class="sub">Unitarity — Euler's Formula and Information</h3>
+<p>Quantum mechanical time evolution is governed by:</p>
+<div class="math">U(t) = e<sup>−iHt/ℏ</sup></div>
+<p>Unitarity follows from the Hermiticity of H: U†U = e<sup>+iH†t/ℏ</sup>e<sup>−iHt/ℏ</sup> = 1
+when H† = H. This is directly the property e<sup>iθ</sup>e<sup>−iθ</sup> = 1 from Euler's formula —
+unit complex numbers preserve norms.</p>
+<p>The information paradox reduces to: is e<sup>−iHt/ℏ</sup> genuinely unitary when H includes
+a black hole? If Hawking radiation is exactly thermal (maximally random), it cannot be unitary.
+The modern consensus (from AdS/CFT) is that black holes are unitary — but the mechanism by which
+unitarity is preserved in the radiation is still not fully understood.</p>
+<div class="math" style="font-size:1.1rem;">|U(t)|² = |e<sup>−iHt/ℏ</sup>|² = 1 &nbsp;(unitarity = Euler's formula!)</div>
+</div>
+</div>
+</section>
+<hr class="div">
+
+<!-- OCTAVE CODE -->
+<section id="octave">
+<span class="sec-tag">Section 09</span>
+<h2 class="sec-title">GNU Octave Code Examples</h2>
+<p>Ten complete, runnable scripts demonstrating Hawking's physics computationally.
+Each script is self-contained with detailed comments.</p>
+
+<div class="tabs" id="oct-tabs">
+<div class="tab-bar">
+  <button class="tbtn active" data-tab="oc1">1. Hawking Temp</button>
+  <button class="tbtn" data-tab="oc2">2. Planck Spectrum</button>
+  <button class="tbtn" data-tab="oc3">3. BH Evaporation</button>
+  <button class="tbtn" data-tab="oc4">4. Wick Rotation</button>
+  <button class="tbtn" data-tab="oc5">5. Mode Expansion</button>
+  <button class="tbtn" data-tab="oc6">6. Bekenstein Entropy</button>
+  <button class="tbtn" data-tab="oc7">7. Path Integral</button>
+  <button class="tbtn" data-tab="oc8">8. KMS Condition</button>
+  <button class="tbtn" data-tab="oc9">9. Bogoliubov</button>
+  <button class="tbtn" data-tab="oc10">10. Page Curve</button>
+</div>
+
+<div id="oc1" class="tpanel active">
+<h3 class="sub">1. Hawking Temperature and Black Hole Properties</h3>
+<p>Calculate Hawking temperature, entropy, and evaporation time for black holes of different masses.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Hawking Radiation: Temperature, Entropy, Evaporation ─────────────────</span>
+<span class="c">% Physical constants (SI units)</span>
+hbar = <span class="m">1.0546e-34</span>;   <span class="c">% ℏ = h/(2π)  [J·s]</span>
+c    = <span class="m">2.998e8</span>;      <span class="c">% speed of light [m/s]</span>
+G    = <span class="m">6.674e-11</span>;    <span class="c">% gravitational constant [m³/kg/s²]</span>
+kB   = <span class="m">1.381e-23</span>;    <span class="c">% Boltzmann constant [J/K]</span>
+Msun = <span class="m">1.989e30</span>;    <span class="c">% solar mass [kg]</span>
+lP   = sqrt(hbar*G/c^<span class="m">3</span>);  <span class="c">% Planck length [m]</span>
+
+<span class="c">% ── Hawking Temperature: T_H = ℏc³/(8πGMk_B) ────────────────────────────</span>
+<span class="c">% This comes from the Bogoliubov coefficient calculation.</span>
+<span class="c">% The e^(−πω/κ) factor from analytically continuing e^(iωt) through</span>
+<span class="c">% the horizon (using Euler's formula) gives the thermal factor.</span>
+T_hawking = @(M) hbar * c^<span class="m">3</span> / (<span class="m">8</span>*pi * G * M * kB);
+
+<span class="c">% ── Schwarzschild Radius: r_s = 2GM/c² ───────────────────────────────────</span>
+r_s = @(M) <span class="m">2</span> * G * M / c^<span class="m">2</span>;
+
+<span class="c">% ── Bekenstein-Hawking Entropy: S = k_B A / (4 l_P²) ────────────────────</span>
+<span class="c">% A = 4π r_s² = 16π G² M² / c⁴</span>
+S_bh = @(M) kB * <span class="m">4</span>*pi * r_s(M)^<span class="m">2</span> / (<span class="m">4</span> * lP^<span class="m">2</span>);
+
+<span class="c">% ── Evaporation Time: t_evap ≈ 5120 π G² M³ / (ℏ c⁴) ────────────────────</span>
+t_evap = @(M) <span class="m">5120</span> * pi * G^<span class="m">2</span> * M^<span class="m">3</span> / (hbar * c^<span class="m">4</span>);
+
+<span class="c">% ── Print table for different black hole masses ───────────────────────────</span>
+masses_Msun = [<span class="m">1e-6</span>, <span class="m">1e-3</span>, <span class="m">1</span>, <span class="m">10</span>, <span class="m">1e6</span>, <span class="m">1e9</span>];
+names = {<span class="s">'Micro (μ)'</span>, <span class="s">'Micro (m)'</span>, <span class="s">'Solar'</span>, <span class="s">'Stellar'</span>, <span class="s">'Intermediate'</span>, <span class="s">'Supermassive'</span>};
+
+fprintf(<span class="s">'%-15s %12s %12s %12s %15s\n'</span>, <span class="s">'Type'</span>, <span class="s">'M (Msun)'</span>, <span class="s">'T_H (K)'</span>, <span class="s">'r_s (km)'</span>, <span class="s">'t_evap (s)'</span>);
+fprintf(<span class="s">'%s\n'</span>, repmat(<span class="s">'-'</span>,<span class="m">1</span>,<span class="m">65</span>));
+for i = <span class="m">1</span>:length(masses_Msun)
+  M   = masses_Msun(i) * Msun;
+  T   = T_hawking(M);
+  rs  = r_s(M);
+  S   = S_bh(M);
+  tev = t_evap(M);
+  fprintf(<span class="s">'%-15s %12.3g %12.3g %12.3g %15.3g\n'</span>, names{i}, masses_Msun(i), T, rs/<span class="m">1000</span>, tev);
+end
+
+<span class="c">% ── Plot T_H vs M ─────────────────────────────────────────────────────────</span>
+M_range = logspace(<span class="m">-3</span>, <span class="m">12</span>, <span class="m">500</span>) * Msun;   <span class="c">% from milisolar to billion solar</span>
+T_range = arrayfun(T_hawking, M_range);
+
+figure(<span class="s">'Name'</span>, <span class="s">'Hawking Temperature'</span>);
+loglog(M_range/Msun, T_range, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+yline(<span class="m">2.725</span>, <span class="s">'r--'</span>, <span class="s">'CMB (2.725 K)'</span>);    <span class="c">% CMB temperature</span>
+xlabel(<span class="s">'M / M_{sun}'</span>); ylabel(<span class="s">'T_H (K)'</span>);
+title(<span class="s">'Hawking Temperature: T_H = \hbar c^3 / (8\pi G M k_B)'</span>);
+text(<span class="m">1</span>, T_hawking(Msun)*<span class="m">3</span>, sprintf(<span class="s">'T(M_\odot) = %.2e K'</span>, T_hawking(Msun)), <span class="s">'FontSize'</span>, <span class="m">10</span>);</pre>
+</div></div>
+
+<div id="oc2" class="tpanel">
+<h3 class="sub">2. Planck Spectrum — Euler's Formula in the Blackbody Distribution</h3>
+<p>The Hawking radiation spectrum is a perfect Planck distribution. The exponential in it
+traces directly to Euler's formula via the Bogoliubov analytic continuation.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Planck Spectrum for Hawking Radiation ────────────────────────────────</span>
+<span class="c">% ⟨N_ω⟩ = 1 / (exp(ℏω/k_B T_H) − 1)  — Bose-Einstein distribution</span>
+<span class="c">% The exp() here comes from the phase factor e^(-πω/κ) in Bogoliubov theory,</span>
+<span class="c">% which arises from analytically continuing e^(iωt) around the horizon.</span>
+
+hbar = <span class="m">1.0546e-34</span>; kB = <span class="m">1.381e-23</span>; c = <span class="m">2.998e8</span>;
+G = <span class="m">6.674e-11</span>;    Msun = <span class="m">1.989e30</span>;
+
+T_hawking = @(M) hbar * c^<span class="m">3</span> / (<span class="m">8</span>*pi * G * M * kB);
+
+<span class="c">% Planck occupation number for massive/massless bosons</span>
+bose_einstein = @(omega, T) <span class="m">1</span> ./ (exp(hbar * omega ./ (kB * T)) - <span class="m">1</span>);
+fermi_dirac   = @(omega, T) <span class="m">1</span> ./ (exp(hbar * omega ./ (kB * T)) + <span class="m">1</span>);
+
+<span class="c">% Spectral energy density (Planck formula)</span>
+planck_u = @(omega, T) (hbar * omega.^<span class="m">3</span>) ./ (pi^<span class="m">2</span> * c^<span class="m">3</span>) .* bose_einstein(omega, T);
+
+<span class="c">% ── Compare Hawking radiation at different BH masses ──────────────────────</span>
+figure(<span class="s">'Name'</span>, <span class="s">'Hawking Radiation Spectra'</span>);
+BH_masses = [<span class="m">1e10</span>, <span class="m">1e11</span>, <span class="m">1e12</span>] * <span class="m">1e3</span>;  <span class="c">% tiny primordial BHs in kg</span>
+colors = {<span class="s">'b-'</span>, <span class="s">'r-'</span>, <span class="s">'g-'</span>};
+legends = {};
+
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">1</span>);
+for i = <span class="m">1</span>:length(BH_masses)
+  M = BH_masses(i);
+  T = T_hawking(M);
+  omega_peak = <span class="m">2.821</span> * kB * T / hbar;   <span class="c">% Wien peak</span>
+  omega = linspace(<span class="m">0.01</span>, <span class="m">10</span>) * omega_peak;
+  N_omega = bose_einstein(omega, T);
+  plot(omega/omega_peak, N_omega, colors{i}, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  legends{end+<span class="m">1</span>} = sprintf(<span class="s">'M=%.0e kg, T=%.1f K'</span>, M, T);
+end
+xlabel(<span class="s">'\omega / \omega_{peak}'</span>); ylabel(<span class="s">'<N_\omega>'</span>);
+title(<span class="s">'Occupation number: 1/(e^{\hbar\omega/kT}-1)'</span>);
+legend(legends, <span class="s">'Location'</span>, <span class="s">'NorthEast'</span>); grid on;
+
+<span class="c">% ── Show how e^(-πω/κ) factor arises ──────────────────────────────────────</span>
+<span class="c">% From analytic continuation: log(-v) = log|v| - iπ → picks up e^(-πω/κ)</span>
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">2</span>);
+kappa = <span class="m">1</span>;  <span class="c">% surface gravity (units where kappa=1)</span>
+omega_range = linspace(<span class="m">0.01</span>, <span class="m">5</span>, <span class="m">200</span>);
+ratio_beta = abs(exp(-pi*omega_range/kappa)).^<span class="m">2</span>;  <span class="c">% |beta/alpha|^2</span>
+N_thermal   = <span class="m">1</span> ./ (exp(<span class="m">2</span>*pi*omega_range/kappa) - <span class="m">1</span>);  <span class="c">% thermal result</span>
+plot(omega_range, ratio_beta, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+plot(omega_range, N_thermal, <span class="s">'r--'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+xlabel(<span class="s">'\omega/\kappa'</span>); ylabel(<span class="s">'amplitude'</span>);
+legend({<span class="s">'|β|² = e^{-2πω/κ}'</span>, <span class="s">'Thermal: 1/(e^{2πω/κ}-1)'</span>});
+title(<span class="s">'Bogoliubov factor from analytic continuation'</span>);
+grid on;
+sgtitle(<span class="s">'Euler\'s formula in Hawking radiation: e^{i\omega t} → e^{-\pi\omega/\kappa}'</span>);</pre>
+</div></div>
+
+<div id="oc3" class="tpanel">
+<h3 class="sub">3. Black Hole Evaporation — Full Time Evolution</h3>
+<p>Simulate how a black hole evaporates via Hawking radiation, tracking mass, temperature, and luminosity.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Black Hole Evaporation via Hawking Radiation ─────────────────────────</span>
+<span class="c">% Stefan-Boltzmann-like power law: dM/dt = -ℏc⁴/(15360πG²M²)</span>
+<span class="c">% Solution: M(t) = M_0 * (1 - t/t_evap)^(1/3)</span>
+<span class="c">% Temperature: T_H = ℏc³/(8πGMk_B) — diverges as M→0</span>
+
+hbar=<span class="m">1.0546e-34</span>; c=<span class="m">2.998e8</span>; G=<span class="m">6.674e-11</span>; kB=<span class="m">1.381e-23</span>; Msun=<span class="m">1.989e30</span>;
+
+<span class="c">% Evaporation time: t_evap = 5120π G² M₀³ / (ℏ c⁴)</span>
+t_evap_fn = @(M0) <span class="m">5120</span>*pi * G^<span class="m">2</span> * M0^<span class="m">3</span> / (hbar * c^<span class="m">4</span>);
+
+<span class="c">% Use a primordial black hole (observable in our universe's lifetime)</span>
+M0_kg = <span class="m">1e12</span>;                    <span class="c">% kg — about the mass of a mountain</span>
+t_total = t_evap_fn(M0_kg);       <span class="c">% should be ~age of universe</span>
+fprintf(<span class="s">'M0 = %.2e kg, t_evap = %.3e s = %.3e yr\n'</span>, M0_kg, t_total, t_total/<span class="m">3.156e7</span>);
+
+<span class="c">% Normalized time 0→1</span>
+t_norm = linspace(<span class="m">0</span>, <span class="m">0.999</span>, <span class="m">2000</span>);
+M_t = M0_kg * (<span class="m">1</span> - t_norm).^(<span class="m">1</span>/<span class="m">3</span>);
+T_t = hbar * c^<span class="m">3</span> ./ (<span class="m">8</span>*pi * G * M_t * kB);
+L_t = hbar * c^<span class="m">6</span> ./ (<span class="m">15360</span>*pi * G^<span class="m">2</span> * M_t.^<span class="m">2</span>);  <span class="c">% luminosity</span>
+r_t = <span class="m">2</span> * G * M_t / c^<span class="m">2</span>;                          <span class="c">% Schwarzschild radius</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'Black Hole Evaporation'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">1</span>);
+  plot(t_norm, M_t/M0_kg, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'t / t_{evap}'</span>); ylabel(<span class="s">'M / M_0'</span>);
+  title(<span class="s">'Mass: M(t) = M_0(1-t/t_{evap})^{1/3}'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">2</span>);
+  semilogy(t_norm, T_t, <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'t / t_{evap}'</span>); ylabel(<span class="s">'T_H (K)'</span>);
+  title(<span class="s">'Hawking Temperature: T_H \propto 1/M'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">3</span>);
+  semilogy(t_norm, L_t, <span class="s">'g-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'t / t_{evap}'</span>); ylabel(<span class="s">'Luminosity (W)'</span>);
+  title(<span class="s">'Hawking Luminosity: L \propto 1/M²'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">4</span>);
+  plot(t_norm, r_t, <span class="s">'m-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'t / t_{evap}'</span>); ylabel(<span class="s">'r_s (m)'</span>);
+  title(<span class="s">'Schwarzschild Radius: r_s = 2GM/c²'</span>);
+
+sgtitle(<span class="s">'Black Hole Evaporation — Hawking Radiation'</span>);</pre>
+</div></div>
+
+<div id="oc4" class="tpanel">
+<h3 class="sub">4. Wick Rotation — Visualizing the Complex Time Plane</h3>
+<p>Visualize how rotating time into the imaginary axis (Wick rotation) transforms oscillatory quantum evolution into thermal Boltzmann weights.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Wick Rotation: t → -iτ using Euler's Formula ─────────────────────────</span>
+<span class="c">% e^(-iHt/ℏ) oscillates in real time t</span>
+<span class="c">% e^(-Hτ/ℏ)  decays in imaginary time τ = it</span>
+<span class="c">% The rotation in the complex time plane IS Euler's formula: e^(iθ)</span>
+
+H = <span class="m">3.0</span>;    <span class="c">% energy eigenvalue (ℏ = 1 units)</span>
+hbar = <span class="m">1</span>;
+
+<span class="c">% ── Real-time evolution: oscillatory ─────────────────────────────────────</span>
+t_real = linspace(<span class="m">0</span>, <span class="m">6</span>*pi/<span class="m">3</span>, <span class="m">400</span>);
+U_real = exp(-<span class="m">1i</span> * H * t_real / hbar);   <span class="c">% e^(-iHt/ℏ) from Euler's formula</span>
+
+<span class="c">% ── Imaginary-time evolution: thermal weight ──────────────────────────────</span>
+tau_imag = linspace(<span class="m">0</span>, <span class="m">5</span>, <span class="m">300</span>);
+U_imag = exp(-H * tau_imag / hbar);       <span class="c">% e^(-Hτ/ℏ): decays to zero</span>
+
+<span class="c">% ── Complex time plane: Wick rotation by angle θ ─────────────────────────</span>
+theta_wick = linspace(<span class="m">0</span>, pi/<span class="m">2</span>, <span class="m">100</span>);   <span class="c">% rotate from real to imaginary axis</span>
+t0 = <span class="m">1.0</span>;                              <span class="c">% fixed magnitude</span>
+t_complex = t0 * exp(<span class="m">1i</span> * theta_wick);  <span class="c">% Euler: rotate in complex plane</span>
+U_complex = exp(-<span class="m">1i</span> * H * t_complex);   <span class="c">% amplitude as we rotate</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'Wick Rotation'</span>);
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">1</span>);
+  plot(t_real, real(U_real), <span class="s">'b-'</span>, t_real, imag(U_real), <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  legend({<span class="s">'Re[e^{-iHt}]'</span>, <span class="s">'Im[e^{-iHt}]'</span>}); grid on;
+  xlabel(<span class="s">'real time t'</span>); title(<span class="s">'Real time: oscillatory'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">2</span>);
+  plot(tau_imag, U_imag, <span class="s">'g-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'imaginary time 	au'</span>); title(<span class="s">'Imaginary time: Boltzmann weight'</span>);
+  ylabel(<span class="s">'e^{-H	au}'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">3</span>);
+  plot(real(t_complex), imag(t_complex), <span class="s">'k-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  hold on; plot(t0, <span class="m">0</span>, <span class="s">'go'</span>, <span class="m">0</span>, -t0, <span class="s">'ro'</span>, <span class="s">'MarkerSize'</span>, <span class="m">10</span>, <span class="s">'MarkerFaceColor'</span>, <span class="s">'auto'</span>);
+  grid on; axis equal; axis([-<span class="m">0.2</span> <span class="m">1.3</span> -<span class="m">1.3</span> <span class="m">0.2</span>]);
+  xlabel(<span class="s">'Re(t)'</span>); ylabel(<span class="s">'Im(t)'</span>);
+  title(<span class="s">'Wick rotation path: t → -i	au (via Euler''s formula)'</span>);
+  legend({<span class="s">'rotation arc'</span>, <span class="s">'real t=1'</span>, <span class="s">'imag t=-i'</span>});
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">4</span>);
+  plot(theta_wick*<span class="m">180</span>/pi, abs(U_complex), <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  plot(theta_wick*<span class="m">180</span>/pi, real(U_complex), <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  grid on; xlabel(<span class="s">'Wick angle (degrees)'</span>); 
+  legend({<span class="s">'|e^{-iHt}|'</span>, <span class="s">'Re[e^{-iHt}]'</span>});
+  title(<span class="s">'Amplitude during Wick rotation'</span>);
+  xline(<span class="m">90</span>, <span class="s">'k--'</span>, <span class="s">'	au axis'</span>);
+
+sgtitle(<span class="s">'Wick Rotation: e^{-iHt/\hbar} → e^{-H\tau/\hbar}'</span>);</pre>
+</div></div>
+
+<div id="oc5" class="tpanel">
+<h3 class="sub">5. Quantum Field Mode Expansion Near a Black Hole</h3>
+<p>Illustrate how field modes e<sup>±iωt</sup> behave differently inside vs. outside the horizon.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Field Mode Expansion Near Black Hole Horizon ─────────────────────────</span>
+<span class="c">% Outside the horizon (r > r_s): modes ~ e^(-iωt) in Schwarzschild coords</span>
+<span class="c">% Inside the horizon: modes modified by log singularity → e^(-πω/κ)</span>
+<span class="c">% This factor from Euler's formula is what causes Hawking radiation.</span>
+
+omega = <span class="m">2.5</span>;   <span class="c">% mode frequency</span>
+kappa = <span class="m">1.0</span>;   <span class="c">% surface gravity (units: ℏ = c = k_B = 1)</span>
+
+<span class="c">% Outside mode: u(t) = e^(-iωt) — standard oscillation from Euler's formula</span>
+t_out = linspace(<span class="m">-3</span>, <span class="m">3</span>, <span class="m">500</span>);
+mode_out = exp(-<span class="m">1i</span> * omega * t_out);
+
+<span class="c">% Tortoise coordinate: r_star = r + r_s * log(|r/r_s - 1|)</span>
+<span class="c">% Near the horizon, retarded time u = t - r_star → -∞</span>
+<span class="c">% Mode e^(-iω u) needs analytic continuation through u = -∞ horizon</span>
+
+<span class="c">% The key calculation: log(-v) = log|v| - iπ (Euler's formula for complex log)</span>
+v_vals = linspace(<span class="m">-2</span>, <span class="m">2</span>, <span class="m">1000</span>);
+v_vals(abs(v_vals) < <span class="m">0.001</span>) = NaN;  <span class="c">% avoid zero</span>
+
+<span class="c">% Outside (v > 0): mode = e^(-iω/κ * log(v))</span>
+mode_outside  = exp(-<span class="m">1i</span>*omega/kappa * log(abs(v_vals)));
+<span class="c">% Inside (v < 0): analytically continue log(-v) = log|v| - iπ</span>
+<span class="c">% → e^(-iω/κ * [log|v| - iπ]) = e^(-πω/κ) * e^(-iω/κ * log|v|)</span>
+beta_factor = exp(-pi * omega / kappa);  <span class="c">% Bogoliubov β coefficient from Euler!</span>
+mode_inside = beta_factor * exp(-<span class="m">1i</span>*omega/kappa * log(abs(v_vals)));
+
+figure(<span class="s">'Name'</span>, <span class="s">'Mode Expansion Near Horizon'</span>);
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">1</span>);
+  v_pos = v_vals(v_vals > <span class="m">0</span> & ~isnan(v_vals));
+  v_neg = v_vals(v_vals < <span class="m">0</span> & ~isnan(v_vals));
+  m_out = mode_outside(v_vals > <span class="m">0</span> & ~isnan(v_vals));
+  m_in  = mode_inside(v_vals < <span class="m">0</span> & ~isnan(v_vals));
+  plot(v_pos, real(m_out), <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">1.5</span>); hold on;
+  plot(v_neg, real(m_in),  <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">1.5</span>);
+  xline(<span class="m">0</span>, <span class="s">'k--'</span>, <span class="s">'Horizon'</span>); grid on;
+  xlabel(<span class="s">'v (Kruskal coordinate)'</span>); ylabel(<span class="s">'Re[\phi]'</span>);
+  legend({<span class="s">'Outside (v>0)'</span>, <span class="s">'Inside (v<0)'</span>});
+  title(sprintf(<span class="s">'Mode across horizon; |\beta| = e^{-\pi\omega/\kappa} = %.4f'</span>, beta_factor));
+
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">2</span>);
+  <span class="c">% Show the thermal spectrum arising from |β|²/|α|²</span>
+  omega_range = linspace(<span class="m">0.1</span>, <span class="m">5</span>, <span class="m">200</span>);
+  thermal_n = <span class="m">1</span> ./ (exp(<span class="m">2</span>*pi*omega_range/kappa) - <span class="m">1</span>);
+  beta_sq = exp(-<span class="m">2</span>*pi*omega_range/kappa);
+  semilogy(omega_range, thermal_n, <span class="s">'b-'</span>, omega_range, beta_sq, <span class="s">'r--'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  legend({<span class="s">'⟨N_ω⟩ = 1/(e^{2πω/κ}-1)'</span>, <span class="s">'|β|² = e^{-2πω/κ}'</span>}); grid on;
+  xlabel(<span class="s">'\omega/\kappa'</span>); ylabel(<span class="s">'amplitude'</span>);
+  title(<span class="s">'Thermal spectrum from Bogoliubov coefficients'</span>);
+sgtitle(<span class="s">'Euler\'s formula at the horizon: e^{i\omega t} → thermal factor'</span>);</pre>
+</div></div>
+
+<div id="oc6" class="tpanel">
+<h3 class="sub">6. Bekenstein–Hawking Entropy and the Holographic Principle</h3>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Bekenstein-Hawking Entropy: S = k_B A / (4 l_P²) ────────────────────</span>
+<span class="c">% This formula unites GR (A = area), QM (ℏ in l_P), and thermo (k_B, S)</span>
+
+hbar=<span class="m">1.0546e-34</span>; c=<span class="m">2.998e8</span>; G=<span class="m">6.674e-11</span>; kB=<span class="m">1.381e-23</span>; Msun=<span class="m">1.989e30</span>;
+lP = sqrt(hbar*G/c^<span class="m">3</span>);   <span class="c">% Planck length ≈ 1.616e-35 m</span>
+tP = lP/c;                  <span class="c">% Planck time</span>
+mP = sqrt(hbar*c/G);        <span class="c">% Planck mass ≈ 2.18e-8 kg</span>
+
+fprintf(<span class="s">'Planck units: l_P = %.3e m, m_P = %.3e kg\n'</span>, lP, mP);
+
+<span class="c">% Schwarzschild BH: A = 4π r_s² = 16π G² M² / c⁴</span>
+A_bh     = @(M) <span class="m">16</span>*pi * G^<span class="m">2</span> * M.^<span class="m">2</span> / c^<span class="m">4</span>;
+S_bh     = @(M) kB * A_bh(M) / (<span class="m">4</span> * lP^<span class="m">2</span>);
+
+<span class="c">% In Planck units: S = 4π M² (dimensionless, with M in Planck masses)</span>
+S_planck = @(M_planck) <span class="m">4</span>*pi * M_planck.^<span class="m">2</span>;
+
+<span class="c">% Compare BH entropy with ordinary entropy ────────────────────────────────</span>
+M_sun_in_solar = <span class="m">1</span>;
+S_sun_actual = <span class="m">1e58</span> * kB;   <span class="c">% rough estimate: ~10^58 k_B</span>
+S_sun_as_BH  = S_bh(Msun);
+fprintf(<span class="s">'Sun entropy (actual):      %.2e k_B\n'</span>, S_sun_actual/kB);
+fprintf(<span class="s">'Sun as black hole entropy: %.2e k_B\n'</span>, S_sun_as_BH/kB);
+fprintf(<span class="s">'Ratio (BH/Sun): %.2e  (BH is vastly higher entropy!)\n\n'</span>, S_sun_as_BH/S_sun_actual);
+
+<span class="c">% ── Plot S vs M ────────────────────────────────────────────────────────────</span>
+M_range = logspace(-<span class="m">3</span>, <span class="m">12</span>, <span class="m">500</span>) * Msun;
+S_range = S_bh(M_range);
+
+figure(<span class="s">'Name'</span>, <span class="s">'Bekenstein-Hawking Entropy'</span>);
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">1</span>);
+  loglog(M_range/Msun, S_range/kB, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'M/M_{sun}'</span>); ylabel(<span class="s">'S/k_B'</span>);
+  title(<span class="s">'Bekenstein-Hawking Entropy S = k_B A/4l_P^2'</span>);
+  text(<span class="m">1</span>, S_bh(Msun)/kB * <span class="m">3</span>, sprintf(<span class="s">'S(M_\odot) = %.2e'</span>, S_bh(Msun)/kB), <span class="s">'FontSize'</span>, <span class="m">9</span>);
+
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">2</span>);
+  <span class="c">% Holographic: S ∝ A (not Volume!) — plot S vs r_s</span>
+  r_range = <span class="m">2</span>*G*M_range/c^<span class="m">2</span>;  <span class="c">% Schwarzschild radii</span>
+  loglog(r_range, S_range/kB, <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  loglog(r_range, (r_range/lP).^<span class="m">3</span>, <span class="s">'b--'</span>, <span class="s">'LineWidth'</span>, <span class="m">1</span>);  <span class="c">% Volume scaling comparison</span>
+  legend({<span class="s">'S_{BH} ∝ r^2 (area)'</span>, <span class="s">'V ∝ r^3 (volume, for comparison)'</span>}, <span class="s">'Location'</span>, <span class="s">'NW'</span>);
+  grid on; xlabel(<span class="s">'r_s (m)'</span>); ylabel(<span class="s">'S/k_B'</span>);
+  title(<span class="s">'Holographic Principle: S \propto Area, not Volume'</span>);
+
+sgtitle(<span class="s">'Bekenstein-Hawking Entropy — connecting GR, QM, and Thermodynamics'</span>);</pre>
+</div></div>
+
+<div id="oc7" class="tpanel">
+<h3 class="sub">7. Euclidean Path Integral &amp; No-Boundary Saddle Point</h3>
+<p>Compute the Euclidean action for the de Sitter saddle point of the Hartle-Hawking path integral.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Euclidean Path Integral: No-Boundary Wave Function ───────────────────</span>
+<span class="c">% Ψ[h] = ∫ D[g] e^(-S_E[g]/ℏ)  (Euclidean path integral over 4-geometries)</span>
+<span class="c">% Dominant contribution: de Sitter saddle, S_E = -3/(8Λ l_P²)</span>
+<span class="c">% This uses Wick rotation: e^(iS/ℏ) → e^(-S_E/ℏ), powered by Euler's formula</span>
+
+hbar=<span class="m">1.0546e-34</span>; c=<span class="m">2.998e8</span>; G=<span class="m">6.674e-11</span>;
+lP = sqrt(hbar*G/c^<span class="m">3</span>);
+
+<span class="c">% ── de Sitter space: the no-boundary saddle ───────────────────────────────</span>
+<span class="c">% In imaginary time τ, de Sitter space = 4-sphere of radius L = sqrt(3/Λ)</span>
+<span class="c">% ds² = dτ² + L²sin²(τ/L) dΩ³  (τ ∈ [0, πL])</span>
+
+Lambda_range = logspace(-<span class="m">120</span>, -<span class="m">80</span>, <span class="m">500</span>);  <span class="c">% cosmological constant (m^-2)</span>
+<span class="c">% Euclidean action for de Sitter: S_E = -3π/(G Λ)  (units G=ℏ=c=1)</span>
+<span class="c">% Wave function: Ψ ∝ e^(-S_E/ℏ) = e^(+3π/GΛ)  (note: negative action!)</span>
+<span class="c">% This means larger universes (smaller Λ) are more probable</span>
+G_nat = <span class="m">1</span>; hbar_nat = <span class="m">1</span>;  <span class="c">% natural units</span>
+S_E_dS = @(Lambda) -<span class="m">3</span>*pi ./ (G_nat * Lambda);  <span class="c">% de Sitter Euclidean action</span>
+
+<span class="c">% ── de Sitter geometry in imaginary time ──────────────────────────────────</span>
+tau = linspace(<span class="m">0</span>, pi, <span class="m">200</span>);
+L = <span class="m">1</span>;   <span class="c">% de Sitter radius (normalized)</span>
+a_dS = L * sin(tau);  <span class="c">% scale factor: starts at 0, returns to 0</span>
+
+<span class="c">% ── Comparison: singular initial condition vs no-boundary ─────────────────</span>
+<span class="c">% Singular: a(τ) starts with singular derivative</span>
+a_singular = tau;  <span class="c">% linear start (conical singularity at τ=0)</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'No-Boundary Proposal'</span>);
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">1</span>);
+  plot(tau/pi, a_dS, <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  plot([<span class="m">0</span> pi/<span class="m">2</span>/pi], [<span class="m">0</span> <span class="m">1</span>], <span class="s">'r--'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  grid on; xlabel(<span class="s">'	au / \pi'</span>); ylabel(<span class="s">'a(	au)'</span>);
+  legend({<span class="s">'No-boundary (sin)'</span>, <span class="s">'Singular (linear)'</span>});
+  title(<span class="s">'Scale factor in imaginary time'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">2</span>);
+  <span class="c">% Show wave function amplitude vs Λ</span>
+  Lambda_vals = linspace(<span class="m">0.1</span>, <span class="m">5</span>, <span class="m">300</span>);
+  Psi_sq = exp(<span class="m">2</span> * <span class="m">3</span>*pi ./ Lambda_vals);    <span class="c">% |Ψ|² ∝ e^(+6π/Λ)</span>
+  Psi_sq = Psi_sq / max(Psi_sq);   <span class="c">% normalize</span>
+  semilogy(Lambda_vals, Psi_sq, <span class="s">'g-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'\Lambda (cosmological constant)'</span>); ylabel(<span class="s">'|\Psi|^2 (normalized)'</span>);
+  title(<span class="s">'Wave function |\Psi|^2 \propto e^{+3\pi/\Lambda}: prefers small \Lambda'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,[<span class="m">3</span>,<span class="m">4</span>]);
+  <span class="c">% Visualize the 4-sphere (de Sitter) in imaginary time</span>
+  [theta, phi] = meshgrid(linspace(<span class="m">0</span>,pi,<span class="m">60</span>), linspace(<span class="m">0</span>,<span class="m">2</span>*pi,<span class="m">60</span>));
+  X = sin(theta).*cos(phi); Y = sin(theta).*sin(phi); Z = cos(theta);
+  surf(X, Y, Z, <span class="s">'FaceAlpha'</span>, <span class="m">0.5</span>, <span class="s">'EdgeColor'</span>, <span class="s">'none'</span>, <span class="s">'FaceColor'</span>, <span class="s">'interp'</span>);
+  colormap(cool); axis equal; grid on;
+  title(<span class="s">'de Sitter 4-sphere (visualized as S²): no boundary, no singularity'</span>);
+  xlabel(<span class="s">'x'</span>); ylabel(<span class="s">'y'</span>); zlabel(<span class="s">'z'</span>);
+  view(<span class="m">35</span>, <span class="m">25</span>);
+
+sgtitle(<span class="s">'Hartle-Hawking No-Boundary Proposal via Euclidean Path Integral'</span>);</pre>
+</div></div>
+
+<div id="oc8" class="tpanel">
+<h3 class="sub">8. KMS Condition — Thermal Periodicity in Imaginary Time</h3>
+<p>Verify the KMS condition and demonstrate how periodicity in imaginary time encodes temperature.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── KMS Condition: G(t) = G(t + iβ) for thermal states ──────────────────</span>
+<span class="c">% This periodicity in imaginary time β = ℏ/k_B T is the fingerprint</span>
+<span class="c">% of a thermal state — directly from Euler's formula e^(iω(t+iβ)) = e^(iωt)e^(-ωβ)</span>
+
+kB = <span class="m">1</span>; hbar = <span class="m">1</span>;  <span class="c">% natural units</span>
+T = <span class="m">0.5</span>;             <span class="c">% temperature</span>
+beta = hbar / (kB * T);  <span class="c">% inverse temperature (= 2π/κ for Hawking)</span>
+
+<span class="c">% ── Simple harmonic oscillator Green's function ───────────────────────────</span>
+<span class="c">% G(t) = Tr[e^{-βH} A(t) B(0)] / Z</span>
+omega0 = <span class="m">1.5</span>;       <span class="c">% oscillator frequency</span>
+n_avg  = <span class="m">1</span>/(exp(beta*omega0) - <span class="m">1</span>);   <span class="c">% thermal average occupation</span>
+
+<span class="c">% Time-ordered propagator at finite temperature:</span>
+<span class="c">% G(t) = (n+1)e^(-iω₀t) + n·e^(+iω₀t)  — from Euler's formula</span>
+t_range = linspace(-<span class="m">3</span>*beta, <span class="m">3</span>*beta, <span class="m">1000</span>);
+G_t = (n_avg+<span class="m">1</span>)*exp(-<span class="m">1i</span>*omega0*t_range) + n_avg*exp(<span class="m">1i</span>*omega0*t_range);
+
+<span class="c">% ── Verify KMS: G(t) should equal G(t + iβ) ──────────────────────────────</span>
+t_test = <span class="m">1.2</span>;
+G_at_t     = (n_avg+<span class="m">1</span>)*exp(-<span class="m">1i</span>*omega0*t_test) + n_avg*exp(<span class="m">1i</span>*omega0*t_test);
+G_at_t_iB  = (n_avg+<span class="m">1</span>)*exp(-<span class="m">1i</span>*omega0*(t_test+<span class="m">1i</span>*beta)) + n_avg*exp(<span class="m">1i</span>*omega0*(t_test+<span class="m">1i</span>*beta));
+fprintf(<span class="s">'KMS check at t = %.2f:\n'</span>, t_test);
+fprintf(<span class="s">'  G(t)     = %.6f + %.6fi\n'</span>, real(G_at_t), imag(G_at_t));
+fprintf(<span class="s">'  G(t+iβ) = %.6f + %.6fi\n'</span>, real(G_at_t_iB), imag(G_at_t_iB));
+fprintf(<span class="s">'  |difference| = %.2e (should be ~0)\n\n'</span>, abs(G_at_t - G_at_t_iB));
+
+<span class="c">% ── Plot G(t) in complex time plane ──────────────────────────────────────</span>
+figure(<span class="s">'Name'</span>, <span class="s">'KMS Condition'</span>);
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">1</span>);
+  plot(t_range/beta, real(G_t), <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  plot(t_range/beta, imag(G_t), <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  xlabel(<span class="s">'t/eta'</span>); legend({<span class="s">'Re G(t)'</span>, <span class="s">'Im G(t)'</span>}); grid on;
+  title(<span class="s">'Thermal Green''s function G(t)'</span>);
+  xline(-<span class="m">1</span>, <span class="s">'k--'</span>); xline(<span class="m">0</span>, <span class="s">'k--'</span>); xline(<span class="m">1</span>, <span class="s">'k--'</span>);
+
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">2</span>);
+  <span class="c">% Periodicity in imaginary time: show G(it) — should be periodic with period β</span>
+  tau_range = linspace(<span class="m">0</span>, <span class="m">3</span>*beta, <span class="m">500</span>);
+  G_imag_t = (n_avg+<span class="m">1</span>)*exp(-<span class="m">1i</span>*omega0*(<span class="m">1i</span>*tau_range)) + n_avg*exp(<span class="m">1i</span>*omega0*(<span class="m">1i</span>*tau_range));
+  plot(tau_range/beta, real(G_imag_t), <span class="s">'g-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'	au / eta'</span>); ylabel(<span class="s">'G(i	au) — real'</span>);
+  title(<span class="s">'G(i	au): periodic with period eta = 1/T'</span>);
+  xline([<span class="m">1</span> <span class="m">2</span> <span class="m">3</span>], <span class="s">'k--'</span>);  <span class="c">% period markers</span>
+
+sgtitle(<span class="s">'KMS Condition: Thermal Periodicity = Euler\'s formula e^{i(t+i\beta)\omega} = e^{it\omega}e^{-\beta\omega}'</span>);</pre>
+</div></div>
+
+<div id="oc9" class="tpanel">
+<h3 class="sub">9. Bogoliubov Transformation — Particle Creation</h3>
+<p>Simulate the Bogoliubov transformation between in- and out-vacua that underlies Hawking radiation.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── Bogoliubov Transformation and Particle Creation ──────────────────────</span>
+<span class="c">% In curved spacetime, different observers define different vacua.</span>
+<span class="c">% Bogoliubov: ã_ω = ∫ [α_{ωω'} a_{ω'} + β_{ωω'} a†_{ω'}] dω'</span>
+<span class="c">% For Hawking: β_{ωω'} ≠ 0 → vacuum has particles for Schwarzschild observer</span>
+<span class="c">% The β coefficients arise from e^(iωt) having branch cut at horizon</span>
+
+kappa = <span class="m">1.0</span>;  <span class="c">% surface gravity</span>
+
+<span class="c">% Bogoliubov coefficients for Hawking radiation:</span>
+<span class="c">% |α_{ωω'}|² - |β_{ωω'}|² = δ(ω-ω') (normalization)</span>
+<span class="c">% Key ratio from analytic continuation: |β/α|² = e^(-2πω/κ)</span>
+
+omega_vals = linspace(<span class="m">0.01</span>, <span class="m">8</span>, <span class="m">500</span>);
+ratio_sq = exp(-<span class="m">2</span>*pi * omega_vals / kappa);  <span class="c">% |β/α|² from Euler's formula</span>
+<span class="c">% From |α|² - |β|² = 1: |α|² = 1/(1-e^(-2πω/κ))</span>
+alpha_sq = <span class="m">1</span> ./ (<span class="m">1</span> - exp(-<span class="m">2</span>*pi*omega_vals/kappa));
+beta_sq  = alpha_sq - <span class="m">1</span>;
+<span class="c">% Thermal occupation number:</span>
+N_omega = beta_sq;  <span class="c">% = 1/(e^(2πω/κ) - 1) = Planck distribution!</span>
+
+fprintf(<span class="s">'Bogoliubov coefficients at ω/κ = 1:\n'</span>);
+idx = find(abs(omega_vals - kappa) == min(abs(omega_vals - kappa)));
+fprintf(<span class="s">'  |α|² = %.6f\n  |β|² = %.6f\n  N(ω) = %.6f\n'</span>, alpha_sq(idx), beta_sq(idx), N_omega(idx));
+fprintf(<span class="s">'  Check |α|²-|β|² = %.8f (should be 1)\n\n'</span>, alpha_sq(idx)-beta_sq(idx));
+
+<span class="c">% Simulate squeezing — Bogoliubov transformation as optical squeezing</span>
+<span class="c">% â_out = cosh(r) â_in + sinh(r) â†_in  (squeezing parameter r = πω/κ)</span>
+r_vals = pi * linspace(<span class="m">0</span>, <span class="m">3</span>, <span class="m">200</span>) / kappa;
+n_squeezed = sinh(r_vals).^<span class="m">2</span>;  <span class="c">% ⟨n⟩ = sinh²(r)</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'Bogoliubov Transformation'</span>);
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">1</span>);
+  semilogy(omega_vals/kappa, alpha_sq, <span class="s">'b-'</span>, omega_vals/kappa, beta_sq, <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>);
+  legend({<span class="s">'|α_{ωω}|²'</span>, <span class="s">'|β_{ωω}|² = ⟨N_ω⟩'</span>}); grid on;
+  xlabel(<span class="s">'\omega/\kappa'</span>); title(<span class="s">'Bogoliubov coefficients'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,<span class="m">2</span>);
+  plot(omega_vals/kappa, N_omega, <span class="s">'g-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); grid on;
+  xlabel(<span class="s">'\omega/\kappa'</span>); ylabel(<span class="s">'⟨N_ω⟩'</span>);
+  title(<span class="s">'Particle content: Planck spectrum'</span>);
+
+subplot(<span class="m">2</span>,<span class="m">2</span>,[<span class="m">3</span>,<span class="m">4</span>]);
+  <span class="c">% Phase space picture of squeezing (Wigner function)</span>
+  [X, P] = meshgrid(linspace(-<span class="m">4</span>,<span class="m">4</span>,<span class="m">100</span>), linspace(-<span class="m">4</span>,<span class="m">4</span>,<span class="m">100</span>));
+  r_sq = <span class="m">1.2</span>;  <span class="c">% squeezing for ω/κ = 1.2/π</span>
+  <span class="c">% Squeezed vacuum Wigner function:</span>
+  W = (<span class="m">2</span>/pi) * exp(-<span class="m">2</span>*(X.^<span class="m">2</span> * exp(-<span class="m">2</span>*r_sq) + P.^<span class="m">2</span> * exp(<span class="m">2</span>*r_sq)));
+  contourf(X, P, W, <span class="m">15</span>, <span class="s">'LineColor'</span>, <span class="s">'none'</span>); colormap(hot); colorbar;
+  xlabel(<span class="s">'X (quadrature)'</span>); ylabel(<span class="s">'P (quadrature)'</span>);
+  title(<span class="s">'Squeezed vacuum Wigner function (analog of Hawking state)'</span>);
+
+sgtitle(<span class="s">'Bogoliubov Transformation: vacuum → particles via complex phases'</span>);</pre>
+</div></div>
+
+<div id="oc10" class="tpanel">
+<h3 class="sub">10. The Page Curve — Information Recovery</h3>
+<p>Compute and visualize the Page curve showing how entanglement entropy of Hawking radiation should evolve if information is preserved.</p>
+<div class="cw"><button class="cpybtn" onclick="cpyC(this)">COPY</button>
+<pre class="code"><span class="c">% ── The Page Curve: Entanglement Entropy of Hawking Radiation ─────────────</span>
+<span class="c">% If information is preserved (unitary evolution via e^(-iHt/ℏ)),</span>
+<span class="c">% the entanglement entropy must follow the Page curve:</span>
+<span class="c">% - Rises from 0 until the "Page time" (≈ t_evap/2 in coarse approximation)</span>
+<span class="c">% - Then decreases back to 0 when BH fully evaporates</span>
+<span class="c">% Hawking's original calculation gives entropy that always increases (dashed)</span>
+<span class="c">% — the information paradox in a graph.</span>
+
+N_total = <span class="m">1000</span>;   <span class="c">% total Hilbert space dimension (proportional to BH entropy)</span>
+t_page  = <span class="m">0.5</span>;    <span class="c">% Page time (when BH has radiated half its information)</span>
+
+t_norm = linspace(<span class="m">0</span>, <span class="m">1</span>, <span class="m">1000</span>);  <span class="c">% normalized evaporation time</span>
+
+<span class="c">% Remaining BH dimension (decreasing as it evaporates)</span>
+n_bh  = round(N_total * max(<span class="m">0</span>, <span class="m">1</span> - t_norm));
+n_bh(n_bh < <span class="m">1</span>) = <span class="m">1</span>;
+
+<span class="c">% Radiation Hilbert space dimension (increasing)</span>
+n_rad = max(<span class="m">1</span>, N_total - n_bh);
+
+<span class="c">% Page entropy: S = log(min(n_bh, n_rad)) for maximally entangled subsystems</span>
+S_page = log(min(n_bh, n_rad));  <span class="c">% this is the Page curve</span>
+
+<span class="c">% Hawking result: entropy always increases (never decreases)</span>
+S_hawking = log(n_rad);  <span class="c">% keeps growing even after Page time</span>
+
+<span class="c">% Max entropy of BH (Bekenstein-Hawking)</span>
+S_BH_max = log(N_total) * (<span class="m">1</span> - t_norm);  <span class="c">% decreasing entropy of BH</span>
+
+figure(<span class="s">'Name'</span>, <span class="s">'Page Curve — Information Paradox'</span>);
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">1</span>);
+  plot(t_norm, S_hawking/log(N_total), <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  plot(t_norm, S_page/log(N_total), <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2.5</span>);
+  plot(t_norm, S_BH_max/log(N_total), <span class="s">'g--'</span>, <span class="s">'LineWidth'</span>, <span class="m">1.5</span>);
+  xline(t_page, <span class="s">'k:'</span>, <span class="s">'Page time'</span>);
+  xlabel(<span class="s">'t / t_{evap}'</span>); ylabel(<span class="s">'S / S_{max}'</span>); grid on;
+  legend({<span class="s">'Hawking (info lost)'</span>, <span class="s">'Page curve (unitary)'</span>, <span class="s">'S_{BH} of black hole'</span>});
+  title(<span class="s">'The Page Curve'</span>);
+
+subplot(<span class="m">1</span>,<span class="m">2</span>,<span class="m">2</span>);
+  <span class="c">% Mutual information: I = S_A + S_B - S_AB</span>
+  <span class="c">% For unitarity: I should grow, encoding information leaking out</span>
+  S_total = log(N_total) * ones(size(t_norm));  <span class="c">% pure state: constant</span>
+  I_mutual_hawking = S_hawking + S_BH_max - S_total;
+  I_mutual_page    = S_page    + S_BH_max - S_total;
+  I_mutual_hawking = max(<span class="m">0</span>, I_mutual_hawking);
+  I_mutual_page    = max(<span class="m">0</span>, I_mutual_page);
+  plot(t_norm, I_mutual_hawking/log(N_total), <span class="s">'r-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2</span>); hold on;
+  plot(t_norm, I_mutual_page/log(N_total), <span class="s">'b-'</span>, <span class="s">'LineWidth'</span>, <span class="m">2.5</span>);
+  xline(t_page, <span class="s">'k:'</span>, <span class="s">'Page time'</span>); grid on;
+  xlabel(<span class="s">'t / t_{evap}'</span>); ylabel(<span class="s">'Mutual Info / S_{max}'</span>);
+  legend({<span class="s">'Hawking'</span>, <span class="s">'Page (unitary)'</span>});
+  title(<span class="s">'Mutual Information: does radiation remember the BH?'</span>);
+
+sgtitle(<span class="s">'Page Curve: Information preserved (e^{-iHt} unitary) vs Hawking''s paradox'</span>);</pre>
+</div></div>
+
+</div><!-- /oct-tabs -->
+</section>
+<hr class="div">
+
+<!-- FOOTER -->
+<footer>
+  <p style="font-family:var(--font-head);font-size:1.1rem;color:var(--gold);margin-bottom:.5rem;">
+    "Not only does God play dice, but he sometimes throws them where they cannot be seen."
+  </p>
+  <p style="margin-bottom:.4rem;">— Stephen W. Hawking</p>
+  Stephen Hawking &amp; Euler's Formula — Interactive Guide &nbsp;|&nbsp; Educational purposes
+</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// STARFIELD
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const c=document.getElementById('starfield');
+  const ctx=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+  const stars=Array.from({length:280},()=>({
+    x:Math.random(),y:Math.random(),
+    r:Math.random()*1.5+0.3,
+    a:Math.random(),
+    s:Math.random()*.003+.0005
+  }));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{
+      s.a+=s.s; if(s.a>1)s.a-=1;
+      const alpha=.15+.6*Math.abs(Math.sin(s.a*Math.PI));
+      ctx.beginPath();ctx.arc(s.x*c.width,s.y*c.height,s.r,0,2*Math.PI);
+      ctx.fillStyle=`rgba(220,230,255,${alpha})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────────────────────────────────────
+function cpyC(btn){
+  const t=btn.nextElementSibling.innerText;
+  navigator.clipboard.writeText(t).then(()=>{
+    btn.textContent='COPIED!';setTimeout(()=>btn.textContent='COPY',1800);
+  });
+}
+// Generic tabs
+document.querySelectorAll('.tabs').forEach(tb=>{
+  tb.querySelectorAll('.tbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.tab;
+      tb.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+      tb.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(id).classList.add('active');
+    });
+  });
+});
+// Nav highlight
+const navLinks=document.querySelectorAll('nav a.nl');
+const secs=document.querySelectorAll('section[id]');
+window.addEventListener('scroll',()=>{
+  let cur='';
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur));
+},{passive:true});
+// Reveal
+const revEls=document.querySelectorAll('.rev');
+new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});
+},{threshold:.1}).observe(revEls[0]||document.body);
+revEls.forEach(el=>new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});
+},{threshold:.08}).observe(el));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HERO BLACK HOLE CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('bh-canvas');
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height,cx=W/2,cy=H/2;
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Accretion disk glow
+    for(let r=W*0.47;r>W*0.18;r-=2){
+      const ratio=(r-W*0.18)/(W*0.29);
+      const alpha=(1-ratio)*0.06+0.01;
+      const h=ratio<0.4?28:ratio<0.7?38:55;
+      ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
+      ctx.strokeStyle=`hsla(${h},90%,60%,${alpha})`;ctx.lineWidth=3;ctx.stroke();
+    }
+    // Rotating disk particles
+    const nParts=160;
+    for(let i=0;i<nParts;i++){
+      const angle=i/nParts*2*Math.PI+t*(1+i%3*.15);
+      const rMin=W*0.2, rMax=W*0.44;
+      const r=rMin+(rMax-rMin)*(0.5+0.5*Math.sin(i*2.3));
+      const x=cx+r*Math.cos(angle), y=cy+r*Math.sin(angle)*0.32;
+      const heat=1-((r-rMin)/(rMax-rMin));
+      const hue=10+heat*40;
+      const size=.8+heat*1.5;
+      ctx.beginPath();ctx.arc(x,y,size,0,2*Math.PI);
+      ctx.fillStyle=`hsla(${hue},95%,70%,${0.2+heat*0.6})`;ctx.fill();
+    }
+    // Event horizon
+    const bhR=W*0.175;
+    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,bhR*1.3);
+    grad.addColorStop(0,'rgba(0,0,0,1)');
+    grad.addColorStop(0.7,'rgba(0,0,0,1)');
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(cx,cy,bhR*1.3,0,2*Math.PI);
+    ctx.fillStyle=grad;ctx.fill();
+    // Photon sphere ring
+    ctx.beginPath();ctx.arc(cx,cy,bhR*1.5,0,2*Math.PI);
+    ctx.strokeStyle='rgba(255,200,50,0.15)';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,bhR*1.5,t,t+0.5);
+    ctx.strokeStyle='rgba(255,220,80,0.7)';ctx.lineWidth=2;ctx.stroke();
+    // Central void
+    ctx.beginPath();ctx.arc(cx,cy,bhR,0,2*Math.PI);
+    ctx.fillStyle='#000';ctx.fill();
+    // Hawking radiation sparks
+    for(let i=0;i<6;i++){
+      const a=i/6*2*Math.PI+t*2;
+      const r0=bhR*1.08, r1=bhR*1.35;
+      const x0=cx+r0*Math.cos(a), y0=cy+r0*Math.sin(a)*0.9;
+      const x1=cx+r1*Math.cos(a+.2), y1=cy+r1*Math.sin(a+.2)*0.9;
+      ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);
+      ctx.strokeStyle=`rgba(200,120,255,${0.3+0.4*Math.sin(t*3+i)})`;
+      ctx.lineWidth=1.5;ctx.stroke();
+    }
+    t+=0.008;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRAPPED SURFACE CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('trapped-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const sl=document.getElementById('trap-mass');
+  const vd=document.getElementById('trap-mass-val');
+  const st=document.getElementById('trap-status');
+  const W=cv.width,H=cv.height;
+
+  function draw(){
+    const pct=parseInt(sl.value)/100;
+    vd.textContent=parseInt(sl.value)+'%';
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2, cy=H/2+20, R=100;
+    // Background spacetime grid (curved)
+    ctx.strokeStyle='rgba(34,211,238,0.08)';ctx.lineWidth=1;
+    for(let i=0;i<12;i++){
+      const curv=pct*30;
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=4){
+        const y=cy-R*1.5+i*H/10+curv*Math.sin((x-cx)/W*Math.PI)*pct;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    // Matter shell
+    const collapsed=pct>0.5;
+    const shellR=R*(1-pct*0.6);
+    ctx.beginPath();ctx.arc(cx,cy,shellR,0,2*Math.PI);
+    ctx.fillStyle=`rgba(168,85,247,${0.1+pct*0.3})`;ctx.fill();
+    ctx.strokeStyle=`rgba(168,85,247,${0.4+pct*0.4})`;ctx.lineWidth=2;ctx.stroke();
+
+    // Event horizon (appears when pct > 0.4)
+    if(pct>0.4){
+      const ehR=shellR*1.4;
+      ctx.beginPath();ctx.arc(cx,cy,ehR,0,2*Math.PI);
+      ctx.strokeStyle=`rgba(245,200,66,${(pct-0.4)/0.6})`;ctx.lineWidth=2;
+      ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=`rgba(245,200,66,${(pct-0.4)*0.8})`;
+      ctx.font='11px Space Mono';ctx.fillText('Event Horizon',cx-46,cy-ehR-6);
+    }
+    // Light rays
+    const nRays=8;
+    for(let i=0;i<nRays;i++){
+      const angle=i/nRays*2*Math.PI;
+      const inward=pct>0.55;
+      const len=inward?-(20+pct*30):(25-pct*15);
+      const x0=cx+(shellR+5)*Math.cos(angle);
+      const y0=cy+(shellR+5)*Math.sin(angle);
+      ctx.beginPath();ctx.moveTo(x0,y0);
+      ctx.lineTo(x0+len*Math.cos(angle),y0+len*Math.sin(angle));
+      ctx.strokeStyle=inward?'rgba(251,113,133,0.7)':'rgba(34,211,238,0.5)';
+      ctx.lineWidth=1.5;ctx.stroke();
+      // Arrow head
+      ctx.beginPath();ctx.arc(x0+len*Math.cos(angle),y0+len*Math.sin(angle),2.5,0,2*Math.PI);
+      ctx.fillStyle=inward?'rgba(251,113,133,0.8)':'rgba(34,211,238,0.7)';ctx.fill();
+    }
+    // Status
+    if(pct<0.4) st.textContent='Pre-collapse: light rays escape normally';
+    else if(pct<0.55) st.textContent='Horizon forming: critical surface appearing';
+    else st.textContent='Trapped surface formed: all light rays converge inward — singularity inevitable!';
+  }
+  sl.addEventListener('input',draw); draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENTROPY CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('entropy-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const sl=document.getElementById('ent-mass');
+  const vd=document.getElementById('ent-mass-val');
+  const st=document.getElementById('ent-status');
+  const W=cv.width,H=cv.height;
+  const hbar=1.0546e-34,c=2.998e8,G=6.674e-11,kB=1.381e-23,lP=Math.sqrt(hbar*G/c**3);
+
+  function draw(){
+    const Msun=1.989e30;
+    const M=parseInt(sl.value)*Msun;
+    vd.textContent=sl.value+' M☉';
+    const rs=2*G*M/c**2;
+    const A=4*Math.PI*rs**2;
+    const S=kB*A/(4*lP**2);
+    const T=hbar*c**3/(8*Math.PI*G*M*kB);
+    st.textContent=`r_s=${(rs/1000).toExponential(2)} km | T_H=${T.toExponential(2)} K | S=${(S/kB).toExponential(2)} k_B`;
+
+    ctx.clearRect(0,0,W,H);
+    // Black hole visualization
+    const cx=W/2, cy=H/2+10;
+    const maxR=Math.min(W,H)*0.38;
+    const bhR=maxR*(Math.log10(parseInt(sl.value))/2+0.2);
+    // Horizon glow
+    for(let r=bhR*1.6;r>bhR;r-=3){
+      const frac=(r-bhR)/(bhR*0.6);
+      ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
+      ctx.strokeStyle=`rgba(245,200,66,${(1-frac)*0.12})`;ctx.lineWidth=4;ctx.stroke();
+    }
+    ctx.beginPath();ctx.arc(cx,cy,bhR,0,2*Math.PI);
+    ctx.fillStyle='#000';ctx.fill();
+    ctx.strokeStyle='rgba(245,200,66,0.6)';ctx.lineWidth=1.5;ctx.stroke();
+    // Entropy dots on horizon surface
+    const nDots=Math.min(80,Math.round(bhR*bhR*0.8));
+    for(let i=0;i<nDots;i++){
+      const a=i/nDots*2*Math.PI;
+      const r=bhR+(Math.random()-0.5)*6;
+      ctx.beginPath();ctx.arc(cx+r*Math.cos(a),cy+r*Math.sin(a),1.2,0,2*Math.PI);
+      ctx.fillStyle='rgba(168,85,247,0.6)';ctx.fill();
+    }
+    // Labels
+    ctx.font='bold 11px Space Mono';
+    ctx.fillStyle='rgba(245,200,66,0.9)';
+    ctx.fillText('r_s = '+rs.toExponential(1)+' m',10,H-40);
+    ctx.fillStyle='rgba(168,85,247,0.9)';
+    ctx.fillText('S ∝ Area = 4πr_s²',10,H-24);
+    ctx.fillStyle='rgba(34,211,238,0.8)';
+    ctx.fillText('T_H = '+T.toExponential(1)+' K',10,H-8);
+  }
+  sl.addEventListener('input',draw); draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HAWKING RADIATION CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('radiation-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const massSl=document.getElementById('rad-mass');
+  const timeSl=document.getElementById('rad-time');
+  const massVd=document.getElementById('rad-mass-val');
+  const timeVd=document.getElementById('rad-time-val');
+  const st=document.getElementById('rad-status');
+  const animBtn=document.getElementById('rad-anim-btn');
+  const resetBtn=document.getElementById('rad-reset-btn');
+  const W=cv.width,H=cv.height;
+  let animating=false,animId=null,animT=0;
+
+  let pairs=[];
+  function spawnPair(bhr,cx,cy){
+    const angle=Math.random()*2*Math.PI;
+    const r=bhr*1.05+Math.random()*20;
+    pairs.push({
+      x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle),
+      angle, falling:Math.random()<0.5,
+      t:0,life:60+Math.random()*40,
+      size:2+Math.random()*2,
+      bhr,cx,cy
+    });
+  }
+
+  function draw(massVal,timeVal){
+    ctx.clearRect(0,0,W,H);
+    const massPct=massVal/100;
+    const evapPct=timeVal/200;
+    const currentMass=massPct*(1-evapPct);
+    const cx=W*0.32, cy=H/2;
+    const bhr=Math.max(15,80*currentMass);
+    massVd.textContent=massVal;
+    timeVd.textContent='t='+timeVal;
+
+    // Event horizon
+    for(let r=bhr*1.8;r>bhr;r-=2){
+      const frac=(r-bhr)/(bhr*0.8);
+      ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
+      ctx.strokeStyle=`rgba(168,85,247,${(1-frac)*0.08})`;ctx.lineWidth=3;ctx.stroke();
+    }
+    ctx.beginPath();ctx.arc(cx,cy,bhr,0,2*Math.PI);
+    ctx.fillStyle='#000';ctx.fill();
+    ctx.strokeStyle='rgba(245,200,66,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+
+    // Spawn pairs
+    if(Math.random()<0.3) spawnPair(bhr,cx,cy);
+
+    // Update and draw pairs
+    pairs=pairs.filter(p=>p.t<p.life);
+    pairs.forEach(p=>{
+      p.t++;
+      const frac=p.t/p.life;
+      if(p.falling){
+        // Particle falls in
+        const r=p.bhr*(1.05+0.2*(1-frac)**2);
+        p.x=p.cx+r*Math.cos(p.angle+(1-frac)*0.3);
+        p.y=p.cy+r*Math.sin(p.angle+(1-frac)*0.3);
+        ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1-frac),0,2*Math.PI);
+        ctx.fillStyle=`rgba(251,113,133,${0.7*(1-frac)})`;ctx.fill();
+      } else {
+        // Particle escapes — Hawking radiation
+        const r=p.bhr*(1.05+frac*2.5);
+        p.x=p.cx+r*Math.cos(p.angle);
+        p.y=p.cy+r*Math.sin(p.angle);
+        if(p.x>=0&&p.x<=W&&p.y>=0&&p.y<=H){
+          ctx.beginPath();ctx.arc(p.x,p.y,p.size*0.7,0,2*Math.PI);
+          ctx.fillStyle=`rgba(34,211,238,${0.8*(1-frac*0.4)})`;ctx.fill();
+        }
+      }
+    });
+
+    // Right panel: spectrum
+    const sx=W*0.62, sw=W*0.35, sh=H-40, sy=20;
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(sx,sy+sh);ctx.lineTo(sx+sw,sy+sh);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx,sy+sh);ctx.stroke();
+    const T_fake=1/(massPct*(1-evapPct)+0.05);
+    for(let px=0;px<sw;px++){
+      const omega=(px/sw)*10;
+      const n=1/(Math.exp(omega/T_fake)-1+1e-10);
+      const barH=Math.min(sh-4,n*sh*0.3);
+      const hue=200+px/sw*80;
+      ctx.fillStyle=`hsla(${hue},80%,60%,0.7)`;
+      ctx.fillRect(sx+px,sy+sh-barH,1.5,barH);
+    }
+    ctx.font='10px Space Mono';ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.fillText('ω',sx+sw-10,sy+sh+12);ctx.fillText('⟨N⟩',sx-28,sy+12);
+    ctx.fillStyle='rgba(34,211,238,0.6)';ctx.fillText('Hawking spectrum',sx,sy+sh+12);
+
+    const T_eff=(massPct*(1-evapPct))>0.01?1/(massPct*(1-evapPct)):Infinity;
+    st.textContent=`M=${(massPct*(1-evapPct)*100).toFixed(0)}%  |  Pairs created: ${pairs.length}  |  T_H ∝ 1/M`;
+  }
+
+  function step(){
+    animT++;
+    timeSl.value=animT;
+    draw(parseInt(massSl.value),animT);
+    if(animT<200&&animating) animId=requestAnimationFrame(step);
+    else{ animating=false; animBtn.textContent='▶ Evaporate'; }
+  }
+  massSl.addEventListener('input',()=>draw(parseInt(massSl.value),parseInt(timeSl.value)));
+  timeSl.addEventListener('input',()=>draw(parseInt(massSl.value),parseInt(timeSl.value)));
+  animBtn.addEventListener('click',()=>{
+    if(!animating){animating=true;animBtn.textContent='⏸ Pause';step();}
+    else{animating=false;cancelAnimationFrame(animId);animBtn.textContent='▶ Evaporate';}
+  });
+  resetBtn.addEventListener('click',()=>{
+    animating=false;cancelAnimationFrame(animId);animBtn.textContent='▶ Evaporate';
+    animT=0;timeSl.value=0;pairs=[];draw(parseInt(massSl.value),0);
+  });
+  draw(50,0);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLANCK CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('planck-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const Tsl=document.getElementById('planck-T');
+  const Tvd=document.getElementById('planck-T-val');
+  const cmp=document.getElementById('planck-compare');
+  const W=cv.width,H=cv.height;
+
+  function planck(omega,T){ return 1/(Math.exp(omega/T)-1+1e-12); }
+  function draw(){
+    const T_nK=parseInt(Tsl.value);
+    Tvd.textContent=T_nK+' nK';
+    const T=T_nK;// normalized units
+    ctx.clearRect(0,0,W,H);
+    const pad={l:50,r:20,t:20,b:40};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const omegaMax=10;
+    // Axes
+    ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+    // Main Hawking spectrum
+    let maxN=0;
+    for(let i=1;i<300;i++) maxN=Math.max(maxN,planck(i/300*omegaMax,T));
+    const toY=n=>pad.t+ph-Math.min(ph-2,(n/maxN)*ph*0.85);
+    const toX=o=>pad.l+o/omegaMax*pw;
+    ctx.beginPath();let first=true;
+    for(let i=1;i<300;i++){
+      const o=i/300*omegaMax, n=planck(o,T);
+      const x=toX(o),y=toY(n);
+      if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(168,85,247,0.9)';ctx.lineWidth=2.5;ctx.stroke();
+    // Fill
+    ctx.lineTo(toX(omegaMax),pad.t+ph);ctx.lineTo(pad.l,pad.t+ph);
+    ctx.closePath();ctx.fillStyle='rgba(168,85,247,0.08)';ctx.fill();
+
+    // Comparison
+    const cmpVal=cmp.value;
+    if(cmpVal!=='none'){
+      const Tcmp=cmpVal==='cmb'?2725:cmpVal==='sun'?5778000:T;
+      const Tratio=Tcmp/T;
+      let maxN2=0;for(let i=1;i<300;i++) maxN2=Math.max(maxN2,planck(i/300*omegaMax/Tratio,T));
+      ctx.beginPath();first=true;
+      for(let i=1;i<300;i++){
+        const o=i/300*omegaMax, n=planck(o/Tratio,T)*(maxN2>0?maxN/maxN2:1);
+        const x=toX(o),y=toY(Math.min(n,maxN));
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle='rgba(52,211,153,0.7)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);
+      ctx.font='10px Space Mono';ctx.fillStyle='rgba(52,211,153,0.8)';
+      ctx.fillText(cmpVal==='cmb'?'CMB 2.725K (scaled)':'Sun 5778K (scaled)',W-170,30);
+    }
+    // Wien peak
+    const omegaPeak=2.821*T;
+    if(omegaPeak<omegaMax){
+      ctx.strokeStyle='rgba(245,200,66,0.4)';ctx.lineWidth=1;ctx.setLineDash([3,4]);
+      ctx.beginPath();ctx.moveTo(toX(omegaPeak),pad.t);ctx.lineTo(toX(omegaPeak),pad.t+ph);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.font='11px Space Mono';ctx.fillStyle='rgba(168,85,247,0.9)';
+    ctx.fillText('Hawking T='+T_nK+' nK',pad.l+4,pad.t+14);
+    ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fillText('ω',pad.l+pw,pad.t+ph+14);ctx.fillText('⟨N_ω⟩',pad.l-40,pad.t+12);
+  }
+  Tsl.addEventListener('input',draw);cmp.addEventListener('change',draw);draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WICK ROTATION CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('wick-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const sl=document.getElementById('wick-angle');
+  const vd=document.getElementById('wick-angle-val');
+  const st=document.getElementById('wick-status');
+  const animBtn=document.getElementById('wick-anim-btn');
+  const resetBtn=document.getElementById('wick-reset-btn');
+  const W=cv.width,H=cv.height;
+  let animAngle=0,animating=false,animId=null;
+
+  function draw(deg){
+    const rad=deg*Math.PI/180;
+    vd.textContent=deg+'°';
+    ctx.clearRect(0,0,W,H);
+
+    // Left: complex time plane
+    const cx=200,cy=H/2,scale=120;
+    ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx-scale-30,cy);ctx.lineTo(cx+scale+20,cy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy+scale+20);ctx.lineTo(cx,cy-scale-20);ctx.stroke();
+    // Axis labels
+    ctx.font='11px Space Mono';ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.fillText('Re(t)',cx+scale+4,cy-6);ctx.fillText('Im(t)',cx+4,cy-scale-8);
+    // Rotation arc
+    ctx.beginPath();ctx.arc(cx,cy,scale,0,-rad,true);
+    ctx.strokeStyle='rgba(168,85,247,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+    // Original vector (real time)
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+scale,cy);
+    ctx.strokeStyle='rgba(34,211,238,0.7)';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx+scale,cy,5,0,2*Math.PI);ctx.fillStyle='#22d3ee';ctx.fill();
+    // Rotated vector
+    const tx=cx+scale*Math.cos(-rad),ty=cy+scale*Math.sin(-rad);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(tx,ty);
+    ctx.strokeStyle='rgba(245,200,66,0.9)';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(tx,ty,5,0,2*Math.PI);ctx.fillStyle='#f5c842';ctx.fill();
+    ctx.fillStyle='rgba(245,200,66,0.8)';ctx.fillText(`t·e^{-i${deg}°}`,tx+8,ty);
+
+    // Right: U(t) oscillation vs decay
+    const rx=360,rw=W-rx-20,rh=H-50,ry=25;
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(rx,ry+rh/2);ctx.lineTo(rx+rw,ry+rh/2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx,ry+rh);ctx.stroke();
+    const H_val=2,hbar=1;
+    const nPts=200;
+    // Interpolate between oscillatory (rad=0) and decaying (rad=pi/2)
+    const fracWick=rad/(Math.PI/2);
+    ctx.beginPath();let first=true;
+    for(let i=0;i<nPts;i++){
+      const tval=i/nPts*8;
+      // real part of e^{-iH·t·e^{-i·angle}}
+      const Uval=Math.exp(-H_val*tval*Math.sin(rad))*Math.cos(H_val*tval*Math.cos(rad));
+      const x=rx+i/nPts*rw;
+      const y=ry+rh/2-Uval*rh*0.38;
+      if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle=`rgba(${34+fracWick*211},${211-fracWick*157},${238-fracWick*167},0.9)`;
+    ctx.lineWidth=2;ctx.stroke();
+    ctx.font='10px Space Mono';
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText('t',rx+rw,ry+rh/2+14);
+    ctx.fillStyle='rgba(34,211,238,0.7)';ctx.fillText('Re[e^{-iHt}]',rx+4,ry+14);
+    if(deg===0) st.textContent='Real time: e^(−iHt) oscillates — quantum evolution';
+    else if(deg<85) st.textContent=`Intermediate (${deg}°): partially oscillatory, partially decaying`;
+    else st.textContent='Imaginary time (90°): e^(−Hτ) — thermal Boltzmann weight';
+  }
+
+  sl.addEventListener('input',()=>draw(parseInt(sl.value)));
+  animBtn.addEventListener('click',()=>{
+    if(animating){animating=false;cancelAnimationFrame(animId);animBtn.textContent='▶ Rotate to iτ';return;}
+    animating=true;animBtn.textContent='⏸ Pause';animAngle=parseInt(sl.value);
+    function step(){
+      animAngle=Math.min(90,animAngle+0.5);sl.value=animAngle;draw(animAngle);
+      if(animAngle<90&&animating)animId=requestAnimationFrame(step);
+      else{animating=false;animBtn.textContent='▶ Rotate to iτ';}
+    }
+    step();
+  });
+  resetBtn.addEventListener('click',()=>{
+    animating=false;cancelAnimationFrame(animId);animAngle=0;sl.value=0;
+    animBtn.textContent='▶ Rotate to iτ';draw(0);
+  });
+  draw(0);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONE CANVAS (Conical singularity)
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('cone-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const sl=document.getElementById('cone-beta');
+  const vd=document.getElementById('cone-beta-val');
+  const st=document.getElementById('cone-status');
+  const W=cv.width,H=cv.height;
+
+  function draw(){
+    const beta=parseInt(sl.value);
+    const exactBeta=100;// normalized: exact Hawking temperature
+    const deficit=Math.abs(beta-exactBeta)/exactBeta;
+    vd.textContent=beta===exactBeta?'Exact T_H':(beta<exactBeta?'T > T_H (excess)':'T < T_H (deficit)');
+
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2,cy=H/2+20;
+    // Draw polar plot of the Euclidean geometry
+    // Deficit angle δ = 2π - κβ  (in units where κ=1/100)
+    const kappa=1/100;
+    const actual_period=beta;
+    const required_period=2*Math.PI/kappa;// = 200π ≈ 628
+    const openAngle=Math.min(2*Math.PI,(beta/100)*Math.PI);// angle of cone sector
+
+    // Draw sector
+    const R=120;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,R,-openAngle/2,openAngle/2);
+    ctx.closePath();
+    ctx.fillStyle=beta===exactBeta?'rgba(52,211,153,0.12)':'rgba(251,113,133,0.1)';ctx.fill();
+    ctx.strokeStyle=beta===exactBeta?'rgba(52,211,153,0.6)':'rgba(251,113,133,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+    // Gap indication
+    if(beta!==exactBeta){
+      ctx.beginPath();ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,R,openAngle/2,openAngle/2+deficit*2);ctx.closePath();
+      ctx.fillStyle='rgba(245,200,66,0.15)';ctx.fill();
+      ctx.strokeStyle='rgba(245,200,66,0.6)';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+    }
+    // Center point
+    ctx.beginPath();ctx.arc(cx,cy,4,0,2*Math.PI);
+    ctx.fillStyle=beta===exactBeta?'#34d399':'#fb7185';ctx.fill();
+
+    ctx.font='12px Space Mono';
+    ctx.fillStyle=beta===exactBeta?'rgba(52,211,153,0.9)':'rgba(251,113,133,0.9)';
+    ctx.fillText(beta===exactBeta?'✓ Smooth: flat plane':'✗ Conical singularity!',cx-80,cy+R+24);
+
+    if(deficit<0.02) st.textContent='At exact Hawking temperature: flat plane, no conical singularity at horizon';
+    else st.textContent=`Deficit angle = ${(deficit*360).toFixed(1)}° — spacetime is singular at horizon. Must use T_H!`;
+  }
+  sl.addEventListener('input',draw);draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NO-BOUNDARY CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('noboundary-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const btn=document.getElementById('nb-toggle-btn');
+  const st=document.getElementById('nb-status');
+  const W=cv.width,H=cv.height;
+  let showSingular=false;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    if(!showSingular){
+      // No-boundary: hemisphere (south pole) smoothly connects
+      // Left: imaginary time geometry (half-sphere)
+      const cx1=W*0.28,cy1=H/2,R=100;
+      // Time axis (vertical)
+      ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(cx1,cy1-R-30);ctx.lineTo(cx1,cy1+R+10);ctx.stroke();
+      ctx.font='10px Space Mono';ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText('τ (imaginary)',cx1+4,cy1-R-16);
+      // Hemisphere
+      ctx.beginPath();ctx.arc(cx1,cy1,R,Math.PI,0);
+      ctx.strokeStyle='rgba(34,211,238,0.7)';ctx.lineWidth=2.5;ctx.stroke();
+      ctx.beginPath();ctx.arc(cx1,cy1,R,0,Math.PI);
+      ctx.strokeStyle='rgba(34,211,238,0.2)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+      // South pole (smooth start)
+      ctx.beginPath();ctx.arc(cx1,cy1-R,5,0,2*Math.PI);ctx.fillStyle='#22d3ee';ctx.fill();
+      ctx.fillStyle='rgba(34,211,238,0.8)';ctx.fillText('South Pole (smooth!)',cx1-60,cy1-R-10);
+      // Scale factor circles
+      for(let i=0;i<=4;i++){
+        const tau=i*Math.PI/4;
+        const a=Math.sin(tau)*R;
+        ctx.beginPath();ctx.arc(cx1,cy1-R*Math.cos(tau),3,0,2*Math.PI);
+        ctx.fillStyle=`rgba(168,85,247,${0.3+i*0.15})`;ctx.fill();
+        if(i>0){
+          ctx.strokeStyle=`rgba(168,85,247,${0.15+i*0.1})`;ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(cx1,cy1-R*Math.cos(tau));ctx.lineTo(cx1+a,cy1-R*Math.cos(tau));ctx.stroke();
+        }
+      }
+      // Right: real-time expansion
+      const cx2=W*0.68,cy2=H/2,rStart=20;
+      ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(cx2-20,cy2);ctx.lineTo(cx2+W*0.28,cy2);ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText('t (real)',cx2+W*0.24,cy2-6);
+      const nSlices=10;
+      for(let i=0;i<nSlices;i++){
+        const t=i/nSlices;
+        const a=rStart*(1+t*3);
+        const x=cx2+t*W*0.24;
+        ctx.beginPath();ctx.arc(x,cy2,a,Math.PI/2,3*Math.PI/2);
+        ctx.strokeStyle=`rgba(168,85,247,${0.2+t*0.4})`;ctx.lineWidth=1.5;ctx.stroke();
+      }
+      ctx.fillStyle='rgba(168,85,247,0.8)';ctx.fillText('Universe expands',cx2,cy2+R/2+10);
+      // Arrow connecting
+      ctx.strokeStyle='rgba(245,200,66,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(cx1+30,cy1);ctx.lineTo(cx2-20,cy2);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='rgba(245,200,66,0.7)';ctx.font='10px Space Mono';ctx.fillText('Wick rotation',W/2-36,cy1+14);
+      st.textContent='No-Boundary: Universe begins as smooth 4-sphere in imaginary time — no initial singularity';
+    } else {
+      // Singular: sharp point
+      const cx=W/2,cy=H*0.65;
+      // Time axis
+      ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(cx,20);ctx.lineTo(cx,cy);ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='10px Space Mono';ctx.fillText('τ or t',cx+4,20);
+      // Cone opening
+      const halfAngle=0.35;
+      for(let i=0;i<=8;i++){
+        const a=-halfAngle+i/8*2*halfAngle;
+        const len=150;
+        ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+len*Math.sin(a),cy-len*Math.cos(a));
+        ctx.strokeStyle=`rgba(251,113,133,${0.2+i/8*0.4})`;ctx.lineWidth=i===4?2.5:1;ctx.stroke();
+      }
+      // Singularity point
+      const sg=ctx.createRadialGradient(cx,cy,0,cx,cy,12);
+      sg.addColorStop(0,'rgba(251,113,133,1)');sg.addColorStop(1,'rgba(251,113,133,0)');
+      ctx.beginPath();ctx.arc(cx,cy,12,0,2*Math.PI);ctx.fillStyle=sg;ctx.fill();
+      ctx.fillStyle='rgba(251,113,133,0.9)';ctx.fillText('SINGULARITY (Big Bang)',cx-70,cy+20);
+      ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText('t → 0⁺: curvature → ∞',cx-70,cy+36);
+      // Question marks before singularity
+      ctx.fillStyle='rgba(245,200,66,0.7)';ctx.font='20px Space Mono';ctx.fillText('? ? ?',cx-28,cy-20);
+      ctx.fillStyle='rgba(245,200,66,0.5)';ctx.font='10px Space Mono';ctx.fillText('(no "before" in classical GR)',cx-80,cy+52);
+      st.textContent='Classical picture: initial singularity — the laws of physics break down at t=0';
+    }
+  }
+  btn.addEventListener('click',()=>{showSingular=!showSingular;draw();});
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE CURVE CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('page-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const sl=document.getElementById('page-t');
+  const vd=document.getElementById('page-t-val');
+  const st=document.getElementById('page-status');
+  const animBtn=document.getElementById('page-anim-btn');
+  const W=cv.width,H=cv.height;
+  let animating=false,animId=null,animT=0;
+
+  function draw(pct){
+    ctx.clearRect(0,0,W,H);
+    const pad={l:50,r:20,t:20,b:40};
+    const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    // Axes
+    ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+    ctx.font='10px Space Mono';ctx.fillStyle='rgba(255,255,255,0.3)';
+    ctx.fillText('t/t_evap',pad.l+pw-40,pad.t+ph+14);ctx.fillText('S/S_max',pad.l-44,pad.t+10);
+
+    const N=500;
+    function pageS(t){ return Math.min(t,1-t); }
+    function hawkingS(t){ return t; }
+    // Draw full curves (faded)
+    ['page','hawking'].forEach(type=>{
+      ctx.beginPath();
+      for(let i=0;i<=N;i++){
+        const t=i/N;
+        const s=type==='page'?pageS(t):hawkingS(t);
+        const x=pad.l+t*pw, y=pad.t+ph-s*ph*0.9;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle=type==='page'?'rgba(168,85,247,0.2)':'rgba(251,113,133,0.2)';
+      ctx.lineWidth=1.5;ctx.stroke();
+    });
+    // Draw progress
+    ['page','hawking'].forEach(type=>{
+      ctx.beginPath();let first=true;
+      for(let i=0;i<=Math.round(pct*N);i++){
+        const t=i/N;
+        const s=type==='page'?pageS(t):hawkingS(t);
+        const x=pad.l+t*pw, y=pad.t+ph-s*ph*0.9;
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle=type==='page'?'rgba(168,85,247,0.9)':'rgba(251,113,133,0.9)';
+      ctx.lineWidth=2.5;ctx.stroke();
+    });
+    // Page time marker
+    ctx.strokeStyle='rgba(245,200,66,0.5)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(pad.l+pw*0.5,pad.t);ctx.lineTo(pad.l+pw*0.5,pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(245,200,66,0.7)';ctx.fillText('Page time',pad.l+pw*0.5+4,pad.t+14);
+    // Legend
+    ctx.fillStyle='rgba(168,85,247,0.9)';ctx.fillText('Page (unitary)',pad.l+pw-110,pad.t+14);
+    ctx.fillStyle='rgba(251,113,133,0.9)';ctx.fillText('Hawking (info lost)',pad.l+pw-130,pad.t+28);
+    // Current position dots
+    const t_now=pct;
+    const x_now=pad.l+t_now*pw;
+    const yp=pad.t+ph-pageS(t_now)*ph*0.9;
+    const yh=pad.t+ph-hawkingS(t_now)*ph*0.9;
+    ctx.beginPath();ctx.arc(x_now,yp,5,0,2*Math.PI);ctx.fillStyle='#a855f7';ctx.fill();
+    ctx.beginPath();ctx.arc(x_now,yh,5,0,2*Math.PI);ctx.fillStyle='#fb7185';ctx.fill();
+    vd.textContent=Math.round(pct*100)+'%';
+    if(pct<0.5) st.textContent=`t=${Math.round(pct*100)}%: BH still large, entropy rising in both scenarios`;
+    else if(pct<1) st.textContent=`t=${Math.round(pct*100)}%: After Page time — Page curve falls (info returns), Hawking rises (info lost)`;
+    else st.textContent='t=100%: BH fully evaporated. Page: S=0 (all info recovered). Hawking: S=max (paradox!)';
+  }
+  sl.addEventListener('input',()=>draw(parseInt(sl.value)/100));
+  animBtn.addEventListener('click',()=>{
+    if(animating){animating=false;cancelAnimationFrame(animId);animBtn.textContent='▶ Animate';return;}
+    animating=true;animBtn.textContent='⏸ Pause';animT=0;
+    function step(){
+      animT=Math.min(100,animT+0.4);sl.value=animT;draw(animT/100);
+      if(animT<100&&animating)animId=requestAnimationFrame(step);
+      else{animating=false;animBtn.textContent='▶ Animate';}
+    }
+    step();
+  });
+  draw(0);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODE CANVAS (Euler role section)
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('mode-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const oSl=document.getElementById('mode-omega');
+  const kSl=document.getElementById('mode-kappa');
+  const oVd=document.getElementById('mode-omega-val');
+  const kVd=document.getElementById('mode-kappa-val');
+  const W=cv.width,H=cv.height;
+
+  function draw(){
+    const omega=parseInt(oSl.value);
+    const kappa=parseInt(kSl.value)/100;
+    oVd.textContent=omega;kVd.textContent=kappa.toFixed(2);
+    ctx.clearRect(0,0,W,H);
+    const pad={l:50,r:20,t:20,b:35};
+    const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    const vCenter=pad.t+ph/2;
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,vCenter);ctx.lineTo(pad.l+pw,vCenter);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.stroke();
+    // Flat spacetime mode: e^(-iωt)
+    ctx.beginPath();let first=true;
+    for(let px=0;px<pw;px++){
+      const t=(px/pw)*4*Math.PI;
+      const y=Math.cos(omega*t)*ph*0.28;
+      const x=pad.l+px;const yy=vCenter-y;
+      if(first){ctx.moveTo(x,yy);first=false;}else ctx.lineTo(x,yy);
+    }
+    ctx.strokeStyle='rgba(34,211,238,0.8)';ctx.lineWidth=2;ctx.stroke();
+    // Near-horizon mode: e^(-πω/κ)*e^(iω/κ·log|t|)
+    const betaFactor=Math.exp(-Math.PI*omega*kappa);
+    ctx.beginPath();first=true;
+    for(let px=4;px<pw;px++){
+      const t=(px/pw)*4*Math.PI;
+      const y=betaFactor*Math.cos(omega/kappa*Math.log(t))*ph*0.28;
+      const x=pad.l+px;const yy=vCenter-y;
+      if(first){ctx.moveTo(x,yy);first=false;}else ctx.lineTo(x,yy);
+    }
+    ctx.strokeStyle='rgba(245,200,66,0.8)';ctx.lineWidth=2;ctx.stroke();
+    ctx.font='10px Space Mono';
+    ctx.fillStyle='rgba(34,211,238,0.8)';ctx.fillText('Flat: e^(-iωt)',pad.l+4,pad.t+14);
+    ctx.fillStyle='rgba(245,200,66,0.8)';ctx.fillText('Horizon: e^(-πω/κ)·e^(iω log|t|)',pad.l+4,pad.t+26);
+    ctx.fillStyle='rgba(168,85,247,0.7)';ctx.fillText('|β| = e^(-πω/κ) = '+betaFactor.toFixed(4),pad.l+pw-180,pad.t+14);
+    ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText('t',pad.l+pw,vCenter+14);
+  }
+  oSl.addEventListener('input',draw);kSl.addEventListener('input',draw);draw();
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KMS CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const cv=document.getElementById('kms-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const sl=document.getElementById('kms-beta');
+  const vd=document.getElementById('kms-beta-val');
+  const W=cv.width,H=cv.height;
+
+  function draw(){
+    const beta=parseInt(sl.value);
+    vd.textContent=beta;
+    ctx.clearRect(0,0,W,H);
+    const omega=1.5,n=1/(Math.exp(beta*omega)-1+1e-12);
+    const pad={l:50,r:20,t:20,b:40};
+    const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    const vC=pad.t+ph/2;
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,vC);ctx.lineTo(pad.l+pw,vC);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.stroke();
+    // G(t) = (n+1)e^(-iωt) + n·e^(+iωt)
+    ctx.beginPath();let first=true;
+    for(let px=0;px<pw;px++){
+      const t=(px/pw)*6*beta-3*beta;
+      const Gre=(n+1)*Math.cos(omega*t)+n*Math.cos(omega*t);
+      const y=Gre*ph*0.28;
+      if(first){ctx.moveTo(pad.l+px,vC-y);first=false;}else ctx.lineTo(pad.l+px,vC-y);
+    }
+    ctx.strokeStyle='rgba(34,211,238,0.8)';ctx.lineWidth=2;ctx.stroke();
+    // Mark period markers at iβ intervals
+    for(let k=-2;k<=2;k++){
+      const x=pad.l+(k*beta/(6*beta)+0.5)*pw;
+      if(x>=pad.l&&x<=pad.l+pw){
+        ctx.strokeStyle='rgba(245,200,66,0.35)';ctx.lineWidth=1;ctx.setLineDash([3,4]);
+        ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='rgba(245,200,66,0.6)';ctx.font='9px Space Mono';
+        ctx.fillText(k===0?'0':`${k}β`,x-5,pad.t+ph+12);
+      }
+    }
+    ctx.font='10px Space Mono';ctx.fillStyle='rgba(34,211,238,0.7)';ctx.fillText('G(t) — β='+beta,pad.l+4,pad.t+14);
+    ctx.fillStyle='rgba(245,200,66,0.6)';ctx.fillText('| periodic with period β |',pad.l+4,pad.t+26);
+  }
+  sl.addEventListener('input',draw);draw();
+})();
+</script>
+</body>
+</html>

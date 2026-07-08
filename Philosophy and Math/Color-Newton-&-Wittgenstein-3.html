@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fermat: The Prince of Amateurs</title>
+<style>
+:root {
+  --max: 950px;
+  --serif: Georgia, Cambria, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --accent: #0f766e;
+  --accent-2: #7c3aed;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --code: #f6f8fa;
+  --border: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+header.hero {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+}
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  line-height: 1.25;
+  color: #111827;
+  font-weight: 700;
+}
+h1 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  margin: 0 0 .4rem;
+  letter-spacing: -0.02em;
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 1.1rem;
+  max-width: 720px;
+  margin: .5rem auto 0;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.6rem;
+  margin: 1.8rem 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,.04);
+}
+h2 {
+  font-size: 1.75rem;
+  margin: 0 0 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 2px solid var(--border);
+}
+h3 {
+  font-size: 1.3rem;
+  margin: 1.8rem 0 .6rem;
+  color: var(--accent);
+}
+.subcard {
+  border-left: 4px solid var(--accent);
+  padding: .2rem 0 .2rem 1.2rem;
+  margin: 1.5rem 0;
+}
+.interactive {
+  background: #f9fafb;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem 0 1.2rem;
+}
+label {
+  font-weight: 600;
+  font-size: .9rem;
+  display: inline-block;
+  margin-right: .5rem;
+}
+input[type=number], select {
+  padding: .5rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  width: 110px;
+}
+input[type=range] { width: 200px; vertical-align: middle; }
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: .55rem 1rem;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .95rem;
+  transition: transform .05s, filter .15s;
+}
+button:hover { filter: brightness(1.08); }
+button:active { transform: translateY(1px); }
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+@media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+pre {
+  background: var(--code);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: .9em;
+}
+.output {
+  font-family: ui-monospace, monospace;
+  background: white;
+  border: 1px solid var(--border);
+  padding: .7rem .8rem;
+  border-radius: 8px;
+  margin-top: .6rem;
+  min-height: 2.2em;
+}
+.muted { color: var(--muted); }
+.note {
+  background: #ecfdf5;
+  border-left: 4px solid var(--accent);
+  padding: .8rem 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+canvas {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  display: block;
+}
+footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: .9rem;
+}
+.katex { font-family: var(--serif); font-style: italic; }
+strong { color: #0b3b38; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>Fermat: The Prince of Amateurs</h1>
+    <div class="subtitle">Pierre de Fermat (1607–1665) — magistrate at Toulouse, and the mathematician who wrote in margins</div>
+  </header>
+
+  <article>
+    <section class="card" id="intro">
+      <h2>1. Introduction</h2>
+      <p>Pierre de Fermat was not a professional mathematician. Trained as a lawyer, he served as a councillor in the Parlement of Toulouse. Mathematics was his "second trade," pursued in evenings and in letters to friends like Marin Mersenne, Blaise Pascal, and René Descartes.</p>
+      <p>He rarely published. Instead, he announced results, challenged others, and scribbled notes in the margins of his copy of Diophantus' <em>Arithmetica</em>. It was there in 1637 that he wrote his most famous marginal note — a claim that would take 358 years to prove.</p>
+      <p>Despite being an amateur, Fermat founded modern number theory, co-founded probability theory, developed analytic geometry independently of Descartes, and created a method for maxima and minima that foreshadowed calculus. Carl Friedrich Gauss called him "the prince of amateurs" because his insights were so profound.</p>
+    </section>
+
+    <section class="card" id="number">
+      <h2>2. Number Theory Foundations</h2>
+      <p>Fermat's central legacy is number theory — the study of integers. He discovered patterns where others saw chaos.</p>
+      
+      <div class="subcard">
+        <h3>Fermat's Little Theorem</h3>
+        <p>If <span class="katex">p</span> is prime and <span class="katex">p</span> does not divide <span class="katex">a</span>, then:</p>
+        <p style="text-align:center; font-size:1.3rem; font-family: var(--serif);">a<sup>p−1</sup> ≡ 1 (mod p)</p>
+        <p><strong>Proof idea:</strong> Consider the multiples a, 2a, 3a, ..., (p−1)a modulo p. They are a rearrangement of 1,2,...,p−1. Multiply them all: a<sup>p−1</sup>(p−1)! ≡ (p−1)! (mod p). Cancel (p−1)! to get the theorem.</p>
+        <div class="interactive">
+          <label>a = <input id="lt-a" type="number" value="3" min="2"></label>
+          <label>p = <input id="lt-p" type="number" value="17" min="2" max="10007"></label>
+          <button id="lt-btn">Compute</button>
+          <div id="lt-out" class="output"></div>
+        </div>
+        <pre><code>% GNU Octave - Fermat's Little Theorem
+function r = powmod(a, e, m)
+  r = 1;
+  a = mod(a, m);
+  while e &gt; 0
+    if bitand(e,1)
+      r = mod(r * a, m);
+    endif
+    e = bitshift(e, -1);
+    a = mod(a * a, m);
+  endwhile
+endfunction
+
+p = 17; a = 3;
+powmod(a, p-1, p)   % returns 1</code></pre>
+      </div>
+
+      <div class="subcard">
+        <h3>Fermat Primes</h3>
+        <p>Fermat conjectured all numbers of the form F<sub>n</sub> = 2<sup>2<sup>n</sup></sup> + 1 are prime. He was right for n = 0–4, wrong thereafter.</p>
+        <div class="interactive">
+          <label>n: <input id="fp-n" type="range" min="0" max="6" value="4" step="1"></label>
+          <span id="fp-nval" class="muted">4</span>
+          <div class="output">
+            F<sub>n</sub> = <span id="fp-val"></span><br>
+            Status: <strong id="fp-prime"></strong><br>
+            Factors: <span id="fp-factors"></span>
+          </div>
+        </div>
+        <pre><code>% GNU Octave
+for n = 0:6
+  Fn = 2^(2^n) + 1;
+  printf("F_%d = %d\n", n, Fn);
+endfor
+% F5 = 4,294,967,297 = 641 * 6,700,417 (Euler, 1732)</code></pre>
+      </div>
+
+      <div class="subcard">
+        <h3>Sums of Two Squares</h3>
+        <p>Fermat's theorem on sums of two squares (Christmas Theorem, 1640): An odd prime p is expressible as p = x² + y² <em>iff</em> p ≡ 1 (mod 4).</p>
+        <div class="interactive">
+          <label>prime p: <input id="sts-p" type="number" value="29" min="2" max="10000"></label>
+          <button id="sts-btn">Check</button>
+          <div id="sts-out" class="output"></div>
+        </div>
+        <pre><code>% GNU Octave
+p = 29;
+if mod(p,4)==1 || p==2
+  for x = 0:floor(sqrt(p))
+    y2 = p - x^2;
+    y = sqrt(y2);
+    if y == floor(y)
+      printf("%d = %d^2 + %d^2\n", p, x, y); break;
+    endif
+  endfor
+endif</code></pre>
+      </div>
+    </section>
+
+    <section class="card" id="flt">
+      <h2>3. Fermat's Last Theorem</h2>
+      <p>In 1637, Fermat wrote: <em>"Cubum autem in duos cubos... nullam solutionem, hanc marginis exiguitas non caperet"</em> — there are no positive integers a, b, c with a<sup>n</sup> + b<sup>n</sup> = c<sup>n</sup> for n &gt; 2.</p>
+      <p><strong>Proof for n=4:</strong> Fermat did prove the case n=4 using <em>infinite descent</em>. Suppose a⁴+b⁴=c⁴ has a solution. Then there is a smaller solution, and a smaller one ad infinitum — impossible in positive integers. The key is to show it reduces to finding two squares whose sum and difference are squares.</p>
+      <div class="interactive">
+        <div class="grid-2">
+          <div>
+            <label>n: <select id="flt-n"><option>3</option><option>4</option><option selected>5</option></select></label>
+            <label>max a,b: <input id="flt-max" type="number" value="20" min="2" max="50"></label>
+            <button id="flt-btn">Search</button>
+          </div>
+          <div id="flt-out" class="output" style="min-height:4em">Click Search to test Fermat's claim for small values.</div>
+        </div>
+        <p class="muted" style="margin-top:.5rem">No counterexamples will be found. Andrew Wiles proved the full theorem in 1994 using modular forms and elliptic curves.</p>
+      </div>
+      <pre><code>% GNU Octave - brute force check for n=4
+n = 4; M = 30;
+found = false;
+for a = 1:M
+  for b = a:M
+    s = a^n + b^n;
+    c = round(s^(1/n));
+    if c^n == s
+      found = true; printf("%d^%d + %d^%d = %d^%d\n", a,n,b,n,c,n);
+    endif
+  endfor
+endfor</code></pre>
+    </section>
+
+    <section class="card" id="adeq">
+      <h2>4. Method of Adequality (1636)</h2>
+      <p>Thirty years before Newton and Leibniz, Fermat developed a technique for maxima, minima, and tangents. He called it <em>adequality</em> (from Latin <em>adaequare</em>, to equalize).</p>
+      <p><strong>Steps:</strong> 1) Set f(x) ≈ f(x+e). 2) Cancel common terms. 3) Divide by e. 4) Discard remaining terms containing e.</p>
+      <p>This is essentially setting the derivative to zero, but without limits.</p>
+      <div class="interactive">
+        <p>Find maximum of f(x) = x(10 − x) — the rectangle with perimeter 20.</p>
+        <label>x: <input id="adeq-x" type="range" min="0" max="10" step="0.1" value="5"></label>
+        <label>e: <input id="adeq-e" type="range" min="0.01" max="1" step="0.01" value="0.5"></label> <span id="adeq-eval"></span>
+        <div id="adeq-out" class="output"></div>
+        <p class="muted">Adequality gives: 0 ≈ 10e − 2xe − e² → divide by e → 10 − 2x − e ≈ 0 → as e vanishes, x = 5.</p>
+      </div>
+      <pre><code>% GNU Octave (symbolic package)
+pkg load symbolic
+syms x e
+f = x*(10 - x);
+adeq = expand(subs(f, x, x+e) - f);  % = 10e - 2*x*e - e^2
+q = adeq / e;                         % = 10 - 2*x - e
+solve(q == 0, x)                      % x = 5 - e/2, limit e->0 gives 5</code></pre>
+    </section>
+
+    <section class="card" id="geom">
+      <h2>5. Analytic Geometry</h2>
+      <p>Independently of Descartes (and earlier, in manuscript form in 1629), Fermat introduced coordinate geometry in <em>Ad Locos Planos et Solidos Isagoge</em>. He studied loci like y² = ax — what we call a parabola.</p>
+      <div class="interactive grid-2">
+        <div>
+          <label>a: <input id="parabola-a" type="range" min="0.5" max="4" step="0.1" value="2"></label> <span id="parabola-aval">2.0</span>
+          <p class="muted">Fermat wrote equations as proportions. y² = ax describes points whose distance to the axis squared is proportional to distance along axis.</p>
+        </div>
+        <canvas id="parabola-canvas" width="600" height="300"></canvas>
+      </div>
+      <pre><code>% GNU Octave
+a = 2;
+y = -10:0.1:10;
+x = y.^2 / a;
+plot(x, y); axis equal; grid on;
+title("Fermat parabola y^2 = a x");</code></pre>
+    </section>
+
+    <section class="card" id="prob">
+      <h2>6. Probability with Pascal (1654)</h2>
+      <p>Fermat's correspondence with Blaise Pascal founded probability theory. They solved the "problem of points": how to fairly divide stakes when a game stops early.</p>
+      <p>Another famous question: Is it advantageous to bet on at least one six in 4 throws of a die? Fermat computed exactly using combinatorial reasoning.</p>
+      <div class="interactive">
+        <button id="prob-btn">Simulate 20,000 games (4 dice rolls)</button>
+        <div id="prob-out" class="output">Theoretical probability = 1 − (5/6)^4 ≈ 0.5177</div>
+      </div>
+      <pre><code>% GNU Octave
+N = 100000;
+rolls = randi(6, N, 4);
+wins = sum(any(rolls == 6, 2));
+prob = wins / N   % ≈ 0.5177</code></pre>
+    </section>
+
+    <section class="card" id="optics">
+      <h2>7. Fermat's Principle in Optics (1662)</h2>
+      <p>Fermat's last great contribution: light travels between two points by the path of <em>least time</em>, not distance. From this he derived Snell's law of refraction.</p>
+      <p>If light goes from medium 1 (speed v₁) to medium 2 (v₂), it minimizes T = d₁/v₁ + d₂/v₂. This gives n₁ sin θ₁ = n₂ sin θ₂, where n = c/v.</p>
+      <div class="interactive">
+        <label>Interface point x: <input id="optic-x" type="range" min="-4" max="4" step="0.05" value="0.8"></label>
+        <canvas id="optic-canvas" width="600" height="260"></canvas>
+        <div id="optic-out" class="output"></div>
+      </div>
+      <pre><code>% GNU Octave - least time
+n1 = 1.0; n2 = 1.33;  % air to water
+x1 = -4; y1 = 3; x2 = 4; y2 = 3;
+T = @(x) n1*sqrt((x-x1)^2 + y1^2) + n2*sqrt((x2-x)^2 + y2^2);
+x_opt = fminbnd(T, x1, x2);  % ≈ 0.86</code></pre>
+    </section>
+  </article>
+
+  <footer>
+    <strong>Citations:</strong> Content adapted from Pierre de Fermat biography and mathematical works. Sources: Wikipedia entries on "Pierre de Fermat", "Fermat's Little Theorem", "Fermat's Last Theorem", "Method of Adequality", "Fermat's principle", and "Problem of points". Historical notes from Fermat's <em>Œuvres</em> edited by Paul Tannery (1891–1922). This educational page is for instructional use.
+  </footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const $ = id => document.getElementById(id);
+
+  // ----- Little Theorem -----
+  function modPow(b, e, m) {
+    b = BigInt(b); e = BigInt(e); m = BigInt(m);
+    let r = 1n; b = b % m;
+    while (e > 0n) { if (e & 1n) r = (r * b) % m; e >>= 1n; b = (b * b) % m; }
+    return r;
+  }
+  function isPrime(n) {
+    n = Math.floor(n); if (n < 2) return false; if (n % 2 === 0) return n === 2;
+    for (let i = 3; i * i <= n; i += 2) if (n % i === 0) return false; return true;
+  }
+  const ltBtn = $('lt-btn');
+  if (ltBtn) ltBtn.addEventListener('click', () => {
+    const a = parseInt($('lt-a').value), p = parseInt($('lt-p').value);
+    const out = $('lt-out');
+    if (!isPrime(p)) { out.textContent = 'p must be prime.'; return; }
+    if (a % p === 0) { out.textContent = 'p must not divide a.'; return; }
+    const r = modPow(a, p - 1, p);
+    out.innerHTML = `a<sup>p-1</sup> mod p = ${r.toString()} ${r === 1n ? '✓ matches theorem' : '✗'}`;
+  });
+
+  // ----- Fermat Primes -----
+  const fpN = $('fp-n');
+  if (fpN) {
+    const data = [
+      {n:0, v:3n, prime:true, f:'—'},
+      {n:1, v:5n, prime:true, f:'—'},
+      {n:2, v:17n, prime:true, f:'—'},
+      {n:3, v:257n, prime:true, f:'—'},
+      {n:4, v:65537n, prime:true, f:'—'},
+      {n:5, v:4294967297n, prime:false, f:'641 × 6,700,417'},
+      {n:6, v:18446744073709551617n, prime:false, f:'274,177 × 67,280,421,310,721'}
+    ];
+    const upd = () => {
+      const n = parseInt(fpN.value); const d = data[n];
+      $('fp-nval').textContent = n;
+      $('fp-val').textContent = d.v.toString();
+      $('fp-prime').textContent = d.prime ? 'Prime' : 'Composite';
+      $('fp-factors').textContent = d.f;
+    };
+    fpN.addEventListener('input', upd); upd();
+  }
+
+  // ----- Sums of two squares -----
+  const stsBtn = $('sts-btn');
+  if (stsBtn) stsBtn.addEventListener('click', () => {
+    const p = parseInt($('sts-p').value); const out = $('sts-out');
+    if (!isPrime(p)) { out.textContent = p + ' is not prime.'; return; }
+    if (p === 2) { out.innerHTML = '2 = 1² + 1² ✓'; return; }
+    if (p % 4 !== 1) { out.innerHTML = `${p} ≡ 3 mod 4 → cannot be sum of two squares.`; return; }
+    for (let x = 0; x * x <= p; x++) {
+      const y2 = p - x * x; const y = Math.round(Math.sqrt(y2));
+      if (y * y === y2) { out.innerHTML = `${p} = ${x}² + ${y}² ✓ (p ≡ 1 mod 4)`; return; }
+    }
+    out.textContent = 'No representation found (unexpected).';
+  });
+
+  // ----- FLT search -----
+  const fltBtn = $('flt-btn');
+  if (fltBtn) fltBtn.addEventListener('click', () => {
+    const n = parseInt($('flt-n').value), M = parseInt($('flt-max').value);
+    let checks = 0;
+    for (let a = 1; a <= M; a++) {
+      for (let b = a; b <= M; b++) {
+        const s = Math.pow(a, n) + Math.pow(b, n);
+        const c = Math.round(Math.pow(s, 1 / n));
+        checks++;
+        if (Math.pow(c, n) === s) {
+          $('flt-out').innerHTML = `Counterexample! ${a}^${n}+${b}^${n}=${c}^${n}`;
+          return;
+        }
+      }
+    }
+    $('flt-out').innerHTML = `Checked ${checks} pairs up to ${M}. No solutions for n=${n}. As Fermat claimed.`;
+  });
+
+  // ----- Adequality -----
+  const adeqE = $('adeq-e'), adeqX = $('adeq-x');
+  function updAdeq() {
+    const e = parseFloat(adeqE.value), x = parseFloat(adeqX.value);
+    const f = x * (10 - x), fe = (x + e) * (10 - x - e);
+    const q = (fe - f) / e;
+    $('adeq-eval').textContent = `e=${e.toFixed(2)}`;
+    $('adeq-out').innerHTML = `f(x)=${f.toFixed(3)}, f(x+e)=${fe.toFixed(3)}<br>(f(x+e)−f(x))/e = ${q.toFixed(3)} ≈ 10−2x−e = ${(10-2*x-e).toFixed(3)}`;
+  }
+  if (adeqE) { adeqE.addEventListener('input', updAdeq); adeqX.addEventListener('input', updAdeq); updAdeq(); }
+
+  // ----- Parabola -----
+  const pc = $('parabola-canvas'), pa = $('parabola-a');
+  function drawParabola() {
+    if (!pc) return; const ctx = pc.getContext('2d'); const a = parseFloat(pa.value);
+    $('parabola-aval').textContent = a.toFixed(1);
+    const W = pc.width, H = pc.height; ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+    // axes
+    ctx.beginPath(); ctx.moveTo(40, H/2); ctx.lineTo(W-10, H/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(60, 10); ctx.lineTo(60, H-10); ctx.stroke();
+    ctx.fillStyle = '#6b7280'; ctx.font = '12px sans-serif'; ctx.fillText('x', W-15, H/2-5); ctx.fillText('y', 65, 15);
+    // plot y^2 = a x => x = y^2 / a
+    ctx.strokeStyle = '#0f766e'; ctx.lineWidth = 2; ctx.beginPath();
+    const scale = 12;
+    for (let py = -12; py <= 12; py += 0.1) {
+      const x = (py * py) / a, px = 60 + x * scale, pyC = H/2 - py * scale;
+      if (py === -12) ctx.moveTo(px, pyC); else ctx.lineTo(px, pyC);
+    }
+    ctx.stroke();
+  }
+  if (pa) { pa.addEventListener('input', drawParabola); drawParabola(); }
+
+  // ----- Probability -----
+  const probBtn = $('prob-btn');
+  if (probBtn) probBtn.addEventListener('click', () => {
+    const N = 20000; let wins = 0;
+    for (let i = 0; i < N; i++) {
+      let win = false;
+      for (let j = 0; j < 4; j++) if (Math.floor(Math.random()*6)+1 === 6) win = true;
+      if (win) wins++;
+    }
+    const p = wins / N;
+    $('prob-out').innerHTML = `Simulated ${N.toLocaleString()} trials: ${wins} wins → p ≈ ${p.toFixed(4)}<br>Theoretical: 1−(5/6)^4 = 0.5177`;
+  });
+
+  // ----- Optics -----
+  const oc = $('optic-canvas'), ox = $('optic-x');
+  function drawOptic() {
+    if (!oc) return; const ctx = oc.getContext('2d'); const x = parseFloat(ox.value);
+    const W = oc.width, H = oc.height; ctx.clearRect(0,0,W,H);
+    const x1 = -4, y1 = 3, x2 = 4, y2 = 3, n1 = 1.0, n2 = 1.33;
+    const sx = (val) => W/2 + val * 60, sy = (val) => H/2 - val * 30;
+    // media
+    ctx.fillStyle = '#e0f2fe'; ctx.fillRect(0,0,W, H/2); ctx.fillStyle = '#dbeafe'; ctx.fillRect(0,H/2,W,H/2);
+    ctx.strokeStyle = '#0f766e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+    ctx.fillStyle = '#374151'; ctx.font = '13px sans-serif'; ctx.fillText('air (n₁=1.0)', 10, 20); ctx.fillText('water (n₂=1.33)', 10, H-10);
+    // points
+    const X1 = sx(x1), Y1 = sy(y1), X2 = sx(x2), Y2 = sy(-y2), Xi = sx(x), Yi = sy(0);
+    // ray
+    ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(Xi,Yi); ctx.lineTo(X2,Y2); ctx.stroke();
+    // dots
+    [[X1,Y1,'A'],[X2,Y2,'B'],[Xi,Yi,'']].forEach(([px,py,l])=>{ctx.fillStyle='#111'; ctx.beginPath(); ctx.arc(px,py,4,0,6.28); ctx.fill(); if(l) ctx.fillText(l,px+5,py-5);});
+    const d1 = Math.hypot(x - x1, y1), d2 = Math.hypot(x2 - x, y2);
+    const T = n1 * d1 + n2 * d2;
+    const sin1 = Math.abs(x - x1) / d1, sin2 = Math.abs(x2 - x) / d2;
+    $('optic-out').innerHTML = `x = ${x.toFixed(2)}, Time ∝ ${T.toFixed(3)}<br>n₁ sinθ₁ = ${(n1*sin1).toFixed(3)}, n₂ sinθ₂ = ${(n2*sin2).toFixed(3)} ${Math.abs(n1*sin1 - n2*sin2) < 0.02 ? '≈ equal (Snell)' : ''}`;
+  }
+  if (ox) { ox.addEventListener('input', drawOptic); drawOptic(); }
+});
+</script>
+</body>
+</html>

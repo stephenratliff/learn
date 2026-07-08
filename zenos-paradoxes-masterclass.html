@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeno's Paradoxes — A Masterclass Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;0,7..72,700;1,7..72,400;1,7..72,500&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --bg: #15171c;
+  --bg-alt: #1b1e25;
+  --surface: #20232c;
+  --surface-2: #272b36;
+  --line: rgba(229,228,224,0.08);
+  --line-strong: rgba(229,228,224,0.16);
+  --text: #e5e4e0;
+  --text-dim: #a8a7a0;
+  --text-mute: #71737e;
+
+  --red: #e2543a;
+  --red-soft: rgba(226,84,58,0.14);
+  --red-line: rgba(226,84,58,0.4);
+  --chalk: #b9cbd6;
+  --chalk-soft: rgba(185,203,214,0.13);
+  --chalk-line: rgba(185,203,214,0.35);
+
+  --serif: 'Literata', Georgia, 'Iowan Old Style', serif;
+  --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'Space Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --sidebar-w: 276px;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{ margin:0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16.5px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+::selection{ background: var(--red-soft); color: var(--red); }
+a{ color: var(--red); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+
+/* Sidebar */
+#nav-toggle{ display:none; }
+.sidebar{ position: fixed; top:0; left:0; bottom:0; width: var(--sidebar-w); background: var(--bg-alt); border-right: 1px solid var(--line); padding: 34px 28px 28px; overflow-y: auto; z-index: 50; }
+.sidebar-brand{ display:block; margin-bottom: 6px; }
+.sidebar-brand .eyebrow{ font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--text-mute); text-transform: uppercase; }
+.sidebar-brand h1{ font-family: var(--serif); font-size: 27px; font-weight: 600; margin: 6px 0 2px; line-height: 1.12; }
+.sidebar-brand .sub{ font-size: 12.5px; color: var(--text-mute); font-style: italic; }
+.sidebar-divider{ height:1px; background: var(--line); margin: 20px 0; }
+nav.toc{ font-size: 13.5px; }
+nav.toc .group-label{ font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); opacity:0.9; margin: 18px 0 8px; }
+nav.toc .group-label:first-child{ margin-top:0; }
+nav.toc ul{ list-style:none; margin:0; padding:0; }
+nav.toc li a{ display:block; color: var(--text-dim); padding: 6px 0 6px 14px; border-left: 2px solid transparent; transition: all .15s ease; }
+nav.toc li a:hover{ color: var(--text); text-decoration:none; }
+nav.toc li a.active{ color: var(--red); border-left: 2px solid var(--red); background: linear-gradient(90deg, var(--red-soft), transparent); }
+.sidebar-foot{ margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-family: var(--serif); font-style: italic; font-size: 13.5px; color: var(--text-mute); line-height:1.5; }
+
+/* Main */
+.main{ margin-left: var(--sidebar-w); max-width: 820px; padding: 0 56px 120px; }
+.hero{ min-height: 92vh; display:flex; flex-direction:column; justify-content:center; padding-top: 40px; position: relative; }
+.hero .eyebrow{ font-family: var(--mono); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--chalk); margin-bottom: 22px; }
+.hero h1{ font-family: var(--serif); font-weight: 600; font-size: clamp(48px, 8vw, 86px); line-height: 0.98; margin: 0 0 10px; letter-spacing: -0.01em; }
+.hero h1 em{ font-style: italic; font-weight: 400; color: var(--red); }
+.hero .greek{ font-family: var(--serif); font-style: italic; color: var(--text-mute); font-size: 18px; margin: 10px 0 28px; }
+.hero .lede{ font-size: 19px; line-height: 1.65; color: var(--text-dim); max-width: 630px; margin-bottom: 8px; }
+.hero .epigraph{ margin-top: 38px; padding-left: 20px; border-left: 2px solid var(--red-line); font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--red); }
+.hero .epigraph span{ display:block; margin-top: 6px; font-family: var(--mono); font-style: normal; font-size: 12px; letter-spacing: 0.05em; color: var(--text-mute); }
+
+.track-viz{ position: absolute; right: -10px; top: 54%; transform: translateY(-50%); width: 280px; opacity: 0.95; }
+@media (max-width: 980px){ .track-viz{ display:none; } }
+
+/* Sections */
+section.block{ padding: 90px 0 10px; border-top: 1px solid var(--line); }
+section.block:first-of-type{ border-top:none; }
+.eyebrow-row{ display:flex; align-items:center; gap: 12px; margin-bottom: 18px; }
+.eyebrow-row .num{ font-family: var(--mono); font-size: 12px; color: var(--red); border: 1px solid var(--red-line); border-radius: 50%; width: 26px; height: 26px; display:flex; align-items:center; justify-content:center; }
+.eyebrow-row .label{ font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-mute); }
+
+h2.title{ font-family: var(--serif); font-weight: 600; font-size: 37px; margin: 0 0 22px; line-height:1.15; }
+h2.title .sub-t{ font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--text-mute); font-size: 21px; display:block; margin-top:6px; }
+h3.sub{ font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 40px 0 14px; color: var(--text); }
+p{ margin: 0 0 18px; color: var(--text-dim); }
+p strong{ color: var(--text); font-weight: 600; }
+em.term{ font-style: italic; color: var(--red); }
+.term-fx{ font-family: var(--mono); font-size: 0.85em; color: var(--chalk); background: var(--chalk-soft); padding: 1px 7px; border-radius: 4px; white-space: nowrap; }
+
+blockquote{ margin: 26px 0; padding: 18px 24px; border-left: 3px solid var(--red-line); background: var(--surface); border-radius: 0 8px 8px 0; font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--text); }
+blockquote cite{ display:block; margin-top: 10px; font-family: var(--mono); font-style: normal; font-size: 12px; color: var(--text-mute); }
+
+.card{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px 26px; margin: 24px 0; }
+.card h4{ font-family: var(--serif); font-size: 18px; margin: 0 0 10px; color: var(--red); }
+
+.grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 24px 0; }
+.grid-3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 24px 0; }
+@media (max-width: 820px){ .grid-3{ grid-template-columns: 1fr; } }
+@media (max-width: 680px){ .grid-2{ grid-template-columns: 1fr; } }
+
+.paradox-card{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin: 20px 0; border-top: 3px solid var(--chalk-line); }
+.paradox-card h4{ font-family: var(--serif); font-size: 20px; margin: 0 0 4px; color: var(--text); }
+.paradox-card .greek-name{ font-family: var(--mono); font-size: 12px; color: var(--chalk); margin-bottom: 14px; display:block; }
+.paradox-card .premise{ font-size: 13.8px; color: var(--text-mute); margin: 14px 0 0; padding-top: 14px; border-top: 1px dashed var(--line-strong); }
+.paradox-card .premise b{ color: var(--red); font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+.timeline{ margin: 30px 0; }
+.tl-item{ display:grid; grid-template-columns: 130px 1fr; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.tl-item:last-child{ border-bottom:none; }
+.tl-year{ font-family: var(--serif); font-size: 20px; font-weight:600; color: var(--red); }
+.tl-content h4{ font-family: var(--sans); font-size: 15.5px; font-weight:600; margin:0 0 6px; color: var(--text); }
+.tl-content p{ font-size: 14.5px; margin:0; color: var(--text-dim); }
+
+/* Lab widget */
+.lab-widget{ background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 32px; margin: 30px 0; }
+.lab-tabs{ display:flex; gap: 10px; margin-bottom: 26px; flex-wrap: wrap; }
+.lab-tab{ font-family: var(--mono); font-size: 12.5px; background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--text-dim); padding: 9px 16px; border-radius: 20px; cursor:pointer; transition: all .15s ease; }
+.lab-tab.active{ background: var(--red-soft); border-color: var(--red-line); color: var(--red); }
+.lab-pane{ display:none; }
+.lab-pane.active{ display:block; }
+
+.controls-row{ display:flex; gap: 26px; flex-wrap: wrap; margin-bottom: 22px; }
+.control{ flex:1; min-width: 180px; }
+.control label{ display:block; font-family: var(--mono); font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.control input[type="range"]{ width:100%; accent-color: var(--red); }
+.control .val{ font-family: var(--mono); font-size: 12.5px; color: var(--red); margin-top: 4px; display:inline-block; }
+
+.race-track{ position:relative; height: 70px; background: var(--surface-2); border-radius: 10px; margin-bottom: 16px; overflow:hidden; }
+.race-track .finish{ position:absolute; top:0; bottom:0; right: 4%; width: 2px; background: var(--chalk-line); }
+.race-dot{ position:absolute; top:50%; width: 20px; height:20px; border-radius:50%; transform: translate(-50%,-50%); display:flex; align-items:center; justify-content:center; font-size:11px; }
+.race-dot.achilles{ background: var(--red); box-shadow: 0 0 14px rgba(226,84,58,0.6); }
+.race-dot.tortoise{ background: var(--chalk); box-shadow: 0 0 14px rgba(185,203,214,0.5); }
+.race-btn-row{ display:flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+
+.lab-btn{ font-family: var(--mono); font-size: 12.5px; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); padding: 10px 16px; border-radius: 8px; cursor:pointer; transition: all .15s ease; }
+.lab-btn:hover:not(:disabled){ border-color: var(--red-line); color: var(--red); }
+.lab-btn:disabled{ opacity: 0.35; cursor:default; }
+
+.steps-list{ font-family: var(--mono); font-size: 12.5px; color: var(--text-dim); max-height: 180px; overflow-y:auto; background: var(--bg-alt); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.steps-list div{ padding: 3px 0; }
+.steps-list .highlight{ color: var(--red); }
+.lab-total{ font-family: var(--mono); font-size: 13.5px; color: var(--chalk); text-align:center; padding-top: 10px; }
+
+.dicho-track{ position: relative; height: 60px; background: var(--surface-2); border-radius: 10px; overflow: hidden; margin-bottom: 18px; }
+.dicho-covered{ position:absolute; top:0; bottom:0; left:0; background: linear-gradient(90deg, rgba(226,84,58,0.35), rgba(226,84,58,0.1)); transition: width .5s ease; }
+.dicho-marker{ position:absolute; top:0; bottom:0; width: 2px; background: var(--red); transition: left .5s ease; }
+.dicho-readout{ display:flex; justify-content: space-between; font-family: var(--mono); font-size: 13px; color: var(--text-dim); margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+.dicho-readout .big{ color: var(--red); font-size: 17px; }
+
+.arrow-frames{ display:flex; gap: 8px; justify-content: space-between; margin-bottom: 20px; }
+.arrow-frame{ flex:1; background: var(--surface-2); border-radius: 8px; height: 70px; display:flex; align-items:center; justify-content:center; position:relative; border: 1px solid var(--line-strong); }
+.arrow-frame .glyph{ font-size: 20px; color: var(--red); }
+.arrow-frame .flabel{ position:absolute; bottom: 6px; font-family: var(--mono); font-size: 9px; color: var(--text-mute); }
+.arrow-motion-track{ position: relative; height: 70px; background: var(--surface-2); border-radius: 10px; margin-bottom: 20px; display:none; }
+.arrow-motion-track.active{ display:block; }
+.arrow-frames.hidden{ display:none; }
+.arrow-moving{ position:absolute; top:50%; left:2%; transform: translateY(-50%); font-size: 22px; color: var(--red); animation: arrowfly 2.2s linear infinite; }
+@keyframes arrowfly{ from{ left: 2%; } to{ left: 92%; } }
+.lab-caption{ text-align:center; font-size: 14.5px; color: var(--text-mute); font-style: italic; font-family: var(--serif); margin-top: 4px; }
+
+/* Stadium illustration */
+.stadium-viz{ background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 30px; margin: 26px 0; }
+.stadium-row{ display:flex; gap: 8px; margin-bottom: 12px; }
+.stadium-block{ width: 34px; height: 26px; border-radius: 4px; }
+.stadium-row.a .stadium-block{ background: var(--surface-2); border: 1px solid var(--line-strong); }
+.stadium-row.b{ animation: slideRight 3.5s ease-in-out infinite alternate; }
+.stadium-row.b .stadium-block{ background: var(--chalk-soft); border: 1px solid var(--chalk-line); }
+.stadium-row.c{ animation: slideLeft 3.5s ease-in-out infinite alternate; }
+.stadium-row.c .stadium-block{ background: var(--red-soft); border: 1px solid var(--red-line); }
+@keyframes slideRight{ from{ transform: translateX(0); } to{ transform: translateX(40px); } }
+@keyframes slideLeft{ from{ transform: translateX(40px); } to{ transform: translateX(0); } }
+.stadium-labels{ display:flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--text-mute); margin-top: 14px; }
+
+.glossary{ margin: 20px 0; }
+.gloss-item{ display:grid; grid-template-columns: 210px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 680px){ .gloss-item{ grid-template-columns: 1fr; gap:6px; } }
+.gloss-term{ font-family: var(--mono); font-size: 14px; color: var(--red); }
+.gloss-term small{ display:block; color: var(--text-mute); font-size: 12px; margin-top:4px; }
+.gloss-def{ font-size: 14.5px; color: var(--text-dim); }
+
+footer.end{ margin-top: 100px; padding-top: 30px; border-top: 1px solid var(--line); font-size: 13px; color: var(--text-mute); font-family: var(--mono); display:flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+.mobile-topbar{ display:none; }
+@media (max-width: 940px){
+  .sidebar{ transform: translateX(-100%); transition: transform .25s ease; box-shadow: 20px 0 40px rgba(0,0,0,0.4); }
+  #nav-toggle:checked ~ .sidebar{ transform: translateX(0); }
+  .main{ margin-left: 0; padding: 0 22px 100px; }
+  .mobile-topbar{ display:flex; align-items:center; gap: 14px; position: sticky; top:0; background: rgba(21,23,28,0.92); backdrop-filter: blur(8px); padding: 14px 22px; border-bottom: 1px solid var(--line); z-index: 40; margin: 0 -22px; }
+  .mobile-topbar label{ width: 34px; height: 34px; border: 1px solid var(--line-strong); border-radius: 8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-family: var(--mono); color: var(--red); flex-shrink:0; }
+  .mobile-topbar .mt-title{ font-family: var(--serif); font-size: 15px; color: var(--text); }
+  .hero{ min-height: auto; padding: 40px 0 20px; }
+  .grid-2, .grid-3{ grid-template-columns: 1fr; }
+  .controls-row{ flex-direction: column; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce){ *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+</style>
+</head>
+<body>
+
+<input type="checkbox" id="nav-toggle">
+<div class="mobile-topbar"><label for="nav-toggle">☰</label><span class="mt-title">Zeno's Paradoxes</span></div>
+
+<aside class="sidebar">
+  <a href="#top" class="sidebar-brand">
+    <span class="eyebrow">A Masterclass Guide</span>
+    <h1>Zeno's Paradoxes</h1>
+    <span class="sub">Motion, Plurality &amp; the Trouble with Infinity</span>
+  </a>
+  <div class="sidebar-divider"></div>
+  <nav class="toc">
+    <div class="group-label">Foundations</div>
+    <ul>
+      <li><a href="#who-was-zeno" data-nav>Who Was Zeno?</a></li>
+      <li><a href="#eleatic" data-nav>The Eleatic Background</a></li>
+    </ul>
+    <div class="group-label">The Paradoxes of Motion</div>
+    <ul>
+      <li><a href="#dichotomy" data-nav>The Dichotomy</a></li>
+      <li><a href="#achilles" data-nav>Achilles and the Tortoise</a></li>
+      <li><a href="#arrow" data-nav>The Arrow</a></li>
+      <li><a href="#stadium" data-nav>The Stadium</a></li>
+    </ul>
+    <div class="group-label">The Paradoxes of Plurality</div>
+    <ul>
+      <li><a href="#plurality" data-nav>Infinite Divisibility</a></li>
+      <li><a href="#millet" data-nav>The Millet Seed</a></li>
+    </ul>
+    <div class="group-label">Responses</div>
+    <ul>
+      <li><a href="#aristotle-response" data-nav>Aristotle's Rebuttal</a></li>
+      <li><a href="#modern-math" data-nav>Modern Mathematics</a></li>
+      <li><a href="#physics" data-nav>A Physics Postscript</a></li>
+    </ul>
+    <div class="group-label">Explore &amp; Reference</div>
+    <ul>
+      <li><a href="#lab" data-nav>Interactive Paradox Lab</a></li>
+      <li><a href="#legacy" data-nav>Legacy &amp; Influence</a></li>
+      <li><a href="#glossary" data-nav>Glossary</a></li>
+    </ul>
+  </nav>
+  <div class="sidebar-foot">"The slower will never be overtaken by the quicker."<br>— Aristotle, paraphrasing Zeno's Achilles</div>
+</aside>
+
+<main class="main" id="top">
+
+  <section class="hero">
+    <div class="eyebrow">Philosophy · Logic · Mathematics of Infinity</div>
+    <h1>Zeno's <em>Paradoxes</em></h1>
+    <div class="greek">Ζήνων ὁ Ἐλεάτης — Zenon of Elea, c. 490 – c. 430 BCE</div>
+    <p class="lede">Can an arrow in flight ever really be moving? Can the fastest runner in the world ever overtake a crawling tortoise, if it gets even the smallest head start? Twenty-five centuries ago, Zeno of Elea constructed a handful of short, devastating arguments claiming to prove that <em class="term">motion itself is impossible</em> — not as a joke, but as a serious defense of the strange metaphysics of his teacher Parmenides. The paradoxes have never stopped provoking mathematicians and philosophers since.</p>
+    <div class="epigraph">
+      "In a race, the quickest runner can never overtake the slowest, since the pursuer must first reach the point whence the pursued started."
+      <span>ARISTOTLE, PHYSICS VI.9, SUMMARIZING ZENO</span>
+    </div>
+    <div class="track-viz" aria-hidden="true">
+      <svg viewBox="0 0 280 140" xmlns="http://www.w3.org/2000/svg">
+        <line x1="10" y1="70" x2="270" y2="70" stroke="#b9cbd6" stroke-opacity="0.25" stroke-width="1"/>
+        <line x1="250" y1="20" x2="250" y2="120" stroke="#b9cbd6" stroke-opacity="0.4" stroke-dasharray="3 4"/>
+        <circle cx="40" cy="70" r="8" fill="#e2543a"/>
+        <circle cx="150" cy="70" r="6" fill="#b9cbd6"/>
+        <text x="40" y="100" text-anchor="middle" fill="#e2543a" font-family="Space Mono" font-size="9">Achilles</text>
+        <text x="150" y="100" text-anchor="middle" fill="#b9cbd6" font-family="Space Mono" font-size="9">Tortoise</text>
+        <text x="250" y="135" text-anchor="middle" fill="#71737e" font-family="Space Mono" font-size="9">?</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="block" id="who-was-zeno">
+    <div class="eyebrow-row"><span class="num">1</span><span class="label">Foundations</span></div>
+    <h2 class="title">Who Was Zeno?</h2>
+    <p>Zeno of Elea was born around 490 BCE in the Greek colony of Elea, on the southern Italian coast, and became the favorite student — some ancient sources say the adopted son and even the lover — of the philosopher <strong>Parmenides</strong>. Almost nothing of Zeno's own writing survives directly; what we know of his arguments comes almost entirely secondhand, chiefly through <strong>Aristotle's</strong> <em>Physics</em> (Book VI) and the later commentary of <strong>Simplicius</strong>, along with a dramatized frame story in Plato's dialogue <em>Parmenides</em>, in which a young Socrates cross-examines Zeno about his book of arguments.</p>
+    <p>Ancient sources credit Zeno with composing around forty distinct paradoxical arguments, of which only a handful survive in enough detail to reconstruct — four concerning motion, several more concerning plurality. Aristotle, in a phrase preserved by the later biographer Diogenes Laertius, is said to have called Zeno the inventor of <strong>dialectic</strong> — the method of arguing from an opponent's own premises to an absurd or contradictory conclusion, a technique that would become central to Greek philosophy and, eventually, to logic itself.</p>
+  </section>
+
+  <section class="block" id="eleatic">
+    <div class="eyebrow-row"><span class="num">2</span><span class="label">Foundations</span></div>
+    <h2 class="title">The Eleatic Background<span class="sub-t">Why deny motion at all?</span></h2>
+    <p>Zeno's paradoxes are not idle puzzles; they are ammunition in a metaphysical war. His teacher Parmenides had argued, in a famously difficult poem, that <strong>reality is One</strong> — a single, undivided, unchanging, ungenerated, imperishable whole. Change, motion, and plurality (the existence of many distinct things) are, on this view, illusions generated by the unreliable senses; genuine understanding, reached by reason alone, reveals a changeless, indivisible "What Is."</p>
+    <p>This was, to put it mildly, a hard sell against plain experience. Critics mocked Parmenides' monism as obviously refuted by the world we see moving and changing around us every day. Zeno's paradoxes were his answer: rather than defend monism directly, he set out to show that the <em>alternative</em> — the everyday belief in plurality and motion — leads to conclusions just as absurd, or more so. Each paradox takes the common-sense assumption (that space and time are infinitely divisible, that many distinct things exist) and drives it, through careful reasoning, to a contradiction. The technique is <span class="term-fx">reductio ad absurdum</span> — refutation by deriving an absurdity — turned into a full philosophical arsenal.</p>
+    <div class="card">
+      <h4>A word of caution</h4>
+      <p style="margin-bottom:0;">It is worth noting up front that no one — ancient or modern — thinks Zeno's paradoxes actually prove Achilles will never catch the tortoise, or that arrows never fly. The genuine and long-running philosophical interest lies in exactly <em>where</em> the reasoning goes wrong, and what that reveals about our concepts of infinity, continuity, space, and time — a question that occupied Aristotle, and was not given a fully rigorous mathematical answer until the nineteenth century.</p>
+    </div>
+  </section>
+
+  <!-- DICHOTOMY -->
+  <section class="block" id="dichotomy">
+    <div class="eyebrow-row"><span class="num">3</span><span class="label">Paradoxes of Motion</span></div>
+    <h2 class="title">The Dichotomy<span class="sub-t">The Racecourse Paradox</span></h2>
+    <p>To travel any distance at all, Zeno argues, you must first travel half that distance. But before you can complete that half, you must first travel half of it — a quarter of the total. And before that, an eighth. And before that, a sixteenth — and so on, without end. Since this generates an <strong>infinite sequence of tasks</strong> that must be completed before any motion can even begin, and Zeno assumes an infinite sequence of tasks cannot be completed, he concludes that motion can never even get started.</p>
+    <div class="paradox-card">
+      <h4>The Dichotomy — Two Versions</h4>
+      <span class="greek-name">δίχα — "dicha," cut in two</span>
+      <p style="margin-bottom:0;">A "progressive" version asks how motion could ever <em>begin</em>, since there is no first sub-distance to traverse — every candidate "first step" already presupposes a smaller step before it. A "regressive" version instead asks how a moving thing could ever <em>finish</em>, since between its current position and the goal there always remains another half-distance yet to cross. Both share the same underlying structure: infinite subdivision of a finite stretch.</p>
+      <div class="premise"><b>Hidden Premise</b> — an infinite number of distinct steps cannot be completed in a finite time.</div>
+    </div>
+  </section>
+
+  <!-- ACHILLES -->
+  <section class="block" id="achilles">
+    <div class="eyebrow-row"><span class="num">4</span><span class="label">Paradoxes of Motion</span></div>
+    <h2 class="title">Achilles and the Tortoise</h2>
+    <p>The most famous version of the same structure, dressed up as a race. Achilles, the swiftest runner in the Greek camp, races a tortoise that is given a head start. By the time Achilles reaches the tortoise's starting point, the tortoise — however slowly — has moved a little further ahead. By the time Achilles closes <em>that</em> new gap, the tortoise has again advanced, by a smaller amount. This repeats forever: every time Achilles reaches where the tortoise was, the tortoise is a little further on. Zeno concludes that Achilles can approach the tortoise as closely as you like, but strictly speaking, can never actually catch it.</p>
+    <div class="paradox-card">
+      <h4>Achilles and the Tortoise</h4>
+      <span class="greek-name">The most vivid of Zeno's arguments, per Aristotle</span>
+      <p style="margin-bottom:0;">Structurally identical to the Dichotomy — an infinite sequence of ever-smaller gaps must be closed — but dramatized as a pursuit rather than a single traveler's path, which is likely why it became the paradox non-specialists remember best.</p>
+      <div class="premise"><b>Hidden Premise</b> — closing infinitely many successive gaps, however small, requires infinite time.</div>
+    </div>
+  </section>
+
+  <!-- ARROW -->
+  <section class="block" id="arrow">
+    <div class="eyebrow-row"><span class="num">5</span><span class="label">Paradoxes of Motion</span></div>
+    <h2 class="title">The Arrow</h2>
+    <p>Consider an arrow in flight. At any single, indivisible instant of time, Zeno argues, the arrow occupies exactly one region of space equal to its own length — it is neither moving toward where it will be, nor away from where it was, within that instant; it simply <em>is</em>, at rest, exactly where it is. But if time itself is made up of nothing but such instants, and the arrow is at rest at every one of them, then the arrow is at rest at every moment of its flight — and a sum of rests, Zeno concludes, cannot add up to motion.</p>
+    <div class="paradox-card">
+      <h4>The Arrow</h4>
+      <span class="greek-name">The paradox of the instant</span>
+      <p style="margin-bottom:0;">Unlike the Dichotomy and Achilles, which turn on infinite <em>division</em>, the Arrow turns on treating time as <em>composed</em> of durationless instants, each one a kind of frozen snapshot — and then asking how "motion" could possibly be smuggled back in between snapshots that individually show nothing but rest.</p>
+      <div class="premise"><b>Hidden Premise</b> — if a thing is at rest at every instant of an interval, it must be at rest throughout that interval.</div>
+    </div>
+  </section>
+
+  <!-- STADIUM -->
+  <section class="block" id="stadium">
+    <div class="eyebrow-row"><span class="num">6</span><span class="label">Paradoxes of Motion</span></div>
+    <h2 class="title">The Stadium<span class="sub-t">The Paradox of Moving Rows</span></h2>
+    <p>The trickiest and least-discussed of the four, reported only in compressed and difficult form by Aristotle. Picture three equal rows of bodies in a stadium: row <strong>A</strong> stationary, row <strong>B</strong> moving to the right past A at a steady speed, and row <strong>C</strong> moving to the left past A at the same steady speed — so that B and C move past <em>each other</em> at twice the speed either moves past the stationary row A.</p>
+    <p>If space and time are each built from smallest indivisible units — a minimal "atom" of distance and a minimal "atom" of time, so that nothing can move at less than one space-atom per time-atom — then B passing a single element of C in one time-atom, while only passing <em>half</em> an element of the stationary row A in that same time-atom, seems to entail that a time-atom is not truly indivisible after all: it must be splittable into two, since B seems to cross half of A's unit and a whole unit of C's in what was supposed to be one indivisible tick. Zeno's target here is specifically the assumption that space and time come in indivisible minimal units — an alternative to the "infinitely divisible" assumption attacked by the Dichotomy and Achilles.</p>
+    <div class="stadium-viz">
+      <div class="stadium-row a">
+        <div class="stadium-block"></div><div class="stadium-block"></div><div class="stadium-block"></div><div class="stadium-block"></div>
+      </div>
+      <div class="stadium-row b">
+        <div class="stadium-block"></div><div class="stadium-block"></div><div class="stadium-block"></div><div class="stadium-block"></div>
+      </div>
+      <div class="stadium-row c">
+        <div class="stadium-block"></div><div class="stadium-block"></div><div class="stadium-block"></div><div class="stadium-block"></div>
+      </div>
+      <div class="stadium-labels"><span>A — stationary</span><span>B — moving right</span><span>C — moving left</span></div>
+    </div>
+    <p>Whatever its exact intended logic (ancient testimony is thin and scholars still dispute the reconstruction), the Stadium matters structurally: it shows Zeno attacking <em>both</em> horns of a dilemma — space and time are either infinitely divisible (Dichotomy, Achilles) or composed of indivisible minima (the Stadium) — and claiming that either assumption about the ultimate structure of space and time leads to trouble.</p>
+  </section>
+
+  <!-- PLURALITY -->
+  <section class="block" id="plurality">
+    <div class="eyebrow-row"><span class="num">7</span><span class="label">Paradoxes of Plurality</span></div>
+    <h2 class="title">Infinite Divisibility<span class="sub-t">The paradoxes against "the many"</span></h2>
+    <p>Alongside the motion paradoxes, Zeno mounted a separate family of arguments directly against <strong>plurality</strong> — the common-sense belief that reality contains many distinct things rather than Parmenides' single One. One especially sharp version argues that if a thing is divisible without limit, it must turn out to be both infinitely small and infinitely large at once.</p>
+    <div class="grid-2">
+      <div class="card"><h4>Infinitely small</h4><p style="margin-bottom:0;">If you divide a thing into parts, and those parts into further parts, without ever reaching a final, magnitude-less unit, then each ultimate "part" has no size at all — and a whole made of sizeless parts should itself have no size.</p></div>
+      <div class="card"><h4>Infinitely large</h4><p style="margin-bottom:0;">Alternatively, if each part, however small, does retain some positive magnitude, then between any two such parts there is always room for another part, ad infinitum — so a supposedly finite whole turns out to contain infinitely many parts of positive size, and so must be infinitely large.</p></div>
+    </div>
+    <p>A companion argument, the <strong>Paradox of Place</strong>, presses a different regress: if everything that exists must exist <em>in</em> a place, then place itself — being something that exists — must also exist in a place, which must be in a further place, and so on without end. Either "place" is exempted from the rule for no principled reason, or reality requires an infinite nested hierarchy of places containing places.</p>
+  </section>
+
+  <section class="block" id="millet">
+    <div class="eyebrow-row"><span class="num">8</span><span class="label">Paradoxes of Plurality</span></div>
+    <h2 class="title">The Millet Seed</h2>
+    <p>A bushel of millet grains, poured out, makes an audible sound. Does a single grain — or a thousandth part of one grain — make a sound when it falls? Intuitively, no: it is imperceptible. Yet a bushel is nothing over and above its individual grains, and by proportion, each part of the total sound ought to be produced by a proportional part of the cause. If the whole makes a sound and the whole is simply the sum of its parts, Zeno presses, shouldn't each part make its proportional share of sound — however faint — rather than none at all?</p>
+    <p>The Millet Seed is usually read as a challenge to a certain naive way of reasoning about parts and wholes — the assumption that whatever is true of an aggregate must be proportionally true of each of its constituents — anticipating puzzles about vagueness and aggregation (the ancient <span class="term-fx">sorites</span>, or "heap," paradox belongs to the same family) that remain active in philosophy today.</p>
+  </section>
+
+  <!-- ARISTOTLE'S RESPONSE -->
+  <section class="block" id="aristotle-response">
+    <div class="eyebrow-row"><span class="num">9</span><span class="label">Responses</span></div>
+    <h2 class="title">Aristotle's Rebuttal</h2>
+    <p>Our very source for most of these paradoxes, Aristotle, was also their first serious critic. In <em>Physics</em> Book VI, he offers two moves that remain influential.</p>
+    <h3 class="sub">Potential vs. actual infinity</h3>
+    <p>Aristotle distinguishes a <strong>potential infinite</strong> — a process that can be continued without end, such as endlessly halving a distance — from an <strong>actual infinite</strong>, a completed, all-at-once totality of infinitely many things. He grants that a finite distance is potentially divisible without limit, but denies that it is thereby actually divided into infinitely many completed parts that a traveler must somehow tick off one by one. Since traversing a distance is itself a continuous process, not the sequential completion of a pre-given infinite checklist, the worry that "infinitely many steps" must first be completed rests on a confusion, in Aristotle's view, about what infinite divisibility actually amounts to.</p>
+    <h3 class="sub">Time is divisible exactly as space is</h3>
+    <p>Against the Dichotomy and Achilles specifically, Aristotle also observes that if space can be divided into infinitely many ever-smaller parts, then the <em>time</em> taken to cross that space divides in exactly the same proportion into infinitely many ever-smaller parts. The apparent puzzle — how can infinitely many steps be finished in finite time? — dissolves once one notices that "infinitely many spatial steps" is matched stride for stride by "infinitely many temporal steps," fitted together in exactly the same ratio.</p>
+    <h3 class="sub">Against the Arrow: rejecting the instant as a building block</h3>
+    <p>Aristotle's response to the Arrow is more radical: he denies that "the now" (<span class="term-fx">to nyn</span>) is a durationless instant out of which time, as a kind of string of beads, is composed. Rest and motion, he argues, are properly predicated only of a thing considered over some interval of time, never of an instant taken in isolation — so the premise that the arrow is genuinely "at rest" at each instant is, for Aristotle, already a category mistake.</p>
+  </section>
+
+  <!-- MODERN MATH -->
+  <section class="block" id="modern-math">
+    <div class="eyebrow-row"><span class="num">10</span><span class="label">Responses</span></div>
+    <h2 class="title">Modern Mathematics — Convergent Series</h2>
+    <p>Aristotle's response remained philosophically suggestive but mathematically informal for two thousand years. The nineteenth-century development of a rigorous theory of <strong>limits</strong> and <strong>infinite series</strong>, chiefly by Augustin-Louis Cauchy and Karl Weierstrass, finally gave the Dichotomy and Achilles a precise formal answer.</p>
+    <p>The distances Achilles must cover to close each successive gap form a <strong>geometric series</strong>: if the tortoise's head start is one unit and Achilles runs, say, twice as fast, the successive gaps are 1, 1/2, 1/4, 1/8, 1/16 … Though there are infinitely many terms, their sum converges to a single finite value:</p>
+    <div class="card">
+      <h4>1 + 1/2 + 1/4 + 1/8 + 1/16 + ⋯ = 2</h4>
+      <p style="margin-bottom:0;">An infinite number of terms, each one positive, can sum to a finite total, provided the terms shrink fast enough. This is not a trick or an approximation — it is a theorem, following directly from the formal definition of an infinite sum as the limit of its partial sums. Since the corresponding time-intervals shrink in exactly the same proportion, covering infinitely many sub-distances turns out to require only a finite amount of time after all.</p>
+    </div>
+    <h3 class="sub">The "at-at" theory of motion</h3>
+    <p>Bertrand Russell offered an influential complementary diagnosis of the Arrow specifically: motion, he argued, is nothing more or less than being at different positions at different times — an "at-at" affair. There is no additional ingredient, no hidden "act of moving," that must somehow occur within or between instants over and above the bare fact that position is a continuous function of time. Once one stops looking for something extra happening <em>at</em> an instant, the paradox loses its grip: the arrow's being at a single point at a single instant is not in competition with its moving, because moving just <em>is</em> occupying a continuum of such points across a continuum of instants.</p>
+    <h3 class="sub">Supertasks and lingering doubts</h3>
+    <p>Some philosophers argue that convergent series answer only the mathematical half of Zeno's challenge — that an infinite sum can be finite — while leaving a more stubborn metaphysical question alive: can infinitely many distinct physical or mental acts actually be <em>completed</em>, one after another, in a finite stretch of time? Twentieth-century philosophers (among them Adolf Grünbaum, José Benardete, and Max Black) explored this under the label <strong>supertasks</strong>, using constructed puzzles such as Thomson's Lamp — a lamp switched on, then off, then on again infinitely many times within two minutes, leaving its final state undefined — to probe whether "completing an infinite sequence of steps" is even a coherent idea, independent of whether the corresponding series sums to a finite number.</p>
+  </section>
+
+  <!-- PHYSICS -->
+  <section class="block" id="physics">
+    <div class="eyebrow-row"><span class="num">11</span><span class="label">Responses</span></div>
+    <h2 class="title">A Physics Postscript</h2>
+    <p>One further, more speculative angle: some approaches to quantum gravity — including loop quantum gravity and causal set theory — propose that space and time might not be infinitely divisible after all, but instead built from a smallest possible unit, on the order of the Planck length (roughly 10⁻³⁵ meters) and Planck time (roughly 10⁻⁴⁴ seconds). If physical space and time actually are discrete at that scale, the entire premise shared by the Dichotomy and Achilles — that any distance can be halved without limit — would simply be false of the physical world, echoing (with a very different technical grounding) the "indivisible minima" side of Zeno's own Stadium dilemma. This remains an open, unconfirmed area of theoretical physics rather than a settled resolution, but it is a striking illustration of how a twenty-five-century-old argument still touches live questions at the frontier of physics.</p>
+  </section>
+
+  <!-- INTERACTIVE LAB -->
+  <section class="block" id="lab">
+    <div class="eyebrow-row"><span class="num">✳</span><span class="label">Explore</span></div>
+    <h2 class="title">Interactive Paradox Lab</h2>
+    <p>Work through the core mechanics of three of the paradoxes directly. Adjust the parameters, step through the infinite regress by hand, and watch where the apparent contradiction gives way to a convergent, finite answer.</p>
+
+    <div class="lab-widget">
+      <div class="lab-tabs" id="labTabs">
+        <button class="lab-tab active" data-l="achilles">Achilles &amp; the Tortoise</button>
+        <button class="lab-tab" data-l="dichotomy">The Dichotomy</button>
+        <button class="lab-tab" data-l="arrow">The Arrow</button>
+      </div>
+
+      <div class="lab-pane active" id="lab-achilles">
+        <div class="controls-row">
+          <div class="control">
+            <label>Tortoise head start</label>
+            <input type="range" id="headStart" min="10" max="100" value="40">
+            <span class="val" id="headStartVal">40 m</span>
+          </div>
+          <div class="control">
+            <label>Achilles' speed (× tortoise)</label>
+            <input type="range" id="speedRatio" min="1.2" max="5" step="0.1" value="2">
+            <span class="val" id="speedRatioVal">2.0×</span>
+          </div>
+        </div>
+        <div class="race-track" id="raceTrack">
+          <div class="finish"></div>
+          <div class="race-dot achilles" id="dotAchilles">A</div>
+          <div class="race-dot tortoise" id="dotTortoise">T</div>
+        </div>
+        <div class="race-btn-row">
+          <button class="lab-btn" id="playRace">▶ Run the race</button>
+          <button class="lab-btn" id="resetRace">Reset</button>
+        </div>
+        <div class="steps-list" id="achillesSteps"></div>
+        <div class="lab-total" id="achillesTotal"></div>
+      </div>
+
+      <div class="lab-pane" id="lab-dichotomy">
+        <div class="dicho-track" id="dichoTrack">
+          <div class="dicho-covered" id="dichoCovered" style="width:0%;"></div>
+          <div class="dicho-marker" id="dichoMarker" style="left:0%;"></div>
+        </div>
+        <div class="dicho-readout">
+          <span>Step: <span class="big" id="dichoStep">0</span></span>
+          <span>Distance covered: <span class="big" id="dichoFraction">0</span></span>
+          <span>Remaining: <span class="big" id="dichoRemaining">1</span></span>
+        </div>
+        <div class="race-btn-row">
+          <button class="lab-btn" id="dichoNext">Take the next half-step →</button>
+          <button class="lab-btn" id="dichoAuto">Auto-play 12 steps</button>
+          <button class="lab-btn" id="dichoReset">Reset</button>
+        </div>
+        <div class="lab-caption">Each step covers half of whatever distance remains — the covered distance approaches, but by construction never in this list of steps equals, the finish line.</div>
+      </div>
+
+      <div class="lab-pane" id="lab-arrow">
+        <div class="arrow-frames" id="arrowFrames">
+          <div class="arrow-frame"><span class="glyph">➤</span><span class="flabel">t₁</span></div>
+          <div class="arrow-frame"><span class="glyph">➤</span><span class="flabel">t₂</span></div>
+          <div class="arrow-frame"><span class="glyph">➤</span><span class="flabel">t₃</span></div>
+          <div class="arrow-frame"><span class="glyph">➤</span><span class="flabel">t₄</span></div>
+          <div class="arrow-frame"><span class="glyph">➤</span><span class="flabel">t₅</span></div>
+          <div class="arrow-frame"><span class="glyph">➤</span><span class="flabel">t₆</span></div>
+        </div>
+        <div class="arrow-motion-track" id="arrowMotionTrack"><div class="arrow-moving">➤</div></div>
+        <div class="race-btn-row">
+          <button class="lab-btn" id="arrowToggle">▶ Play as continuous motion</button>
+        </div>
+        <div class="lab-caption" id="arrowCaption">Six isolated instants — in each one, the arrow simply occupies a position. Nothing here looks like "moving."</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEGACY -->
+  <section class="block" id="legacy">
+    <div class="eyebrow-row"><span class="num">✳</span><span class="label">Reference</span></div>
+    <h2 class="title">Legacy and Influence</h2>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-year">c. 450 BCE</div><div class="tl-content"><h4>Zeno's book of arguments</h4><p>Composed to defend Parmenides' monism; dramatized in Plato's dialogue Parmenides as read aloud in Athens.</p></div></div>
+      <div class="tl-item"><div class="tl-year">c. 350 BCE</div><div class="tl-content"><h4>Aristotle, Physics Book VI</h4><p>Our primary source for the four motion paradoxes; introduces the potential/actual infinity distinction in reply.</p></div></div>
+      <div class="tl-item"><div class="tl-year">6th c. CE</div><div class="tl-content"><h4>Simplicius's commentary</h4><p>Preserves additional detail and quotation, including the plurality paradoxes, in his commentary on Aristotle's Physics.</p></div></div>
+      <div class="tl-item"><div class="tl-year">1600s–1800s</div><div class="tl-content"><h4>The calculus and rigorous limits</h4><p>Newton and Leibniz's calculus, later placed on rigorous footing by Cauchy and Weierstrass, formalizes convergent infinite series.</p></div></div>
+      <div class="tl-item"><div class="tl-year">1900s</div><div class="tl-content"><h4>Russell, Grünbaum, and the supertask debates</h4><p>Russell's "at-at" theory of motion and twentieth-century work on completing infinite sequences of tasks keep the paradoxes philosophically live.</p></div></div>
+    </div>
+    <p>Beyond the history of philosophy, Zeno's paradoxes are often credited as an early spur toward the rigorous mathematical treatment of infinity, limits, and the continuum — concepts at the heart of the calculus and, later, of set theory. They remain a standard teaching tool for the difference between a merely intuitive and a formally rigorous grasp of "infinity," and continue to surface in philosophical debates about the structure of space, time, and physical possibility.</p>
+  </section>
+
+  <!-- GLOSSARY -->
+  <section class="block" id="glossary">
+    <div class="eyebrow-row"><span class="num">✳</span><span class="label">Reference</span></div>
+    <h2 class="title">Glossary</h2>
+    <div class="glossary">
+      <div class="gloss-item"><div class="gloss-term">Aporia<small>Greek</small></div><div class="gloss-def">A puzzle or impasse arising from equally compelling but conflicting lines of reasoning, with no obvious way through.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Reductio ad absurdum<small>Latin</small></div><div class="gloss-def">Refuting a claim by showing that it leads, through valid reasoning, to an absurd or contradictory conclusion.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Dialectic<small>Zeno / Aristotle</small></div><div class="gloss-def">The method of arguing from an interlocutor's own premises toward a conclusion they cannot accept.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Potential infinity<small>Aristotle</small></div><div class="gloss-def">A process, such as division or counting, that can always be continued further, without ever being completed as a totality.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Actual infinity<small>Aristotle</small></div><div class="gloss-def">A completed, all-at-once collection containing infinitely many members — which Aristotle denies is ever physically instantiated.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Convergent series<small>Mathematics</small></div><div class="gloss-def">An infinite sum of terms whose partial sums approach — and in the limit, equal — a single finite value.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Supertask<small>20th-century philosophy</small></div><div class="gloss-def">A hypothetical completion of infinitely many distinct tasks within a finite span of time, used to probe the limits of "completing an infinity."</div></div>
+      <div class="gloss-item"><div class="gloss-term">The "at-at" theory<small>Bertrand Russell</small></div><div class="gloss-def">The view that motion consists in nothing more than being at successive positions at successive times, with no further "act of moving" required.</div></div>
+      <div class="gloss-item"><div class="gloss-term">Sorites paradox<small>Greek — "heap"</small></div><div class="gloss-def">A paradox of vagueness closely related to the Millet Seed: removing one grain from a heap never seems to un-make a heap, yet enough removals do.</div></div>
+    </div>
+  </section>
+
+  <footer class="end">
+    <span>Zeno's Paradoxes — A Masterclass Guide</span>
+    <span>Self-contained · offline-readable · for personal study</span>
+  </footer>
+
+</main>
+
+<script>
+/* Sidebar active-state */
+(function(){
+  const links = document.querySelectorAll('nav.toc a[data-nav]');
+  const map = new Map();
+  links.forEach(a => { const id = a.getAttribute('href').slice(1); const el = document.getElementById(id); if (el) map.set(el, a); });
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const link = map.get(entry.target);
+      if (!link) return;
+      if (entry.isIntersecting){ links.forEach(l => l.classList.remove('active')); link.classList.add('active'); }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
+  map.forEach((link, el) => observer.observe(el));
+  const toggle = document.getElementById('nav-toggle');
+  links.forEach(a => a.addEventListener('click', () => { if (toggle) toggle.checked = false; }));
+})();
+
+/* Lab tabs */
+document.getElementById('labTabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.lab-tab');
+  if (!btn) return;
+  const l = btn.dataset.l;
+  document.querySelectorAll('.lab-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.lab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('lab-' + l).classList.add('active');
+});
+
+/* ---------- Achilles & Tortoise ---------- */
+const headStartInput = document.getElementById('headStart');
+const speedRatioInput = document.getElementById('speedRatio');
+const headStartVal = document.getElementById('headStartVal');
+const speedRatioVal = document.getElementById('speedRatioVal');
+const dotAchilles = document.getElementById('dotAchilles');
+const dotTortoise = document.getElementById('dotTortoise');
+const achillesSteps = document.getElementById('achillesSteps');
+const achillesTotal = document.getElementById('achillesTotal');
+let raceAnim = null;
+
+function computeAchilles(headStart, ratio){
+  const vTort = 1, vAch = ratio * vTort;
+  let gap = headStart, time = 0;
+  const steps = [];
+  for (let i = 0; i < 7; i++){
+    const dt = gap / vAch;
+    time += dt;
+    steps.push({ n: i + 1, gap: gap, cumTime: time });
+    gap = gap / ratio;
+  }
+  const totalTime = headStart / (vAch - vTort);
+  return { steps, totalTime, vAch, vTort };
+}
+
+function renderAchilles(){
+  const headStart = parseFloat(headStartInput.value);
+  const ratio = parseFloat(speedRatioInput.value);
+  headStartVal.textContent = headStart + ' m';
+  speedRatioVal.textContent = ratio.toFixed(1) + '×';
+  const { steps, totalTime } = computeAchilles(headStart, ratio);
+  achillesSteps.innerHTML = steps.map(s =>
+    `<div>Step ${s.n}: gap closes to <span class="highlight">${s.gap.toFixed(3)} m</span> — elapsed time ${s.cumTime.toFixed(3)} s</div>`
+  ).join('') + '<div>… continuing forever, gaps shrinking geometrically …</div>';
+  achillesTotal.textContent = 'Yet the infinite sum of these steps converges: Achilles actually passes the tortoise at t = ' + totalTime.toFixed(3) + ' s.';
+  resetRacePositions();
+}
+function resetRacePositions(){
+  dotAchilles.style.left = '4%';
+  const headStart = parseFloat(headStartInput.value);
+  const trackMax = headStart * 2.4;
+  dotTortoise.style.left = (4 + (headStart / trackMax) * 90) + '%';
+}
+headStartInput.addEventListener('input', renderAchilles);
+speedRatioInput.addEventListener('input', renderAchilles);
+
+document.getElementById('playRace').addEventListener('click', () => {
+  if (raceAnim) cancelAnimationFrame(raceAnim);
+  const headStart = parseFloat(headStartInput.value);
+  const ratio = parseFloat(speedRatioInput.value);
+  const { totalTime, vAch, vTort } = computeAchilles(headStart, ratio);
+  const trackMax = headStart * 2.4;
+  const duration = 3000; // ms, visual pacing
+  const start = performance.now();
+  function frame(now){
+    const elapsed = Math.min((now - start) / duration, 1);
+    const simTime = elapsed * (totalTime * 1.15);
+    const achPos = Math.min(vAch * simTime, trackMax);
+    const tortPos = Math.min(headStart + vTort * simTime, trackMax);
+    dotAchilles.style.left = (4 + (achPos / trackMax) * 90) + '%';
+    dotTortoise.style.left = (4 + (tortPos / trackMax) * 90) + '%';
+    if (elapsed < 1) raceAnim = requestAnimationFrame(frame);
+  }
+  raceAnim = requestAnimationFrame(frame);
+});
+document.getElementById('resetRace').addEventListener('click', () => {
+  if (raceAnim) cancelAnimationFrame(raceAnim);
+  resetRacePositions();
+});
+renderAchilles();
+
+/* ---------- Dichotomy ---------- */
+let dichoStep = 0;
+let dichoCovered = 0;
+const dichoCoveredEl = document.getElementById('dichoCovered');
+const dichoMarkerEl = document.getElementById('dichoMarker');
+const dichoStepEl = document.getElementById('dichoStep');
+const dichoFractionEl = document.getElementById('dichoFraction');
+const dichoRemainingEl = document.getElementById('dichoRemaining');
+
+function dichoRender(){
+  const pct = dichoCovered * 100;
+  dichoCoveredEl.style.width = pct + '%';
+  dichoMarkerEl.style.left = pct + '%';
+  dichoStepEl.textContent = dichoStep;
+  dichoFractionEl.textContent = dichoStep === 0 ? '0' : '1 − 1/2^' + dichoStep + ' ≈ ' + dichoCovered.toFixed(6);
+  dichoRemainingEl.textContent = (1 - dichoCovered).toFixed(6);
+}
+function dichoNextStep(){
+  dichoStep++;
+  const remaining = 1 - dichoCovered;
+  dichoCovered += remaining / 2;
+  dichoRender();
+}
+document.getElementById('dichoNext').addEventListener('click', dichoNextStep);
+document.getElementById('dichoReset').addEventListener('click', () => { dichoStep = 0; dichoCovered = 0; dichoRender(); });
+document.getElementById('dichoAuto').addEventListener('click', () => {
+  dichoStep = 0; dichoCovered = 0;
+  let i = 0;
+  const iv = setInterval(() => {
+    dichoNextStep();
+    i++;
+    if (i >= 12) clearInterval(iv);
+  }, 220);
+});
+dichoRender();
+
+/* ---------- Arrow ---------- */
+const arrowFrames = document.getElementById('arrowFrames');
+const arrowMotionTrack = document.getElementById('arrowMotionTrack');
+const arrowToggle = document.getElementById('arrowToggle');
+const arrowCaption = document.getElementById('arrowCaption');
+let arrowPlaying = false;
+arrowToggle.addEventListener('click', () => {
+  arrowPlaying = !arrowPlaying;
+  if (arrowPlaying){
+    arrowFrames.classList.add('hidden');
+    arrowMotionTrack.classList.add('active');
+    arrowToggle.textContent = '⏸ View as still instants';
+    arrowCaption.textContent = 'Play the same instants back to back, fast enough, and continuous motion appears — but nothing in any single frame changed.';
+  } else {
+    arrowFrames.classList.remove('hidden');
+    arrowMotionTrack.classList.remove('active');
+    arrowToggle.textContent = '▶ Play as continuous motion';
+    arrowCaption.textContent = 'Six isolated instants — in each one, the arrow simply occupies a position. Nothing here looks like "moving."';
+  }
+});
+</script>
+</body>
+</html>
