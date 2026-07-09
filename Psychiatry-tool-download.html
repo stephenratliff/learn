@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychiatry in Primary Care – Clinical Decision Support</title>
+<style>
+:root {
+  --navy: #0f2d5c;
+  --navy-700: #1e3a8a;
+  --navy-600: #1e40af;
+  --blue: #2563eb;
+  --slate: #334155;
+  --gray: #64748b;
+  --light: #f1f5f9;
+  --light-2: #f8fafc;
+  --border: #e2e8f0;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0284c7;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: #ffffff;
+  color: #1e293b;
+  line-height: 1.55;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+.disclaimer-top {
+  background: #fffbeb;
+  color: #92400e;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #fde68a;
+}
+header {
+  background: var(--navy);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+header .title h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+header .title p {
+  margin: 0.15rem 0 0;
+  opacity: 0.85;
+  font-size: 0.9rem;
+}
+.btn {
+  background: var(--blue);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+.btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+.btn-secondary { background: white; color: var(--navy); border: 1px solid var(--border); }
+.btn-small { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--light-2);
+  padding: 0.5rem 1rem 0;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.tabs button {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.1rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--gray);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  font-size: 0.92rem;
+  border-radius: 8px 8px 0 0;
+}
+.tabs button.active {
+  color: var(--navy);
+  background: white;
+  border-bottom-color: var(--navy);
+}
+
+main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fade 0.2s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+
+.section-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.section-card h2 {
+  color: var(--navy);
+  margin: 0 0 1rem;
+  font-size: 1.3rem;
+  border-bottom: 2px solid var(--light);
+  padding-bottom: 0.6rem;
+}
+.section-card h3 { color: var(--navy-700); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+.section-card h4 { color: var(--slate); margin: 1rem 0 0.4rem; font-size: 0.98rem; }
+p { margin: 0.6rem 0; }
+ul, ol { margin: 0.6rem 0 0.6rem 1.2rem; }
+li { margin: 0.3rem 0; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; }
+.flow { display: flex; flex-direction: column; gap: 0.9rem; }
+.flow-step {
+  background: var(--light-2);
+  border-left: 4px solid var(--navy);
+  padding: 1rem 1.1rem;
+  border-radius: 8px;
+}
+.flow-step strong { color: var(--navy-700); display: block; margin-bottom: 0.25rem; }
+.flow-arrow { text-align: center; color: var(--gray); font-size: 1.2rem; margin: -0.3rem 0; }
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--light);
+  color: var(--slate);
+  border: 1px solid var(--border);
+}
+.badge-blue { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+.badge-green { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.badge-amber { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
+.alert {
+  padding: 1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  border-left: 4px solid;
+}
+.alert-info { background: #eff6ff; border-color: var(--info); color: #0c4a6e; }
+.alert-warning { background: #fffbeb; border-color: var(--warning); color: #78350f; }
+.alert-danger { background: #fef2f2; border-color: var(--danger); color: #991b1b; }
+
+.calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.2rem; }
+.calc-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem;
+  background: white;
+}
+.calc-card h3 { margin: 0 0 0.8rem; color: var(--navy); font-size: 1.1rem; }
+.question-row { margin-bottom: 0.9rem; padding-bottom: 0.7rem; border-bottom: 1px solid #f1f5f9; }
+.question-row:last-child { border-bottom: none; }
+.question-row p { margin: 0 0 0.45rem; font-weight: 500; font-size: 0.93rem; }
+.options { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.options label {
+  font-size: 0.82rem;
+  background: #f8fafc;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.options label:hover { background: #eff6ff; border-color: #bfdbfe; }
+.options input { margin-right: 0.3rem; }
+select.calc-select { width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
+
+.result-box {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  background: #f0f9ff;
+  border-left: 4px solid var(--blue);
+  border-radius: 8px;
+}
+.result-score { font-size: 1.6rem; font-weight: 700; color: var(--navy); line-height: 1; }
+.result-interp { font-size: 0.92rem; margin-top: 0.3rem; color: var(--slate); }
+.result-actions { margin-top: 0.6rem; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th, td { padding: 0.7rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--light-2); color: var(--navy); font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.3px; position: sticky; top: 0; }
+tr:hover td { background: #f9fafb; }
+.med-search { width: 100%; max-width: 400px; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem; }
+
+.checklist { list-style: none; margin: 0; padding: 0; }
+.checklist li { padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 0.6rem; align-items: flex-start; }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: 0.2rem; }
+
+footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--gray);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  main { padding: 1rem; }
+  header { padding: 0.9rem 1rem; }
+  .section-card { padding: 1.1rem; }
+  .tabs { padding: 0.4rem 0.6rem 0; }
+  .tabs button { padding: 0.65rem 0.8rem; font-size: 0.88rem; }
+}
+
+@media print {
+  .disclaimer-top, .tabs, .no-print, header .btn, .result-actions { display: none !important; }
+  body { background: white; color: black; font-size: 12pt; }
+  header { background: white !important; color: black; border-bottom: 2px solid #000; }
+  main { padding: 0; max-width: 100%; }
+  .section-card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 1rem; }
+  .tab-content { display: block !important; }
+  .calc-grid { grid-template-columns: 1fr 1fr; }
+  h2 { color: black !important; }
+}
+</style>
+</head>
+<body>
+<div class="disclaimer-top no-print">
+  <strong>Clinical Decision Support Only</strong> — Not a substitute for clinical judgment. Verify dosing, interactions, and monitoring per local guidelines.
+</div>
+
+<header>
+  <div class="title">
+    <h1>Psychiatry in Primary Care</h1>
+    <p>Decision Support Tool for Depression, Anxiety, PTSD, Psychosis & Schizophrenia</p>
+  </div>
+  <div class="no-print">
+    <button class="btn" onclick="window.print()">Download PDF / Print</button>
+  </div>
+</header>
+
+<nav class="tabs no-print">
+  <button class="active" data-tab="overview">Overview</button>
+  <button data-tab="primary">Primary Care</button>
+  <button data-tab="psychosis">Psychosis</button>
+  <button data-tab="calculators">Calculators</button>
+  <button data-tab="medications">Medications</button>
+  <button data-tab="safety">Safety</button>
+  <button data-tab="references">References</button>
+</nav>
+
+<main>
+  <!-- OVERVIEW -->
+  <section id="overview" class="tab-content active">
+    <div class="section-card">
+      <h2>Evidence-Based Overview</h2>
+      <p>This single-page tool integrates current guidance for psychiatric management in primary care and specialty settings, emphasizing early intervention, stepped care, and metabolic safety.</p>
+      
+      <div class="grid-2">
+        <div>
+          <h3>Core Guidelines Integrated</h3>
+          <ul>
+            <li><strong>APA Schizophrenia Guideline</strong> (2020, guideline watch 2024): SGA monotherapy, clozapine after 2 trials, psychosocial interventions</li>
+            <li><strong>NICE NG222</strong> (Psychosis & Schizophrenia 2014, updated 2024): Early intervention, physical health monitoring, metformin/liraglutide for AIWG</li>
+            <li><strong>TMAP</strong> (Texas Medication Algorithm Project 2003-2006, 2023 consensus): Streamlined stages, earlier clozapine, avoid polypharmacy</li>
+            <li><strong>INTEGRATE 2024</strong>: Proactive metabolic management, shared decision-making, LAI consideration early</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Key Principles</h3>
+          <ul>
+            <li>Primary care manages ~79% of antidepressant prescribing – use validated screens</li>
+            <li>Collaborative Care improves depression outcomes (IMPACT model)</li>
+            <li>First-episode psychosis: treat within 2 weeks, low-dose SGA + CBTp + family</li>
+            <li>Assess response at 2-4 weeks; avoid >6 weeks on ineffective dose</li>
+            <li>Metabolic monitoring is mandatory, not optional</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <strong>2024-2025 Updates:</strong> PTSD sleep algorithm prioritizes prazosin for nightmares/insomnia. NICE NG222 now explicitly supports pharmacologic intervention (metformin, GLP-1) for antipsychotic-induced weight gain alongside lifestyle.
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIMARY CARE -->
+  <section id="primary" class="tab-content">
+    <div class="section-card">
+      <h2>Depression & Anxiety – 2-Stage Algorithm</h2>
+      <div class="flow">
+        <div class="flow-step">
+          <strong>STAGE 1: Universal Screening (30 seconds)</strong>
+          PHQ-2 + GAD-2 at every visit for at-risk patients. Score ≥3 on either = positive screen.
+          <div style="margin-top:0.5rem"><span class="badge badge-blue">PHQ-2 ≥3</span> <span class="badge badge-blue">GAD-2 ≥3</span></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <strong>STAGE 2: Confirm & Quantify</strong>
+          Administer full PHQ-9 and GAD-7. Assess functional impairment, prior episodes, suicidality (Q9), substance use (AUDIT-C).
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <strong>Stepped Care Based on Severity</strong>
+          <ul style="margin:0.4rem 0 0 1.2rem">
+            <li><strong>PHQ-9 5-9 (Mild):</strong> Watchful waiting 2-4 wks, psychoeducation, exercise, sleep hygiene, re-screen</li>
+            <li><strong>PHQ-9 10-14 (Moderate):</strong> Psychotherapy (CBT/BA) OR SSRI. Primary care can initiate.</li>
+            <li><strong>PHQ-9 15-19 (Mod-Severe):</strong> SSRI + psychotherapy. Consider collaborative care referral.</li>
+            <li><strong>PHQ-9 ≥20 or suicidal ideation:</strong> SSRI + urgent therapy referral, safety plan. Evaluate for psychiatry.</li>
+            <li><strong>GAD-7 ≥10:</strong> CBT first-line, SSRI/SNRI if moderate-severe or preference.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2>Collaborative Care Model</h2>
+      <p><strong>PCPs prescribe 79% of antidepressants in the US.</strong> Collaborative Care (CoCM) significantly improves remission rates vs usual care.</p>
+      <h3>Core Components</h3>
+      <ul>
+        <li>Population-based registry tracking PHQ-9/GAD-7 monthly</li>
+        <li>Behavioral health care manager (weekly contact initially)</li>
+        <li>Psychiatric consultant (weekly caseload review, no direct visit needed)</li>
+        <li>Stepped treatment adjustments if <50% reduction at 6-8 weeks</li>
+      </ul>
+      <div class="alert alert-info">Use for: depression, anxiety, PTSD in primary care. Billing codes: 99492, 99493, 99494.</div>
+    </div>
+
+    <div class="section-card">
+      <h2>PTSD & Sleep Disturbance Algorithm (2024-2025 Update)</h2>
+      <h3>Key Change: Prazosin now first-line for sleep/nightmares</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <strong>Screen:</strong> PC-PTSD-5 positive → assess sleep impairment (nightmares, insomnia, hyperarousal)
+        </div>
+        <div class="flow-step">
+          <strong>First-Line for Sleep-Dominant PTSD:</strong> Prazosin 1mg qhs, titrate 1-2mg q3-7 days to 6-10mg (max 15mg men, 10mg women). Monitor orthostatic BP.
+        </div>
+        <div class="flow-step">
+          <strong>If inadequate daytime PTSD symptoms:</strong> Add SSRI (sertraline 50-200mg or paroxetine). Continue prazosin if sleep benefit.
+        </div>
+        <div class="flow-step">
+          <strong>Alternatives if prazosin intolerant:</strong> Low-dose doxazosin, or trazodone 25-100mg qhs (less evidence), or CBT-I + imagery rehearsal therapy. Avoid benzodiazepines.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PSYCHOSIS -->
+  <section id="psychosis" class="tab-content">
+    <div class="section-card">
+      <h2>Psychosis & Schizophrenia Integrated Algorithm (APA/NICE/TMAP)</h2>
+      
+      <h3>First-Episode Psychosis (FEP)</h3>
+      <div class="flow-step">
+        <strong>1. Rule out medical causes:</strong> Urine tox, TSH, B12, CMP, CBC, prolactin (baseline), syphilis/HIV if risk, pregnancy, neuroimaging if atypical
+      </div>
+      <div class="flow-step">
+        <strong>2. Start low-dose SGA within 2 weeks:</strong>
+        <ul>
+          <li>Aripiprazole 5-10mg daily</li>
+          <li>Risperidone 1-2mg daily (max 4mg FEP)</li>
+          <li>Olanzapine 5-10mg qhs (monitor weight)</li>
+          <li>Ziprasidone 20-40mg BID with food</li>
+        </ul>
+        <span class="badge badge-green">Avoid high doses – FEP more sensitive</span>
+      </div>
+      <div class="flow-step">
+        <strong>3. Offer immediately:</strong> CBT for psychosis (CBTp), family intervention, supported employment/education, early intervention service referral
+      </div>
+
+      <h3>Acute Episode Management</h3>
+      <div class="flow">
+        <div class="flow-step"><strong>Monotherapy SGA</strong> – assess adherence, substance use, trauma. Reassess at 2 weeks, full response by 4-6 weeks.</div>
+        <div class="flow-step"><strong>If partial response (<20% improvement at 2 wks):</strong> Optimize dose OR switch to different SGA. <span class="badge badge-amber">Do NOT add second antipsychotic</span></div>
+        <div class="flow-step"><strong>If non-response after 4-6 wks adequate trial:</strong> Switch SGA class (e.g., dopamine partial agonist → antagonist)</div>
+      </div>
+
+      <h3>Maintenance Phase</h3>
+      <ul>
+        <li><strong>First episode:</strong> Continue antipsychotic minimum 1-2 years after remission. Shared decision for taper after.</li>
+        <li><strong>Multiple episodes:</strong> Minimum 5 years, usually indefinite.</li>
+        <li><strong>LAI antipsychotic:</strong> Offer if non-adherence, preference, or FEP with engagement concerns (reduces relapse 30%).</li>
+        <li>Continue psychosocial interventions throughout.</li>
+      </ul>
+
+      <h3>Treatment-Resistant Schizophrenia</h3>
+      <div class="alert alert-danger">
+        <strong>After 2 adequate antipsychotic trials (≥6 weeks each at therapeutic dose) – INITIATE CLOZAPINE PROMPTLY.</strong> TMAP 2023 reduced pre-clozapine stages from 3 to 2. Delay worsens outcomes.
+      </div>
+      <ul>
+        <li>Clozapine remains only evidence-based for TRS and suicidality in schizophrenia</li>
+        <li>Start 12.5mg daily, slow titration, ANC monitoring via REMS</li>
+        <li>Augmentation only after 8-12 weeks clozapine at therapeutic level (>350 ng/mL)</li>
+      </ul>
+
+      <h3>Metabolic Monitoring (NICE NG222 + INTEGRATE 2024)</h3>
+      <table>
+        <thead><tr><th>Parameter</th><th>Baseline</th><th>Week 12</th><th>Q3-6 Months</th></tr></thead>
+        <tbody>
+          <tr><td>Weight, BMI, Waist</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Blood Pressure</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Fasting glucose/HbA1c</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Lipid panel</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Prolactin (if risperidone)</td><td>✓</td><td>✓ if symptoms</td><td>Annually</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:0.8rem"><strong>NICE NG222 (2024):</strong> If ≥7% weight gain in first 3 months: offer structured lifestyle intervention PLUS consider metformin 500-2000mg daily. <strong>INTEGRATE:</strong> Consider GLP-1 agonist (liraglutide 3mg or semaglutide) for AIWG, with shared decision-making.</p>
+    </div>
+  </section>
+
+  <!-- CALCULATORS -->
+  <section id="calculators" class="tab-content">
+    <div class="section-card">
+      <h2>Interactive Screening Calculators</h2>
+      <p>All scores calculate automatically. Use for documentation and tracking.</p>
+    </div>
+    <div class="calc-grid">
+      <!-- PHQ-9 -->
+      <div class="calc-card">
+        <h3>PHQ-9 Depression</h3>
+        <form id="phq9-form">
+          <div id="phq9-questions"></div>
+        </form>
+        <div class="result-box">
+          <div class="result-score" id="phq9-score">0</div>
+          <div class="result-interp" id="phq9-interp">Complete all 9 items</div>
+          <div class="result-actions no-print"><button class="btn-small btn-secondary" onclick="copyResult('PHQ-9', 'phq9-score', 'phq9-interp')">Copy Result</button></div>
+        </div>
+      </div>
+
+      <!-- GAD-7 -->
+      <div class="calc-card">
+        <h3>GAD-7 Anxiety</h3>
+        <form id="gad7-form"><div id="gad7-questions"></div></form>
+        <div class="result-box">
+          <div class="result-score" id="gad7-score">0</div>
+          <div class="result-interp" id="gad7-interp">Complete all 7 items</div>
+          <div class="result-actions no-print"><button class="btn-small btn-secondary" onclick="copyResult('GAD-7', 'gad7-score', 'gad7-interp')">Copy Result</button></div>
+        </div>
+      </div>
+
+      <!-- PHQ2 GAD2 -->
+      <div class="calc-card">
+        <h3>PHQ-2 + GAD-2 (Rapid Screen)</h3>
+        <form id="pq2-form"><div id="pq2-questions"></div></form>
+        <div class="result-box">
+          <div class="result-score" id="pq2-score">PHQ-2: 0 / GAD-2: 0</div>
+          <div class="result-interp" id="pq2-interp">Score ≥3 on either = positive screen</div>
+          <div class="result-actions no-print"><button class="btn-small btn-secondary" onclick="copyResult('PHQ-2/GAD-2', 'pq2-score', 'pq2-interp')">Copy Result</button></div>
+        </div>
+      </div>
+
+      <!-- AUDIT-C -->
+      <div class="calc-card">
+        <h3>AUDIT-C Alcohol Screen</h3>
+        <form id="audit-form"><div id="audit-questions"></div></form>
+        <div class="result-box">
+          <div class="result-score" id="audit-score">0</div>
+          <div class="result-interp" id="audit-interp">Men ≥4, Women ≥3 = positive</div>
+          <div class="result-actions no-print"><button class="btn-small btn-secondary" onclick="copyResult('AUDIT-C', 'audit-score', 'audit-interp')">Copy Result</button></div>
+        </div>
+      </div>
+
+      <!-- C-SSRS -->
+      <div class="calc-card">
+        <h3>Columbia Suicide Severity (Screener)</h3>
+        <form id="cssrs-form"><div id="cssrs-questions"></div></form>
+        <div class="result-box">
+          <div class="result-score" id="cssrs-score" style="font-size:1.1rem">No ideation</div>
+          <div class="result-interp" id="cssrs-interp">Answer all 6 items</div>
+          <div class="result-actions no-print"><button class="btn-small btn-secondary" onclick="copyResult('C-SSRS', 'cssrs-score', 'cssrs-interp')">Copy Result</button></div>
+        </div>
+      </div>
+
+      <!-- Brief PANSS -->
+      <div class="calc-card">
+        <h3>Brief PANSS Positive (4-item)</h3>
+        <form id="panss-form"><div id="panss-questions"></div></form>
+        <div class="result-box">
+          <div class="result-score" id="panss-score">4</div>
+          <div class="result-interp" id="panss-interp">Range 4-28. Track over time.</div>
+          <div class="result-actions no-print"><button class="btn-small btn-secondary" onclick="copyResult('Brief PANSS+', 'panss-score', 'panss-interp')">Copy Result</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEDICATIONS -->
+  <section id="medications" class="tab-content">
+    <div class="section-card">
+      <h2>Medication Reference Table</h2>
+      <input type="text" id="medSearch" class="med-search no-print" placeholder="Search drug, class, use... (e.g., sertraline, metabolic)">
+      <div style="overflow-x:auto">
+      <table id="medTable">
+        <thead>
+          <tr><th>Class</th><th>Drug</th><th>First-line Use</th><th>Typical Dose Range</th><th>Key Monitoring</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>SSRI</td><td>Sertraline</td><td>Depression, Anxiety, PTSD</td><td>50-200 mg daily</td><td>None routine</td><td>First-line primary care, safe in cardiac disease</td></tr>
+          <tr><td>SSRI</td><td>Escitalopram</td><td>Depression, Anxiety</td><td>10-20 mg daily</td><td>QTc if >20mg or cardiac risk</td><td>Lowest drug interactions, 10mg start elderly</td></tr>
+          <tr><td>SNRI</td><td>Venlafaxine XR</td><td>Depression, GAD, PTSD</td><td>75-225 mg daily</td><td>BP, HR at each dose increase</td><td>Dose-dependent hypertension, taper slowly</td></tr>
+          <tr><td>SGA</td><td>Aripiprazole</td><td>First-episode psychosis</td><td>5-15 mg daily (FEP), up to 30mg</td><td>Weight, metabolic q3mo</td><td>Partial agonist, lower sedation/metabolic, akathisia risk</td></tr>
+          <tr><td>SGA</td><td>Risperidone</td><td>First-episode psychosis</td><td>2-4 mg daily (FEP), 4-6mg acute</td><td>Prolactin, EPS</td><td>Monitor hyperprolactinemia, consider LAI 25-50mg q2w</td></tr>
+          <tr><td>SGA</td><td>Olanzapine</td><td>Acute psychosis, mania</td><td>5-10 mg qhs (FEP), 10-20mg</td><td>Weight weekly x12w, glucose, lipids</td><td>Highest metabolic risk, very effective</td></tr>
+          <tr><td>SGA</td><td>Ziprasidone</td><td>First-episode</td><td>40-80 mg BID with food ≥500kcal</td><td>QTc baseline, K/Mg</td><td>Low metabolic risk, requires food for absorption</td></tr>
+          <tr><td>SGA</td><td>Quetiapine</td><td>Psychosis, bipolar depression</td><td>300-400 mg daily (up to 800)</td><td>Weight, metabolic, cataracts</td><td>Sedating, orthostasis, less EPS</td></tr>
+          <tr><td>SGA</td><td>Clozapine</td><td>Treatment-resistant schizophrenia</td><td>Start 12.5mg, titrate to 300-450mg</td><td>ANC weekly x26w, then q2w; troponin/CRP baseline + weekly x4</td><td>REMS required, risk agranulocytosis, myocarditis, sialorrhea, constipation</td></tr>
+          <tr><td>Alpha-1 antagonist</td><td>Prazosin</td><td>PTSD sleep/nightmares</td><td>1-10 mg qhs (titrate)</td><td>Orthostatic BP</td><td>First-line 2024-25 PTSD sleep algorithm, take at bedtime</td></tr>
+          <tr><td>Biguanide</td><td>Metformin</td><td>Antipsychotic-induced weight gain</td><td>500-2000 mg daily</td><td>Renal function, eGFR >30</td><td>NICE NG222 recommended for AIWG prevention/treatment</td></tr>
+          <tr><td>GLP-1 agonist</td><td>Liraglutide</td><td>AIWG</td><td>Up to 3 mg daily SC</td><td>GI symptoms, pancreatitis risk</td><td>INTEGRATE 2024 option, significant weight loss</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="grid-2" style="margin-top:1.5rem">
+        <div class="alert alert-danger"><strong>QTc Prolongation Risk:</strong> Ziprasidone, citalopram >20mg, escitalopram >10mg (elderly). Check ECG baseline if cardiac history, electrolyte abnormality, or combined QTc drugs.</div>
+        <div class="alert alert-warning"><strong>Metabolic High Risk:</strong> Olanzapine, clozapine > quetiapine > risperidone > aripiprazole/ziprasidone (lowest). Weight gain often in first 12 weeks.</div>
+        <div class="alert alert-danger"><strong>Agranulocytosis:</strong> Clozapine only. ANC <1000 stop, <500 emergency. Also monitor for constipation (can be fatal), myocarditis (weeks 2-4).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAFETY -->
+  <section id="safety" class="tab-content">
+    <div class="section-card">
+      <h2>Safety Checklists</h2>
+      <div class="grid-2">
+        <div>
+          <h3>Suicide Risk Assessment</h3>
+          <ul class="checklist">
+            <li><input type="checkbox"> Current suicidal ideation, plan, intent, means</li>
+            <li><input type="checkbox"> Prior attempts (most potent risk factor)</li>
+            <li><input type="checkbox"> Access to lethal means (firearms, medications)</li>
+            <li><input type="checkbox"> Protective factors: social support, future orientation, treatment engagement</li>
+            <li><input type="checkbox"> Command hallucinations to self-harm</li>
+            <li><input type="checkbox"> Substance intoxication/withdrawal</li>
+            <li><input type="checkbox"> <strong>Action:</strong> If high risk → do not leave alone, urgent psychiatry/ED, safety plan, remove means</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Clozapine Initiation Checklist</h3>
+          <ul class="checklist">
+            <li><input type="checkbox"> Baseline ANC ≥1500 (≥1000 if BEN), WBC documented</li>
+            <li><input type="checkbox"> Enrolled in REMS, pharmacy certified</li>
+            <li><input type="checkbox"> Baseline metabolic labs, ECG, troponin, CRP</li>
+            <li><input type="checkbox"> Constipation prophylaxis (docusate + senna or PEG)</li>
+            <li><input type="checkbox"> No concurrent carbamazepine or severe neutropenia risk</li>
+            <li><input type="checkbox"> Counsel: sialorrhea, sedation, weekly labs, fever protocol</li>
+            <li><input type="checkbox"> Slow titration: 12.5mg day1, increase by 25mg/day max</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Metabolic Syndrome (ATP III – ≥3 criteria)</h3>
+          <ul class="checklist">
+            <li><input type="checkbox"> Waist >102cm (M) / >88cm (F)</li>
+            <li><input type="checkbox"> Triglycerides ≥150 mg/dL or on treatment</li>
+            <li><input type="checkbox"> HDL <40 mg/dL (M) / <50 mg/dL (F)</li>
+            <li><input type="checkbox"> BP ≥130/85 mmHg or on treatment</li>
+            <li><input type="checkbox"> Fasting glucose ≥100 mg/dL or on treatment</li>
+            <li><input type="checkbox"> <strong>If ≥3:</strong> Lifestyle + consider metformin/GLP-1, switch antipsychotic if possible</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="references" class="tab-content">
+    <div class="section-card">
+      <h2>References & Guidelines</h2>
+      <ol>
+        <li>American Psychiatric Association. <em>The American Psychiatric Association Practice Guideline for the Treatment of Patients With Schizophrenia.</em> 3rd ed. 2020; Guideline Watch Update 2024.</li>
+        <li>National Institute for Health and Care Excellence. <em>Psychosis and Schizophrenia in Adults: Prevention and Management.</em> NICE Guideline NG222. 2014, updated Jan 2024.</li>
+        <li>Texas Medication Algorithm Project (TMAP). Schizophrenia Algorithm 2006; 2023 Consensus Conference Update on Early Clozapine Use.</li>
+        <li>INTEGRATE Collaborative. <em>Metabolic Management in Serious Mental Illness: Consensus Guidance.</em> Lancet Psychiatry 2024.</li>
+        <li>VA/DoD Clinical Practice Guideline for Management of PTSD and Acute Stress Disorder. 2023; 2024-2025 Sleep/Nightmare Update prioritizing prazosin.</li>
+        <li>Kroenke K, et al. PHQ-9 validity. J Gen Intern Med 2001. Spitzer RL, et al. GAD-7 validation. Arch Intern Med 2006.</li>
+        <li>Posner K, et al. Columbia-Suicide Severity Rating Scale. Am J Psychiatry 2011.</li>
+        <li>Correll CU, et al. Antipsychotic-induced weight gain management. World Psychiatry 2024.</li>
+      </ol>
+      <div class="alert alert-info" style="margin-top:1.5rem">
+        <strong>Disclaimer:</strong> This tool synthesizes public guideline recommendations for educational purposes. It does not replace individualized clinical assessment, local formulary restrictions, or specialist consultation. Dosing is for adults; adjust for hepatic/renal impairment, age, pregnancy, and drug interactions. Always check current FDA/REMS requirements.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Psychiatry Primary Care Decision Support v2.1 | Built for offline use | Last updated: 2025
+</footer>
+
+<script>
+// Tab navigation
+document.querySelectorAll('.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// Medication search
+document.getElementById('medSearch')?.addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('#medTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// Copy result
+function copyResult(name, scoreId, interpId) {
+  const score = document.getElementById(scoreId).textContent;
+  const interp = document.getElementById(interpId).textContent;
+  const text = `${name}: ${score} - ${interp} (${new Date().toLocaleDateString()})`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=> btn.textContent = orig, 1500);
+  });
+}
+
+// Build calculators
+function buildPHQ9() {
+  const qs = [
+    "Little interest or pleasure in doing things",
+    "Feeling down, depressed, or hopeless",
+    "Trouble falling/staying asleep, or sleeping too much",
+    "Feeling tired or having little energy",
+    "Poor appetite or overeating",
+    "Feeling bad about yourself — or that you are a failure",
+    "Trouble concentrating on things",
+    "Moving/speaking slowly or being fidgety/restless",
+    "Thoughts that you would be better off dead or hurting yourself"
+  ];
+  const container = document.getElementById('phq9-questions');
+  qs.forEach((q,i)=>{
+    const div = document.createElement('div'); div.className='question-row';
+    div.innerHTML = `<p>${i+1}. ${q}</p><div class="options">
+      ${[0,1,2,3].map(v=>`<label><input type="radio" name="phq9_${i}" value="${v}"> ${['Not at all','Several days','More than half','Nearly every'][v]}</label>`).join('')}
+    </div>`;
+    container.appendChild(div);
+  });
+  container.addEventListener('change', calcPHQ9);
+}
+function calcPHQ9() {
+  let total=0, count=0;
+  for(let i=0;i<9;i++){ const c=document.querySelector(`input[name="phq9_${i}"]:checked`); if(c){total+=+c.value; count++;}}
+  document.getElementById('phq9-score').textContent = count===9?total:`${total} (${count}/9)`;
+  let interp='Complete all items';
+  if(count===9){
+    if(total<=4) interp='Minimal depression';
+    else if(total<=9) interp='Mild depression';
+    else if(total<=14) interp='Moderate depression';
+    else if(total<=19) interp='Moderately severe';
+    else interp='Severe depression';
+    const q9 = +document.querySelector('input[name="phq9_8"]:checked').value;
+    if(q9>0) interp += ' — POSITIVE SUICIDE SCREEN (Q9>0)';
+  }
+  document.getElementById('phq9-interp').textContent = interp;
+}
+
+function buildGAD7() {
+  const qs = ["Feeling nervous, anxious or on edge","Not being able to stop or control worrying","Worrying too much about different things","Trouble relaxing","Being so restless it's hard to sit still","Becoming easily annoyed or irritable","Feeling afraid as if something awful might happen"];
+  const c=document.getElementById('gad7-questions');
+  qs.forEach((q,i)=>{
+    const div=document.createElement('div'); div.className='question-row';
+    div.innerHTML=`<p>${i+1}. ${q}</p><div class="options">${[0,1,2,3].map(v=>`<label><input type="radio" name="gad7_${i}" value="${v}"> ${['Not at all','Several days','More than half','Nearly every'][v]}</label>`).join('')}</div>`;
+    c.appendChild(div);
+  });
+  c.addEventListener('change', calcGAD7);
+}
+function calcGAD7(){
+  let t=0,cnt=0; for(let i=0;i<7;i++){const ck=document.querySelector(`input[name="gad7_${i}"]:checked`); if(ck){t+=+ck.value; cnt++;}}
+  document.getElementById('gad7-score').textContent = cnt===7?t:`${t} (${cnt}/7)`;
+  let interp='Complete all items';
+  if(cnt===7){
+    if(t<=4) interp='Minimal anxiety';
+    else if(t<=9) interp='Mild anxiety';
+    else if(t<=14) interp='Moderate anxiety';
+    else interp='Severe anxiety';
+  }
+  document.getElementById('gad7-interp').textContent=interp;
+}
+
+function buildPQ2(){
+  const qs=["Little interest or pleasure","Feeling down, depressed, hopeless","Feeling nervous/anxious","Not able to stop worrying"];
+  const c=document.getElementById('pq2-questions');
+  qs.forEach((q,i)=>{
+    const div=document.createElement('div'); div.className='question-row';
+    div.innerHTML=`<p>${i<2?'PHQ':'GAD'}-${i%2+1}. ${q}</p><div class="options">${[0,1,2,3].map(v=>`<label><input type="radio" name="pq2_${i}" value="${v}">${v}</label>`).join('')}</div>`;
+    c.appendChild(div);
+  });
+  c.addEventListener('change', calcPQ2);
+}
+function calcPQ2(){
+  let p=0,g=0, pc=0,gc=0;
+  for(let i=0;i<2;i++){const ck=document.querySelector(`input[name="pq2_${i}"]:checked`); if(ck){p+=+ck.value; pc++;}}
+  for(let i=2;i<4;i++){const ck=document.querySelector(`input[name="pq2_${i}"]:checked`); if(ck){g+=+ck.value; gc++;}}
+  document.getElementById('pq2-score').textContent=`PHQ-2: ${p} / GAD-2: ${g}`;
+  let interp='Score ≥3 = positive';
+  if(pc===2&&gc===2){ interp = `${p>=3?'PHQ-2 POSITIVE':'PHQ-2 negative'}, ${g>=3?'GAD-2 POSITIVE':'GAD-2 negative'}. ${p>=3||g>=3?'→ Complete PHQ-9/GAD-7':''}`; }
+  document.getElementById('pq2-interp').textContent=interp;
+}
+
+function buildAudit(){
+  const qs=[
+    {t:"How often do you have a drink containing alcohol?", o:["Never","Monthly or less","2-4x/month","2-3x/week","4+ x/week"]},
+    {t:"How many drinks on a typical day?", o:["1-2","3-4","5-6","7-9","10+"]},
+    {t:"How often ≥6 drinks on one occasion?", o:["Never","Less than monthly","Monthly","Weekly","Daily/almost"]}
+  ];
+  const c=document.getElementById('audit-questions');
+  qs.forEach((q,i)=>{
+    const div=document.createElement('div'); div.className='question-row';
+    div.innerHTML=`<p>${i+1}. ${q.t}</p><div class="options">${q.o.map((label,v)=>`<label><input type="radio" name="audit_${i}" value="${v}">${label}</label>`).join('')}</div>`;
+    c.appendChild(div);
+  });
+  c.addEventListener('change', calcAudit);
+}
+function calcAudit(){
+  let t=0,cnt=0; for(let i=0;i<3;i++){const ck=document.querySelector(`input[name="audit_${i}"]:checked`); if(ck){t+=+ck.value; cnt++;}}
+  document.getElementById('audit-score').textContent = cnt===3?t:`${t} (${cnt}/3)`;
+  let interp='Complete all items';
+  if(cnt===3){ interp = t>=4?'Men: POSITIVE (≥4). ':'Men: Negative. '; interp += t>=3?'Women: POSITIVE (≥3).':'Women: Negative.'; }
+  document.getElementById('audit-interp').textContent=interp;
+}
+
+function buildCSSRS(){
+  const qs=[
+    "Wish to be dead",
+    "Non-specific active suicidal thoughts",
+    "Active suicidal ideation with any methods (not plan)",
+    "Active ideation with some intent, no plan",
+    "Active ideation with specific plan and intent",
+    "Suicidal behavior (attempt, interrupted, aborted, preparatory)"
+  ];
+  const c=document.getElementById('cssrs-questions');
+  qs.forEach((q,i)=>{
+    const div=document.createElement('div'); div.className='question-row';
+    div.innerHTML=`<p>${i+1}. ${q}</p><div class="options"><label><input type="radio" name="cssrs_${i}" value="1">Yes</label><label><input type="radio" name="cssrs_${i}" value="0">No</label></div>`;
+    c.appendChild(div);
+  });
+  c.addEventListener('change', calcCSSRS);
+}
+function calcCSSRS(){
+  const vals=[]; for(let i=0;i<6;i++){const ck=document.querySelector(`input[name="cssrs_${i}"]:checked`); vals.push(ck?+ck.value:null);}
+  if(vals.includes(null)){document.getElementById('cssrs-interp').textContent='Answer all 6 items'; return;}
+  let risk='No ideation', interp='Continue monitoring';
+  if(vals[5]===1 || vals[4]===1){ risk='HIGH RISK'; interp='Immediate safety: do not leave alone, urgent eval, remove means'; }
+  else if(vals[3]===1 || vals[2]===1){ risk='MODERATE-HIGH'; interp='Urgent mental health referral, safety plan within 24h'; }
+  else if(vals[1]===1 || vals[0]===1){ risk='LOW-MODERATE'; interp='Safety plan, close follow-up, treat underlying illness'; }
+  document.getElementById('cssrs-score').textContent=risk;
+  document.getElementById('cssrs-interp').textContent=interp;
+}
+
+function buildPANSS(){
+  const qs=["Delusions (P1)","Conceptual Disorganization (P2)","Hallucinatory Behavior (P3)","Suspiciousness/Persecution (P6)"];
+  const c=document.getElementById('panss-questions');
+  qs.forEach((q,i)=>{
+    const div=document.createElement('div'); div.className='question-row';
+    div.innerHTML=`<p>${q}</p><select class="calc-select" name="panss_${i}">${[1,2,3,4,5,6,7].map(v=>`<option value="${v}">${v} - ${['Absent','Minimal','Mild','Moderate','Mod-Severe','Severe','Extreme'][v-1]}</option>`).join('')}</select>`;
+    c.appendChild(div);
+  });
+  c.addEventListener('change', calcPANSS);
+  calcPANSS();
+}
+function calcPANSS(){
+  let t=0; for(let i=0;i<4;i++){t+=+document.querySelector(`select[name="panss_${i}"]`).value;}
+  document.getElementById('panss-score').textContent=t;
+  let interp='Track change over time. ';
+  if(t<=8) interp+='Remission range.';
+  else if(t<=14) interp+='Mild symptoms.';
+  else if(t<=20) interp+='Moderate.';
+  else interp+='Marked severity.';
+  document.getElementById('panss-interp').textContent=interp;
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', ()=>{
+  buildPHQ9(); buildGAD7(); buildPQ2(); buildAudit(); buildCSSRS(); buildPANSS();
+});
+</script>
+</body>
+</html>
