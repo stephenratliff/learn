@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NASH & HILBERT — Equilibrium and Infinity</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{--bg:#FDFBF7;--ink:#111114;--teal:#0E6A6B;--indigo:#3A3A8C;--gold:#C2A86A;--line:#EAE6DC;--muted:#6B665E}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;line-height:1.7}
+h1,h2,h3{font-family:Playfair Display,serif;letter-spacing:-.02em;line-height:.95}
+.mono{font-family:JetBrains Mono,monospace}
+.container{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:280px 1fr;gap:32px;padding:24px}
+@media(max-width:1000px){.container{grid-template-columns:1fr}.toc{position:relative!important;top:auto!important;overflow:auto;white-space:nowrap;display:flex;gap:12px;padding-bottom:12px}.toc a{display:inline-block}}
+.toc{position:sticky;top:24px;align-self:start;border:1px solid var(--line);border-radius:16px;padding:18px;background:#FFFEFB}
+.toc a{display:block;padding:6px 0;color:var(--muted);text-decoration:none;font-size:13px;letter-spacing:.02em}
+.toc a:hover{color:var(--ink)}.toc .dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:middle}
+.hero{padding:48px 0 24px;border-bottom:1px solid var(--line);margin-bottom:32px}
+.kicker{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-size:clamp(48px,9vw,112px);margin:12px 0 8px;font-weight:900}
+.hero h1 em{font-weight:400;font-style:italic;color:var(--indigo)}
+.subtitle{font-size:20px;max-width:48ch;color:#2E2B27}
+.card{border:1px solid var(--line);border-radius:16px;background:#FFFEFB;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.03)}
+.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+@media(max-width:960px){.lab-grid{grid-template-columns:1fr}}
+.demo{background:#FBF9F5;border:1px solid #EEE9DE;border-radius:12px;padding:16px}
+.octave{background:#121214;color:#E8E2D9;border-radius:12px;overflow:hidden;border:1px solid #2A2927}
+.octave-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#171614;border-bottom:1px solid #2A2927;font-size:10px;letter-spacing:.18em;color:#9AA0A8}
+.copy-btn{font-size:11px;letter-spacing:.12em;padding:6px 10px;border-radius:8px;border:1px solid #3A3733;background:#2A2927;color:#E8E2D9;cursor:pointer}
+.copy-btn:hover{background:#3A3733}
+pre{margin:0;padding:14px;overflow:auto;font-size:12.5px;line-height:1.6;max-height:360px}
+.formula{background:#FFF;border:1px solid #EEE9DE;border-radius:12px;padding:14px 16px;margin:16px 0;overflow:auto}
+.badge{display:inline-block;font-size:10px;letter-spacing:.14em;padding:4px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-right:6px}
+input,select{font-family:JetBrains Mono,monospace;font-size:12px;padding:6px 8px;border:1px solid #E6E0D3;border-radius:8px;background:white}
+button.preset{font-size:11px;padding:6px 10px;border-radius:999px;border:1px solid #E6E0D3;background:white;cursor:pointer;margin:2px}
+button.preset:hover{background:#F3EFE6}
+canvas{width:100%;height:auto;border:1px solid #EEE9DE;border-radius:10px;background:white}
+.dark-strip{background:#111114;color:#E8E2D9;padding:40px;border-radius:20px;margin-top:48px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.small{font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+<nav class="toc mono">
+<div style="font-size:11px;letter-spacing:.2em;margin-bottom:10px">CONTENTS</div>
+<a href="#equil"><span class="dot" style="background:var(--teal)"></span>Nash Equilibrium</a>
+<a href="#barg"><span class="dot" style="background:var(--teal)"></span>Bargaining & Duopoly</a>
+<a href="#embed"><span class="dot" style="background:var(--teal)"></span>Embedding & Nash-Moser</a>
+<a href="#axiom"><span class="dot" style="background:var(--indigo)"></span>Axioms & Hotel</a>
+<a href="#hilb"><span class="dot" style="background:var(--indigo)"></span>Hilbert Space & Fourier</a>
+<a href="#spec"><span class="dot" style="background:var(--indigo)"></span>Spectral & Variational</a>
+<a href="#prob"><span class="dot" style="background:var(--indigo)"></span>Problems & Curve</a>
+<a href="#conv"><span class="dot" style="background:var(--gold)"></span>Convergence</a>
+</nav>
+<main>
+<div class="hero">
+<div class="kicker">1862—1943 / 1928—2015 / Göttingen → Princeton</div>
+<h1>NASH <em>&</em> HILBERT</h1>
+<div class="subtitle">One asked what mathematics can be. The other asked what rationality must be. Together they show that infinity has a geometry and strategy has a fixed point.</div>
+</div>
+
+<!-- CHAPTER 1 -->
+<section id="equil" class="card" style="border-left:4px solid var(--teal)">
+<div class="badge">NASH 1950-51</div><h2>1. Equilibrium — Fixed Points of Self-Interest</h2>
+<p>Nash's 21-year-old thesis redefined games: an \(n\)-person non-cooperative equilibrium is a profile where each strategy is a best response to the others. Existence comes from Kakutani's fixed-point theorem, a generalization of Brouwer that Hilbert's topological work made central.</p>
+<div class="formula">\[ \sigma^{*}=(\sigma_1^{*},\dots,\sigma_n^{*})\ \text{is Nash}\iff u_i(\sigma_i^{*},\sigma_{-i}^{*})\ge u_i(\sigma_i,\sigma_{-i}^{*})\ \forall \sigma_i,\ \forall i,\quad BR_i(\sigma_{-i})=\arg\max_{\sigma_i}u_i \]</div>
+
+<div class="lab-grid">
+<div class="demo">
+<h3 style="margin-top:0">2×2 Payoff Lab</h3>
+<div class="small">Edit payoffs. Player 1 rows Up/Down, Player 2 cols Left/Right. Cell = (A,B).</div>
+<div class="grid2" style="margin:10px 0">
+<div> A: <br><input id="A11" value="3" size="3"> <input id="A12" value="0" size="3"><br><input id="A21" value="5" size="3"> <input id="A22" value="1" size="3"></div>
+<div> B: <br><input id="B11" value="3" size="3"> <input id="B12" value="5" size="3"><br><input id="B21" value="0" size="3"> <input id="B22" value="1" size="3"></div>
+</div>
+<div>
+<button class="preset" onclick="setPreset('pd')">Prisoner's Dilemma</button>
+<button class="preset" onclick="setPreset('stag')">Stag Hunt</button>
+<button class="preset" onclick="setPreset('chicken')">Chicken</button>
+<button class="preset" onclick="setPreset('bos')">Battle of Sexes</button>
+<button class="preset" onclick="setPreset('mp')">Matching Pennies</button>
+</div>
+<div id="nash-out" style="margin-top:12px;font-size:13px"></div>
+<canvas id="br-canvas" width="360" height="200"></canvas>
+</div>
+<div class="octave"><div class="octave-head"><span>GNU OCTAVE</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function [pure,mix]=nash_2x2(A,B)
+% NASH_2X2 pure and mixed Nash for 2x2
+% A,B 2x2 payoff matrices for Row, Column
+pure=[];
+for i=1:2
+ for j=1:2
+  if A(i,j)==max(A(:,j)) && B(i,j)==max(B(i,:))
+    pure=[pure; i j];
+  end
+ end
+end
+% mixed: indifference
+a=A(1,1); b=A(1,2); c=A(2,1); d=A(2,2);
+e=B(1,1); f=B(1,2); g=B(2,1); h=B(2,2);
+q = (h-f)/(e-f-g+h); % prob Column plays Left
+p = (d-b)/(a-b-c+d); % prob Row plays Up
+mix.p = p; mix.q = q;
+fprintf('pure equilibria rows:'); disp(pure);
+fprintf('mixed p=%.3f q=%.3f\n',p,q);
+end
+% Example:
+A=[3 0;5 1]; B=[3 5;0 1]; nash_2x2(A,B)</code></pre></div>
+</div>
+</section>
+
+<!-- CHAPTER 2 -->
+<section id="barg" class="card" style="border-left:4px solid var(--teal);margin-top:28px">
+<div class="badge">NASH 1950 / COURNOT 1838</div><h2>2. Bargaining & Duopoly</h2>
+<p>The bargaining problem asks which point in a feasible convex set \(S\) rational bargainers pick given disagreement \(d\). Nash's four axioms force the product maximizer. The same fixed-point logic gives Cournot duopoly equilibrium as intersection of reaction functions.</p>
+<div class="formula">\[ \max_{u\in S,\ u\ge d}(u_1-d_1)(u_2-d_2),\qquad q_1^{*}=\frac{a-c_1}{2b}-\frac{q_2}{2},\ q_2^{*}=\frac{a-c_2}{2b}-\frac{q_1}{2} \]</div>
+<div class="lab-grid">
+<div>
+<div class="demo"><h3 style="margin-top:0">Nash Bargaining</h3><canvas id="barg-canvas" width="360" height="320"></canvas><div class="small">Drag red d. Green = Nash product max. Hyperbolas = level sets.</div></div>
+<div class="demo" style="margin-top:14px"><h3 style="margin-top:0">Cournot Duopoly</h3>a <input id="a" type="range" min="10" max="30" value="20"> <span id="a-v">20</span><br>c1 <input id="c1" type="range" min="0" max="10" value="2"> <span id="c1-v">2</span> c2 <input id="c2" type="range" min="0" max="10" value="3"> <span id="c2-v">3</span><canvas id="cour-canvas" width="360" height="260"></canvas><div id="cour-out" class="small"></div></div>
+</div>
+<div>
+<div class="octave"><div class="octave-head"><span>GNU OCTAVE — BARGAINING</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function s=nash_bargaining(S,d)
+% S : Nx2 polygon vertices, d : 1x2 disagreement
+% maximize log((u1-d1)*(u2-d2))
+obj=@(u) -sum(log(max(u-d,1e-9)));
+% start at centroid
+u0=mean(S,1);
+% simple fminsearch inside feasible via penalty
+Sfun=@(u) inpolygon(u(1),u(2),S(:,1),S(:,2));
+pen=@(u) obj(u) + 1e4*(~Sfun(u));
+s=fminsearch(pen,u0);
+fprintf('Nash bargaining s=(%.3f,%.3f)\n',s(1),s(2));
+end
+S=[0 0;10 0;7 7;0 10]; d=[1 1]; nash_bargaining(S,d)</code></pre></div>
+<div class="octave" style="margin-top:12px"><div class="octave-head"><span>GNU OCTAVE — COURNOT</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function [q1,q2]=cournot_nash(a,b,c1,c2)
+% Solve q1=(a-c1)/(2b)-q2/2, q2=(a-c2)/(2b)-q1/2
+A=[2*b b; b 2*b]; rhs=[a-c1; a-c2];
+q=A\rhs; q1=q(1); q2=q(2);
+fprintf('q1*=%.3f q2*=%.3f price=%.3f\n',q1,q2,a-b*(q1+q2));
+end
+cournot_nash(20,1,2,3)</code></pre></div>
+</div>
+</div>
+</section>
+
+<!-- CHAPTER 3 -->
+<section id="embed" class="card" style="border-left:4px solid var(--teal);margin-top:28px">
+<div class="badge">NASH 1954-56 / MOSER 1966</div><h2>3. Embedding & The Hard Theorem</h2>
+<p>Every Riemannian \(n\)-manifold admits an isometric \(C^1\) embedding into \(\mathbb R^{2n}\) and \(C^k\) into \(\mathbb R^{n(3n+11)/2}\). Nash's proof introduced hard implicit function iteration with smoothing, later abstracted as Nash-Moser.</p>
+<div class="formula">\[ \forall (M^n,g)\ \exists u:M^n\to\mathbb R^N\ \text{s.t.}\ \partial_i u\cdot\partial_j u=g_{ij} \]</div>
+<div class="lab-grid">
+<div class="demo"><h3>Nash-Kuiper Corrugation</h3><canvas id="cor-canvas" width="360" height="240"></canvas>Wrinkle <input id="wr" type="range" min="0" max="100" value="20"> <span id="wr-v">20</span><div class="small">Base length preserved while high-frequency low-amplitude waves add embeddability. Arc length ≈ constant.</div><div id="len-out" class="small"></div></div>
+<div class="octave"><div class="octave-head"><span>GNU OCTAVE — CORRUGATION</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function nash_crug_demo(k,amp)
+% k frequency, amp amplitude ~ 1/k preserves length
+t=linspace(0,2*pi,2000);
+base=sin(t); % smooth base curve y=sin x roughly
+y=base+amp*sin(k*t)/k;
+L_base=trapz(t,sqrt(1+cos(t).^2));
+L_new =trapz(t,sqrt(1+(cos(t)+amp*cos(k*t)).^2));
+fprintf('L base=%.4f L corrugated=%.4f ratio=%.4f\n',L_base,L_new,L_new/L_base);
+plot(t,y); title('Corrugated embedding preserves length');
+end
+nash_crug_demo(30,0.8)</code></pre></div>
+</div>
+</section>
+
+<!-- CHAPTER 4 -->
+<section id="axiom" class="card" style="border-left:4px solid var(--indigo);margin-top:28px">
+<div class="badge">HILBERT 1899 / 1924</div><h2>4. Axioms — Ground & Grand Hotel</h2>
+<p>Grundlagen der Geometrie rebuilt geometry from 21 axioms in 5 groups. To show infinity's strangeness, Hilbert imagined a hotel with \(|\mathbb N|\) rooms.</p>
+<div class="formula">\[ |\mathbb N|=|\mathbb N\cup\{0\}|=|\mathbb N\times\mathbb N|,\quad n\mapsto n+1,\ n\mapsto2n,\ (p,q)\mapsto2^{p}3^{q} \]</div>
+<div class="lab-grid">
+<div class="demo"><h3>Hilbert's Hotel</h3><div><button class="preset" onclick="hotel('new')">New guest → shift</button><button class="preset" onclick="hotel('inf')">Infinite bus (even rooms)</button><button class="preset" onclick="hotel('fleet')">Infinite fleet</button><button class="preset" onclick="hotel('reset')">Reset</button></div><div id="hotel-vis" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px;max-height:160px;overflow:auto"></div><div id="hotel-msg" class="small" style="margin-top:8px"></div></div>
+<div class="octave"><div class="octave-head"><span>GNU OCTAVE — HOTEL</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function hilbert_hotel()
+% Bijection demos
+n=1:10;
+fprintf('n -> n+1: '); disp(n+1);
+fprintf('n -> 2n (evens free odds): '); disp(2*n);
+% Cantor pairing for N x N
+cantor=@(p,q) (p+q)*(p+q+1)/2+q;
+fprintf('pair (2,3) -> %d\n',cantor(2,3));
+% Hotel occupancy as sequence
+rooms=zeros(1,20); rooms(1:10)=1:10;
+fprintf('Shift for 1 guest: '); disp([0 rooms(1:9)]);
+end
+hilbert_hotel()</code></pre></div>
+</div>
+</section>
+
+<!-- CHAPTER 5 -->
+<section id="hilb" class="card" style="border-left:4px solid var(--indigo);margin-top:28px">
+<div class="badge">HILBERT 1906 / FOURIER 1807</div><h2>5. Hilbert Space — Infinity Made Geometric</h2>
+<p>\(\ell^2\) and \(L^2\) are complete inner product spaces. Every \(x\) has coordinates \(\langle x,e_n\rangle\) in an orthonormal basis. Fourier series is just Pythagoras in infinite dimensions.</p>
+<div class="formula">\[ \ell^2=\{x:\sum|x_n|^2<\infty\},\ \langle x,y\rangle=\sum x_n\bar y_n,\ x=\sum\langle x,e_n\rangle e_n,\ \|f-S_N\|_2\to0 \]</div>
+<div class="lab-grid">
+<div class="demo"><h3>Fourier \(L^2\) Explorer</h3><select id="ftype"><option value="square">Square wave</option><option value="saw">Sawtooth</option><option value="pulse">Pulse</option></select> N <input id="fN" type="range" min="1" max="50" value="5"> <span id="fN-v">5</span><canvas id="fourier-canvas" width="360" height="260"></canvas><div id="fourier-err" class="small"></div></div>
+<div class="octave"><div class="octave-head"><span>GNU OCTAVE — FOURIER L2</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function [err]=fourier_l2(N)
+% Approximate square wave in L^2[-pi,pi]
+x=linspace(-pi,pi,2000); f=sign(sin(x)); % square
+S=zeros(size(x));
+for k=1:2:2*N-1
+  S+=4/pi/k*sin(k*x);
+end
+err=sqrt(trapz(x,(f-S).^2)/ (2*pi));
+fprintf('N=%d L2 error=%.4f\n',N,err);
+plot(x,f,x,S); legend('f','S_N'); grid on;
+end
+fourier_l2(15)</code></pre></div>
+</div>
+</section>
+
+<!-- CHAPTER 6 -->
+<section id="spec" class="card" style="border-left:4px solid var(--indigo);margin-top:28px">
+<div class="badge">HILBERT 1904-10 / EINSTEIN-HILBERT 1915</div><h2>6. Spectral & Variational</h2>
+<p>For compact self-adjoint \(A\), \(L^2=\overline{\bigoplus \ker(A-\lambda I)}\). Hilbert's variational principle \(J[y]=\int L\,dx\) gives Euler-Lagrange, and \(S=\int R\sqrt{-g}\,d^4x\) gives Einstein.</p>
+<div class="formula">\[ Af=\lambda f,\quad \frac{d}{dx}\frac{\partial L}{\partial y'}-\frac{\partial L}{\partial y}=0,\quad S=\int R\sqrt{-g}\,d^4x \]</div>
+<div class="lab-grid">
+<div class="demo"><h3>Spectral Ellipse</h3>a <input id="sa" type="range" min="-2" max="3" step="0.1" value="2"> <span id="sa-v">2</span> b <input id="sb" type="range" min="-2" max="2" step="0.1" value="1"> <span id="sb-v">1</span> c <input id="sc" type="range" min="-2" max="3" step="0.1" value="1"> <span id="sc-v">1</span><canvas id="spec-canvas" width="360" height="320"></canvas><div id="eig-out" class="small"></div></div>
+<div class="octave"><div class="octave-head"><span>GNU OCTAVE — SPECTRAL & HILBERT MATRIX</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function spectral_hilbert_demo(a,b,c)
+A=[a b; b c]; [V,D]=eig(A);
+fprintf('eig = '); disp(diag(D)');
+theta=linspace(0,2*pi,400); circ=[cos(theta); sin(theta)];
+ell=A*circ; plot(ell(1,:),ell(2,:)); axis equal; grid on;
+% Hilbert matrix ill-conditioning
+for n=[3 5 8 12]
+ H=hilb(n); fprintf('n=%d cond(H)=%.2e\n',n,cond(H));
+end
+end
+spectral_hilbert_demo(2,1,1)</code></pre></div>
+</div>
+</section>
+
+<!-- CHAPTER 7 -->
+<section id="prob" class="card" style="border-left:4px solid var(--indigo);margin-top:28px">
+<div class="badge">HILBERT 1900 — 23 PROBLEMS</div><h2>7. Problems & The Space-Filling Curve</h2>
+<p>1900 Paris: 23 problems set 20th century agenda. 1 Continuum, 2 Consistency (Gödel 1931: no), 8 Riemann (open), 10 Diophantine (Matiyasevich 1970: no algorithm). Hilbert's own curve shows \([0,1]\to[0,1]^2\) continuous surjection.</p>
+<div class="formula">\[ V(I)=\emptyset\iff1\in I\quad\text{(Nullstellenssatz)},\qquad H_{n+1}=\text{4 copies of }H_n\text{ rotated} \]</div>
+<div class="lab-grid">
+<div class="demo"><h3>Hilbert Curve Order</h3>Order <input id="horder" type="range" min="1" max="7" value="4"> <span id="horder-v">4</span><canvas id="hilb-canvas" width="360" height="360"></canvas><div class="small">Maps 1D interval onto 2D continuously. Length \(4^n-1\) segments.</div></div>
+<div class="octave"><div class="octave-head"><span>GNU OCTAVE — HILBERT CURVE</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>function [x,y]=hilbert_curve(order)
+% L-system Hilbert curve
+seq='A'; for k=1:order
+  seq=strrep(seq,'A','-BF+AFA+FB-');
+  seq=strrep(seq,'B','+AF-BFB-FA+');
+end
+% Actually simpler: use recursion
+  function [x,y]=hilb_rec(o,x0,y0,xi,xj,yi,yj)
+    if o<=0, x=x0+(xi+yi)/2; y=y0+(xj+yj)/2; return; end
+    [x1,y1]=hilb_rec(o-1,x0,y0,yi/2,yj/2,xi/2,xj/2);
+    [x2,y2]=hilb_rec(o-1,x0+xi/2,y0+xj/2,xi/2,xj/2,yi/2,yj/2);
+    [x3,y3]=hilb_rec(o-1,x0+xi/2+yi/2,y0+xj/2+yj/2,xi/2,xj/2,yi/2,yj/2);
+    [x4,y4]=hilb_rec(o-1,x0+xi+yi/2,y0+xj+yj/2,-yi/2,-yj/2,-xi/2,-xj/2);
+    x=[x1 x2 x3 x4]; y=[y1 y2 y3 y4];
+  end
+[x,y]=hilb_rec(order,0,0,1,0,0,1);
+plot(x,y,'-'); axis equal off;
+fprintf('order %d points %d\n',order,length(x));
+end
+hilbert_curve(5)</code></pre></div>
+</div>
+</section>
+
+<div id="conv" class="dark-strip">
+<h2 style="color:#F5EFE6;margin-top:0">Convergence — The Fixed Point That Holds Infinity</h2>
+<p style="color:#CFC8BC;max-width:70ch">Hilbert gave us the language: complete inner product spaces, axiomatic rigor, integral equations. Nash used Kakutani's fixed-point theorem — a direct descendant of Brouwer's theorem from Hilbert's Göttingen school — to prove every finite game has an equilibrium. Hilbert asked for a finite basis for invariants; Nash gave a finite list of best responses. Hilbert's program sought consistency; Nash showed selfish consistency always exists, even if not Pareto optimal. Nash's embedding uses the hard analysis Hilbert pioneered.</p>
+<div class="grid2" style="margin-top:18px">
+<div class="card" style="background:#1A1918;border-color:#2A2927;color:#CFC8BC"><b style="color:var(--gold)">Hilbert → Nash</b><br>1906 Hilbert space → infinite strategy spaces, 1900 fixed-point ideas → Kakutani 1941 → Nash 1950</div>
+<div class="card" style="background:#1A1918;border-color:#2A2927;color:#CFC8BC"><b style="color:var(--teal)">Nash → Hilbert</b><br>Equilibrium as geometry, embedding as game against curvature, both use smoothing and approximation to conquer loss of regularity.</div>
+</div>
+<div class="small" style="margin-top:18px;color:#8A847C">Timeline: 1899 Grundlagen, 1900 23 Problems, 1906 Hilbert space, 1928 von Neumann minimax, 1950 Nash thesis & bargaining, 1954-56 embedding, 1966 Nash-Moser, 1994 Nobel (Nash), 2015 Abel (Nash & Nirenberg).</div>
+</div>
+
+</main>
+</div>
+
+<script>
+function copyCode(btn){
+  const pre=btn.closest('.octave').querySelector('pre'); const txt=pre.innerText;
+  navigator.clipboard.writeText(txt).then(()=>{const o=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=o,1500);});
+}
+function renderMath(){ if(window.renderMathInElement){ renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false},{left:"$",right:"$",display:false}],ignoredTags:["script","noscript","style","textarea","pre","code"],throwOnError:false}); } }
+document.addEventListener('DOMContentLoaded',()=>{ setTimeout(renderMath,300); });
+const obs=new MutationObserver(()=>{ if(window.renderMathInElement) renderMath(); }); obs.observe(document.body,{childList:true,subtree:true});
+
+// --- NASH 2x2 ---
+const Aids=['A11','A12','A21','A22'], Bids=['B11','B12','B21','B22'];
+function getAB(){ let A=[[+A11.value,+A12.value],[+A21.value,+A22.value]]; let B=[[+B11.value,+B12.value],[+B21.value,+B22.value]]; return {A,B}; }
+function computeNash(){ const {A,B}=getAB(); let pure=[]; for(let i=0;i<2;i++)for(let j=0;j<2;j++){ let maxA=Math.max(A[0][j],A[1][j]); let maxB=Math.max(B[i][0],B[i][1]); if(A[i][j]>=maxA-1e-9 && B[i][j]>=maxB-1e-9) pure.push([i,j]); } let a=A[0][0],b=A[0][1],c=A[1][0],d=A[1][1]; let e=B[0][0],f=B[0][1],g=B[1][0],h=B[1][1]; let denomA=a-b-c+d, denomB=e-f-g+h; let p=denomA!==0?(d-b)/denomA:0.5; let q=denomB!==0?(h-f)/denomB:0.5; let out=`<b>Pure Nash:</b> ${pure.length?pure.map(x=>`(${x[0]==0?'Up':'Down'},${x[1]==0?'Left':'Right'})`).join(', '):'none (mixed only)'}<br><b>Mixed:</b> Row Up p=${p.toFixed(2)}, Col Left q=${q.toFixed(2)}`; document.getElementById('nash-out').innerHTML=out; drawBR(p,q); }
+function drawBR(p,q){ const cv=document.getElementById('br-canvas'); const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); ctx.strokeStyle='#EAE6DC'; ctx.strokeRect(0,0,cv.width,cv.height); ctx.fillStyle='#0E6A6B'; ctx.beginPath(); ctx.arc(q*cv.width,(1-p)*cv.height,6,0,6.28); ctx.fill(); ctx.fillStyle='#6B665E'; ctx.fillText('BR intersection = Nash',10,14); }
+function setPreset(k){ const m={pd:{A:[[3,0],[5,1]],B:[[3,5],[0,1]]},stag:{A:[[4,0],[3,2]],B:[[4,3],[0,2]]},chicken:{A:[[3,1],[4,0]],B:[[3,4],[1,0]]},bos:{A:[[2,0],[0,1]],B:[[1,0],[0,2]]},mp:{A:[[1,-1],[-1,1]],B:[[-1,1],[1,-1]]}}[k]; if(!m)return; A11.value=m.A[0][0];A12.value=m.A[0][1];A21.value=m.A[1][0];A22.value=m.A[1][1];B11.value=m.B[0][0];B12.value=m.B[0][1];B21.value=m.B[1][0];B22.value=m.B[1][1];computeNash();}
+['A11','A12','A21','A22','B11','B12','B21','B22'].forEach(id=>document.getElementById(id).addEventListener('input',computeNash)); computeNash();
+
+// --- BARGAINING ---
+const bc=document.getElementById('barg-canvas'), bctx=bc.getContext('2d'); let dpt={x:60,y:260}; let dragging=false;
+function drawBarg(){ bctx.clearRect(0,0,bc.width,bc.height); const S=[[40,280],[320,280],[280,40],[40,80]]; bctx.fillStyle='#E6EDF8'; bctx.beginPath(); bctx.moveTo(S[0][0],S[0][1]); S.slice(1).forEach(p=>bctx.lineTo(p[0],p[1])); bctx.closePath(); bctx.fill(); bctx.strokeStyle='#2E4A7A'; bctx.stroke(); // hyperbolas
+ for(let k=1;k<=5;k++){ bctx.strokeStyle='rgba(201,138,46,0.25)'; bctx.beginPath(); for(let u= dpt.x+5; u<320; u+=2){ let v = dpt.y - k*2000/(u-dpt.x+1); if(v>20&&v<280){ if(u==dpt.x+5) bctx.moveTo(u,v); else bctx.lineTo(u,v);} } bctx.stroke(); }
+ // Nash max approx search
+ let best=null,bestVal=-1; for(let x=dpt.x+5;x<300;x+=4)for(let y=30;y<dpt.y-5;y+=4){ if(pointInPoly(x,y,S)){ let val=(x-dpt.x)*(dpt.y - y); if(val>bestVal){bestVal=val;best={x,y};}}} if(best){ bctx.fillStyle='#0E6A6B'; bctx.beginPath(); bctx.arc(best.x,best.y,6,0,6.28); bctx.fill(); }
+ bctx.fillStyle='#D96C4A'; bctx.beginPath(); bctx.arc(dpt.x,dpt.y,6,0,6.28); bctx.fill(); bctx.fillStyle='#111'; bctx.fillText('d',dpt.x+8,dpt.y+4); if(best) bctx.fillText('Nash',best.x+8,best.y);
+}
+function pointInPoly(x,y,poly){ let inside=false; for(let i=0,j=poly.length-1;i<poly.length;j=i++){ let xi=poly[i][0],yi=poly[i][1], xj=poly[j][0],yj=poly[j][1]; let intersect=((yi>y)!=(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi); if(intersect) inside=!inside; } return inside; }
+bc.addEventListener('mousedown',e=>{ const r=bc.getBoundingClientRect(); const mx=(e.clientX-r.left)*bc.width/r.width, my=(e.clientY-r.top)*bc.height/r.height; if(Math.hypot(mx-dpt.x,my-dpt.y)<12) dragging=true;});
+bc.addEventListener('mousemove',e=>{ if(!dragging)return; const r=bc.getBoundingClientRect(); dpt.x=(e.clientX-r.left)*bc.width/r.width; dpt.y=(e.clientY-r.top)*bc.height/r.height; dpt.x=Math.max(45,Math.min(200,dpt.x)); dpt.y=Math.max(120,Math.min(275,dpt.y)); drawBarg();});
+bc.addEventListener('mouseup',()=>dragging=false); bc.addEventListener('mouseleave',()=>dragging=false); drawBarg();
+
+// --- COURNOT ---
+function drawCour(){ const a=+document.getElementById('a').value, c1=+document.getElementById('c1').value, c2=+document.getElementById('c2').value; const b=1; const cv=document.getElementById('cour-canvas'), ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); ctx.strokeStyle='#EEE'; for(let i=0;i<=10;i++){ ctx.beginPath(); ctx.moveTo(i*cv.width/10,0); ctx.lineTo(i*cv.width/10,cv.height); ctx.stroke(); } const q1star=(2*(a-c1)-(a-c2))/ (3*b), q2star=(2*(a-c2)-(a-c1))/(3*b); const scale=cv.width/ (a/b); function X(q){return q*scale} function Y(q){return cv.height - q*scale} ctx.strokeStyle='#0E6A6B'; ctx.beginPath(); for(let q2=0;q2< a/b;q2+=0.1){ let q1=(a-c1)/ (2*b) - q2/2; if(q1>=0) { if(q2==0) ctx.moveTo(X(q1),Y(q2)); else ctx.lineTo(X(q1),Y(q2)); } } ctx.stroke(); ctx.strokeStyle='#3A3A8C'; ctx.beginPath(); for(let q1=0;q1< a/b;q1+=0.1){ let q2=(a-c2)/(2*b)-q1/2; if(q2>=0){ if(q1==0) ctx.moveTo(X(q1),Y(q2)); else ctx.lineTo(X(q1),Y(q2)); } } ctx.stroke(); ctx.fillStyle='#D96C4A'; ctx.beginPath(); ctx.arc(X(q1star),Y(q2star),5,0,6.28); ctx.fill(); document.getElementById('cour-out').innerHTML=`Nash q1*=${q1star.toFixed(2)} q2*=${q2star.toFixed(2)} price p=${(a-b*(q1star+q2star)).toFixed(2)}`; }
+['a','c1','c2'].forEach(id=>{document.getElementById(id).addEventListener('input',e=>{document.getElementById(id+'-v').textContent=e.target.value; drawCour();})}); drawCour();
+
+// --- CORRUGATION ---
+function drawCorr(){ const wr=+document.getElementById('wr').value; document.getElementById('wr-v').textContent=wr; const cv=document.getElementById('cor-canvas'), ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); const N=600; let len=0, prevX=0, prevY=cv.height/2; ctx.strokeStyle='#3A3A8C'; ctx.beginPath(); for(let i=0;i<N;i++){ let t=i/(N-1); let x=t*cv.width; let base=Math.sin(t*6.28*2)*30; let k= 20+ wr*0.8; let amp= wr*0.6; let y=cv.height/2 + base + amp*Math.sin(k*t*6.28)/ (k*0.2+1); if(i==0) ctx.moveTo(x,y); else ctx.lineTo(x,y); let dx=x-prevX, dy=y-prevY; len+=Math.hypot(dx,dy); prevX=x; prevY=y; } ctx.stroke(); document.getElementById('len-out').textContent=`Approx arc length ~${len.toFixed(1)} (preserved as wrinkle ↑ frequency compensates amplitude)`; }
+document.getElementById('wr').addEventListener('input',drawCorr); drawCorr();
+
+// --- HILBERT HOTEL ---
+let rooms=Array.from({length:20},(_,i)=>i+1); function renderHotel(msg){ const vis=document.getElementById('hotel-vis'); vis.innerHTML=''; rooms.slice(0,20).forEach((g,i)=>{ const d=document.createElement('div'); d.textContent=`R${i+1}:${g===0?'∅':g}`; d.style.cssText='padding:4px 8px;border:1px solid #EAE6DC;border-radius:8px;font-size:11px;background:white'; vis.appendChild(d); }); document.getElementById('hotel-msg').textContent=msg||''; }
+function hotel(mode){ if(mode==='reset'){rooms=Array.from({length:20},(_,i)=>i+1); renderHotel('Reset: rooms 1..20 occupied'); return;} if(mode==='new'){ rooms=[0,...rooms.slice(0,19)]; rooms[0]='NEW'; renderHotel('n → n+1 shift, room 1 free for new guest'); } if(mode==='inf'){ let newRooms=[]; for(let i=0;i<20;i++){ if(i%2==0) newRooms[i]='BUS'+(i/2+1); else newRooms[i]=rooms[Math.floor(i/2)]; } rooms=newRooms; renderHotel('n → 2n, all odd rooms free → infinite bus accommodated'); } if(mode==='fleet'){ renderHotel('Fleet: n → 2^p·3^q pairing, countable union of countable remains countable'); } } renderHotel('Hilbert Hotel with 20 rooms, all occupied.');
+
+// --- FOURIER ---
+function drawFourier(){ const type=document.getElementById('ftype').value; const N=+document.getElementById('fN').value; document.getElementById('fN-v').textContent=N; const cv=document.getElementById('fourier-canvas'), ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); const W=cv.width, H=cv.height; const mid=H/2; ctx.strokeStyle='#EEE'; ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke(); let target=(x)=>{ let t=(x/W)*2*Math.PI - Math.PI; if(type==='square') return Math.sign(Math.sin(t*2)) ; if(type==='saw') return (t/Math.PI); return Math.abs(t)<0.5?1:0; }; // draw target light
+ ctx.strokeStyle='#DDD'; ctx.beginPath(); for(let i=0;i<W;i++){ let y=mid - target(i)*60; if(i==0) ctx.moveTo(i,y); else ctx.lineTo(i,y);} ctx.stroke(); // partial sum
+ let err=0; ctx.strokeStyle='#0E6A6B'; ctx.lineWidth=2; ctx.beginPath(); for(let i=0;i<W;i++){ let x=(i/W)*2*Math.PI - Math.PI; let s=0; if(type==='square'){ for(let k=1;k<=N;k+=2){ if(k%2==1) s+=4/Math.PI/k*Math.sin(k*x*2); } } else if(type==='saw'){ for(let k=1;k<=N;k++){ s+= 2*Math.pow(-1,k+1)/k*Math.sin(k*x); } s/=1.2; } else { for(let k=1;k<=N;k++){ s+= Math.sin(k*x*3)/(k); } s=s*0.6+0.2; } let y=mid - s*60; if(i==0) ctx.moveTo(i,y); else ctx.lineTo(i,y); let tv=target(i); err+= (tv - s)*(tv-s); } ctx.stroke(); ctx.lineWidth=1; document.getElementById('fourier-err').textContent=`L2 error (discrete) ~ ${(Math.sqrt(err/W)).toFixed(3)} — decreases as N↑, Parseval holds`; } document.getElementById('ftype').addEventListener('change',drawFourier); document.getElementById('fN').addEventListener('input',drawFourier); drawFourier();
+
+// --- SPECTRAL ---
+function drawSpec(){ const a=+document.getElementById('sa').value, b=+document.getElementById('sb').value, c=+document.getElementById('sc').value; document.getElementById('sa-v').textContent=a; document.getElementById('sb-v').textContent=b; document.getElementById('sc-v').textContent=c; const cv=document.getElementById('spec-canvas'), ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); const cx=cv.width/2, cy=cv.height/2, R=100; // unit circle to ellipse: [a b; b c] * [cos,sin]
+ ctx.strokeStyle='#EEE'; ctx.beginPath(); ctx.arc(cx,cy,R,0,6.28); ctx.stroke(); ctx.strokeStyle='#0E6A6B'; ctx.lineWidth=2; ctx.beginPath(); for(let th=0; th<=6.283; th+=0.02){ let ux=Math.cos(th), uy=Math.sin(th); let vx=a*ux+b*uy, vy=b*ux+c*uy; let x=cx+vx*R, y=cy - vy*R; if(th==0) ctx.moveTo(x,y); else ctx.lineTo(x,y); } ctx.stroke(); ctx.lineWidth=1; // eig
+ let tr=a+c, det=a*c-b*b, disc=Math.sqrt(Math.max(0,tr*tr-4*det)); let l1=(tr+disc)/2, l2=(tr-disc)/2; document.getElementById('eig-out').textContent=`Eigenvalues λ1=${l1.toFixed(2)} λ2=${l2.toFixed(2)} det=${det.toFixed(2)} — axes of ellipse`; }
+['sa','sb','sc'].forEach(id=>document.getElementById(id).addEventListener('input',drawSpec)); drawSpec();
+
+// --- HILBERT CURVE ---
+function hilbertCurve(order){ let pts=[{x:0,y:0}]; function rec(o,x0,y0,xi,xj,yi,yj,acc){ if(o<=0){ acc.push({x:x0+(xi+yi)/2,y:y0+(xj+yj)/2}); return; } rec(o-1,x0,y0,yi/2,yj/2,xi/2,xj/2,acc); rec(o-1,x0+xi/2,y0+xj/2,xi/2,xj/2,yi/2,yj/2,acc); rec(o-1,x0+xi/2+yi/2,y0+xj/2+yj/2,xi/2,xj/2,yi/2,yj/2,acc); rec(o-1,x0+xi+yi/2,y0+xj+yj/2,-yi/2,-yj/2,-xi/2,-xj/2,acc); } let acc=[]; rec(order,0,0,1,0,0,1,acc); return acc; }
+function drawHilbert(){ const order=+document.getElementById('horder').value; document.getElementById('horder-v').textContent=order; const cv=document.getElementById('hilb-canvas'), ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); const pts=hilbertCurve(order); ctx.strokeStyle='#3A3A8C'; ctx.lineWidth= order>5?1:1.6; ctx.beginPath(); pts.forEach((p,i)=>{ let x=p.x*cv.width*0.9+cv.width*0.05, y=p.y*cv.height*0.9+cv.height*0.05; if(i==0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke(); }
+document.getElementById('horder').addEventListener('input',drawHilbert); drawHilbert();
+</script>
+</body>
+</html>

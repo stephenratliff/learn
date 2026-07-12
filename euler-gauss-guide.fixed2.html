@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euler &amp; Gauss — Two Architects of Mathematics</title>
+<meta name="description" content="An interactive study of Euler and Gauss: identity, Basel problem, bridges, polyhedra, modular arithmetic, heptadecagon, least squares, bell curve, primes, and curvature. With live canvases and Octave labs.">
+<style>
+/* ==========================================================================
+   EULER & GAUSS — design tokens
+   Night-observatory ground, two voices:
+   Euler = brass gold (#E4A93C), Gauss = silver-blue (#7FAFC6)
+   ========================================================================== */
+:root{
+  --ink:        #0E1520;
+  --ink-deep:   #0A0F18;
+  --panel:      #16202E;
+  --panel-2:    #1B2736;
+  --paper:      #F2EBDC;
+  --paper-ink:  #2A2622;
+  --euler:      #E4A93C;
+  --euler-dim:  rgba(228,169,60,0.14);
+  --gauss:      #7FAFC6;
+  --gauss-dim:  rgba(127,175,198,0.14);
+  --text:       #D9DFE7;
+  --muted:      #8C97A6;
+  --line:       rgba(217,223,231,0.12);
+  --good:       #7CC98F;
+  --bad:        #D97B6C;
+  --serif:      "Palatino Linotype","Palatino","Book Antiqua",Georgia,"Times New Roman",serif;
+  --body:       Georgia,"Palatino Linotype",serif;
+  --mono:       "SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --maxw:       880px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--euler);color:var(--ink-deep)}
+
+/* ---------- top navigation ---------- */
+nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(10,15,24,0.92);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  max-width:1100px;margin:0 auto;padding:0 24px;
+  display:flex;align-items:center;gap:8px;
+  height:52px;overflow-x:auto;scrollbar-width:none;
+}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-brand{
+  font-family:var(--serif);font-size:15px;letter-spacing:0.04em;
+  white-space:nowrap;margin-right:12px;
+}
+.nav-brand b.e{color:var(--euler);font-weight:700}
+.nav-brand b.g{color:var(--gauss);font-weight:700}
+nav a{
+  color:var(--muted);text-decoration:none;font-size:12.5px;
+  font-family:var(--mono);letter-spacing:0.05em;
+  padding:5px 10px;border-radius:4px;white-space:nowrap;
+  transition:color .15s,background .15s;
+}
+nav a:hover{color:var(--text);background:var(--panel)}
+nav a:focus-visible{outline:2px solid var(--euler);outline-offset:2px}
+nav a.ne:hover{color:var(--euler)}
+nav a.ng:hover{color:var(--gauss)}
+
+/* ---------- hero ---------- */
+header{
+  position:relative;
+  min-height:88vh;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;padding:72px 24px 56px;
+  background:
+    radial-gradient(ellipse 1000px 600px at 50% 0%, rgba(127,175,198,0.07), transparent 60%),
+    radial-gradient(ellipse 800px 500px at 50% 100%, rgba(228,169,60,0.06), transparent 60%),
+    var(--ink-deep);
+  border-bottom:1px solid var(--line);
+  overflow:hidden;
+}
+#heroCanvas{
+  width:min(340px,72vw);height:min(340px,72vw);
+  margin-bottom:36px;
+}
+.hero-eyebrow{
+  font-family:var(--mono);font-size:12px;letter-spacing:0.28em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:18px;
+}
+h1{
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(38px,6.5vw,68px);
+  line-height:1.08;letter-spacing:-0.01em;color:#EDF1F6;
+}
+h1 .amp{
+  font-style:italic;color:var(--muted);
+  font-size:0.7em;padding:0 0.12em;
+}
+h1 .euler-name{color:var(--euler)}
+h1 .gauss-name{color:var(--gauss)}
+.hero-sub{
+  max-width:620px;margin:26px auto 0;color:var(--muted);
+  font-size:18px;font-style:italic;line-height:1.7;
+}
+.hero-dates{
+  display:flex;gap:40px;margin-top:34px;
+  font-family:var(--mono);font-size:12.5px;letter-spacing:0.1em;
+}
+.hero-dates span.d-e{color:var(--euler)}
+.hero-dates span.d-g{color:var(--gauss)}
+.scroll-hint{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;letter-spacing:0.25em;
+  color:var(--muted);text-transform:uppercase;opacity:0.7;
+}
+
+/* ---------- section scaffolding ---------- */
+main{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+section{padding:84px 0 24px;scroll-margin-top:70px}
+.part-label{
+  font-family:var(--mono);font-size:12px;letter-spacing:0.3em;
+  text-transform:uppercase;margin-bottom:14px;
+}
+section.s-euler .part-label{color:var(--euler)}
+section.s-gauss .part-label{color:var(--gauss)}
+section.s-both  .part-label{
+  background:linear-gradient(90deg,var(--euler),var(--gauss));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  display:inline-block;
+}
+h2{
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(28px,4.5vw,40px);line-height:1.15;
+  color:#EDF1F6;margin-bottom:26px;
+}
+h3{
+  font-family:var(--serif);font-weight:600;font-size:21px;
+  color:#EAEFF5;margin:44px 0 14px;
+}
+section.s-euler h3{border-left:3px solid var(--euler);padding-left:14px}
+section.s-gauss h3{border-left:3px solid var(--gauss);padding-left:14px}
+section.s-both  h3{border-left:3px solid var(--gauss);border-image:linear-gradient(180deg,var(--euler),var(--gauss)) 1;padding-left:14px}
+p{margin-bottom:18px}
+p b{color:#EDF1F6}
+.lead{font-size:19px;color:#E4E9F0}
+em{font-style:italic}
+a.inline{color:var(--gauss);text-decoration:none;border-bottom:1px dotted var(--gauss)}
+a.inline:hover{border-bottom-style:solid}
+section.s-euler a.inline{color:var(--euler);border-color:var(--euler)}
+.divider{
+  max-width:var(--maxw);margin:60px auto 0;padding:0 24px;
+  display:flex;align-items:center;gap:16px;
+}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.divider svg{opacity:0.5}
+
+/* ---------- formulas ---------- */
+.formula{
+  font-family:var(--serif);font-style:italic;
+  text-align:center;font-size:clamp(20px,3.4vw,27px);
+  padding:28px 16px;margin:26px 0;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  color:#EFF3F8;overflow-x:auto;
+  line-height:1.5;
+}
+.formula .op{font-style:normal;color:var(--muted);padding:0 0.15em}
+.formula sup,.formula sub{font-size:0.62em}
+.formula .frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 0.15em}
+.formula .frac .num{border-bottom:1.5px solid currentColor;padding:0 0.3em 2px}
+.formula .frac .den{padding:2px 0.3em 0}
+.formula .big{font-size:1.5em;font-style:normal;vertical-align:-0.15em}
+.formula-note{
+  text-align:center;font-family:var(--mono);font-size:12px;
+  color:var(--muted);margin:-16px 0 26px;letter-spacing:0.05em;
+}
+.inline-math{font-family:var(--serif);font-style:italic;white-space:nowrap}
+
+/* ---------- manuscript quote cards ---------- */
+.manuscript{
+  background:var(--paper);color:var(--paper-ink);
+  border-radius:6px;padding:30px 34px;margin:36px 0;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  position:relative;
+}
+.manuscript::before{
+  content:"";position:absolute;inset:6px;
+  border:1px solid rgba(42,38,34,0.25);border-radius:3px;pointer-events:none;
+}
+.manuscript blockquote{
+  font-family:var(--serif);font-style:italic;
+  font-size:20px;line-height:1.6;
+}
+.manuscript cite{
+  display:block;margin-top:14px;font-style:normal;
+  font-family:var(--mono);font-size:12px;letter-spacing:0.08em;
+  color:#6B5F52;
+}
+
+/* ---------- portrait / bio cards ---------- */
+.bio-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:36px 0}
+@media(max-width:720px){.bio-grid{grid-template-columns:1fr}}
+.bio-card{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:26px 26px 20px;position:relative;overflow:hidden;
+}
+.bio-card.b-euler{border-top:3px solid var(--euler)}
+.bio-card.b-gauss{border-top:3px solid var(--gauss)}
+.bio-card h4{
+  font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:2px;
+}
+.bio-card.b-euler h4{color:var(--euler)}
+.bio-card.b-gauss h4{color:var(--gauss)}
+.bio-card .bio-sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:0.08em;margin-bottom:14px}
+.bio-card ul{list-style:none;margin-top:8px}
+.bio-card li{
+  padding:7px 0 7px 20px;position:relative;
+  font-size:15px;border-top:1px solid var(--line);color:var(--text);
+}
+.bio-card li::before{content:"—";position:absolute;left:0;color:var(--muted)}
+
+/* ---------- timeline ---------- */
+.timeline{position:relative;margin:44px 0;padding-left:0}
+.timeline::before{
+  content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:linear-gradient(180deg,var(--euler) 0%,var(--euler) 45%,var(--gauss) 60%,var(--gauss) 100%);
+  opacity:0.45;
+}
+.t-item{
+  width:50%;padding:10px 34px 22px;position:relative;
+}
+.t-item.t-e{left:0;text-align:right}
+.t-item.t-g{left:50%;text-align:left}
+.t-item::after{
+  content:"";position:absolute;top:18px;width:9px;height:9px;border-radius:50%;
+  background:var(--ink);border:2px solid var(--muted);
+}
+.t-item.t-e::after{right:-5px;border-color:var(--euler)}
+.t-item.t-g::after{left:-6px;border-color:var(--gauss)}
+.t-year{font-family:var(--mono);font-size:13px;letter-spacing:0.1em}
+.t-item.t-e .t-year{color:var(--euler)}
+.t-item.t-g .t-year{color:var(--gauss)}
+.t-item p{font-size:14.5px;color:var(--muted);margin:4px 0 0;line-height:1.55}
+.t-item p b{color:var(--text);font-weight:600}
+@media(max-width:640px){
+  .timeline::before{left:8px}
+  .t-item{width:100%;left:0 !important;text-align:left !important;padding:10px 0 22px 32px}
+  .t-item.t-e::after{left:4px;right:auto}
+  .t-item.t-g::after{left:4px}
+}
+
+/* ---------- interactive widgets ---------- */
+.widget{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:24px;margin:36px 0;
+}
+section.s-euler .widget{border-top:3px solid var(--euler)}
+section.s-gauss .widget{border-top:3px solid var(--gauss)}
+section.s-both  .widget{border-top:3px solid transparent;border-image:linear-gradient(90deg,var(--euler),var(--gauss)) 1}
+.widget-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.widget-title{
+  font-family:var(--mono);font-size:12px;letter-spacing:0.22em;
+  text-transform:uppercase;color:var(--muted);
+}
+.widget-title::before{content:"⟡ ";color:inherit}
+section.s-euler .widget-title{color:var(--euler)}
+section.s-gauss .widget-title{color:var(--gauss)}
+.widget-caption{font-size:14.5px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+.widget canvas{
+  display:block;width:100%;border-radius:8px;
+  background:var(--ink-deep);border:1px solid var(--line);
+  touch-action:none;
+}
+.controls{
+  display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+  margin-top:16px;
+}
+.ctrl{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.ctrl label{letter-spacing:0.06em;white-space:nowrap}
+.ctrl output{color:var(--text);min-width:64px;font-size:12.5px}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:170px;height:4px;border-radius:2px;background:#2B3A4D;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--text);border:2px solid var(--ink);cursor:pointer;
+}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--euler);outline-offset:2px}
+input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--text);border:2px solid var(--ink);cursor:pointer;
+}
+section.s-euler input[type=range]::-webkit-slider-thumb{background:var(--euler)}
+section.s-gauss input[type=range]::-webkit-slider-thumb{background:var(--gauss)}
+section.s-euler input[type=range]::-moz-range-thumb{background:var(--euler)}
+section.s-gauss input[type=range]::-moz-range-thumb{background:var(--gauss)}
+select{
+  background:var(--panel-2);color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:7px 10px;font-family:var(--mono);font-size:12.5px;cursor:pointer;
+}
+button.btn{
+  background:var(--panel-2);color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:8px 16px;font-family:var(--mono);font-size:12.5px;
+  letter-spacing:0.06em;cursor:pointer;transition:border-color .15s,color .15s;
+}
+button.btn:hover{border-color:var(--muted)}
+button.btn:focus-visible{outline:2px solid var(--euler);outline-offset:2px}
+section.s-euler button.btn:hover{border-color:var(--euler);color:var(--euler)}
+section.s-gauss button.btn:hover{border-color:var(--gauss);color:var(--gauss)}
+.readout{
+  margin-top:14px;font-family:var(--mono);font-size:13px;line-height:1.9;
+  color:var(--text);background:var(--ink-deep);border:1px solid var(--line);
+  border-radius:8px;padding:12px 16px;overflow-x:auto;
+}
+.readout .k{color:var(--muted)}
+.readout .ve{color:var(--euler)}
+.readout .vg{color:var(--gauss)}
+.readout .ok{color:var(--good)}
+.readout .no{color:var(--bad)}
+
+/* ---------- Octave code labs ---------- */
+.lab{
+  margin:36px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  background:var(--ink-deep);
+}
+.lab-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);
+}
+.lab-title{font-family:var(--mono);font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)}
+.lab-title::before{content:"▸ octave · ";color:#5C87A0}
+button.copy{
+  background:none;border:1px solid var(--line);color:var(--muted);
+  font-family:var(--mono);font-size:11px;letter-spacing:0.08em;
+  padding:5px 12px;border-radius:5px;cursor:pointer;transition:all .15s;
+}
+button.copy:hover{color:var(--text);border-color:var(--muted)}
+button.copy:focus-visible{outline:2px solid var(--gauss);outline-offset:2px}
+pre{
+  padding:20px 22px;overflow-x:auto;
+  font-family:var(--mono);font-size:13.5px;line-height:1.7;color:#C7D2DE;
+  tab-size:4;
+}
+pre .c{color:#5F6E80;font-style:italic}
+pre .kw{color:#7FAFC6}
+pre .st{color:#C9A85C}
+pre .fn{color:#9DC49A}
+.lab-note{
+  padding:12px 22px 16px;font-size:14px;color:var(--muted);
+  border-top:1px dashed var(--line);line-height:1.6;
+}
+
+/* ---------- aside / margin notes ---------- */
+.note{
+  border-left:2px solid var(--line);padding:4px 0 4px 20px;
+  margin:26px 0;font-size:15px;color:var(--muted);font-style:italic;
+}
+.note b{color:var(--text);font-style:normal}
+
+/* ---------- comparison table ---------- */
+table.compare{
+  width:100%;border-collapse:collapse;margin:32px 0;font-size:15px;
+}
+table.compare th{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:0.15em;text-transform:uppercase;
+  text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);color:var(--muted);
+}
+table.compare th.th-e{color:var(--euler)}
+table.compare th.th-g{color:var(--gauss)}
+table.compare td{
+  padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6;
+}
+table.compare td:first-child{color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:0.05em;white-space:nowrap}
+
+/* ---------- footer ---------- */
+footer{
+  margin-top:90px;border-top:1px solid var(--line);
+  background:var(--ink-deep);padding:56px 24px 70px;text-align:center;
+}
+footer .f-emblem{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--muted)}
+footer .f-emblem .e{color:var(--euler)}
+footer .f-emblem .g{color:var(--gauss)}
+footer p{font-size:13.5px;color:var(--muted);max-width:560px;margin:16px auto 0;font-family:var(--mono);line-height:1.8}
+
+/* --- fixes: robust widget top border --- */
+section.s-both .widget{ position:relative; border-top:3px solid transparent; }
+section.s-both .widget::before{
+  content:""; position:absolute; top:-3px; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,var(--euler),var(--gauss)); border-radius:12px 12px 0 0;
+}
+
+</style>
+</head>
+<body>
+<nav aria-label="Guide sections">
+  <div class="nav-inner">
+    <span class="nav-brand"><b class="e">Euler</b> &amp; <b class="g">Gauss</b></span>
+    <a href="#lives">Two Lives</a>
+    <a class="ne" href="#euler-e">e &amp; Identity</a>
+    <a class="ne" href="#basel">Basel</a>
+    <a class="ne" href="#konigsberg">Königsberg</a>
+    <a class="ne" href="#polyhedra">V−E+F</a>
+    <a class="ne" href="#totient">Totient</a>
+    <a class="ng" href="#modular">Modular</a>
+    <a class="ng" href="#heptadecagon">17-gon</a>
+    <a class="ng" href="#ceres">Ceres</a>
+    <a class="ng" href="#gaussian">The Gaussian</a>
+    <a class="ng" href="#primes">Primes</a>
+    <a class="ng" href="#egregium">Curvature</a>
+    <a href="#convergence">Convergence</a>
+  </div>
+</nav>
+
+<header>
+  <canvas id="heroCanvas" width="680" height="680" aria-label="Animated emblem: Euler's unit circle traced by e to the i theta, with Gauss's rotating heptadecagon inside"></canvas>
+  <div class="hero-eyebrow">An Interactive Study in Two Voices</div>
+  <h1><span class="euler-name">Euler</span><span class="amp">&amp;</span><span class="gauss-name">Gauss</span></h1>
+  <p class="hero-sub">One wrote mathematics the way rivers flow — endlessly, joyfully, in every direction at once. The other polished each theorem like a lens until it was flawless. Between them, they built the mathematical world we still live in.</p>
+  <div class="hero-dates">
+    <span class="d-e">LEONHARD EULER · 1707–1783</span>
+    <span class="d-g">CARL FRIEDRICH GAUSS · 1777–1855</span>
+  </div>
+  <div class="scroll-hint">scroll</div>
+</header>
+
+<main>
+
+<!-- ================================================================
+     SECTION: TWO LIVES
+     ================================================================ -->
+<section id="lives">
+  <div class="part-label">Prologue</div>
+  <h2>Two Lives, One Century Apart</h2>
+
+  <p class="lead">Euler died in St. Petersburg in 1783. Gauss was born in Brunswick in 1777. For six years the two greatest mathematicians who ever lived shared the Earth — one a blind old man still dictating papers at a ferocious pace, the other a small child who would soon astonish his schoolmasters. They never met. They didn't need to: Gauss learned his craft from Euler's books, and later told students that <em>the study of Euler's works remains the best school for the different fields of mathematics, and nothing can replace it.</em></p>
+
+  <div class="bio-grid">
+    <div class="bio-card b-euler">
+      <h4>Leonhard Euler</h4>
+      <div class="bio-sub">BASEL → ST. PETERSBURG → BERLIN → ST. PETERSBURG</div>
+      <p style="font-size:15px">The most prolific mathematician in history: roughly <b>850 works</b>, filling over 70 volumes of collected papers. He lost sight in one eye at 31 and in both by 64 — and his output <em>increased</em>, computed entirely in his head. He gave us the notation we still write: <span class="inline-math">f(x)</span>, <span class="inline-math">e</span>, <span class="inline-math">i</span>, <span class="inline-math">π</span> (popularized), <span class="inline-math">Σ</span>.</p>
+      <ul>
+        <li>Founded graph theory and topology</li>
+        <li>Solved the Basel problem at 28</li>
+        <li>Connected <span class="inline-math">e</span>, <span class="inline-math">i</span>, <span class="inline-math">π</span> in one equation</li>
+        <li>Created the calculus of variations</li>
+        <li>Worked until the hour of his death</li>
+      </ul>
+    </div>
+    <div class="bio-card b-gauss">
+      <h4>Carl Friedrich Gauss</h4>
+      <div class="bio-sub">BRUNSWICK → GÖTTINGEN (FOR LIFE)</div>
+      <p style="font-size:15px">The <em>Princeps Mathematicorum</em> — prince of mathematicians. A poor bricklayer's son whose genius won him a duke's patronage. His motto was <b>pauca sed matura</b>: few, but ripe. He published reluctantly, and his private notebooks turned out to contain decades of unannounced discoveries, including non-Euclidean geometry.</p>
+      <ul>
+        <li>Proved the Fundamental Theorem of Algebra</li>
+        <li>Wrote the <em>Disquisitiones Arithmeticae</em> at 21</li>
+        <li>Rediscovered the lost planet Ceres</li>
+        <li>Founded differential geometry of surfaces</li>
+        <li>Directed the Göttingen Observatory 48 years</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Parallel timelines</h3>
+  <div class="timeline">
+    <div class="t-item t-e"><div class="t-year">1707</div><p><b>Euler born in Basel</b>, Switzerland, son of a pastor who wanted him to study theology.</p></div>
+    <div class="t-item t-e"><div class="t-year">1727</div><p>Joins the <b>St. Petersburg Academy</b> at 20, recruited to Catherine I's new scientific court.</p></div>
+    <div class="t-item t-e"><div class="t-year">1735</div><p>Solves the <b>Basel problem</b>: the sum of reciprocal squares is π²/6. Europe takes notice.</p></div>
+    <div class="t-item t-e"><div class="t-year">1736</div><p>The <b>Seven Bridges of Königsberg</b> paper — the birth of graph theory.</p></div>
+    <div class="t-item t-e"><div class="t-year">1748</div><p>Publishes the <b>Introductio in analysin infinitorum</b>, containing e<sup>iθ</sup> = cos θ + i sin θ.</p></div>
+    <div class="t-item t-e"><div class="t-year">1766</div><p>Returns to St. Petersburg; goes almost completely <b>blind</b>. Productivity rises.</p></div>
+    <div class="t-item t-g"><div class="t-year">1777</div><p><b>Gauss born in Brunswick</b>. He will later joke that he could count before he could talk.</p></div>
+    <div class="t-item t-e"><div class="t-year">1783</div><p><b>Euler dies</b> mid-calculation, discussing the newly discovered planet Uranus. "He ceased to calculate and to live."</p></div>
+    <div class="t-item t-g"><div class="t-year">1796</div><p>At 19, Gauss constructs the <b>regular 17-gon</b> with compass and straightedge — the first advance on Greek geometry in 2,000 years.</p></div>
+    <div class="t-item t-g"><div class="t-year">1799</div><p>Doctoral thesis: the first widely accepted proof of the <b>Fundamental Theorem of Algebra</b>.</p></div>
+    <div class="t-item t-g"><div class="t-year">1801</div><p>Publishes the <b>Disquisitiones Arithmeticae</b> and predicts the position of the lost asteroid <b>Ceres</b>. Becomes famous across Europe in a single year.</p></div>
+    <div class="t-item t-g"><div class="t-year">1809</div><p>Publishes his method of <b>least squares</b> and the theory of the normal error curve.</p></div>
+    <div class="t-item t-g"><div class="t-year">1827</div><p>The <b>Theorema Egregium</b>: curvature is intrinsic. Differential geometry is born.</p></div>
+    <div class="t-item t-g"><div class="t-year">1855</div><p><b>Gauss dies in Göttingen</b>. His brain is preserved; his notebooks stun the mathematicians who open them.</p></div>
+  </div>
+
+  <div class="manuscript">
+    <blockquote>Read Euler, read Euler — he is the master of us all.</blockquote>
+    <cite>— PIERRE-SIMON LAPLACE, ADVICE TO YOUNG MATHEMATICIANS</cite>
+  </div>
+</section>
+
+<div class="divider"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="10" stroke="#E4A93C" stroke-width="1.2"/><circle cx="13" cy="13" r="4" stroke="#7FAFC6" stroke-width="1.2"/></svg></div>
+
+<!-- ================================================================
+     EULER I — THE NUMBER e AND THE IDENTITY
+     ================================================================ -->
+<section id="euler-e" class="s-euler">
+  <div class="part-label">Euler · I</div>
+  <h2>The Number <em>e</em> and the Most Beautiful Equation</h2>
+
+  <p class="lead">Euler took three numbers that seem to come from different universes — <span class="inline-math">e</span> from compound interest, <span class="inline-math">i</span> from impossible square roots, <span class="inline-math">π</span> from circles — and showed they were the same story told three ways.</p>
+
+  <p>Start with <b>e ≈ 2.71828</b>, the natural growth constant. It answers the question: if a bank paid 100% annual interest and compounded it continuously, what would $1 become in a year? Euler defined it cleanly:</p>
+
+  <div class="formula">e <span class="op">=</span> lim<sub>n→∞</sub> <span class="op">(</span>1 <span class="op">+</span> <span class="frac"><span class="num">1</span><span class="den">n</span></span><span class="op">)</span><sup>n</sup> <span class="op">=</span> 1 <span class="op">+</span> <span class="frac"><span class="num">1</span><span class="den">1!</span></span> <span class="op">+</span> <span class="frac"><span class="num">1</span><span class="den">2!</span></span> <span class="op">+</span> <span class="frac"><span class="num">1</span><span class="den">3!</span></span> <span class="op">+</span> ⋯</div>
+
+  <p>The function <span class="inline-math">e<sup>x</sup></span> is the unique function that is its own derivative — growth whose speed equals its size. Then Euler did something audacious: he fed the series an <em>imaginary</em> number. Substituting <span class="inline-math">x = iθ</span> and watching the powers of <span class="inline-math">i</span> cycle through <span class="inline-math">i, −1, −i, 1</span>, the series splits perfectly into two familiar pieces — cosine and sine:</p>
+
+  <div class="formula">e<sup>iθ</sup> <span class="op">=</span> cos θ <span class="op">+</span> i sin θ</div>
+  <div class="formula-note">EULER'S FORMULA · INTRODUCTIO IN ANALYSIN INFINITORUM, 1748</div>
+
+  <p>This says that <b>exponential growth in an imaginary direction is rotation</b>. Multiplying by <span class="inline-math">e<sup>iθ</sup></span> doesn't stretch a number — it turns it by angle θ around the origin. The whole machinery of waves, signals, alternating current, and quantum mechanics runs on this one fact. Set θ = π (half a turn) and you land exactly on −1:</p>
+
+  <div class="formula">e<sup>iπ</sup> <span class="op">+</span> 1 <span class="op">=</span> 0</div>
+  <div class="formula-note">EULER'S IDENTITY — FIVE FUNDAMENTAL CONSTANTS, ONE LINE</div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Walk the Unit Circle</span></div>
+    <p class="widget-caption">Drag the slider (or press play) to move θ from 0 to 2π. The gold point is e<sup>iθ</sup> on the complex plane. Watch its shadow on the real axis trace cosine while its shadow on the imaginary axis traces sine. At θ = π, the point lands on −1: Euler's identity, live.</p>
+    <canvas id="identityCanvas" height="380" aria-label="Interactive complex plane showing e to the i theta moving around the unit circle"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="thetaSlider">θ</label><input type="range" id="thetaSlider" min="0" max="628" value="60"><output id="thetaOut">0.60 rad</output></div>
+      <button type="button" class="btn" id="playBtn">▶ play</button>
+      <button type="button" class="btn" id="toPiBtn">jump to θ = π</button>
+    </div>
+    <div class="readout" id="identityReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <h3>Try it in Octave</h3>
+  <p>GNU Octave handles complex numbers natively — <code style="font-family:var(--mono);font-size:14px;color:#C9A85C">exp()</code> happily accepts imaginary arguments. Verify Euler's formula and identity numerically:</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 1 · e, Euler's formula, Euler's identity</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% --- Approximating e two ways -------------------------------</span>
+n = 1e6;
+e_limit  = (1 + 1/n)^n            <span class="c">% compound-interest limit</span>
+e_series = <span class="fn">sum</span>(1 ./ <span class="fn">factorial</span>(0:15)) <span class="c">% series: converges FAST</span>
+<span class="fn">abs</span>(e_series - <span class="fn">exp</span>(1))             <span class="c">% error ~ 1e-13 with 16 terms</span>
+
+<span class="c">% --- Euler's formula: exp(i*theta) == cos + i*sin -----------</span>
+theta = <span class="fn">linspace</span>(0, 2*pi, 9).';
+lhs = <span class="fn">exp</span>(1i*theta);
+rhs = <span class="fn">cos</span>(theta) + 1i*<span class="fn">sin</span>(theta);
+<span class="fn">max</span>(<span class="fn">abs</span>(lhs - rhs))               <span class="c">% ~ 1e-16: machine epsilon</span>
+
+<span class="c">% --- Euler's identity ---------------------------------------</span>
+<span class="fn">exp</span>(1i*pi) + 1                     <span class="c">% ~ 0 + 1.2246e-16i</span>
+
+<span class="c">% --- Draw the unit circle from pure exponentials ------------</span>
+t = <span class="fn">linspace</span>(0, 2*pi, 400);
+z = <span class="fn">exp</span>(1i*t);
+<span class="fn">plot</span>(<span class="fn">real</span>(z), <span class="fn">imag</span>(z), <span class="st">'linewidth'</span>, 2); <span class="fn">axis</span> equal; <span class="fn">grid</span> on;
+<span class="fn">title</span>(<span class="st">'The unit circle is e^{i\theta}'</span>);</pre>
+    <div class="lab-note">The residual 1.2246e-16i in the identity check is floating-point roundoff — π cannot be stored exactly in binary. Euler's mathematics is exact; our machines merely approximate it.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     EULER II — THE BASEL PROBLEM
+     ================================================================ -->
+<section id="basel" class="s-euler">
+  <div class="part-label">Euler · II</div>
+  <h2>The Basel Problem: π Hiding in the Integers</h2>
+
+  <p class="lead">For ninety years, the best mathematicians in Europe — including the Bernoullis of Euler's home city of Basel — had tried to sum a simple-looking series and failed. In 1735, a 28-year-old Euler announced the answer, and it was scandalous: <b>π appears out of nowhere</b>.</p>
+
+  <div class="formula"><span class="big">Σ</span><sub>n=1</sub><sup>∞</sup> <span class="frac"><span class="num">1</span><span class="den">n²</span></span> <span class="op">=</span> 1 <span class="op">+</span> <span class="frac"><span class="num">1</span><span class="den">4</span></span> <span class="op">+</span> <span class="frac"><span class="num">1</span><span class="den">9</span></span> <span class="op">+</span> <span class="frac"><span class="num">1</span><span class="den">16</span></span> <span class="op">+</span> ⋯ <span class="op">=</span> <span class="frac"><span class="num">π²</span><span class="den">6</span></span></div>
+
+  <p>What does a circle have to do with adding up fractions of square numbers? Euler's insight was to treat <span class="inline-math">sin(x)/x</span> as an <em>infinite polynomial</em> and factor it by its roots (±π, ±2π, ±3π, …), exactly as you'd factor a quadratic. Comparing the x² coefficient on both sides forces the sum of reciprocal squares to equal π²/6. It was daring, not yet rigorous — and completely correct.</p>
+
+  <p>The move opened a door Euler kept walking through. He computed <span class="inline-math">Σ 1/n⁴ = π⁴/90</span>, <span class="inline-math">Σ 1/n⁶ = π⁶/945</span>, and — most consequentially — discovered the <b>Euler product</b>, rewriting the whole series as a product over the primes:</p>
+
+  <div class="formula"><span class="big">Σ</span><sub>n=1</sub><sup>∞</sup> <span class="frac"><span class="num">1</span><span class="den">n<sup>s</sup></span></span> <span class="op">=</span> <span class="big">Π</span><sub>p prime</sub> <span class="frac"><span class="num">1</span><span class="den">1 − p<sup>−s</sup></span></span></div>
+  <div class="formula-note">THE EULER PRODUCT — THE SEED OF THE RIEMANN ZETA FUNCTION</div>
+
+  <p>That identity is the bridge between <em>analysis</em> (smooth sums) and <em>arithmetic</em> (the primes). A century later Riemann would extend it into the complex plane; a young Gauss, as we'll see, would attack the primes from the other side entirely.</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Watch the Series Converge</span></div>
+    <p class="widget-caption">Each bar adds one more term 1/n². The running total creeps toward the gold line at π²/6 ≈ 1.6449. Notice how slowly it converges — the gap that remains after N terms is roughly 1/N.</p>
+    <canvas id="baselCanvas" height="340" aria-label="Bar chart of Basel problem partial sums converging to pi squared over six"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="baselSlider">terms N</label><input type="range" id="baselSlider" min="1" max="120" value="12"><output id="baselOut">12</output></div>
+    </div>
+    <div class="readout" id="baselReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 2 · Basel problem &amp; the Euler product</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% --- Partial sums of the Basel series -----------------------</span>
+N = 100000;
+n = 1:N;
+partial = <span class="fn">cumsum</span>(1 ./ n.^2);
+target  = pi^2 / 6;
+<span class="fn">printf</span>(<span class="st">'sum of 1/n^2 (N=%d): %.10f\n'</span>, N, partial(<span class="kw">end</span>));
+<span class="fn">printf</span>(<span class="st">'pi^2/6            : %.10f\n'</span>, target);
+<span class="fn">printf</span>(<span class="st">'remaining gap ~1/N: %.2e\n'</span>, target - partial(<span class="kw">end</span>));
+
+<span class="c">% --- Visualize convergence ----------------------------------</span>
+<span class="fn">semilogx</span>(n, partial, <span class="st">'linewidth'</span>, 1.5); <span class="fn">hold</span> on;
+<span class="fn">yline</span>(target, <span class="st">'--'</span>);
+<span class="fn">xlabel</span>(<span class="st">'terms'</span>); <span class="fn">ylabel</span>(<span class="st">'partial sum'</span>);
+<span class="fn">title</span>(<span class="st">'Basel problem: crawling toward \pi^2/6'</span>);
+
+<span class="c">% --- Euler product over primes vs the zeta sum, s = 2 --------</span>
+p = <span class="fn">primes</span>(2000);
+euler_product = <span class="fn">prod</span>(1 ./ (1 - p.^(-2)));
+<span class="fn">printf</span>(<span class="st">'Euler product : %.10f\n'</span>, euler_product);
+<span class="fn">printf</span>(<span class="st">'zeta(2)       : %.10f\n'</span>, target);
+<span class="c">% Two utterly different computations, one number.</span></pre>
+    <div class="lab-note">The Euler product converges much faster than the sum — primes up to 2000 already give ~7 correct digits, while the direct sum needs 10 million terms for the same accuracy.</div>
+  </div>
+</section>
+<!-- ================================================================
+     EULER III — KÖNIGSBERG
+     ================================================================ -->
+<section id="konigsberg" class="s-euler">
+  <div class="part-label">Euler · III</div>
+  <h2>Seven Bridges, and the Birth of Graph Theory</h2>
+
+  <p class="lead">The citizens of Königsberg had a Sunday puzzle: could you stroll through the city crossing each of its seven bridges exactly once? In 1736 Euler proved you couldn't — and in doing so invented a new kind of mathematics where <b>shape doesn't matter, only connection</b>.</p>
+
+  <p>Euler's move was ruthless abstraction. The islands and riverbanks became dots (<em>vertices</em>); the bridges became lines (<em>edges</em>). Distances, angles, the width of the river — all irrelevant. What remained was pure connectivity, and one decisive observation: every time your walk <em>passes through</em> a landmass, it consumes two bridges — one in, one out. So any landmass that isn't the start or end of the walk must touch an <b>even</b> number of bridges.</p>
+
+  <div class="formula" style="font-size:clamp(17px,2.6vw,21px)">A walk crossing every edge once exists <span class="op">⟺</span> the graph is connected and has <b>0 or 2</b> odd-degree vertices</div>
+  <div class="formula-note">EULER PATH CRITERION · SOLUTIO PROBLEMATIS AD GEOMETRIAM SITUS PERTINENTIS, 1736</div>
+
+  <p>In Königsberg, <b>all four</b> landmasses touch an odd number of bridges. The walk is impossible — not hard, not undiscovered, but <em>provably impossible</em>. This paper is the founding document of graph theory and an ancestor of topology, which Euler called <em>geometria situs</em>: the geometry of position.</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Attempt the Impossible Walk</span></div>
+    <p class="widget-caption">This is Königsberg as Euler drew it: two banks (N, S), the island Kneiphof (I), and the eastern spit (E), joined by seven bridges. Click a landmass to start, then click connected bridges to cross them. The degree counters show why you'll always get stuck.</p>
+    <canvas id="bridgeCanvas" height="360" aria-label="Interactive graph of the seven bridges of Königsberg"></canvas>
+    <div class="controls">
+      <button type="button" class="btn" id="bridgeReset">↺ reset walk</button>
+    </div>
+    <div class="readout" id="bridgeReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 3 · Graphs as matrices: checking Euler's criterion</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% Königsberg as an adjacency matrix (multigraph: entries count bridges)</span>
+<span class="c">% order: N (north bank), I (island), S (south bank), E (east spit)</span>
+A = [0 2 0 1;
+     2 0 2 1;
+     0 2 0 1;
+     1 1 1 0];
+
+deg = <span class="fn">sum</span>(A, 2).'            <span class="c">% degree of each landmass -> [3 5 3 3]</span>
+odd_vertices = <span class="fn">sum</span>(<span class="fn">mod</span>(deg, 2) == 1)
+
+<span class="kw">if</span> odd_vertices == 0
+  <span class="fn">disp</span>(<span class="st">'Euler CIRCUIT exists (return to start).'</span>)
+<span class="kw">elseif</span> odd_vertices == 2
+  <span class="fn">disp</span>(<span class="st">'Euler PATH exists (start and end differ).'</span>)
+<span class="kw">else</span>
+  <span class="fn">disp</span>(<span class="st">'No Euler path: Königsberg walk is impossible.'</span>)
+<span class="kw">end</span>
+
+<span class="c">% Repair the city: remove one bridge between N and I ...</span>
+B = A;  B(1,2) = 1;  B(2,1) = 1;
+degB = <span class="fn">sum</span>(B,2).'
+<span class="fn">printf</span>(<span class="st">'odd vertices after demolition: %d -> walk possible!\n'</span>, ...
+       <span class="fn">sum</span>(<span class="fn">mod</span>(degB,2)==1));</pre>
+    <div class="lab-note">History obliged: two of Königsberg's bridges were destroyed in WWII, and the walk became possible in the modern city (Kaliningrad). Euler's criterion, of course, still decides it.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     EULER IV — POLYHEDRON FORMULA
+     ================================================================ -->
+<section id="polyhedra" class="s-euler">
+  <div class="part-label">Euler · IV</div>
+  <h2>V − E + F = 2: The First Topological Invariant</h2>
+
+  <p class="lead">Count the corners of a cube, subtract its edges, add its faces: 8 − 12 + 6 = 2. Do the same for a pyramid, a soccer ball, a diamond crystal — <b>always 2</b>. Euler noticed this in 1750 and understood it was not a fact about any particular solid, but about <em>space itself</em>.</p>
+
+  <div class="formula">V <span class="op">−</span> E <span class="op">+</span> F <span class="op">=</span> 2</div>
+  <div class="formula-note">EULER'S POLYHEDRON FORMULA — FOR ANY CONVEX POLYHEDRON</div>
+
+  <p>The number 2 is the <b>Euler characteristic</b> of the sphere. Deform a cube like clay into a ball and the formula survives, because it never depended on flatness or angles — only on how the surface is stitched together. A donut-shaped polyhedron gives V − E + F = 0; a two-holed pretzel gives −2. Each shape of space has its own number. This is the seed of algebraic topology, and it's Euler's <em>geometria situs</em> again: position without measurement.</p>
+
+  <p>One elegant consequence: the formula proves there are <b>exactly five</b> Platonic solids — no sixth regular solid can exist, because V − E + F = 2 combined with regularity has only five integer solutions.</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Count Any Solid</span></div>
+    <p class="widget-caption">Pick a polyhedron and drag on the canvas to rotate it. The census updates live — and the alternating sum stubbornly refuses to be anything but 2.</p>
+    <canvas id="polyCanvas" height="380" aria-label="Rotating wireframe polyhedron with vertex, edge, and face counts"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="polySelect">solid</label>
+        <select id="polySelect">
+          <option value="tetra">Tetrahedron</option>
+          <option value="cube" selected>Cube</option>
+          <option value="octa">Octahedron</option>
+          <option value="dodeca">Dodecahedron</option>
+          <option value="icosa">Icosahedron</option>
+        </select>
+      </div>
+      <button type="button" class="btn" id="polySpin">⏸ pause spin</button>
+    </div>
+    <div class="readout" id="polyReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="note"><b>Cross-reference:</b> if you've read the Gödel or topology material in this library, the Euler characteristic is the same invariant that classifies surfaces there — and in the string theory guide, it counts the "holes" that determine how many particle families a Calabi–Yau compactification produces.</div>
+</section>
+
+<!-- ================================================================
+     EULER V — TOTIENT & NUMBER THEORY
+     ================================================================ -->
+<section id="totient" class="s-euler">
+  <div class="part-label">Euler · V</div>
+  <h2>The Totient: Euler's Gift to Cryptography</h2>
+
+  <p class="lead">Euler also planted the flag Gauss would later claim: number theory. His totient function <span class="inline-math">φ(n)</span> counts how many integers from 1 to n share no factor with n — and it powers a theorem that, 250 years later, became the engine of RSA encryption.</p>
+
+  <p>For a prime p, every smaller number is coprime to it, so <span class="inline-math">φ(p) = p − 1</span>. For a product of two distinct primes, <span class="inline-math">φ(pq) = (p−1)(q−1)</span> — easy to compute <em>if you know the factors</em>, and believed hard if you don't. That asymmetry is the entire secret of public-key cryptography. Euler's theorem generalizes Fermat's little theorem:</p>
+
+  <div class="formula">a<sup>φ(n)</sup> <span class="op">≡</span> 1 <span class="op">(mod</span> n<span class="op">)</span> <span class="op" style="font-size:0.7em">&nbsp;whenever gcd(a, n) = 1</span></div>
+  <div class="formula-note">EULER'S THEOREM, 1763 — THE MATHEMATICAL HEART OF RSA</div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 4 · Totient, Euler's theorem, and a toy RSA</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c"><span class="c">% helper: Octave's built-in is powmod; alias for portability</span>
+<span class="kw">if</span> ~<span class="fn">exist</span>(<span class="st">'powermod'</span>,<span class="st">'file'</span>)
+  <span class="kw">function</span> r = <span class="fn">powermod</span>(a,e,n), r = <span class="fn">powmod</span>(a,e,n); <span class="kw">endfunction</span>
+<span class="kw">endif</span>
+
+% helper for portability: Octave builtin is powmod
+if ~exist('powermod','file')
+  function r = powermod(a,e,n), r = powmod(a,e,n); endfunction
+endif
+
+% --- Euler's totient from first principles ------------------</span>
+<span class="kw">function</span> t = <span class="fn">totient</span>(n)
+  t = <span class="fn">sum</span>(<span class="fn">gcd</span>(1:n, n) == 1);
+<span class="kw">endfunction</span>
+
+<span class="fn">arrayfun</span>(@totient, 1:12)        <span class="c">% 1 1 2 2 4 2 6 4 6 4 10 4</span>
+
+<span class="c">% --- Verify Euler's theorem: a^phi(n) mod n == 1 ------------</span>
+n = 20; a = 7;                   <span class="c">% gcd(7,20)=1</span>
+<span class="fn">printf</span>(<span class="st">'7^phi(20) mod 20 = %d\n'</span>, <span class="fn">powermod</span>(a, <span class="fn">totient</span>(n), n));
+
+<span class="c">% --- Toy RSA in eight lines ---------------------------------</span>
+p = 61; q = 53;                  <span class="c">% (real keys use 300-digit primes)</span>
+n = p*q;                         <span class="c">% public modulus: 3233</span>
+phi = (p-1)*(q-1);               <span class="c">% Euler's totient: 3120</span>
+e = 17;                          <span class="c">% public exponent, coprime to phi</span>
+[g, d, ~] = <span class="fn">gcd</span>(e, phi); d = <span class="fn">mod</span>(d, phi);  <span class="c">% d = e^{-1} mod phi, requires g==1</span>  <span class="c">% private key: e*d ≡ 1 mod phi</span>
+msg = 1707;                      <span class="c">% the message: Euler's birth year</span>
+c   = <span class="fn">powermod</span>(msg, e, n);       <span class="c">% encrypt with the PUBLIC key</span>
+back= <span class="fn">powermod</span>(c,   d, n);       <span class="c">% decrypt with the PRIVATE key</span>
+<span class="fn">printf</span>(<span class="st">'message %d -> cipher %d -> decrypted %d\n'</span>, msg, c, back);</pre>
+    <div class="lab-note">Decryption works precisely because m<sup>ed</sup> = m<sup>1+k·φ(n)</sup> ≡ m (mod n) — Euler's theorem doing the heavy lifting. For the full story, see the cryptography guides elsewhere in this library.</div>
+  </div>
+</section>
+
+<div class="divider"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="10" stroke="#7FAFC6" stroke-width="1.2"/><circle cx="13" cy="13" r="4" stroke="#E4A93C" stroke-width="1.2"/></svg></div>
+
+<!-- ================================================================
+     INTERLUDE
+     ================================================================ -->
+<section id="interlude" class="s-both">
+  <div class="part-label">Interlude</div>
+  <h2>The Torch Passes</h2>
+
+  <p class="lead">In 1784, one year after Euler's death, a seven-year-old in Brunswick was set a busywork problem by his schoolmaster Büttner: add every number from 1 to 100. The boy wrote a single number on his slate almost immediately and announced, in Low German, <em>"Ligget se"</em> — there it lies.</p>
+
+  <p>Young Gauss had seen what the drill was hiding. Fold the sequence in half: 1 + 100 = 101, 2 + 99 = 101, 3 + 98 = 101 … fifty pairs, each summing to 101. The answer is 50 × 101 = <b>5050</b>. The story may be polished by retelling, but the instinct it captures is authentic Gauss: <b>never compute what you can understand</b>.</p>
+
+  <div class="formula">1 <span class="op">+</span> 2 <span class="op">+</span> ⋯ <span class="op">+</span> n <span class="op">=</span> <span class="frac"><span class="num">n(n+1)</span><span class="den">2</span></span></div>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Fold the Sequence Like Young Gauss</span></div>
+    <p class="widget-caption">Slide n and watch the pairing: outermost numbers join first, each arc summing to the same constant n + 1. The formula assembles itself below.</p>
+    <canvas id="sumCanvas" height="260" aria-label="Visualization of Gauss's pairing trick for summing 1 to n"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="sumSlider">n</label><input type="range" id="sumSlider" min="4" max="40" step="2" value="16"><output id="sumOut">16</output></div>
+    </div>
+    <div class="readout" id="sumReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <p>The duke of Brunswick heard of the bricklayer's son and paid his way through school and university. Gauss repaid the debt by absorbing everything — above all the works of Euler, the master he never met. Then, at nineteen, he did something Euler never had: he broke a problem that had stood since Euclid.</p>
+</section>
+
+<div class="divider"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="10" stroke="#7FAFC6" stroke-width="1.2"/><circle cx="13" cy="13" r="4" stroke="#7FAFC6" stroke-width="1.2"/></svg></div>
+
+<!-- ================================================================
+     GAUSS I — MODULAR ARITHMETIC
+     ================================================================ -->
+<section id="modular" class="s-gauss">
+  <div class="part-label">Gauss · I</div>
+  <h2>The Disquisitiones and Clock Arithmetic</h2>
+
+  <p class="lead">In 1801, at 24, Gauss published the <em>Disquisitiones Arithmeticae</em> — and number theory went from a collection of clever puzzles to a systematic science. Its opening move looks almost too simple: a new notation for remainders.</p>
+
+  <div class="formula">a <span class="op">≡</span> b <span class="op">(mod</span> m<span class="op">)</span> <span class="op" style="font-size:0.7em">&nbsp;⟺ m divides a − b</span></div>
+  <div class="formula-note">CONGRUENCE — DISQUISITIONES ARITHMETICAE, ARTICLE 1</div>
+
+  <p>Two numbers are <em>congruent modulo m</em> if they leave the same remainder on division by m — if they land on the same position of an m-hour clock. The genius is in the ≡ sign itself: Gauss chose a symbol that <em>looks like equality</em> because congruences <b>behave like equations</b>. You can add them, multiply them, and (carefully) divide them. Whole theories — quadratic reciprocity, which Gauss proved at 19 and loved enough to prove seven more times, calling it his <em>theorema aureum</em>, the golden theorem — flow from this one piece of good notation.</p>
+
+  <p>Euler had proven individual results about remainders; Gauss built them a home. Every hash table, every checksum, every cryptographic protocol on Earth now speaks Gauss's language of congruence.</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Multiplication on a Clock</span></div>
+    <p class="widget-caption">Place m points on a circle, numbered 0 to m−1. Draw a chord from every k to (a·k) mod m — multiplication as geometry. The patterns (cardioids, nephroids, star polygons) are pure structure of modular arithmetic made visible. Try a = 2 with large m, then a = m−1.</p>
+    <canvas id="modCanvas" height="400" aria-label="Times-table chord diagram of multiplication modulo m"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="modM">modulus m</label><input type="range" id="modM" min="5" max="120" value="60"><output id="modMOut">60</output></div>
+      <div class="ctrl"><label for="modA">multiplier a</label><input type="range" id="modA" min="2" max="30" value="2"><output id="modAOut">2</output></div>
+    </div>
+    <div class="readout" id="modReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 5 · Congruences, residues &amp; quadratic reciprocity's raw material</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c"><span class="c">% helper: Octave's built-in is powmod; alias for portability</span>
+<span class="kw">if</span> ~<span class="fn">exist</span>(<span class="st">'powermod'</span>,<span class="st">'file'</span>)
+  <span class="kw">function</span> r = <span class="fn">powermod</span>(a,e,n), r = <span class="fn">powmod</span>(a,e,n); <span class="kw">endfunction</span>
+<span class="kw">endif</span>
+
+% --- Congruence basics --------------------------------------</span>
+<span class="fn">mod</span>(1777, 7)                     <span class="c">% Gauss's birth year on a 7-clock</span>
+<span class="fn">mod</span>(-3, 12)                      <span class="c">% Octave gives 9: always in 0..m-1</span>
+
+<span class="c">% --- A multiplication table mod 7 (a field!) ----------------</span>
+m = 7;
+[K, J] = <span class="fn">meshgrid</span>(0:m-1);
+<span class="fn">mod</span>(K .* J, m)                   <span class="c">% every nonzero row is a permutation</span>
+
+<span class="c">% --- Quadratic residues: which numbers are squares mod p? ---</span>
+p = 13;
+QR = <span class="fn">unique</span>(<span class="fn">mod</span>((1:p-1).^2, p))  <span class="c">% -> 1 3 4 9 10 12 (exactly (p-1)/2)</span>
+
+<span class="c">% --- Euler's criterion links the two men directly -----------</span>
+<span class="c">% a is a square mod p  <=>  a^((p-1)/2) ≡ 1 (mod p)</span>
+a = 10;
+<span class="fn">powermod</span>(a, (p-1)/2, p)          <span class="c">% 1 -> yes, 10 is a QR mod 13</span>
+a = 5;
+<span class="fn">powermod</span>(a, (p-1)/2, p)          <span class="c">% p-1 (i.e. -1) -> not a square</span></pre>
+    <div class="lab-note">Quadratic reciprocity — the crown of the Disquisitiones — states an unbelievable symmetry: whether p is a square mod q is tied to whether q is a square mod p. Euler conjectured it from data; Gauss proved it. That division of labor repeats throughout this story.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     GAUSS II — THE HEPTADECAGON
+     ================================================================ -->
+<section id="heptadecagon" class="s-gauss">
+  <div class="part-label">Gauss · II</div>
+  <h2>The Seventeen-Sided Polygon</h2>
+
+  <p class="lead">On the morning of March 30, 1796, a nineteen-year-old still deciding between philology and mathematics woke up knowing something no human had known in the 2,000 years since Euclid: the regular 17-gon can be drawn with compass and straightedge alone. He chose mathematics that day, and started a diary.</p>
+
+  <p>The Greeks could construct regular polygons with 3, 4, 5, 6, 8, 10, 12, 15 sides — but 7, 9, 11, 13, 14 defeated them, and everyone assumed 17 was equally hopeless. Gauss saw the problem wasn't geometry at all. The corners of an n-gon are the complex roots of <span class="inline-math">z<sup>n</sup> = 1</span> — points <span class="inline-math">e<sup>2πik/n</sup></span> on Euler's unit circle. Compass and straightedge can only take square roots. So the question becomes pure algebra: <em>can cos(2π/17) be built from nested square roots?</em> Gauss proved it can — because 17 = 2⁴ + 1 is a <b>Fermat prime</b>, and 16 halves down to 1 in exactly four steps: 16 → 8 → 4 → 2 → 1, each step a square root.</p>
+
+  <div class="formula" style="font-size:clamp(15px,2.2vw,19px)">A regular n-gon is constructible <span class="op">⟺</span> n <span class="op">=</span> 2<sup>k</sup> · p₁ p₂ ⋯ p<sub>r</sub>, &nbsp;distinct Fermat primes p<sub>i</sub> ∈ {3, 5, 17, 257, 65537}</div>
+  <div class="formula-note">GAUSS–WANTZEL THEOREM — GAUSS PROVED ⟸ IN 1796, AGE 19</div>
+
+  <p>He was so proud of it that he asked for a 17-gon on his tombstone. (The stonemason refused — with that many sides it would just look like a circle — and carved a 17-pointed star on a memorial in Brunswick instead.)</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · The Constructibility Census</span></div>
+    <p class="widget-caption">Slide through n. Silver-blue polygons are constructible with compass and straightedge; muted red ones are provably impossible. The factorization beneath shows why: strip out powers of 2 and check what's left against the five known Fermat primes.</p>
+    <canvas id="gonCanvas" height="380" aria-label="Regular polygon display colored by compass and straightedge constructibility"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="gonSlider">sides n</label><input type="range" id="gonSlider" min="3" max="60" value="17"><output id="gonOut">17</output></div>
+      <button type="button" class="btn" id="gonSeventeen">★ jump to 17</button>
+    </div>
+    <div class="readout" id="gonReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="note"><b>Euler's fingerprint, again:</b> Fermat had conjectured that every number 2<sup>2ᵏ</sup>+1 is prime. It was <b>Euler</b> who shattered this in 1732 by factoring 2³²+1 = 4,294,967,297 = 641 × 6,700,417 — by hand. Only five Fermat primes are known to this day, and hence only 31 odd-sided constructible polygons.</div>
+</section>
+<!-- ================================================================
+     GAUSS III — CERES & LEAST SQUARES
+     ================================================================ -->
+<section id="ceres" class="s-gauss">
+  <div class="part-label">Gauss · III</div>
+  <h2>Finding a Lost Planet: Ceres and Least Squares</h2>
+
+  <p class="lead">On New Year's Day 1801, the astronomer Piazzi spotted a faint new "planet" between Mars and Jupiter — then lost it in the sun's glare after tracking it across just 3° of sky. Europe's astronomers despaired of ever finding it again. A 24-year-old with no telescope announced where it would reappear. In December, it was <b>exactly there</b>.</p>
+
+  <p>Gauss's weapon was a question nobody had answered properly: when your measurements disagree — and they always disagree — what is the <em>best</em> estimate they collectively point to? His answer: choose the parameters that minimize the <b>sum of the squared errors</b>.</p>
+
+  <div class="formula">min<sub>β</sub> <span class="big">Σ</span><sub>i</sub> <span class="op">(</span>y<sub>i</sub> <span class="op">−</span> f(x<sub>i</sub>, β)<span class="op">)</span><sup>2</sup></div>
+  <div class="formula-note">THE METHOD OF LEAST SQUARES — THEORIA MOTUS, 1809</div>
+
+  <p>Why <em>squares</em>? Gauss showed that if measurement errors follow his bell-shaped curve (next section), least squares gives the <b>most probable</b> parameters — the method and the distribution justify each other. Squaring also punishes large errors heavily, keeps everything differentiable, and reduces the whole problem to solving a linear system (by, naturally, <b>Gaussian elimination</b>). Two centuries later, least squares is still the beating heart of statistics, GPS positioning, machine learning's loss functions, and every trend line ever fitted.</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Be Gauss: Fit the Data</span></div>
+    <p class="widget-caption">Click anywhere to add observations (click a point again to remove it). The line solves the least-squares problem live; faint stems show each residual, and the shaded squares are literally the squares being minimized. Toggle them to see the geometry of the method.</p>
+    <canvas id="lsqCanvas" height="380" aria-label="Interactive least squares fitting: click to add points and see the best-fit line"></canvas>
+    <div class="controls">
+      <button type="button" class="btn" id="lsqClear">✕ clear points</button>
+      <button type="button" class="btn" id="lsqDemo">✦ load Ceres-style demo</button>
+      <button type="button" class="btn" id="lsqSquares">□ show squares</button>
+    </div>
+    <div class="readout" id="lsqReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 6 · Least squares three ways in Octave</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% Noisy observations of a hidden line y = 2.5x - 1 -------------</span>
+<span class="fn">rng</span>(1801)  <span class="c">% Octave ≥7: use rng; older: rand("seed",1801)</span>;              <span class="c">% the year of Ceres</span>
+x = <span class="fn">linspace</span>(0, 10, 25).';
+y = 2.5*x - 1 + <span class="fn">randn</span>(<span class="fn">size</span>(x))*1.5;
+
+<span class="c">% --- Way 1: the normal equations, exactly as Gauss did -------</span>
+A = [x, <span class="fn">ones</span>(<span class="fn">size</span>(x))];          <span class="c">% design matrix</span>
+beta1 = (A.'*A) \ (A.'*y)         <span class="c">% solve A'A β = A'y</span>
+
+<span class="c">% --- Way 2: Octave's backslash (QR under the hood) -----------</span>
+beta2 = A \ y
+
+<span class="c">% --- Way 3: polyfit -------------------------------------------</span>
+beta3 = <span class="fn">polyfit</span>(x, y, 1)
+
+<span class="c">% --- Judge the fit --------------------------------------------</span>
+yhat = A*beta1;
+SSres = <span class="fn">sum</span>((y - yhat).^2);
+SStot = <span class="fn">sum</span>((y - <span class="fn">mean</span>(y)).^2);
+R2 = 1 - SSres/SStot
+<span class="fn">plot</span>(x, y, <span class="st">'o'</span>, x, yhat, <span class="st">'-'</span>, <span class="st">'linewidth'</span>, 2);
+<span class="fn">title</span>(<span class="fn">sprintf</span>(<span class="st">'Least squares: y = %.2fx + %.2f  (R^2 = %.3f)'</span>, ...
+      beta1(1), beta1(2), R2));</pre>
+    <div class="lab-note">All three give identical answers, but Way 2 is what you should use in practice — the backslash operator uses QR factorization, which is numerically far more stable than forming A'A when columns are nearly collinear.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     GAUSS IV — THE GAUSSIAN
+     ================================================================ -->
+<section id="gaussian" class="s-gauss">
+  <div class="part-label">Gauss · IV</div>
+  <h2>The Bell Curve: A Portrait of Error Itself</h2>
+
+  <p class="lead">Every measurement lies a little. Gauss asked what the lies look like in aggregate — and derived the one curve consistent with reasonable assumptions about error: symmetric, concentrated, with the arithmetic mean as the best estimate. The result is the most famous shape in science.</p>
+
+  <div class="formula">f(x) <span class="op">=</span> <span class="frac"><span class="num">1</span><span class="den">σ√(2π)</span></span> e<sup>−(x−μ)²/2σ²</sup></div>
+  <div class="formula-note">THE GAUSSIAN (NORMAL) DISTRIBUTION</div>
+
+  <p>Look closely at the formula: <span class="inline-math">e</span> and <span class="inline-math">π</span> — Euler's constants — are right there in the portrait of randomness. The mean μ slides the bell; the standard deviation σ sets its width; the √(2π) (from the <b>Gaussian integral</b> ∫e<sup>−x²</sup>dx = √π) makes the total probability exactly 1.</p>
+
+  <p>The reason this curve is <em>everywhere</em> — heights, exam scores, noise in electronics, thermal motion — is the <b>central limit theorem</b>: add up many small independent influences, whatever their individual shapes, and their sum drifts inevitably toward the Gaussian. It is less a law of nature than a law of <em>aggregation</em>.</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · Sculpt the Bell</span></div>
+    <p class="widget-caption">Move μ and σ. The shaded bands mark 1σ, 2σ and 3σ from the mean — always 68.3%, 95.4% and 99.7% of the probability, no matter how you stretch the curve. That invariance is why "how many sigmas?" is science's universal measure of surprise.</p>
+    <canvas id="gaussCanvas" height="340" aria-label="Interactive normal distribution with adjustable mean and standard deviation"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="muSlider">μ</label><input type="range" id="muSlider" min="-40" max="40" value="0"><output id="muOut">0.0</output></div>
+      <div class="ctrl"><label for="sigSlider">σ</label><input type="range" id="sigSlider" min="4" max="30" value="10"><output id="sigOut">1.0</output></div>
+    </div>
+    <div class="readout" id="gaussReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 7 · The central limit theorem, witnessed</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% Sums of UNIFORM randomness become GAUSSIAN -------------------</span>
+N = 20000;                        <span class="c">% experiments</span>
+k = 12;                           <span class="c">% dice per experiment</span>
+sums = <span class="fn">sum</span>(<span class="fn">rand</span>(k, N));           <span class="c">% each column: sum of k uniforms</span>
+
+mu  = k/2;  sigma = <span class="fn">sqrt</span>(k/12);   <span class="c">% theory for uniform sums</span>
+z = (sums - mu) / sigma;          <span class="c">% standardize</span>
+
+<span class="fn">histogram</span>(z, 60, 'Normalization','pdf');  <span class="fn">hold</span> on;  <span class="c">% was hist(z,60,1) – deprecated</span>         <span class="c">% normalized histogram</span>
+t = <span class="fn">linspace</span>(-4, 4, 200);
+<span class="fn">plot</span>(t, <span class="fn">exp</span>(-t.^2/2)/<span class="fn">sqrt</span>(2*pi), <span class="st">'linewidth'</span>, 2);
+<span class="fn">title</span>(<span class="st">'12 uniform dice, summed: the bell emerges'</span>);
+
+<span class="c">% The 68-95-99.7 rule, checked empirically ---------------------</span>
+<span class="kw">for</span> s = 1:3
+  <span class="fn">printf</span>(<span class="st">'within %d sigma: %.2f%% (theory %.2f%%)\n'</span>, s, ...
+         100*<span class="fn">mean</span>(<span class="fn">abs</span>(z) &lt; s), 100*<span class="fn">erf</span>(s/<span class="fn">sqrt</span>(2)));
+<span class="kw">end</span>
+
+<span class="c">% Bonus: the Gaussian integral that tames sqrt(2*pi) -----------</span>
+<span class="fn">quadgk</span>(@(x) <span class="fn">exp</span>(-x.^2), -10, 10)  <span class="c">% sqrt(pi)</span>   <span class="c">% -> 1.7725 = sqrt(pi)</span></pre>
+    <div class="lab-note">Twelve uniform dice already produce a nearly perfect bell — the CLT converges remarkably fast. (Old graphics code exploited this: sum 12 rand() calls, subtract 6, and you have a cheap standard normal.)</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     GAUSS V — PRIMES
+     ================================================================ -->
+<section id="primes" class="s-gauss">
+  <div class="part-label">Gauss · V</div>
+  <h2>Counting the Primes: A Teenager's Conjecture</h2>
+
+  <p class="lead">At fifteen, Gauss was given a table of logarithms with a list of primes bound in the back. He began tallying primes in blocks of a thousand — a lifelong hobby; he eventually counted into the millions — and noticed that their <em>density</em> near a number x thins out like 1/ln x.</p>
+
+  <div class="formula">π(x) <span class="op">≈</span> <span class="frac"><span class="num">x</span><span class="den">ln x</span></span> <span class="op">,</span>&nbsp;&nbsp; π(x) <span class="op">≈</span> Li(x) <span class="op">=</span> <span class="big">∫</span><sub>2</sub><sup>x</sup> <span class="frac"><span class="num">dt</span><span class="den">ln t</span></span></div>
+  <div class="formula-note">GAUSS'S CONJECTURE, c. 1792–93 — PROVED AS THE PRIME NUMBER THEOREM IN 1896</div>
+
+  <p>Here π(x) counts the primes up to x. Gauss's refined guess, the logarithmic integral Li(x), is astonishingly accurate: at x = 10⁹ it errs by 0.0003%. He never published the conjecture — <em>pauca sed matura</em> — mentioning it only in an 1849 letter. The proof took a century and required, fittingly, the machinery Euler had seeded: Riemann carried the <b>Euler product</b> into the complex plane, and the primes' rhythm turned out to be written in the zeros of the zeta function. The two protagonists of this guide meet inside the deepest unsolved problem in mathematics, the Riemann Hypothesis.</p>
+
+  <div class="widget">
+    <div class="widget-head"><span class="widget-title">Interactive · The Prime Staircase</span></div>
+    <p class="widget-caption">The jagged silver staircase is π(x) — it jumps at every prime. The smooth gold curve is Gauss's x/ln x estimate; the dashed curve is the sharper Li(x). Zoom out and the wild staircase becomes indistinguishable from the smooth prediction: order emerging from apparent chaos.</p>
+    <canvas id="primeCanvas" height="360" aria-label="Prime counting function compared with Gauss's approximations"></canvas>
+    <div class="controls">
+      <div class="ctrl"><label for="primeSlider">range x</label><input type="range" id="primeSlider" min="50" max="10000" step="50" value="500"><output id="primeOut">500</output></div>
+    </div>
+    <div class="readout" id="primeReadout" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 8 · Sieving primes &amp; testing Gauss's guess</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% --- Sieve of Eratosthenes, vectorized -----------------------</span>
+<span class="kw">function</span> pr = <span class="fn">sieve</span>(N)
+  isp = <span class="fn">true</span>(1, N); isp(1) = <span class="kw">false</span>;
+  <span class="kw">for</span> k = 2:<span class="fn">floor</span>(<span class="fn">sqrt</span>(N))
+    <span class="kw">if</span> isp(k), isp(k*k:k:N) = <span class="kw">false</span>; <span class="kw">end</span>
+  <span class="kw">end</span>
+  pr = <span class="fn">find</span>(isp);
+<span class="kw">endfunction</span>
+
+N = 1e6;
+pr = <span class="fn">sieve</span>(N);
+x  = <span class="fn">logspace</span>(2, 6, 40);
+pix = <span class="fn">arrayfun</span>(@(v) <span class="fn">sum</span>(pr &lt;= v), x);   <span class="c">% π(x) by counting</span>
+
+approx1 = x ./ <span class="fn">log</span>(x);                    <span class="c">% Gauss, age 15</span>
+approx2 = <span class="fn">arrayfun</span>(@(v) <span class="fn">quadgk</span>(@(t) 1./<span class="fn">log</span>(t), 2, v)  <span class="c">% quad is deprecated → quadgk</span>, x);  <span class="c">% Li(x)</span>
+
+<span class="c">% Relative errors of the two approximations -------------------</span>
+<span class="fn">semilogx</span>(x, 100*(approx1 - pix)./pix, <span class="st">'-o'</span>, ...
+         x, 100*(approx2 - pix)./pix, <span class="st">'-s'</span>);
+<span class="fn">legend</span>(<span class="st">'x/ln x'</span>, <span class="st">'Li(x)'</span>); <span class="fn">grid</span> on;
+<span class="fn">ylabel</span>(<span class="st">'error (%)'</span>);
+<span class="fn">title</span>(<span class="st">'Gauss vs the primes: Li(x) is eerily good'</span>);
+
+<span class="fn">printf</span>(<span class="st">'pi(10^6) = %d;  Li: %.0f;  x/ln x: %.0f\n'</span>, ...
+       pix(<span class="kw">end</span>), approx2(<span class="kw">end</span>), approx1(<span class="kw">end</span>));</pre>
+    <div class="lab-note">π(10⁶) = 78,498. Li(10⁶) ≈ 78,628 — off by 0.17%. The simple x/ln x is off by ~7%. Gauss compiled his prime counts by hand during "idle quarter hours" over decades; the sieve above does it in milliseconds.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     GAUSS VI — THEOREMA EGREGIUM
+     ================================================================ -->
+<section id="egregium" class="s-gauss">
+  <div class="part-label">Gauss · VI</div>
+  <h2>The Remarkable Theorem: Curvature from Within</h2>
+
+  <p class="lead">In the 1820s Gauss spent summers doing something unglamorous: surveying the Kingdom of Hanover, hauling instruments up hills. Out of that muddy fieldwork came the deepest idea of his career — that a surface's curvature can be measured <b>entirely from inside it</b>.</p>
+
+  <p>Gauss defined the curvature K of a surface at a point as the product of its two principal curvatures — how sharply it bends in its most- and least-curved directions. A sphere of radius R has K = 1/R² everywhere; a flat sheet has K = 0; a saddle has K &lt; 0. The shock is his <em>Theorema Egregium</em> ("remarkable theorem"): <b>K is unchanged by any bending that doesn't stretch the surface</b>. Creatures living on the surface, measuring only distances along it, can compute K without ever peeking at the third dimension.</p>
+
+  <div class="formula" style="font-size:clamp(16px,2.4vw,20px)">Gaussian curvature is <b>intrinsic</b>: measurable by distances within the surface alone</div>
+  <div class="formula-note">THEOREMA EGREGIUM · DISQUISITIONES GENERALES CIRCA SUPERFICIES CURVAS, 1827</div>
+
+  <p>Everyday consequences first: a flat sheet (K = 0) can roll into a cylinder (still K = 0) but can never wrap a sphere (K &gt; 0) without wrinkling or tearing — which is why <b>every flat map of Earth lies</b>, and why a slice of pizza droops until you fold it lengthwise, forcing its zero curvature to spend itself on stiffness. Deeper consequence: if curvature is intrinsic, then a space needs no outside to be curved <em>in</em>. Gauss's student Riemann generalized this to any number of dimensions; Einstein then proposed that gravity <em>is</em> the intrinsic curvature of four-dimensional spacetime. The line from Hanover's muddy survey triangles to general relativity is direct.</p>
+
+  <div class="manuscript">
+    <blockquote>I am becoming more and more convinced that the necessity of our geometry cannot be proved... perhaps in another life we will attain other insights into the essence of space, which is now unattainable to us.</blockquote>
+    <cite>— GAUSS, LETTER TO OLBERS, 1817 — DECADES BEFORE NON-EUCLIDEAN GEOMETRY WAS PUBLISHED</cite>
+  </div>
+
+  <p>His private notebooks show he had worked out non-Euclidean geometry and suppressed it, fearing — as he wrote to Bessel — the <em>"clamor of the Boeotians."</em> When Bolyai and Lobachevsky published, priority passed to bolder hands. <em>Pauca sed matura</em> cut both ways.</p>
+</section>
+<div class="divider"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="9" cy="13" r="7" stroke="#E4A93C" stroke-width="1.2"/><circle cx="17" cy="13" r="7" stroke="#7FAFC6" stroke-width="1.2"/></svg></div>
+
+<!-- ================================================================
+     CONVERGENCE
+     ================================================================ -->
+<section id="convergence" class="s-both">
+  <div class="part-label">Coda</div>
+  <h2>Convergence: Two Voices, One Mathematics</h2>
+
+  <p class="lead">Put the two life's-works side by side and a pattern emerges: again and again, <b>Euler discovers the phenomenon and Gauss discovers the law</b>. Euler is the explorer who maps the coastline; Gauss is the cartographer who proves the map correct.</p>
+
+  <table class="compare">
+    <thead><tr><th>Theme</th><th class="th-e">Euler's move</th><th class="th-g">Gauss's move</th></tr></thead>
+    <tbody>
+      <tr><td>PRIMES</td><td>The Euler product ties primes to analysis; proves infinitude of primes analytically</td><td>Conjectures the Prime Number Theorem from hand-tallied data at 15</td></tr>
+      <tr><td>RECIPROCITY</td><td>Conjectures quadratic reciprocity from numerical patterns</td><td>Proves it at 19 — then seven more times, his "golden theorem"</td></tr>
+      <tr><td>COMPLEX NUMBERS</td><td>Computes with them fearlessly: e<sup>iθ</sup>, roots of unity</td><td>Legitimizes them: the complex plane, and the Fundamental Theorem of Algebra — every polynomial of degree n has exactly n complex roots</td></tr>
+      <tr><td>ROOTS OF UNITY</td><td>Places the n-gon's corners at e<sup>2πik/n</sup></td><td>Dissects them with Gaussian periods to construct the 17-gon</td></tr>
+      <tr><td>TOPOLOGY &amp; GEOMETRY</td><td>V − E + F = 2; geometry of position</td><td>Intrinsic curvature; the Gauss–Bonnet theorem later welds the two: ∫K dA = 2πχ</td></tr>
+      <tr><td>METHOD</td><td>Publish everything — 850 works; let ideas breathe in the open</td><td>Pauca sed matura — publish only what is polished; the notebooks keep the rest</td></tr>
+    </tbody>
+  </table>
+
+  <p>The last row of that table is the real lesson. Euler's torrential openness gave the 18th century its working vocabulary; Gauss's ruthless standards gave the 19th century its rigor. Mathematics needs both temperaments — the river and the lens — and arguably every mathematician since has had to choose a point on the axis between them.</p>
+
+  <h3>One last meeting point: the FFT</h3>
+  <p>In an unpublished 1805 manuscript on interpolating asteroid orbits, Gauss worked out a fast recursive trick for computing trigonometric sums — the <b>fast Fourier transform</b>, 160 years before Cooley and Tukey reinvented it in 1965. And what does the FFT compute? Sums of Euler's <span class="inline-math">e<sup>−2πikn/N</sup></span> — his formula, factored by Gauss's cleverness. Every JPEG, MP3, Wi-Fi packet and MRI scan runs on the two of them jointly.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 9 · The FFT: Euler's exponentials, Gauss's algorithm</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% A signal with two hidden tones + noise -----------------------</span>
+fs = 512;  t = (0:fs-1)/fs;
+sig = <span class="fn">sin</span>(2*pi*17*t) + 0.6*<span class="fn">sin</span>(2*pi*60*t) + 0.4*<span class="fn">randn</span>(<span class="fn">size</span>(t));
+<span class="c">%              ^ a 17 Hz tone, in Gauss's honor</span>
+
+<span class="c">% The DFT is literally a matrix of Euler's formula --------------</span>
+N = <span class="fn">numel</span>(sig);
+[k, n] = <span class="fn">meshgrid</span>(0:N-1);
+W = <span class="fn">exp</span>(-2i*pi*k.*n/N);          <span class="c">% e^{-2πikn/N}: pure Euler</span>
+slow = W * sig.';                 <span class="c">% O(N^2) multiply</span>
+
+fast = <span class="fn">fft</span>(sig).';               <span class="c">% O(N log N): pure Gauss</span>
+<span class="fn">max</span>(<span class="fn">abs</span>(slow - fast))            <span class="c">% ~1e-10: same numbers</span>
+
+<span class="c">% Time them ------------------------------------------------------</span>
+<span class="fn">tic</span>; W * sig.';   t_slow = <span class="fn">toc</span>;
+<span class="fn">tic</span>; <span class="fn">fft</span>(sig);    t_fast = <span class="fn">toc</span>;
+<span class="fn">printf</span>(<span class="st">'matrix DFT: %.4fs   fft: %.6fs   speedup: %.0fx\n'</span>, ...
+       t_slow, t_fast, t_slow/<span class="fn">max</span>(t_fast,eps));
+
+<span class="c">% Find the hidden tones ------------------------------------------</span>
+P = <span class="fn">abs</span>(fast)/N;
+f = (0:N-1)*fs/N;
+<span class="fn">plot</span>(f(1:N/2), 2*P(1:N/2), <span class="st">'linewidth'</span>, 1.5);
+<span class="fn">xlabel</span>(<span class="st">'Hz'</span>); <span class="fn">title</span>(<span class="st">'Spectrum: peaks at 17 and 60 Hz'</span>);</pre>
+    <div class="lab-note">At N = 512 the speedup is already large; at N = 10⁶ the O(N²) approach would take hours while the FFT takes milliseconds. Gauss filed the idea in a drawer because it wasn't "ripe." It was 160 years ahead of schedule.</div>
+  </div>
+
+  <h3>And one for the road: Gaussian elimination</h3>
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 10 · Solving systems the Gauss way</span><button type="button" class="copy">copy</button></div>
+<pre><span class="c">% Fit a parabola through three observed points -------------------</span>
+<span class="c">% (the shape of every projectile, and of Ceres' apparent path)</span>
+P = [1 4;  2 3;  4 7];            <span class="c">% (x, y) observations</span>
+A = [P(:,1).^2, P(:,1), <span class="fn">ones</span>(3,1)];
+b = P(:,2);
+
+coef = A \ b                      <span class="c">% Gaussian elimination inside</span>
+
+[L, U, Pm] = <span class="fn">lu</span>(A);               <span class="c">% see the elimination explicitly</span>
+L, U                              <span class="c">% A = P'LU: the row-reduction record</span>
+
+xs = <span class="fn">linspace</span>(0, 5, 100);
+<span class="fn">plot</span>(P(:,1), P(:,2), <span class="st">'o'</span>, xs, <span class="fn">polyval</span>(coef, xs), <span class="st">'-'</span>);
+<span class="fn">title</span>(<span class="st">'Three points, one parabola: A\\b'</span>);
+<span class="c">% Historical footnote: "Gaussian" elimination appears in the</span>
+<span class="c">% Chinese "Nine Chapters" ~2000 years earlier; Gauss systematized</span>
+<span class="c">% it for least-squares normal equations, and the name stuck.</span></pre>
+    <div class="lab-note">Octave's backslash operator chooses the right factorization automatically (LU for square systems, QR for least squares) — a small monument to how thoroughly Gauss's methods became infrastructure.</div>
+  </div>
+
+  <h3>Where to go next in this library</h3>
+  <p>Euler's formula is the working language of the <a class="inline" href="#placeholder" data-placeholder="true">Feynman path-integral guide</a> (every path contributes e<sup>iS/ħ</sup>) and the Fourier machinery in the <a class="inline" href="#placeholder" data-placeholder="true">Maxwell and circuits guides</a>. Gauss's totient and modular arithmetic are the foundation of the <a class="inline" href="#placeholder" data-placeholder="true">cryptography series</a>, and his intrinsic curvature leads directly into the <a class="inline" href="#placeholder" data-placeholder="true">string theory / M-theory guide</a>. The Basel problem's zeta function reappears — analytically continued — in the <a class="inline" href="#placeholder" data-placeholder="true">Mathematical Tapestry</a>. This page is a hub; nearly every guide on the shelf cites one of these two men.</p>
+
+  <div class="manuscript">
+    <blockquote>Mathematics is the queen of the sciences, and arithmetic the queen of mathematics.</blockquote>
+    <cite>— CARL FRIEDRICH GAUSS · SARTORIUS VON WALTERSHAUSEN'S MEMOIR, 1856</cite>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="f-emblem"><span class="e">e<sup>iπ</sup> + 1 = 0</span> &nbsp;·&nbsp; <span class="g">pauca sed matura</span></div>
+  <p>EULER &amp; GAUSS · AN INTERACTIVE STUDY · SELF-CONTAINED HTML — NO EXTERNAL DEPENDENCIES<br>
+  ALL WIDGETS: VANILLA CANVAS + JS · ALL CODE LABS: GNU OCTAVE ≥ 7 · BEST READ SLOWLY</p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+const EULER="#E4A93C", GAUSS="#7FAFC6", MUTED="#8C97A6", TEXT="#D9DFE7", GRID="rgba(217,223,231,0.08)", GOOD="#7CC98F", BAD="#D97B6C", INKD="#0A0F18";
+const TAU=Math.PI*2;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function fmt(x,d){ if(!isFinite(x)) return String(x); return Number(x).toFixed(d===undefined?3:d); }
+function mono(ctx,size){ ctx.font = size+'px "SF Mono", Menlo, Consolas, monospace'; }
+function serif(ctx,size,italic){ ctx.font = (italic?"italic ":"")+size+'px "Palatino Linotype", Palatino, Georgia, serif'; }
+function debounce(fn,ms){ let t; return function(...a){ const self=this; clearTimeout(t); t=setTimeout(()=>fn.apply(self,a),ms); }; }
+function throttleRAF(fn){ let raf=0; return function(...a){ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; fn(...a); }); }; }
+
+// Canvas helper that avoids constant resizing -> prevents jumpy layout
+function prepareCanvas(canvas, force){
+  const dpr = window.devicePixelRatio||1;
+  const rect = canvas.getBoundingClientRect();
+  const cssW = Math.max(Math.round(rect.width), 10);
+  const cssH = parseInt(canvas.getAttribute("height"),10) || 300;
+  if(!force && canvas._cssW===cssW && canvas._cssH===cssH && canvas._dpr===dpr && canvas._ctx){
+    return {ctx:canvas._ctx, w:cssW, h:cssH, dpr};
+  }
+  // only touch width/height when needed
+  if(canvas.width !== Math.round(cssW*dpr) || canvas.height !== Math.round(cssH*dpr)){
+    canvas.width = Math.round(cssW*dpr);
+    canvas.height = Math.round(cssH*dpr);
+  }
+  canvas.style.height = cssH+"px";
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  canvas._cssW=cssW; canvas._cssH=cssH; canvas._dpr=dpr; canvas._ctx=ctx;
+  return {ctx,w:cssW,h:cssH,dpr};
+}
+function clear(ctx,w,h){ ctx.fillStyle=INKD; ctx.fillRect(0,0,w,h); }
+
+// ---------- copy buttons (no scroll jump) ----------
+document.querySelectorAll("button.copy").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const pre = btn.closest(".lab").querySelector("pre");
+    const text = pre.textContent;
+    const done = ok=>{
+      const orig = "copy";
+      btn.textContent = ok ? "copied ✓" : "failed";
+      setTimeout(()=>btn.textContent=orig,1600);
+    };
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(()=>done(true)).catch(()=>fallback(text, done));
+    } else {
+      fallback(text, done);
+    }
+    function fallback(t, cb){
+      const ta=document.createElement("textarea");
+      ta.value=t; ta.setAttribute("readonly","");
+      ta.style.position="fixed"; ta.style.top="-1000px"; ta.style.left="-1000px";
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand("copy"); cb(true); } catch(e){ cb(false); }
+      document.body.removeChild(ta);
+    }
+  });
+});
+// placeholder links
+document.querySelectorAll('a[data-placeholder]').forEach(a=>{
+  a.addEventListener('click', e=>e.preventDefault());
+});
+
+/* ================= 1. HERO EMBLEM ================= */
+(function(){
+  const canvas=document.getElementById("heroCanvas"); if(!canvas) return;
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height;
+  const cx=W/2, cy=H/2, R=W*0.36;
+  let t0=null, raf=0, running=!reduceMotion;
+  function frame(ts){
+    if(t0===null) t0=ts;
+    const t=(ts-t0)/1000;
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle="rgba(217,223,231,0.07)"; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(cx-R*1.25,cy); ctx.lineTo(cx+R*1.25,cy); ctx.moveTo(cx,cy-R*1.25); ctx.lineTo(cx,cy+R*1.25); ctx.stroke();
+    const rot = reduceMotion?0:t*0.15;
+    ctx.strokeStyle="rgba(127,175,198,0.85)"; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let k=0;k<=17;k++){ const a=rot+k*TAU/17-Math.PI/2; const x=cx+Math.cos(a)*R*0.62, y=cy+Math.sin(a)*R*0.62; k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.stroke();
+    ctx.fillStyle="rgba(127,175,198,0.9)";
+    for(let k=0;k<17;k++){ const a=rot+k*TAU/17-Math.PI/2; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*R*0.62, cy+Math.sin(a)*R*0.62,4,0,TAU); ctx.fill(); }
+    const th = reduceMotion?TAU*0.999:(t*0.5)%TAU;
+    ctx.strokeStyle="rgba(228,169,60,0.28)"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.strokeStyle=EULER; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+th); ctx.stroke();
+    const px=cx+Math.cos(-Math.PI/2+th)*R, py=cy+Math.sin(-Math.PI/2+th)*R;
+    ctx.strokeStyle="rgba(228,169,60,0.5)"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+    ctx.fillStyle=EULER; ctx.beginPath(); ctx.arc(px,py,8,0,TAU); ctx.fill();
+    if(running) raf=requestAnimationFrame(frame);
+  }
+  function start(){ if(!running) {running=true; if(!raf) raf=requestAnimationFrame(frame);} }
+  function stop(){ running=false; if(raf){ cancelAnimationFrame(raf); raf=0; } }
+  const io = new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting && !document.hidden && !reduceMotion) start(); else stop();
+  },{threshold:0.1});
+  io.observe(canvas);
+  document.addEventListener("visibilitychange", ()=>{ if(document.hidden) stop(); else if(!reduceMotion) start(); });
+  raf=requestAnimationFrame(frame);
+})();
+
+/* ================= 2. EULER IDENTITY ================= */
+(function(){
+  const canvas=document.getElementById("identityCanvas"); if(!canvas) return;
+  const slider=document.getElementById("thetaSlider"), out=document.getElementById("thetaOut"),
+        playBtn=document.getElementById("playBtn"), piBtn=document.getElementById("toPiBtn"),
+        readout=document.getElementById("identityReadout");
+  let env=prepareCanvas(canvas,true), playing=false, raf=0;
+  function draw(){
+    const {ctx,w,h}=env;
+    const th=slider.value/100;
+    const cx=w*0.32, cy=h/2, R=Math.min(w*0.24,h*0.38);
+    clear(ctx,w,h);
+    ctx.strokeStyle=GRID; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(10,cy); ctx.lineTo(w-10,cy); ctx.moveTo(cx,14); ctx.lineTo(cx,h-14); ctx.stroke();
+    mono(ctx,11); ctx.fillStyle=MUTED; ctx.fillText("Re",cx+R+16,cy-8); ctx.fillText("Im",cx+8,24); ctx.fillText("−1",cx-R-22,cy+16); ctx.fillText("+1",cx+R+6,cy+16);
+    ctx.strokeStyle="rgba(228,169,60,0.35)"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.strokeStyle=EULER; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(cx,cy,R,0,-th,true); ctx.stroke();
+    const px=cx+Math.cos(th)*R, py=cy-Math.sin(th)*R;
+    ctx.setLineDash([4,4]); ctx.lineWidth=1.2; ctx.strokeStyle=GAUSS; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px,cy); ctx.stroke();
+    ctx.strokeStyle=GOOD; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(cx,py); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle=GOOD; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,cy); ctx.stroke();
+    ctx.strokeStyle=GAUSS; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,py); ctx.stroke();
+    ctx.strokeStyle=EULER; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+    ctx.fillStyle=EULER; ctx.beginPath(); ctx.arc(px,py,6,0,TAU); ctx.fill();
+    serif(ctx,15,true); ctx.fillStyle=EULER; ctx.fillText("e^iθ",px+10,py-10);
+    const wx=w*0.60, ww=w*0.36;
+    ctx.strokeStyle=GRID; ctx.beginPath(); ctx.moveTo(wx,cy); ctx.lineTo(wx+ww,cy); ctx.stroke();
+    ctx.strokeStyle=GAUSS; ctx.lineWidth=1.8; ctx.beginPath();
+    for(let i=0;i<=120;i++){ const a=th*i/120; const x=wx+ww*a/TAU, y=cy-Math.sin(a)*R; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.stroke(); ctx.fillStyle=GAUSS; ctx.beginPath(); ctx.arc(wx+ww*th/TAU,cy-Math.sin(th)*R,4,0,TAU); ctx.fill();
+    mono(ctx,11); ctx.fillStyle=MUTED; ctx.fillText("sin θ unrolls into a wave →",wx,h-16);
+    out.textContent=fmt(th,2)+" rad";
+    const atPi=Math.abs(th-Math.PI)<0.011;
+    readout.innerHTML='<span class="k">θ = </span>'+fmt(th,4)+'<span class="k"> rad = </span>'+fmt(th*180/Math.PI,1)+'°<br>'+
+      '<span class="k">e<sup>iθ</sup> = </span><span class="ok">'+fmt(Math.cos(th),4)+'</span><span class="k"> + </span><span class="vg">'+fmt(Math.sin(th),4)+'</span><span class="k">·i</span>'+(atPi?'<br><span class="ve">★ θ = π  →  e<sup>iπ</sup> = −1  →  e<sup>iπ</sup> + 1 = 0</span>':'');
+  }
+  const schedule = throttleRAF(draw);
+  function tick(){ if(!playing) return; const v=(+slider.value+2)%629; slider.value=v; draw(); raf=requestAnimationFrame(tick); }
+  playBtn.addEventListener("click", ()=>{ playing=!playing; playBtn.textContent=playing?"⏸ pause":"▶ play"; if(playing&&!reduceMotion) raf=requestAnimationFrame(tick); else { if(raf) cancelAnimationFrame(raf); draw(); } });
+  piBtn.addEventListener("click", ()=>{ playing=false; playBtn.textContent="▶ play"; if(raf) cancelAnimationFrame(raf); slider.value=Math.round(Math.PI*100); draw(); });
+  slider.addEventListener("input", ()=>{ playing=false; playBtn.textContent="▶ play"; if(raf) cancelAnimationFrame(raf); schedule(); });
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 3. BASEL ================= */
+(function(){
+  const canvas=document.getElementById("baselCanvas"); if(!canvas) return;
+  const slider=document.getElementById("baselSlider"), out=document.getElementById("baselOut"), readout=document.getElementById("baselReadout");
+  let env=prepareCanvas(canvas,true); const TARGET=Math.PI*Math.PI/6;
+  function draw(){
+    const {ctx,w,h}=env; const N=+slider.value; clear(ctx,w,h);
+    const padL=52,padR=18,padT=26,padB=34, pw=w-padL-padR, ph=h-padT-padB, yMax=1.75;
+    const Y=v=>padT+ph*(1-v/yMax);
+    ctx.strokeStyle=GRID; mono(ctx,10.5); ctx.fillStyle=MUTED;
+    [0.5,1.0,1.5].forEach(g=>{ ctx.beginPath(); ctx.moveTo(padL,Y(g)); ctx.lineTo(w-padR,Y(g)); ctx.stroke(); ctx.fillText(g.toFixed(1),16,Y(g)+4); });
+    ctx.strokeStyle=EULER; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(padL,Y(TARGET)); ctx.lineTo(w-padR,Y(TARGET)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=EULER; ctx.fillText("π²/6 ≈ "+fmt(TARGET,4),padL+6,Y(TARGET)-7);
+    let sum=0, bw=pw/N;
+    for(let n=1;n<=N;n++){ sum+=1/(n*n); const x=padL+(n-1)*bw; const grad=n/N; ctx.fillStyle="rgba(228,169,60,"+(0.25+0.55*grad)+")"; ctx.fillRect(x+bw*0.08,Y(sum),Math.max(bw*0.84,1),padT+ph-Y(sum)); }
+    ctx.fillStyle=MUTED; ctx.fillText("1",padL,h-14); ctx.fillText("N = "+N,padL+pw-46,h-14);
+    out.textContent=N;
+    readout.innerHTML='<span class="k">partial sum S('+N+') = </span>'+fmt(sum,6)+'<span class="k">   target π²/6 = </span><span class="ve">'+fmt(TARGET,6)+'</span><span class="k">   gap = </span>'+fmt(TARGET-sum,6)+'<span class="k">  (≈ 1/N = '+fmt(1/N,6)+')</span>';
+  }
+  const schedule=throttleRAF(draw);
+  slider.addEventListener("input", schedule);
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 4. KÖNIGSBERG ================= */
+(function(){
+  const canvas=document.getElementById("bridgeCanvas"); if(!canvas) return;
+  const resetBtn=document.getElementById("bridgeReset"), readout=document.getElementById("bridgeReadout");
+  const NODES=[{id:"N",label:"North bank",x:0.50,y:0.16},{id:"I",label:"Kneiphof (island)",x:0.34,y:0.52},{id:"S",label:"South bank",x:0.50,y:0.88},{id:"E",label:"East spit",x:0.80,y:0.52}];
+  const EDGES=[[0,1,-0.10],[0,1,0.10],[1,2,-0.10],[1,2,0.10],[0,3,0.06],[2,3,-0.06],[1,3,0.0]];
+  let used=EDGES.map(()=>false), current=null, path=[], env=prepareCanvas(canvas,true);
+  function edgeMid(e,w,h){ const a=NODES[e[0]], b=NODES[e[1]]; const mx=(a.x+b.x)/2, my=(a.y+b.y)/2; const dx=b.x-a.x, dy=b.y-a.y; const nx=-dy, ny=dx; const off=e[2]; return {x:(mx+nx*off)*w, y:(my+ny*off)*h, cx:(mx+nx*off*0.45)*w, cy:(my+ny*off*0.45)*h}; }
+  function totalDeg(){ const d=[0,0,0,0]; EDGES.forEach((e,i)=>{ if(!used[i]){ d[e[0]]++; d[e[1]]++; } }); return d; }
+  function draw(){ const {ctx,w,h}=env; clear(ctx,w,h);
+    EDGES.forEach((e,i)=>{ const a=NODES[e[0]], b=NODES[e[1]], m=edgeMid(e,w,h); ctx.strokeStyle=used[i]?"rgba(228,169,60,0.9)":"rgba(217,223,231,0.35)"; ctx.lineWidth=used[i]?3.5:2; ctx.beginPath(); ctx.moveTo(a.x*w,a.y*h); ctx.quadraticCurveTo(m.cx,m.cy,b.x*w,b.y*h); ctx.stroke(); ctx.fillStyle=used[i]?EULER:"#3A4A5E"; ctx.beginPath(); ctx.arc(m.x,m.y,7,0,TAU); ctx.fill(); ctx.strokeStyle=INKD; ctx.lineWidth=1.5; ctx.stroke(); });
+    const deg=totalDeg(); NODES.forEach((n,i)=>{ const x=n.x*w,y=n.y*h,active=current===i; ctx.fillStyle=active?EULER:"#22303F"; ctx.strokeStyle=active?EULER:MUTED; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,22,0,TAU); ctx.fill(); ctx.stroke(); serif(ctx,17,false); ctx.fillStyle=active?INKD:TEXT; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(n.id,x,y); mono(ctx,10.5); ctx.fillStyle=MUTED; ctx.fillText("deg "+deg[i]+(deg[i]%2?" (odd)":" (even)"),x,y+36); ctx.textAlign="start"; ctx.textBaseline="alphabetic"; });
+    updateReadout();
+  }
+  function updateReadout(){ const crossed=used.filter(Boolean).length; let msg; if(current===null){ msg='<span class="k">Click a landmass to choose your starting point.</span>'; } else if(crossed===7){ msg='<span class="ok">All seven crossed?! Check the code — Euler proved this impossible.</span>'; } else { const avail=EDGES.filter((e,i)=>!used[i]&&(e[0]===current||e[1]===current)).length; if(avail===0){ msg='<span class="no">Stuck at '+NODES[current].id+' with '+(7-crossed)+' bridge(s) uncrossed.</span> <span class="k">Every landmass has odd degree — Euler says: with more than two odd vertices, every walk strands you. Always.</span>'; } else { msg='<span class="k">At </span><span class="ve">'+NODES[current].label+'</span><span class="k"> · crossed </span>'+crossed+'/7<span class="k"> · walk: </span>'+path.join(" → "); } } readout.innerHTML='<span class="k">degrees: </span>N=3, I=5, S=3, E=3 <span class="no">(four odd vertices → no Euler path can exist)</span><br>'+msg; }
+  canvas.addEventListener("click", ev=>{ const rect=canvas.getBoundingClientRect(); const x=ev.clientX-rect.left, y=ev.clientY-rect.top; const {w,h}=env; for(let i=0;i<NODES.length;i++){ if(Math.hypot(x-NODES[i].x*w,y-NODES[i].y*h)<26){ if(current===null||path.length<=1){ current=i; path=[NODES[i].id]; used=EDGES.map(()=>false); draw(); } return; } } if(current===null) return; for(let i=0;i<EDGES.length;i++){ const m=edgeMid(EDGES[i],w,h); if(!used[i]&&Math.hypot(x-m.x,y-m.y)<14){ const e=EDGES[i]; if(e[0]===current||e[1]===current){ used[i]=true; current=(e[0]===current)?e[1]:e[0]; path.push(NODES[current].id); draw(); } return; } } });
+  resetBtn.addEventListener("click", ()=>{ used=EDGES.map(()=>false); current=null; path=[]; draw(); });
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 5. POLYHEDRA ================= */
+(function(){
+  const canvas=document.getElementById("polyCanvas"); if(!canvas) return;
+  const sel=document.getElementById("polySelect"), spinBtn=document.getElementById("polySpin"), readout=document.getElementById("polyReadout");
+  const PHI=(1+Math.sqrt(5))/2, iP=1/PHI;
+  function dist(a,b){ return Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]); }
+  function edgesFrom(verts,tol){ let min=Infinity; for(let i=0;i<verts.length;i++) for(let j=i+1;j<verts.length;j++){ const d=dist(verts[i],verts[j]); if(d<min-1e-9) min=d; } const E=[]; for(let i=0;i<verts.length;i++) for(let j=i+1;j<verts.length;j++) if(Math.abs(dist(verts[i],verts[j])-min)<tol) E.push([i,j]); return E; }
+  function buildSolids(){ const s={}; s.tetra={name:"Tetrahedron",F:4,verts:[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]]}; s.cube={name:"Cube",F:6,verts:[]}; [-1,1].forEach(a=>{[-1,1].forEach(b=>{[-1,1].forEach(c=>{s.cube.verts.push([a,b,c]);});});}); s.octa={name:"Octahedron",F:8,verts:[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]}; s.icosa={name:"Icosahedron",F:20,verts:[]}; [-1,1].forEach(a=>{[-PHI,PHI].forEach(b=>{s.icosa.verts.push([0,a,b],[a,b,0],[b,0,a]);});}); s.dodeca={name:"Dodecahedron",F:12,verts:[]}; [-1,1].forEach(a=>{[-1,1].forEach(b=>{[-1,1].forEach(c=>{s.dodeca.verts.push([a,b,c]);});});}); [-iP,iP].forEach(a=>{[-PHI,PHI].forEach(b=>{s.dodeca.verts.push([0,a,b],[a,b,0],[b,0,a]);});}); Object.keys(s).forEach(k=>{s[k].edges=edgesFrom(s[k].verts,0.01);}); return s; }
+  const SOLIDS=buildSolids(); let rotX=0.45, rotY=0.6, spinning=!reduceMotion, dragging=false, lastX=0, lastY=0, env=prepareCanvas(canvas,true), raf=0;
+  function draw(){ const {ctx,w,h}=env; clear(ctx,w,h); const solid=SOLIDS[sel.value]; const cx=w/2, cy=h/2-8, scale=Math.min(w,h)*0.26; const cX=Math.cos(rotX), sX=Math.sin(rotX), cY=Math.cos(rotY), sY=Math.sin(rotY); const proj=solid.verts.map(v=>{ const m=Math.hypot(v[0],v[1],v[2]); let x=v[0]/m,y=v[1]/m,z=v[2]/m; const x1=x*cY+z*sY, z1=-x*sY+z*cY, y1=y*cX-z1*sX, z2=y*sX+z1*cX, persp=2.6/(2.6+z2); return {x:cx+x1*scale*persp,y:cy+y1*scale*persp,z:z2}; }); solid.edges.slice().sort((a,b)=>(proj[a[0]].z+proj[a[1]].z)-(proj[b[0]].z+proj[b[1]].z)).forEach(e=>{ const zAvg=(proj[e[0]].z+proj[e[1]].z)/2, alpha=0.28+0.6*(1-(zAvg+1)/2); ctx.strokeStyle="rgba(228,169,60,"+fmt(alpha,2)+")"; ctx.lineWidth=zAvg<0?2.4:1.4; ctx.beginPath(); ctx.moveTo(proj[e[0]].x,proj[e[0]].y); ctx.lineTo(proj[e[1]].x,proj[e[1]].y); ctx.stroke(); }); proj.forEach(p=>{ ctx.fillStyle="rgba(228,169,60,"+fmt(0.5+0.5*(1-(p.z+1)/2),2)+")"; ctx.beginPath(); ctx.arc(p.x,p.y,p.z<0?4:3,0,TAU); ctx.fill(); }); const V=solid.verts.length,E=solid.edges.length,F=solid.F; mono(ctx,12); ctx.fillStyle=MUTED; ctx.fillText(solid.name.toUpperCase()+"  ·  drag to rotate",16,26); readout.innerHTML='<span class="k">V = </span><span class="ve">'+V+'</span><span class="k">   E = </span><span class="ve">'+E+'</span><span class="k">   F = </span><span class="ve">'+F+'</span><span class="k">   →   V − E + F = '+V+' − '+E+' + '+F+' = </span><span class="ok">'+(V-E+F)+'</span>'; }
+  function spin(){ if(spinning&&!dragging){ rotY+=0.008; rotX+=0.003; draw(); } raf=requestAnimationFrame(spin); }
+  canvas.addEventListener("pointerdown", e=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", e=>{ if(!dragging) return; rotY+=(e.clientX-lastX)*0.01; rotX+=(e.clientY-lastY)*0.01; lastX=e.clientX; lastY=e.clientY; draw(); });
+  canvas.addEventListener("pointerup", ()=>{ dragging=false; });
+  sel.addEventListener("change", draw);
+  spinBtn.addEventListener("click", ()=>{ spinning=!spinning; spinBtn.textContent=spinning?"⏸ pause spin":"▶ resume spin"; });
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw(); if(!reduceMotion) raf=requestAnimationFrame(spin); else {spinning=false; spinBtn.textContent="▶ resume spin";}
+})();
+
+/* ================= 6. GAUSS SUM ================= */
+(function(){
+  const canvas=document.getElementById("sumCanvas"); if(!canvas) return;
+  const slider=document.getElementById("sumSlider"), out=document.getElementById("sumOut"), readout=document.getElementById("sumReadout");
+  let env=prepareCanvas(canvas,true);
+  function draw(){ const {ctx,w,h}=env; const n=+slider.value; clear(ctx,w,h); const padX=34, baseY=h-52, step=(w-2*padX)/(n-1); for(let k=1;k<=n/2;k++){ const x1=padX+(k-1)*step, x2=padX+(n-k)*step, r=(x2-x1)/2, mid=(x1+x2)/2, frac=(k-1)/(n/2); ctx.strokeStyle="rgba(127,175,198,"+fmt(0.85-0.5*frac,2)+")"; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(mid,baseY,r,Math.PI,0); ctx.stroke(); } mono(ctx,n>24?9:11); for(let k=1;k<=n;k++){ const x=padX+(k-1)*step; ctx.fillStyle=GAUSS; ctx.beginPath(); ctx.arc(x,baseY,3.4,0,TAU); ctx.fill(); if(n<=24||k===1||k===n||k%5===0){ ctx.fillStyle=MUTED; ctx.textAlign="center"; ctx.fillText(k,x,baseY+20); } } ctx.textAlign="center"; serif(ctx,16,true); ctx.fillStyle=TEXT; ctx.fillText("each pair sums to "+(n+1),w/2,34); ctx.textAlign="start"; out.textContent=n; readout.innerHTML='<span class="k">pairs: </span>'+(n/2)+'<span class="k">   each summing to: </span><span class="vg">'+(n+1)+'</span><span class="k">   →   total = </span>'+(n/2)+' × '+(n+1)+' = <span class="ok">'+(n*(n+1)/2)+'</span>'+(n===100?'  <span class="ve">← Büttner\'s slate</span>':''); }
+  const schedule=throttleRAF(draw);
+  slider.addEventListener("input", schedule);
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 7. MODULAR ================= */
+(function(){
+  const canvas=document.getElementById("modCanvas"); if(!canvas) return;
+  const mSlider=document.getElementById("modM"), mOut=document.getElementById("modMOut"), aSlider=document.getElementById("modA"), aOut=document.getElementById("modAOut"), readout=document.getElementById("modReadout");
+  let env=prepareCanvas(canvas,true);
+  function draw(){ const {ctx,w,h}=env; const m=+mSlider.value, a=+aSlider.value; clear(ctx,w,h); const cx=w/2, cy=h/2, R=Math.min(w,h)*0.42; ctx.strokeStyle="rgba(127,175,198,0.25)"; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke(); function pt(k){ const ang=k*TAU/m-Math.PI/2; return [cx+Math.cos(ang)*R, cy+Math.sin(ang)*R]; } for(let k=0;k<m;k++){ const p1=pt(k), p2=pt((a*k)%m); const hue=0.35+0.4*Math.abs(Math.sin(k*TAU/m)); ctx.strokeStyle="rgba(127,175,198,"+fmt(hue,2)+")"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.stroke(); } ctx.fillStyle=GAUSS; for(let k=0;k<m;k++){ const p=pt(k); ctx.beginPath(); ctx.arc(p[0],p[1],2.6,0,TAU); ctx.fill(); } mOut.textContent=m; aOut.textContent=a; function gcd(x,y){ while(y){ const t=x%y; x=y; y=t; } return x; } const g=gcd(a % m ===0? m : a, m); let orderTxt; if(g===1){ let v=a % m, ord=1; while(v!==1 && ord < m+1){ v=(v*a)%m; ord++; } orderTxt='<span class="k">gcd(a,m)=1 → a is invertible; multiplicative order of '+a+' mod '+m+' = </span><span class="vg">'+ord+'</span>'; } else { orderTxt='<span class="k">gcd('+a+','+m+') = '+g+' > 1 → '+a+' is a zero-divisor mod '+m+' (not invertible)</span>'; } readout.innerHTML='<span class="k">drawing k → </span>'+a+'·k <span class="k">mod</span> '+m+'<span class="k"> for k = 0 … '+(m-1)+'</span><br>'+orderTxt; }
+  const schedule=throttleRAF(draw);
+  mSlider.addEventListener("input", schedule); aSlider.addEventListener("input", schedule);
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 8. n-GONS ================= */
+(function(){
+  const canvas=document.getElementById("gonCanvas"); if(!canvas) return;
+  const slider=document.getElementById("gonSlider"), out=document.getElementById("gonOut"), jump=document.getElementById("gonSeventeen"), readout=document.getElementById("gonReadout");
+  const FERMAT=[3,5,17,257,65537];
+  function analyze(n){ let m=n, twos=0; while(m%2===0){ m/=2; twos++; } const oddPart=m; const factors=[]; for(let i=0;i<FERMAT.length;i++){ if(m%FERMAT[i]===0){ factors.push(FERMAT[i]); m/=FERMAT[i]; if(m%FERMAT[i]===0){ return {ok:false,twos,odd:oddPart,why:"repeated Fermat prime "+FERMAT[i]}; } } } if(m!==1) return {ok:false,twos,odd:oddPart,why:oddPart+" contains a non-Fermat prime factor"}; return {ok:true,twos,odd:oddPart,factors}; }
+  let env=prepareCanvas(canvas,true);
+  function draw(){ const {ctx,w,h}=env; const n=+slider.value, res=analyze(n); clear(ctx,w,h); const cx=w/2, cy=h/2, R=Math.min(w,h)*0.38, col=res.ok?GAUSS:BAD; ctx.strokeStyle="rgba(217,223,231,0.12)"; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke(); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); for(let k=0;k<=n;k++){ const a=k*TAU/n-Math.PI/2, x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R; k?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); ctx.fillStyle=col; for(let k=0;k<n;k++){ const a=k*TAU/n-Math.PI/2; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*R,cy+Math.sin(a)*R,3.5,0,TAU); ctx.fill(); } serif(ctx,30,false); ctx.fillStyle=col; ctx.textAlign="center"; ctx.fillText("n = "+n,cx,42); mono(ctx,12); ctx.fillText(res.ok?"CONSTRUCTIBLE":"IMPOSSIBLE",cx,h-20); ctx.textAlign="start"; out.textContent=n; let detail; if(res.ok){ detail='<span class="k">n = '+n+' = 2<sup>'+res.twos+'</sup>'+(res.factors.length?' × '+res.factors.join(" × "):'')+' — </span><span class="ok">distinct Fermat primes only ✓ compass &amp; straightedge suffice</span>'; if(n===17) detail+='<br><span class="vg">★ March 30, 1796 — the discovery that made Gauss choose mathematics.</span>'; } else { detail='<span class="k">n = '+n+': odd part '+res.odd+' fails — '+res.why+'. </span><span class="no">✗ provably impossible with compass &amp; straightedge (Wantzel, 1837)</span>'; } readout.innerHTML=detail; }
+  const schedule=throttleRAF(draw);
+  jump.addEventListener("click", ()=>{ slider.value=17; draw(); }); slider.addEventListener("input", schedule);
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 9. LEAST SQUARES ================= */
+(function(){
+  const canvas=document.getElementById("lsqCanvas"); if(!canvas) return;
+  const clearBtn=document.getElementById("lsqClear"), demoBtn=document.getElementById("lsqDemo"), sqBtn=document.getElementById("lsqSquares"), readout=document.getElementById("lsqReadout");
+  let pts=[], showSquares=false, env=prepareCanvas(canvas,true);
+  function fit(){ const n=pts.length; if(n<2) return null; let sx=0,sy=0,sxx=0,sxy=0; pts.forEach(p=>{ sx+=p.x; sy+=p.y; sxx+=p.x*p.x; sxy+=p.x*p.y; }); const den=n*sxx-sx*sx; if(Math.abs(den)<1e-9) return null; const m=(n*sxy-sx*sy)/den, b=(sy-m*sx)/n; return {m,b}; }
+  function draw(){ const {ctx,w,h}=env; clear(ctx,w,h); ctx.strokeStyle=GRID; for(let gx=0;gx<w;gx+=40){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,h); ctx.stroke(); } for(let gy=0;gy<h;gy+=40){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(w,gy); ctx.stroke(); } const f=fit(); if(f){ pts.forEach(p=>{ const yhat=f.m*p.x+f.b, r=p.y-yhat; if(showSquares){ ctx.fillStyle="rgba(217,123,108,0.12)"; ctx.strokeStyle="rgba(217,123,108,0.4)"; const s=Math.abs(r); ctx.fillRect(p.x,Math.min(p.y,yhat),s,s); ctx.strokeRect(p.x,Math.min(p.y,yhat),s,s); } ctx.strokeStyle="rgba(217,123,108,0.7)"; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x,yhat); ctx.stroke(); }); ctx.strokeStyle=GAUSS; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(0,f.b); ctx.lineTo(w,f.m*w+f.b); ctx.stroke(); } pts.forEach(p=>{ ctx.fillStyle=TEXT; ctx.beginPath(); ctx.arc(p.x,p.y,5.5,0,TAU); ctx.fill(); ctx.strokeStyle=INKD; ctx.lineWidth=2; ctx.stroke(); }); if(!pts.length){ mono(ctx,13); ctx.fillStyle=MUTED; ctx.fillText("click to place observations …",20,34); } if(f){ let ss=0,sy=0; pts.forEach(p=>sy+=p.y); const ybar=sy/pts.length; let sst=0; pts.forEach(p=>{ const r=p.y-(f.m*p.x+f.b); ss+=r*r; sst+=(p.y-ybar)*(p.y-ybar); }); const r2=sst>1e-9?1-ss/sst:1; readout.innerHTML='<span class="k">n = </span>'+pts.length+'<span class="k">   best fit (canvas coords): y = </span><span class="vg">'+fmt(f.m,3)+'</span><span class="k">·x + </span><span class="vg">'+fmt(f.b,1)+'</span><span class="k">   Σ(residual²) = </span>'+fmt(ss,0)+'<span class="k">   R² = </span><span class="ok">'+fmt(Math.max(0,r2),4)+'</span>'; } else { readout.innerHTML='<span class="k">place at least two points to solve the normal equations</span>'; } }
+  canvas.addEventListener("click", ev=>{ const rect=canvas.getBoundingClientRect(); const x=ev.clientX-rect.left, y=ev.clientY-rect.top; for(let i=0;i<pts.length;i++){ if(Math.hypot(pts[i].x-x,pts[i].y-y)<12){ pts.splice(i,1); draw(); return; } } pts.push({x,y}); draw(); });
+  clearBtn.addEventListener("click", ()=>{ pts=[]; draw(); });
+  sqBtn.addEventListener("click", ()=>{ showSquares=!showSquares; sqBtn.textContent=showSquares?"□ hide squares":"□ show squares"; draw(); });
+  demoBtn.addEventListener("click", ()=>{ pts=[]; const w=env.w; let seed=1801; function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; } for(let i=0;i<14;i++){ const x=40+(w-90)*i/13, y=300-0.55*x+(rnd()-0.5)*80; pts.push({x,y:Math.max(20,Math.min(350,y))}); } draw(); });
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 10. GAUSSIAN ================= */
+(function(){
+  const canvas=document.getElementById("gaussCanvas"); if(!canvas) return;
+  const muS=document.getElementById("muSlider"), muO=document.getElementById("muOut"), sgS=document.getElementById("sigSlider"), sgO=document.getElementById("sigOut"), readout=document.getElementById("gaussReadout");
+  let env=prepareCanvas(canvas,true);
+  function draw(){ const {ctx,w,h}=env; const mu=muS.value/10, sig=sgS.value/10; clear(ctx,w,h); const padB=34, padT=18, xMin=-6, xMax=6; const X=v=>(v-xMin)/(xMax-xMin)*w; function pdf(x){ return Math.exp(-(x-mu)*(x-mu)/(2*sig*sig))/(sig*Math.sqrt(TAU)); } const peak=pdf(mu); const yMax=Math.max(peak*1.18,0.55); const yScale=(h-padB-padT)/yMax; const Y=v=>h-padB-v*yScale; const bands=[{k:3,c:"rgba(127,175,198,0.07)"},{k:2,c:"rgba(127,175,198,0.12)"},{k:1,c:"rgba(127,175,198,0.20)"}]; bands.forEach(b=>{ ctx.fillStyle=b.c; ctx.beginPath(); ctx.moveTo(X(mu-b.k*sig),h-padB); for(let x=mu-b.k*sig;x<=mu+b.k*sig;x+=0.02) ctx.lineTo(X(x),Y(pdf(x))); ctx.lineTo(X(mu+b.k*sig),h-padB); ctx.closePath(); ctx.fill(); }); ctx.strokeStyle=GRID; ctx.beginPath(); ctx.moveTo(0,h-padB); ctx.lineTo(w,h-padB); ctx.stroke(); mono(ctx,10.5); ctx.fillStyle=MUTED; ctx.textAlign="center"; for(let t=-6;t<=6;t+=2) ctx.fillText(t,X(t),h-14); [1,2,3].forEach(k=>{ ctx.fillStyle="rgba(127,175,198,0.7)"; ctx.fillText((k===1?"±1σ":k===2?"±2σ":"±3σ"),X(mu+k*sig),Y(pdf(mu+k*sig))-8); }); ctx.textAlign="start"; ctx.strokeStyle=GAUSS; ctx.lineWidth=2.5; ctx.beginPath(); for(let x2=xMin;x2<=xMax;x2+=0.02){ const px=X(x2), py=Y(pdf(x2)); x2===xMin?ctx.moveTo(px,py):ctx.lineTo(px,py); } ctx.stroke(); ctx.strokeStyle="rgba(228,169,60,0.7)"; ctx.setLineDash([5,4]); ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(X(mu),padT); ctx.lineTo(X(mu),h-padB); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=EULER; mono(ctx,11); ctx.fillText("μ",X(mu)+6,padT+12); muO.textContent=fmt(mu,1); sgO.textContent=fmt(sig,1); readout.innerHTML='<span class="k">peak height 1/(σ√2π) = </span>'+fmt(1/(sig*Math.sqrt(TAU)),4)+'<span class="k">   inside ±1σ: </span><span class="vg">68.27%</span><span class="k">   ±2σ: </span><span class="vg">95.45%</span><span class="k">   ±3σ: </span><span class="vg">99.73%</span><span class="k"> — invariant under every μ, σ</span>'; }
+  const schedule=throttleRAF(draw);
+  muS.addEventListener("input", schedule); sgS.addEventListener("input", schedule);
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+/* ================= 11. PRIME STAIRCASE ================= */
+(function(){
+  const canvas=document.getElementById("primeCanvas"); if(!canvas) return;
+  const slider=document.getElementById("primeSlider"), out=document.getElementById("primeOut"), readout=document.getElementById("primeReadout");
+  let env=prepareCanvas(canvas,true);
+  const LIMIT=10000; const isP=new Uint8Array(LIMIT+1); isP.fill(1); isP[0]=isP[1]=0; for(let k=2;k*k<=LIMIT;k++) if(isP[k]) for(let j=k*k;j<=LIMIT;j+=k) isP[j]=0; const piCum=new Uint16Array(LIMIT+1); for(let k=1;k<=LIMIT;k++) piCum[k]=piCum[k-1]+isP[k];
+  function liRaw(v){ if(v<=1) return 0; const GAMMA=0.5772156649015329, L=Math.log(v); let s=GAMMA+Math.log(L), term=1; for(let k=1;k<=120;k++){ term*=L/k; const add=term/k; s+=add; if(add<1e-12*Math.abs(s)) break; } return s; }
+  function li(x){ if(x<=2) return 0; return liRaw(x)-liRaw(2); }
+  function draw(){ const {ctx,w,h}=env; const xMax=+slider.value; clear(ctx,w,h); const padL=46,padR=14,padT=20,padB=32, pw=w-padL-padR, ph=h-padT-padB, yMax=piCum[xMax]*1.12+2; const X=v=>padL+pw*v/xMax, Y=v=>padT+ph*(1-v/yMax); ctx.strokeStyle=GRID; mono(ctx,10); ctx.fillStyle=MUTED; for(let g=0;g<=4;g++){ const yv=Math.round(yMax*g/4); ctx.beginPath(); ctx.moveTo(padL,Y(yv)); ctx.lineTo(w-padR,Y(yv)); ctx.stroke(); ctx.fillText(yv,12,Y(yv)+4); } ctx.fillText("0",padL,h-12); ctx.fillText(xMax,w-padR-34,h-12); ctx.strokeStyle=EULER; ctx.lineWidth=2; ctx.beginPath(); for(let i=0;i<=240;i++){ const xv=2+(xMax-2)*i/240, px=X(xv), py=Y(xv/Math.log(xv)); i?ctx.lineTo(px,py):ctx.moveTo(px,py); } ctx.stroke(); ctx.strokeStyle="rgba(217,223,231,0.75)"; ctx.setLineDash([6,4]); ctx.lineWidth=1.6; ctx.beginPath(); for(let i=0;i<=120;i++){ const xv=2+(xMax-2)*i/120, px=X(xv), py=Y(li(xv)); i?ctx.lineTo(px,py):ctx.moveTo(px,py); } ctx.stroke(); ctx.setLineDash([]); ctx.strokeStyle=GAUSS; ctx.lineWidth=2; ctx.beginPath(); const step=Math.max(1,Math.floor(xMax/pw)); ctx.moveTo(X(1),Y(0)); for(let xv=1;xv<=xMax;xv+=step){ ctx.lineTo(X(xv),Y(piCum[xv])); const nx=Math.min(xv+step,xMax); ctx.lineTo(X(nx),Y(piCum[xv])); } ctx.stroke(); mono(ctx,11); ctx.fillStyle=GAUSS; ctx.fillText("— π(x)",padL+10,padT+14); ctx.fillStyle=EULER; ctx.fillText("— x / ln x",padL+80,padT+14); ctx.fillStyle="rgba(217,223,231,0.8)"; ctx.fillText("--- Li(x)",padL+180,padT+14); out.textContent=xMax; const act=piCum[xMax], g1=xMax/Math.log(xMax), g2=li(xMax); readout.innerHTML='<span class="k">π('+xMax+') = </span><span class="vg">'+act+'</span><span class="k">   x/ln x = </span><span class="ve">'+fmt(g1,1)+'</span><span class="k"> (err '+fmt(100*(g1-act)/act,1)+'%)   Li(x) = </span>'+fmt(g2,1)+'<span class="k"> (err </span><span class="ok">'+fmt(100*(g2-act)/act,2)+'%</span><span class="k">)</span>'; }
+  const schedule=throttleRAF(draw);
+  slider.addEventListener("input", schedule);
+  window.addEventListener("resize", debounce(()=>{ env=prepareCanvas(canvas,true); draw(); },120));
+  draw();
+})();
+
+})();
+</script>
+</body>
+</html>
