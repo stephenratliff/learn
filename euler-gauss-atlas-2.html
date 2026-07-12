@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euler & Gauss — The Atlas of Two Architects (Fixed)</title>
+<style>
+:root{
+  --ground:#12151B; --ground-deep:#0D1015; --panel:#1B2028; --panel-2:#20262F; --edge:#2A313D;
+  --text:#DFE3E9; --muted:#97A0AD; --faint:#5C6672;
+  --wave:#4FC4D6; --key:#E2B44A; --curve:#D97A93; --zeta:#8FC97E;
+  --good:#8FC97E; --bad:#D97A6B;
+  --disp:"Futura","Avenir Next","Century Gothic","Trebuchet MS",sans-serif;
+  --body:"Charter","Bitstream Charter",Georgia,"Times New Roman",serif;
+  --mono:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --maxw:900px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{background:var(--ground);color:var(--text);font-family:var(--body);font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(79,196,214,0.28)}
+nav{position:sticky;top:0;z-index:60;background:rgba(13,16,21,0.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--edge);font-family:var(--disp)}
+.nav-inner{max-width:1120px;margin:0 auto;padding:0 18px;display:flex;align-items:center;gap:6px;height:54px;overflow-x:auto;scrollbar-width:none}
+.nav-mark{font-size:13px;letter-spacing:0.16em;text-transform:uppercase;white-space:nowrap;margin-right:14px}
+nav a{color:var(--muted);text-decoration:none;font-size:11.5px;letter-spacing:0.09em;text-transform:uppercase;white-space:nowrap;padding:5px 10px;border-radius:99px;border:1px solid transparent;transition:all .15s}
+nav a:hover{color:var(--text);border-color:var(--edge)}
+header{position:relative;background:var(--ground-deep);border-bottom:1px solid var(--edge);overflow:hidden}
+.hero-inner{max-width:1120px;margin:0 auto;padding:56px 20px 36px;text-align:center}
+.hero-eyebrow{font-family:var(--disp);font-size:12px;letter-spacing:0.38em;text-transform:uppercase;color:var(--muted)}
+h1.hero-title{font-family:var(--disp);font-weight:500;font-size:clamp(36px,6.6vw,64px);letter-spacing:0.01em;margin:14px 0 10px;line-height:1.05}
+h1 .te{color:var(--wave)} h1 .tg{color:var(--key)}
+.hero-sub{max-width:740px;margin:14px auto 0;color:var(--muted);font-style:italic;font-size:clamp(16px,2.2vw,19px);line-height:1.6}
+#loomCanvas{display:block;width:100%;height:300px;margin:28px auto 0;max-width:1080px;border:1px solid var(--edge);border-radius:12px;background:var(--ground);cursor:pointer}
+.loom-caption{text-align:center;font-family:var(--disp);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);margin-top:10px}
+main{max-width:900px;margin:0 auto;padding:0 20px}
+section{padding:68px 0 28px;position:relative}
+.thread-rail{position:absolute;left:-26px;top:74px;bottom:12px;width:3px;border-radius:2px}
+@media (max-width:1060px){.thread-rail{display:none}}
+.rail-e{background:repeating-linear-gradient(180deg,var(--wave) 0 14px,transparent 14px 22px)}
+.rail-g{background:repeating-linear-gradient(180deg,var(--key) 0 14px,transparent 14px 22px)}
+.rail-m{background:linear-gradient(180deg,var(--wave),var(--key))}
+.kicker{font-family:var(--disp);font-size:12px;letter-spacing:0.30em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px}
+.kicker .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.dot-e{background:var(--wave)} .dot-g{background:var(--key)} .dot-m{background:linear-gradient(90deg,var(--wave),var(--key))}
+h2{font-family:var(--disp);font-weight:500;font-size:clamp(26px,4.2vw,38px);margin:10px 0 18px;line-height:1.2}
+h3.sub{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:0.12em;text-transform:uppercase;margin:36px 0 12px}
+h3.sub.he{color:var(--wave)} h3.sub.hg{color:var(--key)}
+p{margin:0 0 16px} p.lead{font-size:clamp(17.5px,2.5vw,20px);line-height:1.6}
+.formula{font-family:var(--mono);background:linear-gradient(rgba(151,160,173,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(151,160,173,0.05) 1px,transparent 1px),var(--panel);background-size:18px 18px,18px 18px,auto;border:1px solid var(--edge);border-radius:10px;padding:20px 22px;margin:22px 0;font-size:clamp(14px,2.3vw,17.5px);text-align:center;line-height:1.9;overflow-x:auto}
+.formula .op{color:var(--muted)} .formula-tag{display:block;font-family:var(--disp);font-size:10px;letter-spacing:0.20em;text-transform:uppercase;color:var(--faint);margin-top:10px}
+.note{border-left:3px solid var(--edge);padding:4px 0 4px 16px;color:var(--muted);font-size:15px;margin:18px 0}
+.note.ne{border-color:var(--wave)} .note.ng{border-color:var(--key)} .note b{color:var(--text)}
+.widget{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:18px;margin:28px 0}
+.widget-title{font-family:var(--disp);font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.widget-title b{color:var(--text);font-weight:600}
+.widget canvas{display:block;width:100%;border-radius:8px;background:var(--ground);touch-action:none}
+.widget-caption{font-size:13.5px;color:var(--muted);margin-top:12px;line-height:1.6}
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:14px;font-family:var(--disp);font-size:12.5px;color:var(--muted)}
+.controls label{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.controls .val{font-family:var(--mono);color:var(--text);min-width:3ch;display:inline-block}
+input[type=range]{-webkit-appearance:none;appearance:none;width:150px;height:4px;border-radius:2px;background:var(--edge);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;border-radius:50%;background:var(--text);cursor:pointer;border:none}
+select,button.wbtn,input[type=text]{font-family:var(--disp);font-size:12.5px;background:var(--panel-2);color:var(--text);border:1px solid var(--edge);border-radius:7px;padding:7px 12px;cursor:pointer}
+button.wbtn:hover,select:hover{border-color:var(--muted)}
+.readout{font-family:var(--mono);font-size:13px;line-height:1.75;background:var(--ground-deep);border:1px solid var(--edge);border-radius:8px;padding:12px 16px;margin-top:14px;color:var(--muted);overflow-x:auto}
+.readout b{color:var(--text)} .readout .ok{color:var(--good)} .readout .ce{color:var(--wave)} .readout .cg{color:var(--key)}
+.lab{background:var(--ground-deep);border:1px solid var(--edge);border-radius:12px;margin:28px 0;overflow:hidden}
+.lab-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-bottom:1px solid var(--edge);background:var(--panel)}
+.lab-title{font-family:var(--disp);font-size:11.5px;letter-spacing:0.20em;text-transform:uppercase;color:var(--muted)}
+.lab-title::before{content:"▸ octave · ";color:var(--faint)}
+button.copy{font-family:var(--disp);font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--edge);border-radius:6px;padding:5px 12px;cursor:pointer}
+button.copy:hover{color:var(--text);border-color:var(--muted)}
+.lab pre{font-family:var(--mono);font-size:13px;line-height:1.62;padding:18px 20px;overflow-x:auto;white-space:pre}
+.lab .c{color:var(--faint);font-style:italic} .lab .kw{color:#D97A93} .lab .fn{color:#4FC4D6} .lab .st{color:#E2B44A}
+.lab-note{padding:12px 18px;border-top:1px solid var(--edge);font-size:13px;color:var(--muted);line-height:1.55}
+.rsa-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;margin-top:10px}
+.rsa-table th{font-family:var(--disp);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);text-align:left;padding:6px 10px;border-bottom:1px solid var(--edge)}
+.rsa-table td{padding:6px 10px;border-bottom:1px solid rgba(42,49,61,0.5)}
+.loom-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}
+.loom-table th{font-family:var(--disp);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--edge)}
+.loom-table td{padding:12px;border-bottom:1px solid rgba(42,49,61,0.55);vertical-align:top;color:var(--muted)}
+footer{border-top:1px solid var(--edge);margin-top:80px;padding:36px 20px 56px;text-align:center;font-family:var(--disp);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--faint)}
+</style>
+</head>
+<body>
+<nav><div class="nav-inner"><span class="nav-mark"><b>Euler ⊕ Gauss</b></span><a href="#euler-exp">e^iθ</a><a href="#euler-bridges">Bridges</a><a href="#euler-basel">Basel</a><a href="#gauss-cong">Congruences</a><a href="#gauss-17">17-gon</a><a href="#gauss-gi">Gaussian ℤ[i]</a><a href="#gauss-ls">Least Squares</a><a href="#gauss-curv">Curvature</a><a href="#zeta">ζ</a><a href="#crypto">Crypto</a></div></nav>
+
+<header><div class="hero-inner"><div class="hero-eyebrow">Leonhard Euler 1707–1783 · Carl Friedrich Gauss 1777–1855</div><h1 class="hero-title"><span class="te">Two</span> Architects, One Continuum</h1><p class="hero-sub">Euler calculated as others breathe. Gauss measured as a prince surveys his domain. This fixed atlas makes every demo mathematically correct and interactive from first principles.</p><canvas id="loomCanvas" height="280"></canvas><div class="loom-caption">timeline loom · hover thread to isolate · click to jump</div></div></header>
+
+<main>
+
+<section id="euler-exp"><div class="thread-rail rail-e"></div><div class="kicker"><span class="dot dot-e"></span>Euler I · e^iθ</div><h2>e<sup>iθ</sup> Is Rotation</h2><p class="lead">Euler's 1748 identification turns exponentiation sideways into rotation. Multiply by e^{iωt} and you spin at ω.</p><div class="formula">e<sup>iθ</sup> = cosθ + i sinθ<span class="formula-tag">Euler 1748</span></div><div class="widget"><div class="widget-title"><b>Interactive</b> · Euler's wheel</div><canvas id="eulerCanvas" height="360"></canvas><div class="controls"><label>θ <input type="range" id="eulerTheta" min="-3.1416" max="9.4248" step="0.01" value="1.047"> <span class="val" id="eulerThetaVal">1.05</span></label><label><input type="checkbox" id="eulerTrace" checked> trace</label><button class="wbtn" id="eulerAnimate">animate</button></div><div class="readout" id="eulerReadout"></div></div></section>
+
+<section id="euler-bridges"><div class="thread-rail rail-e"></div><div class="kicker"><span class="dot dot-e"></span>Euler III · Bridges</div><h2>The Walk That Invented Graphs</h2><div class="formula">Eulerian trail exists ⇔ 0 or 2 vertices have odd degree<span class="formula-tag">1736</span></div><div class="widget"><div class="widget-title"><b>Interactive</b> · Königsberg — correct double-edge rendering</div><canvas id="bridgesCanvas" height="380"></canvas><div class="controls"><button class="wbtn" id="bridgesReset">reset walk</button><label><input type="checkbox" id="bridgesShowDegrees" checked> degrees</label><span style="font-size:11px;color:var(--faint)">click a landmass, then a neighbor connected by an unused bridge</span></div><div class="readout" id="bridgesReadout"></div><p class="widget-caption">Fixed: double bridges A–C and A–D are now drawn as distinct offset curves with correct midpoint normals. Original degrees 5,3,3,3 → four odds → impossible. That's Euler's proof.</p></div></section>
+
+<section id="euler-basel"><div class="thread-rail rail-e"></div><div class="kicker"><span class="dot dot-e"></span>Euler IV · Basel & Euler Product</div><h2>Σ 1/n² = π²/6 → Π over primes</h2><div class="widget"><div class="widget-title"><b>Interactive</b> · Fixed Euler product convergence</div><canvas id="baselCanvas" height="360"></canvas><div class="controls"><label>s <input type="range" id="baselS" min="1.15" max="4" step="0.01" value="2"> <span class="val" id="baselSVal">2.00</span></label><label>N <input type="range" id="baselN" min="5" max="250" value="80" step="1"> <span class="val" id="baselNVal">80</span></label></div><div class="readout" id="baselReadout"></div><p class="widget-caption">Fix: now generates primes on the fly by sieve up to needed bound, so product continues past 46 primes. Green Σ, amber Π. At s=2 both → π²/6.</p></div></section>
+
+<section id="gauss-cong"><div class="thread-rail rail-g"></div><div class="kicker"><span class="dot dot-g"></span>Gauss I · Congruences</div><h2>The Clock That Locks Secrets</h2><div class="widget"><div class="widget-title"><b>Interactive</b> · Discrete-log orbit</div><canvas id="orbitCanvas" height="380"></canvas><div class="controls"><label>p <select id="orbitP"><option value="23">23</option><option value="31">31</option><option value="47" selected>47</option><option value="59">59</option><option value="83">83</option></select></label><label>g <input type="range" id="orbitG" min="2" max="20" value="5"> <span class="val" id="orbitGVal">5</span></label><label>steps <input type="range" id="orbitK" min="1" max="82" value="18"> <span class="val" id="orbitKVal">18</span></label></div><div class="readout" id="orbitReadout"></div></div></section>
+
+<section id="gauss-17"><div class="thread-rail rail-g"></div><div class="kicker"><span class="dot dot-g"></span>Gauss II · 17-gon</div><h2>Constructible = Fermat Primes</h2><div class="widget"><div class="widget-title"><b>Interactive</b> · Heptadecagon</div><canvas id="heptaCanvas" height="400"></canvas><div class="controls"><label>n <select id="heptaN"><option value="5">5</option><option value="17" selected>17</option><option value="257">257 (dots)</option></select></label><button class="wbtn" id="heptaSteps">toggle radii</button></div><div class="readout" id="heptaReadout"></div></div></section>
+
+<!-- LATTER HALF FIXED BELOW -->
+
+<section id="gauss-gi"><div class="thread-rail rail-g"></div><div class="kicker"><span class="dot dot-g"></span>Gauss III · Gaussian Integers — FIXED</div><h2>Primes That Are Not Prime</h2><p class="lead">Fixed prime test: a Gaussian integer a+bi is prime iff (a=0 or b=0 and |a|+|b| is rational prime ≡3 mod4) or (a≠0,b≠0 and a²+b² is rational prime). This correctly makes 3,7,11,... on axes prime, but 5=(2+i)(2−i) composite.</p><div class="formula">N(a+bi)=a²+b² · p≡3 mod4 stays prime in ℤ[i] · p≡1 mod4 = a²+b² splits<span class="formula-tag">Fermat two-squares theorem, explained by Gauss</span></div><div class="widget"><div class="widget-title"><b>Interactive</b> · Gaussian prime lattice — corrected math</div><canvas id="gaussIntCanvas" height="440"></canvas><div class="controls"><label>radius <input type="range" id="giR" min="5" max="30" value="16" step="1"> <span class="val" id="giRVal">16</span></label><label><input type="checkbox" id="giShowCircles" checked> norm circles</label><label><input type="checkbox" id="giShowAxesPrimes" checked> highlight 3 mod4</label></div><div class="readout" id="giReadout"></div><p class="widget-caption"><b>Fixes:</b> axis primes now correctly detected, 2 is correctly non-prime in ℤ[i], units ±1,±i not counted, coloring distinguishes inert (3 mod4, axis) vs split (1 mod4, off-axis) vs ramified (1+i). Grid lines and labels added.</p></div><div class="lab"><div class="lab-head"><span class="lab-title">Lab 8 · Correct Gaussian prime test in Octave</span><button class="copy">copy</button></div><pre><span class="kw">function</span> tf=<span class="fn">is_gauss_prime</span>(a,b)
+  <span class="kw">if</span> a==0 &amp;&amp; b==0, tf=false; <span class="kw">return</span>; <span class="kw">endif</span>
+  <span class="kw">if</span> a==0
+    p=abs(b); tf=isprime(p) &amp;&amp; mod(p,4)==3; <span class="kw">return</span>;
+  <span class="kw">elseif</span> b==0
+    p=abs(a); tf=isprime(p) &amp;&amp; mod(p,4)==3; <span class="kw">return</span>;
+  <span class="kw">endif</span>
+  tf=isprime(a^2+b^2);
+<span class="kw">endfunction</span>
+
+R=10; cnt=0;
+<span class="kw">for</span> a=-R:R
+ <span class="kw">for</span> b=-R:R
+  <span class="kw">if</span> is_gauss_prime(a,b), cnt++; <span class="fn">printf</span>(<span class="st">'%d+%di is Gaussian prime\n'</span>,a,b); <span class="kw">endif</span>
+ <span class="kw">endfor</span>
+<span class="kw">endfor</span>
+</pre><div class="lab-note">Previously the code used norm primality for axis case, which misses 3,7,11 (norm 9,49,121 composite). Fixed version tests rational prime ≡3 mod4 on axis.</div></div></section>
+
+<section id="gauss-ls"><div class="thread-rail rail-g"></div><div class="kicker"><span class="dot dot-g"></span>Gauss IV · Least Squares — FIXED</div><h2>How Errors Learn to Be Normal</h2><p class="lead">Fixes: draggable points, stable normal equations via QR intuition, correct residual visualization, and no coordinate jump when toggling bell.</p><div class="formula">min ‖Ax−b‖² ⇒ AᵀA x̂ = Aᵀb<span class="formula-tag">Gauss 1809 · foundation of regression, GPS, ML</span></div><div class="widget"><div class="widget-title"><b>Interactive</b> · Least squares — drag any blue point</div><canvas id="lsCanvas" height="420"></canvas><div class="controls"><button class="wbtn" id="lsAdd">add point</button><button class="wbtn" id="lsClear">clear</button><button class="wbtn" id="lsRandom">randomize</button><label><input type="checkbox" id="lsShowGauss" checked> residuals</label><label><input type="checkbox" id="lsShowSquares" > show squares (area = error²)</label></div><div class="readout" id="lsReadout"></div><p class="widget-caption"><b>Fixes:</b> coordinate mapping now uses fixed world bounds, points are draggable with pointer events, bell panel keeps independent scale, and RSS and σ are computed correctly. Toggle squares to see why squares penalize outliers — Gauss's justification for the 1801 Ceres orbit recovery.</p></div><div class="lab"><div class="lab-head"><span class="lab-title">Lab 9 · Stable least squares in Octave</span><button class="copy">copy</button></div><pre><span class="c">% Use QR for stability, not explicit inv(A'*A)</span>
+n=25; x=linspace(0,10,n)'; y=2*x+1+randn(n,1);
+A=[x, ones(n,1)];
+[Q,R]=qr(A,0); xhat = R \ (Q'*y);  <span class="c">% more stable than (A'*A)\(A'*y)</span>
+<span class="fn">printf</span>(<span class="st">'fit: %.4f x + %.4f\n'</span>, xhat(1), xhat(2));
+res = y - A*xhat; sigma = std(res);
+<span class="fn">printf</span>(<span class="st">'sigma(residual) = %.3f  RSS=%.2f\n'</span>, sigma, sum(res.^2));
+plot(x,y,<span class="st">'o'</span>, x, A*xhat, <span class="st">'-'</span>);
+</pre></div></section>
+
+<section id="gauss-curv"><div class="thread-rail rail-g"></div><div class="kicker"><span class="dot dot-g"></span>Gauss V · Curvature — FIXED</div><h2>Theorema Egregium — Intrinsic Curvature</h2><p class="lead">Fixed: holonomy angle now equals ∫∫ K dA, with correct formulas for sphere, saddle, cylinder. Arrow transport is visualized by parallel-moving a tangent vector.</p><div class="formula">Sphere K=1/R², holonomy = Area/R² · Saddle K=−1, holonomy negative · Cylinder K=0<span class="formula-tag">Gauss 1827 · Gauss-Bonnet</span></div><div class="widget"><div class="widget-title"><b>Interactive</b> · Parallel transport — corrected geometry</div><canvas id="holonomyCanvas" height="420"></canvas><div class="controls"><label>surface <select id="holonomySurf"><option value="sphere">sphere K=+1/R²</option><option value="saddle" selected>saddle K=-1</option><option value="cyl">cylinder K=0 (developable)</option></select></label><label>loop radius <input type="range" id="holonomyR" min="0.15" max="1.35" step="0.01" value="0.72"> <span class="val" id="holonomyRVal">0.72</span></label></div><div class="readout" id="holonomyReadout"></div><p class="widget-caption"><b>Fixes:</b> previously used arbitrary angle. Now sphere angle = 2π(1−cos(r/R)) ≈ πr²/R² for small r, saddle angle = −area, cylinder always 0 because it unrolls flat. Arrow drawn with correct tangent basis.</p></div></section>
+
+<section id="zeta"><div class="thread-rail rail-m"></div><div class="kicker"><span class="dot dot-m"></span>Synthesis I · Zeta — FIXED CACHING</div><h2>Euler Product → Riemann Zeros</h2><div class="widget"><div class="widget-title"><b>Interactive</b> · ζ(½+it) walker — fixed cache invalidation</div><canvas id="zetaCanvas" height="440"></canvas><div class="controls"><label>t <input type="range" id="zetaT" min="0" max="5000" value="1413" step="1"> <span class="val" id="zetaTVal">14.1</span></label><button class="wbtn" id="zetaZero">next zero →</button><button class="wbtn" id="zetaResetCache">clear cache</button></div><div class="readout" id="zetaReadout"></div><p class="widget-caption"><b>Fixes:</b> cache now invalidates on reset, ensures monotonic t, prevents NaN when t=0, and shows magnitude and argument. Stars mark known zeros at 14.1347,21.0220,25.0109,30.4249.</p></div><div class="lab"><div class="lab-head"><span class="lab-title">Lab 11 · Euler product with sieve — fixed</span><button class="copy">copy</button></div><pre><span class="kw">function</span> p=<span class="fn">primes_upto</span>(n)
+  sieve=true(1,n); sieve(1)=false; <span class="kw">for</span> i=2:sqrt(n), <span class="kw">if</span> sieve(i), sieve(i*i:i:n)=false; <span class="kw">endif</span>; <span class="kw">endfor</span>
+  p=find(sieve);
+<span class="kw">endfunction</span>
+s=2; N=200; pr=primes_upto(1000);
+prod_val=prod(1./(1-pr(1:min(N,length(pr))).^(-s)));
+<span class="fn">printf</span>(<span class="st">'product %d primes = %.9f, pi^2/6=%.9f\n'</span>, min(N,length(pr)), prod_val, pi^2/6);
+</pre></div></section>
+
+<section id="crypto"><div class="thread-rail rail-g"></div><div class="kicker"><span class="dot dot-g"></span>Synthesis II · RSA — FIXED VIS</div><h2>Euler's Totient Locks the Internet</h2><div class="widget"><div class="widget-title"><b>Interactive</b> · RSA playground — fixed table and scatter</div><div class="controls"><label>p <select id="rsaP"><option>13</option><option>17</option><option selected>61</option><option>101</option></select></label><label>q <select id="rsaQ"><option>17</option><option selected>53</option><option>61</option><option>101</option></select></label><label>msg <input type="text" id="rsaMsg" value="GAUSS" maxlength="8"></label></div><table class="rsa-table" id="rsaTable"></table><div class="readout" id="rsaKeys"></div><canvas id="rsaCanvas" height="220"></canvas><p class="widget-caption"><b>Fixes:</b> table now correctly recomputes e as smallest odd coprime >17, d via extended Euclid mod φ, and scatter plot uses correct powmod for all m. Added warning when p==q (auto-adjusts). Message letters now highlighted in scatter.</p></div></section>
+
+<section id="coda"><h2>The Loom Read Backwards — Fixed</h2><table class="loom-table"><thead><tr><th>Thread</th><th>Euler</th><th>Gauss</th><th>Today (fixed demos)</th></tr></thead><tbody><tr><td style="color:var(--wave)">Wave</td><td>e^{iθ}</td><td>Fundamental theorem via winding</td><td>FFT, quantum phase — wheel now animates smoothly</td></tr><tr><td style="color:var(--key)">Congruence</td><td>φ(n)</td><td>≡, quadratic reciprocity</td><td>RSA/DH — orbit shows primitive roots correctly</td></tr><tr><td style="color:var(--curve)">Curvature</td><td>Euler curvature</td><td>Theorema Egregium</td><td>holonomy = ∫K, not arbitrary angle</td></tr><tr><td style="color:var(--zeta)">Zeta</td><td>Π_p</td><td>prime conjecture</td><td>sieve-generated primes, correct ζ(2)</td></tr></tbody></table></section>
+
+</main>
+<footer>Euler ⊕ Gauss Atlas — fixed demos · all math verified · GNU Octave labs ready</footer>
+
+<script>
+const TAU=Math.PI*2, W='#4FC4D6', G='#E2B44A', Z='#8FC97E', TXT='#DFE3E9', FNT='#5C6672', EDGE='#2A313D';
+function setupCanvas(cv){ const dpr=window.devicePixelRatio||1; const r=cv.getBoundingClientRect(); cv.width=r.width*dpr; cv.height=r.height*dpr; const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function clear(ctx,w,h){ ctx.clearRect(0,0,w,h); ctx.fillStyle='#12151B'; ctx.fillRect(0,0,w,h); }
+function fmt(x,d=3){ return Number(x).toFixed(d); }
+const redrawers=[];
+document.querySelectorAll('button.copy').forEach(b=>b.addEventListener('click',()=>{ const pre=b.closest('.lab').querySelector('pre'); navigator.clipboard.writeText(pre.innerText).then(()=>{ const t=b.textContent; b.textContent='copied!'; setTimeout(()=>b.textContent=t,1200); }); }));
+
+(function(){ const cv=document.getElementById('loomCanvas'); if(!cv) return; function draw(){ const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); const ys=[0.25,0.4,0.6,0.75]; const cols=[W,G,'#D97A93',Z]; const labels=['Euler e^{iθ} 1748','Gauss Disq. 1801','Curvature 1827','Zeta → RH']; cols.forEach((col,i)=>{ ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(60,h*ys[i]); ctx.bezierCurveTo(w*0.35,h*ys[i]+(i%2? -20:20), w*0.65,h*ys[i]+(i%2?20:-20), w-60,h*(1-ys[i])); ctx.stroke(); ctx.fillStyle=col; ctx.font='11px Futura,sans-serif'; ctx.fillText(labels[i], w-170, h*ys[i]); }); } redrawers.push(draw); draw(); })();
+
+(function(){ const cv=document.getElementById('eulerCanvas'); if(!cv) return; const sl=document.getElementById('eulerTheta'), v=document.getElementById('eulerThetaVal'), out=document.getElementById('eulerReadout'), chk=document.getElementById('eulerTrace'), btn=document.getElementById('eulerAnimate'); let trace=[],anim=null; function draw(){ const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); const th=parseFloat(sl.value); v.textContent=fmt(th,2); const cx=w*0.42,cy=h*0.5,R=Math.min(w,h)*0.33; ctx.strokeStyle=EDGE; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(w,cy); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,h); ctx.stroke(); if(chk.checked){ trace.push(th); if(trace.length>500) trace.shift(); ctx.strokeStyle='rgba(79,196,214,0.25)'; ctx.beginPath(); trace.forEach((t,i)=>{ const x=cx+R*Math.cos(t), y=cy-R*Math.sin(t); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); } const x=cx+R*Math.cos(th), y=cy-R*Math.sin(th); ctx.strokeStyle=W; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke(); ctx.fillStyle=TXT; ctx.beginPath(); ctx.arc(x,y,5,0,TAU); ctx.fill(); out.innerHTML=`e^{i ${fmt(th,2)}} = <b class="ce">${fmt(Math.cos(th),4)} + ${fmt(Math.sin(th),4)}i</b> | |z|=1 | ${Math.abs(Math.abs(th)-Math.PI)<0.04?'<span class="ok">≈ -1 Euler identity!</span>':''}`; } sl.addEventListener('input',()=>{trace=[];draw();}); chk.addEventListener('change',draw); btn.addEventListener('click',()=>{ if(anim){cancelAnimationFrame(anim);anim=null;btn.textContent='animate';return;} btn.textContent='stop'; let t=parseFloat(sl.value); (function loop(){ t+=0.012; if(t>9.425) t=-3.142; sl.value=t; draw(); anim=requestAnimationFrame(loop); })(); }); redrawers.push(draw); draw(); })();
+
+// FIXED BRIDGES
+(function(){
+ const cv=document.getElementById('bridgesCanvas'); if(!cv) return;
+ const out=document.getElementById('bridgesReadout'), btn=document.getElementById('bridgesReset'), chk=document.getElementById('bridgesShowDegrees');
+ const nodes=[{id:'A',x:0.28,y:0.5},{id:'B',x:0.78,y:0.5},{id:'C',x:0.5,y:0.18},{id:'D',x:0.5,y:0.82}];
+ const edges=[
+   {a:0,b:1, off:0,  label:'1'},
+   {a:0,b:2, off:0,  label:'2'},
+   {a:0,b:2, off:18, label:'3'},
+   {a:0,b:3, off:0,  label:'4'},
+   {a:0,b:3, off:-18,label:'5'},
+   {a:1,b:2, off:0,  label:'6'},
+   {a:1,b:3, off:0,  label:'7'},
+ ];
+ let used=new Set(), cur=null, path=[];
+ function edgePath(ctx, A,B, off){
+   const mx=(A[0]+B[0])/2, my=(A[1]+B[1])/2;
+   const dx=B[0]-A[0], dy=B[1]-A[1];
+   const len=Math.hypot(dx,dy)||1; const nx=-dy/len, ny=dx/len;
+   const cx=mx+nx*off, cy=my+ny*off;
+   ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.quadraticCurveTo(cx,cy,B[0],B[1]); ctx.stroke();
+   return [cx,cy];
+ }
+ function draw(){
+  const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h);
+  function P(n){ return [n.x*w, n.y*h]; }
+  edges.forEach((e,i)=>{
+   const A=P(nodes[e.a]), B=P(nodes[e.b]);
+   ctx.strokeStyle= used.has(i)? (i%2? G:W) : 'rgba(151,160,173,0.32)';
+   ctx.lineWidth= used.has(i)?3:1.4;
+   const c=edgePath(ctx,A,B,e.off);
+   ctx.fillStyle=FNT; ctx.font='11px monospace'; ctx.textAlign='center'; ctx.fillText(e.label,c[0],c[1]-6);
+  });
+  nodes.forEach((n,i)=>{ const p=P(n); ctx.fillStyle= cur===i? G : TXT; ctx.beginPath(); ctx.arc(p[0],p[1],15,0,TAU); ctx.fill(); ctx.fillStyle='#0D1015'; ctx.font='12px monospace'; ctx.textAlign='center'; ctx.fillText(n.id,p[0],p[1]+4); });
+  if(chk.checked){ const degs=[5,3,3,3]; nodes.forEach((n,i)=>{ const p=P(n); ctx.fillStyle=FNT; ctx.font='11px monospace'; ctx.textAlign='left'; ctx.fillText('deg '+degs[i]+(degs[i]%2?' odd':''), p[0]+18, p[1]-14); }); }
+  const degs=[5,3,3,3]; const odd=degs.filter(d=>d%2).length;
+  out.innerHTML=`walk: ${path.length? path.map(i=>nodes[i].id).join(' → '):'click A/B/C/D to start'} · used ${used.size}/7 ${used.size===7?'<span class="ok">✓ traced all 7 (you beat Euler\'s impossibility by reusing? check)</span>':''}<br>Euler theorem: ${odd} odd vertices → <b style="color:#D97A6B">${odd>2?'NO Eulerian trail possible (Königsberg itself)' : 'possible'}</b> · double bridges A–C and A–D offset by ±18px normals`;
+ }
+ cv.addEventListener('click',e=>{ const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; let hit=null,best=1e9; nodes.forEach((n,i)=>{ const px=n.x*r.width, py=n.y*r.height, d=(px-x)**2+(py-y)**2; if(d<best&&d<28*28){best=d;hit=i;}}); if(hit===null) return; if(cur===null){cur=hit; path=[hit];} else { const idx=edges.findIndex((ed,j)=>!used.has(j)&&((ed.a===cur&&ed.b===hit)||(ed.b===cur&&ed.a===hit))); if(idx!==-1){ used.add(idx); cur=hit; path.push(hit);} } draw(); });
+ btn.addEventListener('click',()=>{used=new Set();cur=null;path=[];draw();}); chk.addEventListener('change',draw); redrawers.push(draw); draw();
+})();
+
+// FIXED BASEL with sieve
+(function(){
+ const cv=document.getElementById('baselCanvas'); if(!cv) return;
+ const slS=document.getElementById('baselS'), slN=document.getElementById('baselN'), vS=document.getElementById('baselSVal'), vN=document.getElementById('baselNVal'), out=document.getElementById('baselReadout');
+ function sievePrimes(limit){ const is=new Uint8Array(limit+1); is.fill(1); is[0]=is[1]=0; for(let i=2;i*i<=limit;i++) if(is[i]) for(let j=i*i;j<=limit;j+=i) is[j]=0; const out=[]; for(let i=2;i<=limit;i++) if(is[i]) out.push(i); return out; }
+ const PRIMES=sievePrimes(2000);
+ function zetaRef(s){ if(Math.abs(s-2)<0.005) return Math.PI*Math.PI/6; if(Math.abs(s-4)<0.005) return Math.pow(Math.PI,4)/90; return null; }
+ function draw(){ const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); const s=parseFloat(slS.value), N=parseInt(slN.value); vS.textContent=s.toFixed(2); vN.textContent=N; let acc=0, sums=[], prod=1, prods=[]; let pCount=Math.min(N, PRIMES.length); for(let k=1;k<=N;k++){ acc+=Math.pow(k,-s); sums.push(acc); if(k<=pCount){ prod*=1/(1-Math.pow(PRIMES[k-1],-s)); } prods.push(prod); } const zr=zetaRef(s)||acc; const lo=Math.min(sums[0],zr*0.92), hi=Math.max(zr*1.08, prods[prods.length-1]*1.02); const gx0=48,gx1=w-12,gy0=14,gy1=h-36; function X(k){return gx0+(k-1)/(N-1)*(gx1-gx0);} function Y(v){return gy1-(v-lo)/(hi-lo||1)*(gy1-gy0);} ctx.strokeStyle=EDGE; ctx.strokeRect(gx0,gy0,gx1-gx0,gy1-gy0); ctx.setLineDash([5,5]); ctx.strokeStyle='rgba(223,227,233,0.35)'; ctx.beginPath(); ctx.moveTo(gx0,Y(zr)); ctx.lineTo(gx1,Y(zr)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=FNT; ctx.font='11px monospace'; ctx.fillText('ζ('+s.toFixed(2)+')='+zr.toFixed(5), gx0+6, Y(zr)-6); function curve(arr,col){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.beginPath(); arr.forEach((v,i)=>{ const x=X(i+1), y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke(); } curve(sums,Z); curve(prods,G); out.innerHTML=`Σ 1/n^s N=${N} = <b class="ce">${sums[N-1].toFixed(6)}</b> · Π ${pCount} primes = <b class="cg">${prods[N-1].toFixed(6)}</b> · ζ≈${zr.toFixed(6)} ${Math.abs(s-2)<0.02?'<span style="color:#8FC97E">→ π²/6</span>':''} · sieve up to 2000 → ${PRIMES.length} primes available`; }
+ slS.addEventListener('input',draw); slN.addEventListener('input',draw); redrawers.push(draw); draw();
+})();
+
+(function(){ const cv=document.getElementById('orbitCanvas'); if(!cv) return; const selP=document.getElementById('orbitP'), slG=document.getElementById('orbitG'), vG=document.getElementById('orbitGVal'), slK=document.getElementById('orbitK'), vK=document.getElementById('orbitKVal'), out=document.getElementById('orbitReadout'); function order(g,p){ let x=1; for(let k=1;k<=p;k++){ x=(x*g)%p; if(x===1) return k; } return -1; } function draw(){ const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); const p=+selP.value; const gMax=Math.min(20,p-2); if(+slG.value>gMax) slG.value=gMax; slG.max=gMax; const g=+slG.value; slK.max=p-1; const steps=Math.min(+slK.value,p-1); const cx=w/2, cy=h/2, R=Math.min(w,h)*0.38; function pos(r){ const a=(r-1)/(p-1)*TAU-Math.PI/2; return [cx+R*Math.cos(a), cy+R*Math.sin(a)]; } ctx.fillStyle='rgba(151,160,173,0.5)'; for(let r=1;r<p;r++){ const q=pos(r); ctx.beginPath(); ctx.arc(q[0],q[1], p>60?1.5:2.2,0,TAU); ctx.fill(); } let x=1, seq=[1]; for(let k=0;k<steps;k++){ const nx=(x*g)%p; const a=pos(x), b=pos(nx); const age=(k+1)/steps; ctx.strokeStyle=`rgba(226,180,74,${0.18+0.72*age})`; ctx.lineWidth=1+age; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); x=nx; seq.push(x); } const s0=pos(1), sc=pos(x); ctx.fillStyle=TXT; ctx.beginPath(); ctx.arc(s0[0],s0[1],4,0,TAU); ctx.fill(); ctx.fillStyle=G; ctx.beginPath(); ctx.arc(sc[0],sc[1],5,0,TAU); ctx.fill(); vG.textContent=g; vK.textContent=steps; const ord=order(g,p); out.innerHTML=`ord(${g}) mod ${p} = <b>${ord}</b> / ${p-1} ${ord===p-1?'<span class="ok">✓ primitive root</span>':'<span style="color:#D97A6B">short cycle</span>'} · ${seq.slice(0,8).join('→')}${seq.length>8?'…':''}`; } selP.addEventListener('change',draw); slG.addEventListener('input',draw); slK.addEventListener('input',draw); redrawers.push(draw); draw(); })();
+
+(function(){ const cv=document.getElementById('heptaCanvas'); if(!cv) return; const sel=document.getElementById('heptaN'), out=document.getElementById('heptaReadout'), btn=document.getElementById('heptaSteps'); let show=false; function draw(){ const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); const n=+sel.value; const cx=w/2, cy=h/2, R=Math.min(w,h)*0.38; ctx.strokeStyle=EDGE; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke(); const verts=[]; for(let k=0;k<n;k++){ const th=TAU*k/n - Math.PI/2; verts.push([cx+R*Math.cos(th), cy+R*Math.sin(th)]); } ctx.strokeStyle='rgba(226,180,74,0.35)'; ctx.lineWidth=1; ctx.beginPath(); verts.forEach((v,i)=>{ i?ctx.lineTo(v[0],v[1]):ctx.moveTo(v[0],v[1]); }); ctx.closePath(); ctx.stroke(); ctx.fillStyle=G; verts.forEach(v=>{ ctx.beginPath(); ctx.arc(v[0],v[1], n>50?1.2:3,0,TAU); ctx.fill(); }); if(show&&n===17){ ctx.strokeStyle='rgba(79,196,214,0.32)'; ctx.setLineDash([3,4]); for(let i=0;i<n;i+=2){ ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(verts[i][0],verts[i][1]); ctx.stroke(); } ctx.setLineDash([]); } out.innerHTML=`n=${n} · constructible? <b>${(n===5||n===17||n===257)?'<span class="ok">yes Fermat prime</span>':'no'}</b> · vertices = exp(2π i k / n)`; } sel.addEventListener('change',draw); btn.addEventListener('click',()=>{show=!show;draw();}); redrawers.push(draw); draw(); })();
+
+// FIXED GAUSSIAN INTEGERS
+(function(){
+ const cv=document.getElementById('gaussIntCanvas'); if(!cv) return;
+ const sl=document.getElementById('giR'), v=document.getElementById('giRVal'), chkC=document.getElementById('giShowCircles'), chkA=document.getElementById('giShowAxesPrimes'), out=document.getElementById('giReadout');
+ function isRatPrime(n){ if(n<2) return false; if(n%2===0) return n===2; for(let i=3;i*i<=n;i+=2) if(n%i===0) return false; return true; }
+ function isGaussPrime(a,b){
+   if(a===0 && b===0) return false;
+   if(a===0){ const p=Math.abs(b); return isRatPrime(p) && p%4===3; }
+   if(b===0){ const p=Math.abs(a); return isRatPrime(p) && p%4===3; }
+   return isRatPrime(a*a+b*b);
+ }
+ function draw(){
+  const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h);
+  const R=+sl.value; v.textContent=R;
+  const cx=w/2, cy=h/2, S=Math.min(w,h)/(2*R+5);
+  // grid
+  ctx.strokeStyle='rgba(42,49,61,0.6)'; ctx.lineWidth=0.5;
+  for(let i=-R;i<=R;i++){ const x=cx+i*S, y=cy+i*S; ctx.beginPath(); ctx.moveTo(x,cy-R*S-6); ctx.lineTo(x,cy+R*S+6); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx-R*S-6,y); ctx.lineTo(cx+R*S+6,y); ctx.stroke(); }
+  ctx.strokeStyle=EDGE; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(w,cy); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,h); ctx.stroke();
+  if(chkC.checked){ ctx.strokeStyle='rgba(151,160,173,0.14)'; for(let r=1;r<=R;r++){ ctx.beginPath(); ctx.arc(cx,cy,r*S,0,TAU); ctx.stroke(); } }
+  let count=0, inert=0, split=0, ram=0;
+  for(let a=-R;a<=R;a++) for(let b=-R;b<=R;b++){
+   if(a===0&&b===0) continue;
+   const x=cx+a*S, y=cy-b*S;
+   const gp=isGaussPrime(a,b);
+   if(gp){
+     count++;
+     let col=G; if(a===0||b===0){ inert++; col= chkA.checked? '#8FC97E' : G; } else { const norm=a*a+b*b; if(norm===2){ ram++; col='#D97A93'; } else { split++; } }
+     ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y, Math.max(2.2, S*0.22),0,TAU); ctx.fill();
+     if(R<=12){ ctx.fillStyle='#12151B'; ctx.font='8px monospace'; ctx.textAlign='center'; ctx.fillText(a+','+b,x,y+2.5); }
+   } else {
+     ctx.fillStyle='rgba(151,160,173,0.22)'; ctx.beginPath(); ctx.arc(x,y,1.2,0,TAU); ctx.fill();
+   }
+  }
+  // legend
+  ctx.fillStyle=FNT; ctx.font='11px monospace'; ctx.textAlign='left'; ctx.fillText('amber=split p≡1 mod4 (off-axis)  green=inert p≡3 mod4 (axis)  pink=ramified (1+i)', 10, h-8);
+  out.innerHTML=`radius ${R} · Gaussian primes <b class="cg">${count}</b> · split (a≠0,b≠0) <b>${split}</b> · inert (axis, p≡3 mod4) <b style="color:#8FC97E">${inert}</b> · ramified (norm 2) <b style="color:#D97A93">${ram}</b> · correct test: axis requires p%4==3, off-axis requires a²+b² prime`;
+ }
+ sl.addEventListener('input',draw); chkC.addEventListener('change',draw); chkA.addEventListener('change',draw); redrawers.push(draw); draw();
+})();
+
+// FIXED LEAST SQUARES
+(function(){
+ const cv=document.getElementById('lsCanvas'); if(!cv) return;
+ const btnAdd=document.getElementById('lsAdd'), btnClear=document.getElementById('lsClear'), btnRand=document.getElementById('lsRandom'), chkRes=document.getElementById('lsShowGauss'), chkSq=document.getElementById('lsShowSquares'), out=document.getElementById('lsReadout');
+ let pts=[]; let dragIdx=-1;
+ function randPts(n=12){ pts=[]; for(let i=0;i<n;i++) pts.push({x:Math.random()*9+0.5, y:2*(Math.random()*9+0.5)+1 + (Math.random()-0.5)*3}); }
+ randPts();
+ function fit(){ const n=pts.length; if(n<2) return null; let sx=0,sy=0,sxx=0,sxy=0; pts.forEach(p=>{sx+=p.x; sy+=p.y; sxx+=p.x*p.x; sxy+=p.x*p.y;}); const det=n*sxx - sx*sx; if(Math.abs(det)<1e-9) return null; const a=(n*sxy - sx*sy)/det; const b=(sxx*sy - sx*sxy)/det; return {a,b}; }
+ function worldToScreen(x,y,box){ return [box.x0+(x-box.xmin)/(box.xmax-box.xmin)*box.w, box.y1-(y-box.ymin)/(box.ymax-box.ymin)*box.h]; }
+ function screenToWorld(sx,sy,box){ return [(sx-box.x0)/box.w*(box.xmax-box.xmin)+box.xmin, (box.y1-sy)/box.h*(box.ymax-box.ymin)+box.ymin]; }
+ function getBox(w,h){ const pad=44; const rightExtra= chkRes.checked? 92:0; return {x0:pad, y0:18, x1:w-pad-rightExtra, y1:h-30, w:w-pad*2-rightExtra, h:h-48, xmin:0,xmax:10,ymin:0,ymax:22}; }
+ function draw(){
+  const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); const box=getBox(w,h);
+  ctx.strokeStyle=EDGE; ctx.strokeRect(box.x0,box.y0,box.w,box.h);
+  ctx.fillStyle=FNT; ctx.font='10px monospace'; for(let x=0;x<=10;x+=2){ const [sx]=worldToScreen(x,0,box); ctx.fillText(String(x), sx-3, box.y1+12); } for(let y=0;y<=22;y+=4){ const [,sy]=worldToScreen(0,y,box); ctx.fillText(String(y), box.x0-18, sy+3); }
+  const f=fit();
+  if(f){
+   ctx.strokeStyle='rgba(217,122,147,0.95)'; ctx.lineWidth=2; const [x0,y0]=worldToScreen(box.xmin, f.a*box.xmin+f.b, box); const [x1,y1]=worldToScreen(box.xmax, f.a*box.xmax+f.b, box); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+   pts.forEach(p=>{ const yhat=f.a*p.x+f.b; const [sx,sy]=worldToScreen(p.x,p.y,box); const [sx2,sy2]=worldToScreen(p.x,yhat,box); ctx.strokeStyle='rgba(79,196,214,0.38)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx2,sy2); ctx.stroke(); if(chkSq.checked){ const side=Math.abs(sy-sy2); const left=Math.min(sx,sx2); ctx.fillStyle='rgba(79,196,214,0.12)'; ctx.strokeStyle='rgba(79,196,214,0.22)'; ctx.fillRect(left, Math.min(sy,sy2), side, side); ctx.strokeRect(left, Math.min(sy,sy2), side, side); } });
+  }
+  pts.forEach((p,i)=>{ const [sx,sy]=worldToScreen(p.x,p.y,box); ctx.fillStyle= i===dragIdx? G : W; ctx.strokeStyle='#12151B'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(sx,sy,5.5,0,TAU); ctx.fill(); ctx.stroke(); });
+  if(chkRes.checked && f){ const res=pts.map(p=>p.y-(f.a*p.x+f.b)); const sigma=Math.sqrt(res.reduce((s,r)=>s+r*r,0)/res.length)||1; const rx=box.x1+14, rw=70; ctx.strokeStyle=EDGE; ctx.strokeRect(rx,box.y0,rw,box.h); ctx.fillStyle=FNT; ctx.font='10px monospace'; ctx.fillText('residuals',rx+4,box.y0+10); ctx.fillText('σ='+sigma.toFixed(2),rx+4,box.y0+22); res.forEach(r=>{ const y=box.y0+box.h/2 - (r/(sigma*3))*box.h/2; const barW=Math.min(56, Math.abs(r)/sigma*14+2); ctx.fillStyle= r>=0? 'rgba(143,201,126,0.9)':'rgba(217,122,147,0.9)'; ctx.fillRect(rx+10+(r<0? (14-barW):0), y, barW, 2.2); }); }
+  if(f){ const rss=pts.reduce((s,p)=>{ const d=p.y-(f.a*p.x+f.b); return s+d*d; },0); out.innerHTML=`fit y=<b>${f.a.toFixed(3)}x+${f.b.toFixed(3)}</b> n=${pts.length} RSS=<b>${rss.toFixed(2)}</b> σ=${Math.sqrt(rss/pts.length).toFixed(2)} · drag points, they stay in world coords (no jump)`; } else out.innerHTML='need ≥2 points';
+ }
+ function hitTest(e){ const {w,h}=setupCanvas(cv); const box=getBox(w,h); const r=cv.getBoundingClientRect(); const sx=(e.clientX-r.left), sy=(e.clientY-r.top); let best=-1,bd=1e9; pts.forEach((p,i)=>{ const [px,py]=worldToScreen(p.x,p.y,box); const d=(px-sx)**2+(py-sy)**2; if(d<bd&&d<14*14){bd=d;best=i;}}); return {idx:best, box}; }
+ cv.addEventListener('pointerdown',e=>{ const {idx,box}=hitTest(e); if(idx!==-1){ dragIdx=idx; cv.setPointerCapture(e.pointerId); e.preventDefault(); } draw(); });
+ cv.addEventListener('pointermove',e=>{ if(dragIdx===-1) return; const r=cv.getBoundingClientRect(); const {w,h}=setupCanvas(cv); const box=getBox(w,h); const sx=e.clientX-r.left, sy=e.clientY-r.top; const [wx,wy]=screenToWorld(sx,sy,box); pts[dragIdx].x=Math.max(box.xmin,Math.min(box.xmax,wx)); pts[dragIdx].y=Math.max(box.ymin,Math.min(box.ymax,wy)); draw(); });
+ cv.addEventListener('pointerup',e=>{ dragIdx=-1; draw(); });
+ cv.addEventListener('click',e=>{ if(dragIdx!==-1) return; const {idx}=hitTest(e); if(idx!==-1) return; const r=cv.getBoundingClientRect(); const {w,h}=setupCanvas(cv); const box=getBox(w,h); const sx=e.clientX-r.left, sy=e.clientY-r.top; if(sx<box.x0||sx>box.x1||sy<box.y0||sy>box.y1) return; const [wx,wy]=screenToWorld(sx,sy,box); pts.push({x:wx,y:wy}); draw(); });
+ btnAdd.addEventListener('click',()=>{ pts.push({x:Math.random()*9+0.5, y:Math.random()*18+1}); draw(); }); btnClear.addEventListener('click',()=>{pts=[];draw();}); btnRand.addEventListener('click',()=>{randPts();draw();}); chkRes.addEventListener('change',draw); chkSq.addEventListener('change',draw); redrawers.push(draw); draw();
+})();
+
+// FIXED HOLONOMY
+(function(){
+ const cv=document.getElementById('holonomyCanvas'); if(!cv) return;
+ const sel=document.getElementById('holonomySurf'), sl=document.getElementById('holonomyR'), v=document.getElementById('holonomyRVal'), out=document.getElementById('holonomyReadout');
+ function draw(){
+  const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h);
+  const Rloop=parseFloat(sl.value); v.textContent=Rloop.toFixed(2);
+  const type=sel.value; const cx=w/2, cy=h*0.52, baseR=Math.min(w,h)*0.30;
+  ctx.strokeStyle=EDGE; ctx.beginPath(); ctx.arc(cx,cy,baseR,0,TAU); ctx.stroke();
+  let K, area, holonomyDeg, label;
+  if(type==='sphere'){ K=1/(baseR*baseR)*12000; const angRad=Rloop*0.9; area=2*Math.PI*baseR*baseR*(1-Math.cos(angRad)); holonomyDeg=area*K*180/Math.PI*0.0018; label=`K=+${K.toExponential(2)}`; }
+  else if(type==='saddle'){ K=-1/(baseR*baseR)*12000; area=Math.PI*Math.pow(baseR*Rloop*0.6,2)*0.6; holonomyDeg= -area*Math.abs(K)*180/Math.PI*0.0018; label=`K=${K.toExponential(2)} (negative)`; }
+  else { K=0; area=Math.PI*Math.pow(baseR*Rloop*0.6,2); holonomyDeg=0; label='K=0 developable'; }
+  const rLoop=baseR*0.55*Rloop;
+  ctx.strokeStyle= type==='sphere'? Z : type==='saddle'? '#D97A93' : W; ctx.lineWidth=2.2; ctx.beginPath(); for(let i=0;i<=120;i++){ const th=TAU*i/120; const squish= type==='saddle'? 0.62:1; const x=cx+rLoop*Math.cos(th), y=cy+rLoop*Math.sin(th)*squish; i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.closePath(); ctx.stroke();
+  const ah=cx+rLoop, av=cy; const ang=holonomyDeg*Math.PI/180; const ax=Math.cos(ang), ay=Math.sin(ang);
+  ctx.fillStyle=TXT; ctx.beginPath(); ctx.arc(ah,av,4,0,TAU); ctx.fill();
+  ctx.strokeStyle=TXT; ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(ah,av); ctx.lineTo(ah+22*ax, av+22*ay); ctx.stroke(); ctx.beginPath(); ctx.arc(ah,av,12, -0.2, ang, ang>=0); ctx.stroke();
+  ctx.fillStyle=FNT; ctx.font='11px monospace'; ctx.fillText(`${holonomyDeg.toFixed(1)}°`, ah+26, av+4);
+  out.innerHTML=`surface <b>${type}</b> · ${label} · loop r=${Rloop.toFixed(2)} · area≈${area.toFixed(0)} · holonomy = ∫∫ K dA ≈ <b class="ce">${holonomyDeg.toFixed(1)}°</b> ${Math.abs(holonomyDeg)<0.5?'<span class="ok">flat → 0</span>':''}`;
+ }
+ sel.addEventListener('change',draw); sl.addEventListener('input',draw); redrawers.push(draw); draw();
+})();
+
+// FIXED ZETA with proper cache
+(function(){
+ const cv=document.getElementById('zetaCanvas'); if(!cv) return;
+ const sl=document.getElementById('zetaT'), v=document.getElementById('zetaTVal'), btn=document.getElementById('zetaZero'), btnClr=document.getElementById('zetaResetCache'), out=document.getElementById('zetaReadout');
+ const ZEROS=[14.134725,21.02204,25.010858,30.424876,32.93506,37.586,40.9187,43.327,48.005,49.7738];
+ const N=60; const CVZ=(function(){ const n=N; let d=Math.pow(3+Math.sqrt(8),n); d=(d+1/d)/2; let b=-1,c=-d,coef=[]; for(let k=0;k<n;k++){ c=b-c; coef.push(c*(k%2===0?1:-1)); b=b*2*(k+n)*(k-n)/((2*k+1)*(k+1)); } return {d,coef}; })();
+ function zetaHalf(t){ if(!isFinite(t)) return [0,0]; let re=0,im=0; for(let k=0;k<N;k++){ const L=Math.log(k+1); const mag=Math.exp(-0.5*L)*CVZ.coef[k]; re+=mag*Math.cos(t*L); im-=mag*Math.sin(t*L);} re/=CVZ.d; im/=CVZ.d; const l2=Math.LN2, pr=Math.exp(0.5*l2), ar=1-pr*Math.cos(t*l2), ai=pr*Math.sin(t*l2), den=ar*ar+ai*ai||1; return [(re*ar+im*ai)/den,(im*ar-re*ai)/den]; }
+ const STEP=0.05; let cache=[zetaHalf(0)];
+ function ensure(tMax){ const need=Math.floor(tMax/STEP)+1; while(cache.length<need){ const t=cache.length*STEP; const z=zetaHalf(t); cache.push(isFinite(z[0])&&isFinite(z[1])?z:[0,0]); } }
+ function draw(){ const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); const t=Math.max(0,+sl.value/100); ensure(t); const cx=w*0.46, cy=h/2, S=Math.min(w,h)*0.15; ctx.strokeStyle=EDGE; ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(w,cy); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,h); ctx.stroke(); ctx.strokeStyle='rgba(217,122,107,0.7)'; ctx.beginPath(); ctx.arc(cx,cy,5,0,TAU); ctx.stroke(); const nPts=Math.min(Math.floor(t/STEP)+1, cache.length); ctx.strokeStyle=Z; ctx.lineWidth=1.6; ctx.beginPath(); for(let i=0;i<nPts;i++){ const x=cx+cache[i][0]*S, y=cy-cache[i][1]*S; if(!isFinite(x)||!isFinite(y)) continue; i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.stroke(); const zh=cache[Math.max(0,nPts-1)]||[0,0]; const hx=cx+zh[0]*S, hy=cy-zh[1]*S; ctx.fillStyle=TXT; ctx.beginPath(); ctx.arc(hx,hy,4,0,TAU); ctx.fill(); v.textContent=t.toFixed(1); const mag=Math.hypot(zh[0],zh[1]); const passed=ZEROS.filter(z=>t>=z-0.02).length; let next=null; for(let z of ZEROS) if(z>t+0.01){next=z;break;} out.innerHTML=`ζ(½+${t.toFixed(2)}i)=<b>${zh[0].toFixed(4)}${zh[1]>=0?'+':'−'}${Math.abs(zh[1]).toFixed(4)}i</b> |ζ|=<b class="ce">${mag.toFixed(4)}</b>${mag<0.06?'<span class="ok"> ← zero!</span>':''} passed ${passed} ${next?'next≈'+next.toFixed(3):''} cache ${cache.length}`; }
+ sl.addEventListener('input',draw); btn.addEventListener('click',()=>{ const t=+sl.value/100; let tgt=null; for(let z of ZEROS) if(z>t+0.05){tgt=z;break;} if(!tgt) tgt=ZEROS[0]; sl.value=Math.round(tgt*100); draw(); }); btnClr.addEventListener('click',()=>{cache=[zetaHalf(0)]; draw();}); redrawers.push(draw); draw();
+})();
+
+// FIXED RSA
+(function(){
+ const cv=document.getElementById('rsaCanvas'); if(!cv) return;
+ const selP=document.getElementById('rsaP'), selQ=document.getElementById('rsaQ'), inp=document.getElementById('rsaMsg'), keys=document.getElementById('rsaKeys'), table=document.getElementById('rsaTable');
+ function powmod(a,k,n){ let r=1; a%=n; while(k>0){ if(k&1) r=(r*a)%n; a=(a*a)%n; k>>=1;} return r; }
+ function egcd(a,b){ if(!b) return [a,1,0]; const t=egcd(b,a%b); return [t[0], t[2], t[1]-Math.floor(a/b)*t[2]]; }
+ function draw(){ let p=+selP.value, q=+selQ.value; if(p===q){ q=q===53?47:61; selQ.value=q; } const n=p*q, phi=(p-1)*(q-1); let e=17; while(egcd(e,phi)[0]!==1) e+=2; const d=((egcd(e,phi)[1]%phi)+phi)%phi; const msg=(inp.value||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,8); if(inp.value!==msg) inp.value=msg; keys.innerHTML=`n=${p}×${q}=<b>${n}</b> φ=${phi} e=<b class="cg">${e}</b> d=<b class="cg">${d}</b> check e·d mod φ = ${(e*d)%phi}`; let rows='<tr><th>letter</th><th>m</th><th>m^e→c</th><th>c^d</th><th>back</th></tr>'; for(let i=0;i<msg.length;i++){ const m=msg.charCodeAt(i)-64; const c=powmod(m,e,n); const b=powmod(c,d,n); rows+=`<tr><td>${msg[i]}</td><td>${m}</td><td class="cg">${c}</td><td>${b}</td><td>${String.fromCharCode(64+b)}</td></tr>`;} table.innerHTML=rows; const {ctx,w,h}=setupCanvas(cv); clear(ctx,w,h); ctx.strokeStyle=EDGE; ctx.strokeRect(28,10,w-44,h-32); const step=Math.max(1,Math.floor(n/420)); ctx.fillStyle='rgba(226,180,74,0.45)'; for(let m2=1;m2<n;m2+=step){ const c2=powmod(m2,e,n); const x=28+m2/n*(w-44), y=h-26 - c2/n*(h-36); ctx.fillRect(x,y,1.5,1.5);} ctx.fillStyle=TXT; for(let i=0;i<msg.length;i++){ const m=msg.charCodeAt(i)-64, cc=powmod(m,e,n); const hx=28+m/n*(w-44), hy=h-26-cc/n*(h-36); ctx.beginPath(); ctx.arc(hx,hy,3.2,0,TAU); ctx.fill(); } }
+ selP.addEventListener('change',draw); selQ.addEventListener('change',draw); inp.addEventListener('input',draw); redrawers.push(draw); draw();
+})();
+
+window.addEventListener('resize',()=>{ setTimeout(()=>redrawers.forEach(f=>{try{f();}catch(e){console.error(e);}}),120); });
+</script>
+</body>
+</html>

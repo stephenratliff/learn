@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Four Threads — From Euler &amp; Gauss to Modern Physics &amp; Cryptography</title>
+<style>
+/* ==========================================================================
+   THE FOUR THREADS — design tokens
+   A loom atlas: four idea-threads woven across a dark slate warp.
+   wave #4FC4D6 · key #E2B44A · curve #D97A93 · zeta #8FC97E
+   ========================================================================== */
+:root{
+  --ground:#12151B;
+  --ground-deep:#0D1015;
+  --panel:#1B2028;
+  --panel-2:#20262F;
+  --edge:#2A313D;
+  --text:#DFE3E9;
+  --muted:#97A0AD;
+  --faint:#5C6672;
+  --wave:#4FC4D6;
+  --wave-dim:rgba(79,196,214,0.14);
+  --key:#E2B44A;
+  --key-dim:rgba(226,180,74,0.14);
+  --curve:#D97A93;
+  --curve-dim:rgba(217,122,147,0.14);
+  --zeta:#8FC97E;
+  --zeta-dim:rgba(143,201,126,0.14);
+  --good:#8FC97E;
+  --bad:#D97A6B;
+  --disp:"Futura","Avenir Next","Century Gothic","Trebuchet MS",sans-serif;
+  --body:"Charter","Bitstream Charter",Georgia,"Times New Roman",serif;
+  --mono:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --maxw:880px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+body{
+  background:var(--ground);
+  color:var(--text);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(79,196,214,0.30)}
+
+/* ---------------- nav ---------------- */
+nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(13,16,21,0.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--edge);
+  font-family:var(--disp);
+}
+.nav-inner{
+  max-width:1100px;margin:0 auto;padding:0 20px;
+  display:flex;align-items:center;gap:6px;height:52px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-mark{
+  font-size:14px;letter-spacing:0.14em;text-transform:uppercase;
+  white-space:nowrap;margin-right:14px;color:var(--text);
+}
+.nav-mark b{font-weight:600}
+nav a{
+  color:var(--muted);text-decoration:none;font-size:12.5px;
+  letter-spacing:0.09em;text-transform:uppercase;white-space:nowrap;
+  padding:5px 10px;border-radius:99px;border:1px solid transparent;
+  transition:color .15s,border-color .15s;
+}
+nav a:hover{color:var(--text)}
+nav a:focus-visible{outline:2px solid var(--wave);outline-offset:2px}
+nav a.th-w:hover{border-color:var(--wave)}
+nav a.th-k:hover{border-color:var(--key)}
+nav a.th-c:hover{border-color:var(--curve)}
+nav a.th-z:hover{border-color:var(--zeta)}
+
+/* ---------------- hero ---------------- */
+header{
+  position:relative;
+  background:var(--ground-deep);
+  border-bottom:1px solid var(--edge);
+  overflow:hidden;
+}
+.hero-inner{
+  max-width:1100px;margin:0 auto;padding:56px 20px 40px;
+  position:relative;
+}
+.hero-eyebrow{
+  font-family:var(--disp);font-size:13px;letter-spacing:0.34em;
+  text-transform:uppercase;color:var(--muted);text-align:center;
+}
+h1.hero-title{
+  font-family:var(--disp);font-weight:500;
+  font-size:clamp(34px,6.4vw,62px);
+  letter-spacing:0.04em;text-align:center;
+  margin:14px 0 6px;line-height:1.12;
+}
+h1 .tw{color:var(--wave)}h1 .tk{color:var(--key)}
+h1 .tc{color:var(--curve)}h1 .tz{color:var(--zeta)}
+.hero-sub{
+  max-width:640px;margin:14px auto 0;text-align:center;
+  color:var(--muted);font-style:italic;font-size:clamp(16px,2.4vw,19px);
+}
+#loomCanvas{
+  display:block;width:100%;height:300px;margin-top:28px;
+  border:1px solid var(--edge);border-radius:10px;
+  background:var(--ground);cursor:pointer;
+}
+.loom-caption{
+  text-align:center;font-family:var(--disp);font-size:11.5px;
+  letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);
+  margin-top:10px;
+}
+
+/* thread cards under hero */
+.thread-cards{
+  max-width:1100px;margin:0 auto;padding:26px 20px 46px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;
+}
+.tcard{
+  display:block;text-decoration:none;color:var(--text);
+  background:var(--panel);border:1px solid var(--edge);border-radius:10px;
+  padding:16px 16px 14px;transition:transform .15s,border-color .15s;
+}
+.tcard:hover{transform:translateY(-2px)}
+.tcard:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.tcard .glyph{font-size:22px;line-height:1}
+.tcard h3{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:0.06em;margin:8px 0 4px}
+.tcard p{font-size:13.5px;color:var(--muted);line-height:1.5}
+.tcard.cw:hover{border-color:var(--wave)}   .tcard.cw .glyph{color:var(--wave)}
+.tcard.ck:hover{border-color:var(--key)}    .tcard.ck .glyph{color:var(--key)}
+.tcard.cc:hover{border-color:var(--curve)}  .tcard.cc .glyph{color:var(--curve)}
+.tcard.cz:hover{border-color:var(--zeta)}   .tcard.cz .glyph{color:var(--zeta)}
+
+/* ---------------- sections ---------------- */
+main{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+section{padding:64px 0 30px;position:relative}
+.thread-rail{
+  position:absolute;left:-26px;top:70px;bottom:12px;width:3px;border-radius:2px;
+}
+@media (max-width:1020px){ .thread-rail{display:none} }
+.rail-w{background:repeating-linear-gradient(180deg,var(--wave) 0 14px,transparent 14px 22px)}
+.rail-k{background:repeating-linear-gradient(180deg,var(--key) 0 14px,transparent 14px 22px)}
+.rail-c{background:repeating-linear-gradient(180deg,var(--curve) 0 14px,transparent 14px 22px)}
+.rail-z{background:repeating-linear-gradient(180deg,var(--zeta) 0 14px,transparent 14px 22px)}
+
+.kicker{
+  font-family:var(--disp);font-size:12.5px;letter-spacing:0.30em;
+  text-transform:uppercase;color:var(--muted);
+  display:flex;align-items:center;gap:10px;
+}
+.kicker .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.dot-w{background:var(--wave)}.dot-k{background:var(--key)}
+.dot-c{background:var(--curve)}.dot-z{background:var(--zeta)}
+h2{
+  font-family:var(--disp);font-weight:500;
+  font-size:clamp(26px,4.4vw,38px);letter-spacing:0.02em;
+  margin:10px 0 18px;line-height:1.18;
+}
+h3.sub{
+  font-family:var(--disp);font-weight:600;font-size:17px;
+  letter-spacing:0.10em;text-transform:uppercase;margin:34px 0 12px;
+}
+h3.sub.hw{color:var(--wave)}h3.sub.hk{color:var(--key)}
+h3.sub.hc{color:var(--curve)}h3.sub.hz{color:var(--zeta)}
+p{margin:0 0 16px}
+p.lead{font-size:clamp(17.5px,2.5vw,20px);color:var(--text)}
+em{font-style:italic}
+b,strong{font-weight:600;color:var(--text)}
+.inline-math{font-family:var(--mono);font-size:0.92em;white-space:nowrap}
+sup,sub{line-height:0}
+
+/* graph-paper formula panel — the surveyor's field sheet */
+.formula{
+  font-family:var(--mono);
+  background:
+    linear-gradient(rgba(151,160,173,0.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(151,160,173,0.055) 1px,transparent 1px),
+    var(--panel);
+  background-size:18px 18px,18px 18px,auto;
+  border:1px solid var(--edge);border-radius:10px;
+  padding:20px 22px;margin:20px 0;
+  font-size:clamp(15px,2.6vw,19.5px);
+  text-align:center;line-height:1.9;overflow-x:auto;
+}
+.formula .op{color:var(--muted)}
+.formula .fw{color:var(--wave)}.formula .fk{color:var(--key)}
+.formula .fc{color:var(--curve)}.formula .fz{color:var(--zeta)}
+.formula-tag{
+  display:block;font-family:var(--disp);font-size:10.5px;
+  letter-spacing:0.22em;text-transform:uppercase;color:var(--faint);
+  margin-top:10px;
+}
+
+.note{
+  border-left:3px solid var(--edge);padding:4px 0 4px 16px;
+  color:var(--muted);font-size:15.5px;margin:18px 0;
+}
+.note b{color:var(--text)}
+.note.nw{border-color:var(--wave)}.note.nk{border-color:var(--key)}
+.note.nc{border-color:var(--curve)}.note.nz{border-color:var(--zeta)}
+
+.manuscript{
+  background:var(--panel-2);border:1px solid var(--edge);border-radius:10px;
+  padding:24px 26px;margin:26px 0;
+}
+.manuscript blockquote{
+  font-style:italic;font-size:clamp(16.5px,2.6vw,20px);line-height:1.6;
+}
+.manuscript cite{
+  display:block;margin-top:12px;font-style:normal;font-family:var(--disp);
+  font-size:11.5px;letter-spacing:0.20em;text-transform:uppercase;color:var(--muted);
+}
+
+/* ---------------- widgets ---------------- */
+.widget{
+  background:var(--panel);border:1px solid var(--edge);border-radius:12px;
+  padding:18px;margin:26px 0;
+}
+.widget-title{
+  font-family:var(--disp);font-size:12px;letter-spacing:0.22em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+}
+.widget-title b{color:var(--text);font-weight:600}
+.widget canvas{display:block;width:100%;border-radius:8px;background:var(--ground);touch-action:none}
+.widget-caption{font-size:13.5px;color:var(--muted);margin-top:12px;line-height:1.55}
+.controls{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+  margin-top:14px;font-family:var(--disp);font-size:12.5px;
+  letter-spacing:0.05em;color:var(--muted);
+}
+.controls label{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.controls .val{font-family:var(--mono);color:var(--text);min-width:3ch;display:inline-block}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:150px;height:4px;border-radius:2px;
+  background:var(--edge);outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--text);cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;background:var(--text);cursor:pointer;border:none;
+}
+input[type=range]:focus-visible{outline:2px solid var(--wave);outline-offset:3px}
+select,button.wbtn,input[type=text]{
+  font-family:var(--disp);font-size:12.5px;letter-spacing:0.05em;
+  background:var(--panel-2);color:var(--text);
+  border:1px solid var(--edge);border-radius:7px;padding:7px 12px;cursor:pointer;
+}
+input[type=text]{cursor:text;font-family:var(--mono);letter-spacing:0.14em;text-transform:uppercase}
+button.wbtn:hover,select:hover{border-color:var(--muted)}
+button.wbtn:focus-visible,select:focus-visible,input[type=text]:focus-visible{outline:2px solid var(--wave);outline-offset:2px}
+.readout{
+  font-family:var(--mono);font-size:13.5px;line-height:1.8;
+  background:var(--ground-deep);border:1px solid var(--edge);border-radius:8px;
+  padding:12px 16px;margin-top:14px;color:var(--muted);overflow-x:auto;
+}
+.readout b{color:var(--text);font-weight:600}
+.readout .ok{color:var(--good)}.readout .no{color:var(--bad)}
+.readout .cw{color:var(--wave)}.readout .ck{color:var(--key)}
+.readout .cc{color:var(--curve)}.readout .cz{color:var(--zeta)}
+
+/* RSA playground table */
+.rsa-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+.rsa-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+.rsa-table th{
+  font-family:var(--disp);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--faint);text-align:left;padding:6px 10px;border-bottom:1px solid var(--edge);
+}
+.rsa-table td{padding:6px 10px;border-bottom:1px solid rgba(42,49,61,0.5);color:var(--text)}
+.rsa-table td.ck{color:var(--key)}
+
+/* ---------------- octave labs ---------------- */
+.lab{
+  background:var(--ground-deep);border:1px solid var(--edge);border-radius:12px;
+  margin:26px 0;overflow:hidden;
+}
+.lab-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 18px;border-bottom:1px solid var(--edge);background:var(--panel);
+}
+.lab-title{
+  font-family:var(--disp);font-size:12px;letter-spacing:0.20em;
+  text-transform:uppercase;color:var(--muted);
+}
+.lab-title::before{content:"▸ octave · ";color:var(--faint)}
+button.copy{
+  font-family:var(--disp);font-size:11.5px;letter-spacing:0.08em;
+  background:transparent;color:var(--muted);
+  border:1px solid var(--edge);border-radius:6px;padding:5px 12px;cursor:pointer;
+}
+button.copy:hover{color:var(--text);border-color:var(--muted)}
+button.copy:focus-visible{outline:2px solid var(--wave);outline-offset:2px}
+.lab pre{
+  font-family:var(--mono);font-size:13.5px;line-height:1.62;
+  padding:18px 20px;overflow-x:auto;color:var(--text);
+}
+.lab .c{color:var(--faint);font-style:italic}
+.lab .kw{color:var(--curve)}
+.lab .fn{color:var(--wave)}
+.lab .st{color:var(--key)}
+.lab-note{
+  padding:12px 18px;border-top:1px solid var(--edge);
+  font-size:13.5px;color:var(--muted);line-height:1.55;
+}
+
+/* cross-reference shelf cards */
+.shelf{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:12px;margin:22px 0;
+}
+.shelf-card{
+  background:var(--panel);border:1px solid var(--edge);border-radius:10px;
+  padding:14px 16px;font-size:13.5px;color:var(--muted);line-height:1.55;
+}
+.shelf-card b{
+  display:block;font-family:var(--disp);font-size:12px;letter-spacing:0.10em;
+  text-transform:uppercase;color:var(--text);margin-bottom:6px;
+}
+.shelf-card .arrow{color:var(--faint)}
+.shelf-card.sw b::before{content:"〜 ";color:var(--wave)}
+.shelf-card.sk b::before{content:"⚿ ";color:var(--key)}
+.shelf-card.sc b::before{content:"◠ ";color:var(--curve)}
+.shelf-card.sz b::before{content:"ζ ";color:var(--zeta)}
+
+/* coda loom table */
+.loom-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}
+.loom-table th{
+  font-family:var(--disp);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--edge);
+}
+.loom-table td{
+  padding:12px;border-bottom:1px solid rgba(42,49,61,0.55);
+  vertical-align:top;color:var(--muted);line-height:1.5;
+}
+.loom-table td:first-child{font-family:var(--disp);font-size:12.5px;letter-spacing:0.05em;white-space:nowrap}
+.loom-table tr.rw td:first-child{color:var(--wave)}
+.loom-table tr.rk td:first-child{color:var(--key)}
+.loom-table tr.rc td:first-child{color:var(--curve)}
+.loom-table tr.rz td:first-child{color:var(--zeta)}
+.loom-table td b{color:var(--text)}
+@media (max-width:640px){
+  .loom-table{font-size:12.5px}
+  .loom-table td,.loom-table th{padding:8px 6px}
+}
+
+.divider{
+  display:flex;justify-content:center;padding:26px 0 0;
+}
+footer{
+  border-top:1px solid var(--edge);margin-top:70px;
+  padding:34px 20px 48px;text-align:center;
+  font-family:var(--disp);font-size:11.5px;letter-spacing:0.18em;
+  text-transform:uppercase;color:var(--faint);line-height:2.1;
+}
+footer .thread-line{font-size:13px;letter-spacing:0.30em}
+footer .thread-line .w{color:var(--wave)}footer .thread-line .k{color:var(--key)}
+footer .thread-line .c{color:var(--curve)}footer .thread-line .z{color:var(--zeta)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<nav aria-label="Sections">
+  <div class="nav-inner">
+    <span class="nav-mark"><b>The Four Threads</b></span>
+    <a href="#loom" class="th-w">The Loom</a>
+    <a href="#fourier" class="th-w">〜 Fourier</a>
+    <a href="#circuits" class="th-w">Impedance</a>
+    <a href="#congruence" class="th-k">⚿ Congruence</a>
+    <a href="#rsa" class="th-k">RSA</a>
+    <a href="#curvature" class="th-c">◠ Curvature</a>
+    <a href="#strings" class="th-c">Strings</a>
+    <a href="#zeta" class="th-z">ζ Zeta</a>
+    <a href="#zeros" class="th-z">Zeros</a>
+    <a href="#coda" class="th-z">Coda</a>
+  </div>
+</nav>
+
+<header id="loom">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">A connection atlas · Euler &amp; Gauss and everything after</div>
+    <h1 class="hero-title">The <span class="tw">Four</span> <span class="tk">Threads</span></h1>
+    <p class="hero-sub">Four ideas left the desks of Euler and Gauss and never stopped travelling —
+    into your radio, your bank, the shape of spacetime, and the deepest unsolved problem in mathematics.
+    This atlas follows each thread from its first knot to the other guides on your shelf.</p>
+    <canvas id="loomCanvas" height="300" aria-label="Animated timeline loom: four colored threads travel from 1735 to the present, crossing at historical junctions. Click a thread to jump to its section."></canvas>
+    <div class="loom-caption">The loom · hover a thread to isolate it · click to follow it</div>
+  </div>
+  <div class="thread-cards">
+    <a class="tcard cw" href="#fourier">
+      <div class="glyph">〜</div>
+      <h3>The Wave Thread</h3>
+      <p>Euler's e<sup>iθ</sup> → Fourier series → impedance, filters, and the FFT. Ends in the <em>Maxwell</em> and <em>circuits</em> guides.</p>
+    </a>
+    <a class="tcard ck" href="#congruence">
+      <div class="glyph">⚿</div>
+      <h3>The Key Thread</h3>
+      <p>Euler's totient + Gauss's congruences → Diffie–Hellman and RSA. Ends in the <em>cryptography</em> series.</p>
+    </a>
+    <a class="tcard cc" href="#curvature">
+      <div class="glyph">◠</div>
+      <h3>The Curve Thread</h3>
+      <p>The Theorema Egregium → Riemann → Einstein → worldsheets. Ends in the <em>string / M-theory</em> guide.</p>
+    </a>
+    <a class="tcard cz" href="#zeta">
+      <div class="glyph">ζ</div>
+      <h3>The Zeta Thread</h3>
+      <p>The Basel problem → the Euler product → Riemann's zeros. Ends in the <em>Mathematical Tapestry</em>.</p>
+    </a>
+  </div>
+</header>
+
+<main>
+
+<!-- ================================================================
+     THREAD I — FOURIER
+     ================================================================ -->
+<section id="fourier">
+  <div class="thread-rail rail-w"></div>
+  <div class="kicker"><span class="dot dot-w"></span>Thread I · The Wave</div>
+  <h2>Everything Is a Sum of Circles</h2>
+
+  <p class="lead">In the Euler &amp; Gauss guide you watched <span class="inline-math">e<sup>iθ</sup></span> trace
+  a circle. That one picture is the seed of all of signal processing. The claim, outrageous when
+  Joseph Fourier made it in 1807, is that <em>any</em> repeating shape — a square wave, a sawtooth, the
+  pressure wave of a spoken vowel — is nothing but circles of different sizes spinning at different
+  speeds, added together.</p>
+
+  <p>The French Academy's referees — Lagrange among them — refused to believe it, and held up
+  Fourier's memoir on the theory of heat for years. Fourier published the full theory anyway in his
+  1822 <em>Théorie analytique de la chaleur</em>, and Dirichlet supplied the rigorous convergence
+  proof in 1829. The atoms of the theory are exactly Euler's exponentials:</p>
+
+  <div class="formula">
+    f(t) <span class="op">=</span> <span class="op">Σ</span><sub>k</sub> c<sub>k</sub> <span class="fw">e<sup> i k ω₀ t</sup></span>
+    &nbsp;&nbsp;<span class="op">with</span>&nbsp;&nbsp;
+    c<sub>k</sub> <span class="op">=</span> <span class="op">(1/T) ∫</span><sub>T</sub> f(t) <span class="fw">e<sup> −i k ω₀ t</sup></span> dt
+    <span class="formula-tag">Fourier series · every period-T signal as a sum of Euler's spinning circles</span>
+  </div>
+
+  <p>Why did this need Euler first? Because the formula for the coefficients works only if the atoms
+  don't interfere with each other — and they don't: distinct exponentials are <b>orthogonal</b>, their
+  products averaging to zero over a period. Each circle can be measured independently of all the
+  others. Fourier analysis is the art of asking a signal, one frequency at a time, <em>how much of
+  you is this circle?</em></p>
+
+  <h3 class="sub hw">Build a square wave out of circles</h3>
+  <p>A square wave — the most un-circular shape imaginable — needs only the odd harmonics, with
+  amplitudes falling off as <span class="inline-math">1/k</span>:</p>
+
+  <div class="formula">
+    square(t) <span class="op">=</span> <span class="op">(4/π) Σ</span><sub>k odd</sub> <span class="op">(1/k)</span> sin(k t)
+    <span class="op">=</span> <span class="op">(4/π)</span> [ sin t <span class="op">+</span> ⅓ sin 3t <span class="op">+</span> ⅕ sin 5t <span class="op">+</span> ⋯ ]
+    <span class="formula-tag">The square wave's recipe — odd circles only</span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · The harmonic loom</div>
+    <canvas id="fourierCanvas" height="360" aria-label="Fourier series builder showing a target waveform and its partial sum as harmonics are added"></canvas>
+    <div class="controls">
+      <label>waveform
+        <select id="fourierWave">
+          <option value="square">square</option>
+          <option value="saw">sawtooth</option>
+          <option value="tri">triangle</option>
+        </select>
+      </label>
+      <label>harmonics <input type="range" id="fourierN" min="1" max="60" value="4" step="1"> <span class="val" id="fourierNVal">4</span></label>
+      <label><input type="checkbox" id="fourierSpectrum" checked> show spectrum</label>
+    </div>
+    <div class="readout" id="fourierReadout" aria-live="polite"></div>
+    <p class="widget-caption">Slide the harmonic count up and watch circles conspire into corners. Notice
+    the stubborn horns at each jump: that overshoot is the <b>Gibbs phenomenon</b>, and it never shrinks
+    below ≈ 8.95% of the jump no matter how many harmonics you add — it only gets narrower. The spectrum
+    below the wave shows each circle's amplitude: the square wave's odd-k comb falling as 1/k.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 1 · Square-wave recipe &amp; the Gibbs horn</span><button class="copy">copy</button></div>
+<pre><span class="c">% --- Synthesize a square wave from its Fourier recipe ---------</span>
+t = linspace(-pi, 3*pi, 4000);
+target = sign(sin(t));            <span class="c">% the ideal square wave</span>
+
+<span class="kw">for</span> N = [1 3 9 41]                <span class="c">% highest odd harmonic used</span>
+  f = zeros(size(t));
+  <span class="kw">for</span> k = 1:2:N
+    f = f + (4/pi) * sin(k*t) / k;
+  <span class="kw">endfor</span>
+  overshoot = (max(f) - 1) * 100; <span class="c">% percent above the top rail</span>
+  <span class="fn">printf</span>(<span class="st">'N = %2d harmonics: overshoot %.2f%%\n'</span>, N, overshoot);
+<span class="kw">endfor</span>
+<span class="c">% Gibbs: overshoot -> (2/pi)*Si(pi) - 1 = 8.949%% -- it never dies</span>
+
+<span class="c">% --- Plot the last partial sum against the target -------------</span>
+plot(t, target, <span class="st">'linewidth'</span>, 1); hold on;
+plot(t, f, <span class="st">'linewidth'</span>, 1.5);
+title(<span class="st">'41 circles pretending to be a square'</span>);
+legend(<span class="st">'square'</span>, <span class="st">'partial sum'</span>);</pre>
+    <div class="lab-note">The overshoot column converges to 8.9490…%, the Gibbs constant — a genuine
+    limit of the partial sums, first explained by J. W. Gibbs in 1899. Filters in real hardware ring
+    for exactly this reason.</div>
+  </div>
+
+</section>
+
+<!-- ================================================================
+     THREAD I — part 2: impedance & circuits
+     ================================================================ -->
+<section id="circuits">
+  <div class="thread-rail rail-w"></div>
+  <div class="kicker"><span class="dot dot-w"></span>Thread I · The Wave, continued</div>
+  <h2>Impedance: Euler's Formula Runs Your Circuits</h2>
+
+  <p class="lead">Here is the engineering payoff, and it lands directly in the <em>circuit
+  fundamentals</em> guide on your shelf. Feed any linear circuit a single spinning circle
+  <span class="inline-math">e<sup>iωt</sup></span>, and the circuit cannot change its frequency —
+  only its size and its phase. Differentiation becomes multiplication by iω, calculus collapses
+  into complex arithmetic, and every capacitor and inductor becomes just a frequency-dependent
+  resistor:</p>
+
+  <div class="formula">
+    Z<sub>R</sub> <span class="op">=</span> R
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    Z<sub>L</sub> <span class="op">=</span> <span class="fw">i</span>ωL
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    Z<sub>C</sub> <span class="op">=</span> 1/(<span class="fw">i</span>ωC)
+    &nbsp;&nbsp;⟹&nbsp;&nbsp;
+    Z<sub>series</sub> <span class="op">=</span> R <span class="op">+</span> <span class="fw">i</span>(ωL − 1/ωC)
+    <span class="formula-tag">Impedance · Ohm's law promoted to the complex plane, courtesy of Euler</span>
+  </div>
+
+  <p>When the two imaginary parts cancel — <span class="inline-math">ωL = 1/ωC</span> — the circuit
+  is purely resistive and current surges: <b>resonance</b>, at
+  <span class="inline-math">ω₀ = 1/√(LC)</span>. Every radio tuner ever built is this one line of
+  Euler-powered algebra. And because Fourier says every real signal is a sum of circles, solving
+  the circuit for one frequency solves it for all signals at once.</p>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · Series RLC resonance explorer</div>
+    <canvas id="rlcCanvas" height="340" aria-label="RLC circuit explorer: phasor diagram on the left, current response versus frequency on the right"></canvas>
+    <div class="controls">
+      <label>drive freq <input type="range" id="rlcF" min="0" max="100" value="30" step="1"> <span class="val" id="rlcFVal"></span></label>
+      <label>resistance <input type="range" id="rlcR" min="5" max="120" value="25" step="1"> <span class="val" id="rlcRVal"></span></label>
+    </div>
+    <div class="readout" id="rlcReadout" aria-live="polite"></div>
+    <p class="widget-caption">Left: the voltage phasors across R (cyan), L (up) and C (down) — Euler's
+    rotating vectors frozen at one instant. L and C always pull in opposite directions; at resonance they
+    annihilate and the source sees only R. Right: current versus frequency. Lower the resistance and the
+    resonant peak sharpens — that sharpness is the <b>Q factor</b>, the selectivity of every tuned circuit.</p>
+  </div>
+
+  <h3 class="sub hw">From series to transform — and Gauss's secret algorithm</h3>
+  <p>Let the period grow to infinity and the Fourier series becomes the <b>Fourier transform</b>;
+  sample it and it becomes the <b>DFT</b>. The Euler &amp; Gauss guide told the punchline: Gauss had
+  the fast algorithm for the DFT — the FFT — in an unpublished 1805 notebook, working out asteroid
+  orbits, 160 years before Cooley and Tukey. The FFT is the single most-executed nontrivial
+  algorithm on Earth, and it is nothing but a clever regrouping of Euler's exponentials.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 2 · RLC frequency sweep — hear the resonance</span><button class="copy">copy</button></div>
+<pre><span class="c">% --- A series RLC driven across a band of frequencies ---------</span>
+R = 25;  L = 50e-3;  C = 2e-6;          <span class="c">% ohms, henries, farads</span>
+f0 = 1 / (2*pi*sqrt(L*C));              <span class="c">% predicted resonance</span>
+<span class="fn">printf</span>(<span class="st">'resonance predicted at %.1f Hz\n'</span>, f0);
+
+f = logspace(1, 4, 400);                <span class="c">% 10 Hz .. 10 kHz</span>
+w = 2*pi*f;
+Z = R + 1i*(w*L - 1 ./ (w*C));          <span class="c">% Euler does the calculus</span>
+I = 1 ./ abs(Z);                        <span class="c">% current for a 1 V drive</span>
+
+[~, ix] = max(I);
+<span class="fn">printf</span>(<span class="st">'peak current found at  %.1f Hz\n'</span>, f(ix));
+<span class="fn">printf</span>(<span class="st">'Q factor = %.1f\n'</span>, (1/R)*sqrt(L/C));
+
+semilogx(f, I, <span class="st">'linewidth'</span>, 1.5); hold on;
+semilogx([f0 f0], [0 max(I)], <span class="st">'--'</span>);
+xlabel(<span class="st">'frequency (Hz)'</span>); ylabel(<span class="st">'|I| for 1 V drive'</span>);
+title(<span class="st">'Series RLC: the resonant spike'</span>);
+
+<span class="c">% --- Phase flips 180 degrees through resonance -----------------</span>
+phase = angle(Z) * 180/pi;
+<span class="fn">printf</span>(<span class="st">'phase at f0/10: %+.0f deg   at 10*f0: %+.0f deg\n'</span>, ...
+       interp1(f, phase, f0/10), interp1(f, phase, 10*f0));</pre>
+    <div class="lab-note">Below resonance the capacitor dominates (phase −90°, circuit looks
+    capacitive); above it the inductor wins (+90°). The tuner in a radio drags f₀ across the dial
+    until the station you want sits on the spike.</div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 3 · FFT — take a chord apart and denoise it</span><button class="copy">copy</button></div>
+<pre><span class="c">% --- A two-note chord buried in noise --------------------------</span>
+Fs = 8192;  T = 1;                       <span class="c">% sample rate, duration</span>
+t  = (0:1/Fs:T-1/Fs);
+clean = sin(2*pi*440*t) + 0.8*sin(2*pi*659.3*t);   <span class="c">% A4 + E5</span>
+x  = clean + 1.2*randn(size(t));         <span class="c">% drown it in hiss</span>
+
+X  = fft(x);                             <span class="c">% Gauss's 1805 trick</span>
+P  = abs(X(1:Fs/2)) / (Fs/2);            <span class="c">% one-sided amplitude</span>
+fr = (0:Fs/2-1);                         <span class="c">% frequency axis (Hz)</span>
+
+[pk, loc] = sort(P, <span class="st">'descend'</span>);
+<span class="fn">printf</span>(<span class="st">'strongest bins: %.1f Hz and %.1f Hz\n'</span>, ...
+       fr(loc(1)), fr(loc(2)));          <span class="c">% -> 440 and 659</span>
+
+<span class="c">% --- Brutal denoise: keep only bins above a threshold ----------</span>
+Y = X .* (abs(X) &gt; 0.25*max(abs(X)));
+y = real(ifft(Y));
+<span class="fn">printf</span>(<span class="st">'noise power before: %.2f  after: %.2f\n'</span>, ...
+       mean((x-clean).^2), mean((y-clean).^2));
+
+plot(t(1:400), x(1:400)); hold on;
+plot(t(1:400), y(1:400), <span class="st">'linewidth'</span>, 1.5);
+legend(<span class="st">'noisy'</span>, <span class="st">'FFT-filtered'</span>); title(<span class="st">'A chord rescued from hiss'</span>);</pre>
+    <div class="lab-note">This is the whole logic of every equalizer, noise gate, and JPEG-style
+    codec: transform, judge each circle separately, transform back. Orthogonality is what makes the
+    judging honest.</div>
+  </div>
+
+  <div class="shelf">
+    <div class="shelf-card sw"><b>Continue in · Circuit Fundamentals</b>
+      AC steady-state analysis, phasors, and filters — the impedance algebra above is that guide's
+      chapter three, now with its Euler pedigree attached.</div>
+    <div class="shelf-card sw"><b>Continue in · Maxwell</b>
+      Maxwell's equations turn ω and k into a wave: light is the same
+      <span class="inline-math">e<sup>i(kx−ωt)</sup></span> circle, propagating. The spectrum in the
+      widget above is literally what an antenna hands to a receiver.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     THREAD II — CONGRUENCE
+     ================================================================ -->
+<section id="congruence">
+  <div class="thread-rail rail-k"></div>
+  <div class="kicker"><span class="dot dot-k"></span>Thread II · The Key</div>
+  <h2>Congruence: The Arithmetic of Secrets</h2>
+
+  <p class="lead">This thread has two strands, and it pays to keep the credits straight — your
+  cryptography series rests on both. The <b>totient</b> and its theorem are <b>Euler's</b> (1763):
+  φ(n) counts the numbers below n sharing no factor with it, and
+  <span class="inline-math">a<sup>φ(n)</sup> ≡ 1 (mod n)</span> whenever gcd(a,&nbsp;n)&nbsp;=&nbsp;1.
+  The <b>systematic machinery</b> of congruences — the ≡ notation, modular inverses, the whole
+  clockwork algebra — is <b>Gauss's</b>, laid down in the <em>Disquisitiones Arithmeticae</em>
+  (1801). RSA needs Euler's theorem for its engine and Gauss's algebra for its chassis.</p>
+
+  <div class="formula">
+    a<sup><span class="fk">φ(n)</span></sup> <span class="op">≡</span> 1 (mod n)
+    &nbsp;&nbsp;<span class="op">·</span>&nbsp;&nbsp;
+    φ(pq) <span class="op">=</span> (p−1)(q−1)
+    &nbsp;&nbsp;<span class="op">·</span>&nbsp;&nbsp;
+    a <span class="op">≡</span> b (mod m) <span class="op">⟺</span> m | (a−b)
+    <span class="formula-tag">Euler's engine (left) · Gauss's chassis (right)</span>
+  </div>
+
+  <p>For two centuries this was mathematics at its purest — Hardy famously toasted number theory
+  for its uselessness. Then in 1976–77, Diffie, Hellman, Rivest, Shamir and Adleman noticed that
+  clock arithmetic has an engineering property nothing else has: some of its operations are
+  <b>one-way streets</b>. Multiplying two primes is instant; recovering them from the product is
+  intractable. Raising g to a power mod p is instant; recovering the power — the <b>discrete
+  logarithm</b> — is a cliff.</p>
+
+  <h3 class="sub hk">The one-way street, drawn</h3>
+  <p>Watch the powers g, g², g³, … mod p hop around a circle of residues. The hops look random —
+  that scatter <em>is</em> the security. Given the landing point, naming the hop count is the
+  discrete log problem, and for a 2048-bit p the sun burns out first.</p>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · Powers of g — the discrete-log scatter</div>
+    <canvas id="orbitCanvas" height="360" aria-label="Residues arranged on a circle with chords showing successive powers of g modulo p"></canvas>
+    <div class="controls">
+      <label>prime p
+        <select id="orbitP">
+          <option value="11">11</option>
+          <option value="23">23</option>
+          <option value="47" selected>47</option>
+          <option value="59">59</option>
+          <option value="83">83</option>
+        </select>
+      </label>
+      <label>base g <input type="range" id="orbitG" min="2" max="20" value="5" step="1"> <span class="val" id="orbitGVal">5</span></label>
+      <label>steps <input type="range" id="orbitK" min="1" max="82" value="12" step="1"> <span class="val" id="orbitKVal">12</span></label>
+    </div>
+    <div class="readout" id="orbitReadout" aria-live="polite"></div>
+    <p class="widget-caption">Each chord is one multiplication by g. When the <b>order</b> of g equals
+    p−1, the path visits every nonzero residue before returning home — g is a <b>primitive root</b>,
+    exactly what Diffie–Hellman wants, and a concept Gauss built the theory of in the
+    <em>Disquisitiones</em>. Small orders make short, weak loops: try g&nbsp;=&nbsp;7 with p&nbsp;=&nbsp;47.</p>
+  </div>
+
+  <h3 class="sub hk">Diffie–Hellman in one breath</h3>
+  <p>Alice and Bob agree publicly on p and a primitive root g. Alice picks secret a, shouts
+  <span class="inline-math">g<sup>a</sup> mod p</span>; Bob picks secret b, shouts
+  <span class="inline-math">g<sup>b</sup> mod p</span>. Each raises the other's shout to their own
+  secret: both land on <span class="inline-math">g<sup>ab</sup> mod p</span>. The eavesdropper holds
+  g<sup>a</sup> and g<sup>b</sup> but needs the discrete log to climb to g<sup>ab</sup>. Two people
+  who have never met now share a secret, in public.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 4 · Extended Euclid — the key-maker's wrench</span><button class="copy">copy</button></div>
+<pre><span class="c">% --- Extended Euclid: g = a*x + b*y, and the modular inverse ---</span>
+1;  <span class="c">% marker: keeps this file a script (functions defined below)</span>
+
+<span class="kw">function</span> [g, x, y] = <span class="fn">egcd</span>(a, b)
+  <span class="kw">if</span> b == 0
+    g = a; x = 1; y = 0;
+  <span class="kw">else</span>
+    [g, x1, y1] = egcd(b, mod(a, b));
+    x = y1;  y = x1 - floor(a/b)*y1;  g = g;
+  <span class="kw">endif</span>
+<span class="kw">endfunction</span>
+
+<span class="kw">function</span> inv = <span class="fn">modinv</span>(a, m)
+  [g, x, ~] = egcd(mod(a, m), m);
+  <span class="kw">if</span> g != 1, error(<span class="st">'no inverse: gcd != 1'</span>); <span class="kw">endif</span>
+  inv = mod(x, m);
+<span class="kw">endfunction</span>
+
+<span class="c">% --- Sanity: invert 17 mod 3120 (the RSA step from the E&amp;G guide)</span>
+d = modinv(17, 3120)
+mod(17*d, 3120)                     <span class="c">% -> 1, as Euler promises</span>
+
+<span class="c">% --- Bezout in the open: gcd(240, 46) = 2 ----------------------</span>
+[g, x, y] = egcd(240, 46);
+<span class="fn">printf</span>(<span class="st">'gcd=%d  and  240*(%d) + 46*(%d) = %d\n'</span>, g, x, y, 240*x+46*y);</pre>
+    <div class="lab-note">Every RSA key generation on Earth runs this exact recursion to find the
+    private exponent. Euclid wrote the plain version ~300 BC; the extended bookkeeping that yields
+    inverses is the single most-used 2,300-year-old algorithm in existence.</div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 5 · Diffie–Hellman, and the cliff the spy falls off</span><button class="copy">copy</button></div>
+<pre><span class="c">% --- A toy exchange over Z_p* ----------------------------------</span>
+1;  <span class="c">% script marker</span>
+
+<span class="kw">function</span> r = <span class="fn">powmod</span>(a, k, n)   <span class="c">% repeated squaring, as in the E&amp;G guide</span>
+  r = 1; a = mod(a, n);
+  <span class="kw">while</span> k &gt; 0
+    <span class="kw">if</span> mod(k, 2), r = mod(r*a, n); <span class="kw">endif</span>
+    a = mod(a*a, n);  k = floor(k/2);
+  <span class="kw">endwhile</span>
+<span class="kw">endfunction</span>
+
+p = 30803;  g = 2;                  <span class="c">% public: a prime and a generator</span>
+a = 7716;   b = 12834;              <span class="c">% private picks (never sent)</span>
+A = powmod(g, a, p);  B = powmod(g, b, p);   <span class="c">% the two shouts</span>
+sA = powmod(B, a, p); sB = powmod(A, b, p);  <span class="c">% both climb to g^(ab)</span>
+<span class="fn">printf</span>(<span class="st">'Alice key %d == Bob key %d : %d\n'</span>, sA, sB, sA==sB);
+
+<span class="c">% --- The spy's only move: brute-force the discrete log ---------</span>
+tic;
+x = 1; k = 0;
+<span class="kw">do</span>
+  x = mod(x*g, p);  k = k + 1;
+<span class="kw">until</span> x == A
+<span class="fn">printf</span>(<span class="st">'dlog found: k = %d (matches a: %d) in %.3f s\n'</span>, ...
+       k, k==a, toc);
+<span class="c">% Now imagine p with 617 digits instead of 5. That is the cliff.</span></pre>
+    <div class="lab-note">The brute-force loop scales linearly in p; the best known classical attacks
+    are still super-polynomial. The gap between "instant to compute" and "infeasible to invert" is
+    the entire capital of modern cryptography.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     THREAD II — part 2: RSA
+     ================================================================ -->
+<section id="rsa">
+  <div class="thread-rail rail-k"></div>
+  <div class="kicker"><span class="dot dot-k"></span>Thread II · The Key, continued</div>
+  <h2>RSA: Euler's Theorem With a Padlock On It</h2>
+
+  <p class="lead">RSA is Euler's theorem read as an engineering spec. Pick primes p, q; publish
+  n&nbsp;=&nbsp;pq and an exponent e; keep d&nbsp;=&nbsp;e<sup>−1</sup>&nbsp;mod&nbsp;φ(n) private.
+  Anyone can lock a message m by computing m<sup>e</sup> mod n. Only the holder of d can unlock,
+  because</p>
+
+  <div class="formula">
+    (m<sup>e</sup>)<sup>d</sup> <span class="op">=</span> m<sup>ed</sup>
+    <span class="op">=</span> m<sup>1 + k·<span class="fk">φ(n)</span></sup>
+    <span class="op">≡</span> m (mod n)
+    <span class="formula-tag">Decryption = Euler's theorem, applied once · the totient of n is the trapdoor</span>
+  </div>
+
+  <p>The trapdoor is φ(n). Computing it from n means finding (p−1)(q−1), which means factoring n —
+  and factoring is the one-way street again. Publish the product, keep the factors: the whole of
+  internet key exchange balances on the difficulty of undoing one multiplication that Gauss could
+  have done in his head.</p>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · RSA playground — watch a message get scrambled</div>
+    <div class="controls">
+      <label>p
+        <select id="rsaP">
+          <option value="53">53</option><option value="61" selected>61</option>
+          <option value="89">89</option><option value="101">101</option>
+        </select>
+      </label>
+      <label>q
+        <select id="rsaQ">
+          <option value="47">47</option><option value="53" selected>53</option>
+          <option value="97">97</option><option value="103">103</option>
+        </select>
+      </label>
+      <label>message <input type="text" id="rsaMsg" value="GAUSS" maxlength="8" size="9" aria-label="Message, letters A to Z"></label>
+    </div>
+    <div class="rsa-grid">
+      <div class="readout" id="rsaKeys" aria-live="polite"></div>
+      <canvas id="rsaCanvas" height="240" aria-label="Scatter plot of the RSA map m to m^e mod n, showing how the encryption permutes residues"></canvas>
+      <div style="overflow-x:auto"><table class="rsa-table" id="rsaTable" aria-live="polite"></table></div>
+    </div>
+    <p class="widget-caption">Letters become numbers (A=01 … Z=26), each is raised to the e-th power
+    mod n, and the same letter always scrambles to the same cipher — which is why real RSA wraps
+    messages in random padding first. The scatter shows the full map m&nbsp;→&nbsp;m<sup>e</sup> mod n:
+    a deterministic permutation that looks like noise. Change p or q and the whole geometry reshuffles.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 6 · Full RSA round trip — encrypt, decrypt, sign, verify</span><button class="copy">copy</button></div>
+<pre><span class="c">% --- Key generation --------------------------------------------</span>
+1;  <span class="c">% script marker</span>
+
+<span class="kw">function</span> r = <span class="fn">powmod</span>(a, k, n)
+  r = 1; a = mod(a, n);
+  <span class="kw">while</span> k &gt; 0
+    <span class="kw">if</span> mod(k, 2), r = mod(r*a, n); <span class="kw">endif</span>
+    a = mod(a*a, n);  k = floor(k/2);
+  <span class="kw">endwhile</span>
+<span class="kw">endfunction</span>
+
+p = 61; q = 53;
+n = p*q;  phi = (p-1)*(q-1);
+e = 17;
+[~, d] = gcd(e, phi);  d = mod(d, phi);   <span class="c">% private exponent: 2753</span>
+
+<span class="c">% --- Encrypt a word letter by letter (A=1 .. Z=26) -------------</span>
+msg = <span class="st">'GAUSS'</span>;
+m = double(msg) - double(<span class="st">'A'</span>) + 1;
+c = arrayfun(@(x) powmod(x, e, n), m)
+back = arrayfun(@(x) powmod(x, d, n), c);
+<span class="fn">printf</span>(<span class="st">'decrypted: %s\n'</span>, char(back - 1 + double(<span class="st">'A'</span>)));
+
+<span class="c">% --- Signing: the same trapdoor, run backwards ------------------</span>
+h = mod(sum(m .* (1:numel(m))), n);   <span class="c">% toy hash of the message</span>
+sig = powmod(h, d, n);                <span class="c">% sign with the PRIVATE key</span>
+ok  = powmod(sig, e, n) == h;         <span class="c">% anyone verifies with PUBLIC</span>
+<span class="fn">printf</span>(<span class="st">'signature %d verifies: %d\n'</span>, sig, ok);</pre>
+    <div class="lab-note">Encryption and signing are the same exponentiation with the keys swapped —
+    one identity of Euler's doing two jobs. Real deployments differ only in scale (617-digit n) and
+    in the padding and hashing that patch the determinism you saw in the widget.</div>
+  </div>
+
+  <div class="shelf">
+    <div class="shelf-card sk"><b>Continue in · The Cryptography Guide</b>
+      Protocols, padding, and key exchange in full — this section is its number-theoretic
+      foundation, now with the Euler/Gauss credits explicit.</div>
+    <div class="shelf-card sk"><b>Continue in · Mathematics of Cryptography</b>
+      Where the totient, orders, and primitive roots get their complete theory — Gauss's
+      <em>Disquisitiones</em> chapter by chapter.</div>
+    <div class="shelf-card sk"><b>Continue in · Imaginary Numbers in Cryptography</b>
+      Elliptic curves take over where Z<sub>p</sub>* leaves off: the same discrete-log cliff,
+      relocated to a curve — and steeper.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     THREAD III — CURVATURE
+     ================================================================ -->
+<section id="curvature">
+  <div class="thread-rail rail-c"></div>
+  <div class="kicker"><span class="dot dot-c"></span>Thread III · The Curve</div>
+  <h2>Curvature: Geometry Measured From the Inside</h2>
+
+  <p class="lead">The Euler &amp; Gauss guide ended this story at the Theorema Egregium: Gaussian
+  curvature K is <em>intrinsic</em>, detectable by measurements made entirely within a surface —
+  no view from outside required. This thread follows that idea as it grows from a surveyor's
+  observation into the shape of the universe, and then into the string / M-theory guide.</p>
+
+  <p>The intrinsic test is beautifully concrete. Draw a triangle out of <b>geodesics</b> — the
+  straightest possible paths — and sum its angles. On a flat sheet you get exactly π. On a sphere
+  you get <em>more</em>; on a saddle, <em>less</em>. The excess is not an error term. It is the
+  curvature, integrated:</p>
+
+  <div class="formula">
+    α <span class="op">+</span> β <span class="op">+</span> γ <span class="op">−</span> π
+    <span class="op">=</span> <span class="op">∬</span><sub>△</sub> <span class="fc">K</span> dA
+    <span class="formula-tag">Gauss–Bonnet, local form · the angle surplus of a triangle IS the enclosed curvature</span>
+  </div>
+
+  <p>A second intrinsic probe: carry an arrow around a closed loop, always keeping it as parallel
+  to itself as the surface allows. On a flat sheet it comes home unchanged. On a curved surface it
+  comes home <b>rotated</b> — by exactly the curvature enclosed. This <b>holonomy</b> is how a
+  being confined to the surface, with no concept of an outside, could still measure K.</p>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · Holonomy on the sphere — the arrow that comes home rotated</div>
+    <canvas id="holonomyCanvas" height="400" aria-label="A geodesic triangle on a rotating sphere with draggable vertices; a transported arrow returns rotated by the spherical excess"></canvas>
+    <div class="controls">
+      <button class="wbtn" id="holoTransport">▷ transport the arrow</button>
+      <button class="wbtn" id="holoReset">↺ reset triangle</button>
+      <label><input type="checkbox" id="holoSpin" checked> slow spin</label>
+    </div>
+    <div class="readout" id="holoReadout" aria-live="polite"></div>
+    <p class="widget-caption">Drag the three vertices (front hemisphere) to reshape the geodesic
+    triangle, then press <b>transport</b>. The arrow slides around the loop staying as parallel as the
+    sphere permits — and returns rotated by the triangle's angle excess, which the readout confirms
+    equals the enclosed area (unit sphere: K&nbsp;=&nbsp;1, so excess&nbsp;=&nbsp;area exactly). Make
+    the triangle huge and watch the arrow come back wildly turned.</p>
+  </div>
+
+  <h3 class="sub hc">Riemann inherits, Einstein spends</h3>
+  <p>In 1854, at Göttingen, the aging Gauss chose the topic for the habilitation lecture of his
+  student Bernhard Riemann — and picked the one Riemann feared most: the foundations of geometry.
+  Riemann rose to it by generalizing the Theorema Egregium to <em>any number of dimensions</em>:
+  space itself could have intrinsic curvature, varying point to point, encoded in what we now call
+  the <b>metric tensor</b>. Gauss, nearly alone in the audience, reportedly left deeply moved.</p>
+
+  <p>Sixty-one years later Einstein spent the inheritance. General relativity (1915) says matter
+  curves the four-dimensional geometry of spacetime, and what we call gravity is just geodesic
+  motion inside that curvature — the planets are not pulled, they are coasting straight through a
+  bent geometry. The mathematics is Riemann's, which is to say Gauss's, industrialized:</p>
+
+  <div class="formula">
+    G<sub>μν</sub> <span class="op">=</span> 8πG&thinsp;T<sub>μν</sub>
+    &nbsp;&nbsp;<span class="op">·</span>&nbsp;&nbsp;
+    <span class="fc">geometry</span> <span class="op">=</span> matter
+    <span class="formula-tag">Einstein field equations, 1915 · the left side is pure Gauss–Riemann curvature</span>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · The curvature gallery — K in three signs</div>
+    <canvas id="galleryCanvas" height="360" aria-label="Rotating wireframe surfaces — sphere, plane, saddle, torus — colored by the sign of Gaussian curvature"></canvas>
+    <div class="controls">
+      <label>surface
+        <select id="gallerySelect">
+          <option value="sphere">sphere · K &gt; 0</option>
+          <option value="plane">plane · K = 0</option>
+          <option value="saddle" selected>saddle · K &lt; 0</option>
+          <option value="torus">torus · K changes sign</option>
+        </select>
+      </label>
+      <button class="wbtn" id="galleryPause">⏸ pause spin</button>
+    </div>
+    <div class="readout" id="galleryReadout" aria-live="polite"></div>
+    <p class="widget-caption">Rose mesh: positive curvature (sphere-like, triangles fat). Cyan mesh:
+    negative (saddle-like, triangles thin). The torus is the honest case: positive on its outer
+    equator, negative on the inner — and Gauss–Bonnet forces the total to integrate to exactly zero,
+    because a torus has Euler characteristic 0. The V&nbsp;−&nbsp;E&nbsp;+&nbsp;F thread from the
+    Euler &amp; Gauss guide and the curvature thread are the same thread, tied.</p>
+  </div>
+
+  <h3 class="sub hc" id="strings">Strings: curvature all the way down</h3>
+  <p>String theory runs the logic one more turn, and this is the handoff to your string / M-theory
+  guide. A string sweeps out a two-dimensional <b>worldsheet</b> — an honest Gaussian surface — and
+  the action that governs it is (in Polyakov's form) built from the worldsheet metric; the theory's
+  consistency hinges on two-dimensional curvature bookkeeping, where the Gauss–Bonnet total
+  curvature counts the holes in the worldsheet and organizes string interactions by topology. The
+  demand that quantum anomalies cancel then fixes the dimension of spacetime: 10 for superstrings,
+  11 for M-theory.</p>
+
+  <p>The extra dimensions hide by being small — <b>compactified</b> into shapes (circles in
+  Kaluza–Klein's 1920s original, Calabi–Yau spaces in the modern theory) whose <em>intrinsic
+  curvature</em> determines the particle physics we see. Which particles exist, their masses and
+  charges: in string theory these are readouts of the curvature of a space too small to see,
+  measured — as Gauss insisted all geometry could be — entirely from the inside.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 7 · Gaussian curvature, computed numerically</span><button class="copy">copy</button></div>
+<pre><span class="c">% K from the first &amp; second fundamental forms, by finite differences</span>
+1;  <span class="c">% script marker</span>
+
+<span class="kw">function</span> K = <span class="fn">gauss_K</span>(r, u, v)
+  h = 1e-5;
+  ru  = (r(u+h,v) - r(u-h,v)) / (2*h);      <span class="c">% tangent vectors</span>
+  rv  = (r(u,v+h) - r(u,v-h)) / (2*h);
+  ruu = (r(u+h,v) - 2*r(u,v) + r(u-h,v)) / h^2;
+  rvv = (r(u,v+h) - 2*r(u,v) + r(u,v-h)) / h^2;
+  ruv = (r(u+h,v+h) - r(u+h,v-h) - r(u-h,v+h) + r(u-h,v-h)) / (4*h^2);
+  nrm = cross(ru, rv);  nrm = nrm / norm(nrm);
+  E = dot(ru,ru);  F = dot(ru,rv);  G = dot(rv,rv);
+  L = dot(ruu,nrm); M = dot(ruv,nrm); N = dot(rvv,nrm);
+  K = (L*N - M^2) / (E*G - F^2);            <span class="c">% Gauss's own formula</span>
+<span class="kw">endfunction</span>
+
+<span class="c">% --- Sphere of radius 2: K should be 1/R^2 = 0.25 everywhere ---</span>
+sph = @(u,v) [2*cos(u).*cos(v), 2*sin(u).*cos(v), 2*sin(v)];
+<span class="fn">printf</span>(<span class="st">'sphere R=2 : K = %.6f (theory 0.2500)\n'</span>, gauss_K(sph, 0.7, 0.4));
+
+<span class="c">% --- Saddle z = x^2 - y^2 at the origin: K = -4 -----------------</span>
+sad = @(u,v) [u, v, u.^2 - v.^2];
+<span class="fn">printf</span>(<span class="st">'saddle     : K = %.6f (theory -4.0000 at 0,0)\n'</span>, gauss_K(sad, 0, 0));
+
+<span class="c">% --- Torus (R=2, r=0.7): K flips sign inner vs outer ------------</span>
+tor = @(u,v) [(2+0.7*cos(v)).*cos(u), (2+0.7*cos(v)).*sin(u), 0.7*sin(v)];
+<span class="fn">printf</span>(<span class="st">'torus outer: K = %+.4f   inner: K = %+.4f\n'</span>, ...
+       gauss_K(tor, 0.3, 0), gauss_K(tor, 0.3, pi));</pre>
+    <div class="lab-note">The formula K = (LN−M²)/(EG−F²) is extrinsic — it uses the normal vector,
+    a view from outside. The <em>miracle</em> of the Theorema Egregium is that the answer it computes
+    could have been obtained from E, F, G alone: from measurements inside the surface.</div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 8 · Gauss–Bonnet, checked on a spherical triangle</span><button class="copy">copy</button></div>
+<pre><span class="c">% Angle excess of a geodesic triangle == its area (unit sphere, K=1)</span>
+1;  <span class="c">% script marker</span>
+
+<span class="kw">function</span> ang = <span class="fn">corner</span>(A, B, C)
+  <span class="c">% angle at vertex A between great-circle arcs A-&gt;B and A-&gt;C</span>
+  tb = B - dot(B,A)*A;   tc = C - dot(C,A)*A;   <span class="c">% project to tangent plane</span>
+  ang = acos( dot(tb,tc) / (norm(tb)*norm(tc)) );
+<span class="kw">endfunction</span>
+
+<span class="c">% --- Three unit vectors = triangle vertices ---------------------</span>
+A = [1 0 0];
+B = [0 1 0];
+C = [0 0.2 1];  C = C / norm(C);
+
+alpha = corner(A,B,C); beta = corner(B,C,A); gamma = corner(C,A,B);
+excess = alpha + beta + gamma - pi;
+
+<span class="c">% --- Independent area via L'Huilier's theorem -------------------</span>
+a = acos(dot(B,C)); b = acos(dot(A,C)); c = acos(dot(A,B));
+s = (a+b+c)/2;
+E4 = sqrt(tan(s/2)*tan((s-a)/2)*tan((s-b)/2)*tan((s-c)/2));
+area = 4*atan(E4);
+
+<span class="fn">printf</span>(<span class="st">'angle sum   = %.6f rad (pi = %.6f)\n'</span>, alpha+beta+gamma, pi);
+<span class="fn">printf</span>(<span class="st">'excess      = %.6f\n'</span>, excess);
+<span class="fn">printf</span>(<span class="st">'area (LHuilier) = %.6f   match: %d\n'</span>, area, abs(excess-area)&lt;1e-9);</pre>
+    <div class="lab-note">Two completely different computations — angles at corners versus
+    L'Huilier's 18th-century area formula — agree to machine precision, because Gauss–Bonnet says
+    they must. This equality is what the holonomy widget above demonstrates with a draggable arrow.</div>
+  </div>
+
+  <div class="shelf">
+    <div class="shelf-card sc"><b>Continue in · String Theory / M-Theory</b>
+      Worldsheets, compactification, and why 10 and 11 — the curvature thread carries straight into
+      that guide's opening chapters.</div>
+    <div class="shelf-card sc"><b>Continue in · Mathematical Tapestry</b>
+      The Gauss → Riemann → Einstein arc in its full setting, alongside Hilbert spaces and path
+      integrals.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     THREAD IV — ZETA
+     ================================================================ -->
+<section id="zeta">
+  <div class="thread-rail rail-z"></div>
+  <div class="kicker"><span class="dot dot-z"></span>Thread IV · Zeta</div>
+  <h2>Zeta: The Basel Problem Grows Up</h2>
+
+  <p class="lead">When Euler summed <span class="inline-math">1 + ¼ + ⅑ + …</span> to π²/6 in 1735,
+  he did more than win a contest ninety years old. He had evaluated one point of a function —
+  and the function turned out to know where the prime numbers are. This is the thread that ends
+  in the Mathematical Tapestry, and in the deepest open problem in mathematics.</p>
+
+  <div class="formula">
+    ζ(s) <span class="op">=</span> <span class="op">Σ</span><sub>n≥1</sub> 1/n<sup>s</sup>
+    <span class="op">=</span> <span class="op">∏</span><sub>p prime</sub> 1/(1 − p<sup>−s</sup>)
+    <span class="formula-tag">The zeta function and Euler's product, 1737 · a sum over ALL integers equals a product over ONLY primes</span>
+  </div>
+
+  <p>The product identity is unreasonable at first sight and inevitable at second: expand every
+  factor as a geometric series, multiply out, and unique factorization guarantees each integer n
+  is assembled exactly once. <b>The Euler product is the fundamental theorem of arithmetic wearing
+  analysis' clothes.</b> Because ζ(s) blows up at s&nbsp;=&nbsp;1 (the harmonic series), the product
+  must contain infinitely many factors: Euler had proved the infinitude of primes with calculus,
+  2,000 years after Euclid did it with a two-line trick.</p>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · The Euler product race — integers vs primes</div>
+    <canvas id="productCanvas" height="330" aria-label="Convergence race between partial sums over integers and truncated products over primes, both approaching zeta of s"></canvas>
+    <div class="controls">
+      <label>s <input type="range" id="prodS" min="110" max="400" value="200" step="5"> <span class="val" id="prodSVal">2.00</span></label>
+      <label>terms / primes used <input type="range" id="prodN" min="2" max="60" value="12" step="1"> <span class="val" id="prodNVal">12</span></label>
+    </div>
+    <div class="readout" id="prodReadout" aria-live="polite"></div>
+    <p class="widget-caption">Green: the partial sum Σ1/n<sup>s</sup>. Amber: the product over the first
+    primes — Thread II and Thread IV touching. Both crawl toward the same ζ(s), from opposite sides of
+    arithmetic. At s&nbsp;=&nbsp;2 the target is the Basel value π²/6; drag s toward 1 and watch both
+    convergences turn to sludge as the harmonic singularity approaches.</p>
+  </div>
+
+  <h3 class="sub hz">Riemann's 1859 move: feed it complex numbers</h3>
+  <p>The series only converges for s&nbsp;&gt;&nbsp;1. In an eight-page paper of 1859 — his only one
+  on number theory — Riemann, Gauss's successor at Göttingen, did the decisive thing: he treated s
+  as a <em>complex</em> variable and extended ζ to the whole plane by <b>analytic continuation</b>,
+  finding a functional equation that mirrors the plane about the line
+  Re(s)&nbsp;=&nbsp;½. The continued function has zeros, and Riemann's formula for counting primes
+  says the zeros <em>are the music</em>: each zero contributes one wave to the exact shape of the
+  prime staircase. Gauss's teenage π(x)&nbsp;≈&nbsp;Li(x) guess from the Euler &amp; Gauss guide is
+  just the smooth baseline; the zeros supply the wiggles, exactly.</p>
+
+  <div class="note nz"><b>The −1/12 business, honestly.</b> You will meet the claim that
+  1+2+3+⋯&nbsp;=&nbsp;−1/12. What is true: the analytically continued function takes the value
+  ζ(−1)&nbsp;=&nbsp;−1/12. The divergent series itself has no sum; the continuation assigns the
+  unique value consistent with the function's global structure. Physics genuinely uses this —
+  regularizing vacuum energy in the Casimir effect, and fixing the 26 and 10 of string theory's
+  critical dimensions — precisely because nature appears to care about the continued function, not
+  the naive sum. The string theory guide on your shelf picks this story up in earnest.</div>
+
+  <div class="formula">
+    ζ(s) <span class="op">=</span> 2<sup>s</sup> π<sup>s−1</sup> sin(πs/2) Γ(1−s) ζ(1−s)
+    <span class="formula-tag">Riemann's functional equation, 1859 · the mirror at Re(s) = ½</span>
+  </div>
+
+  <h3 class="sub hz" id="zeros">Walking the critical line</h3>
+  <p>All the mystery now lives in the <b>critical strip</b> 0&nbsp;&lt;&nbsp;Re(s)&nbsp;&lt;&nbsp;1.
+  The <b>Riemann Hypothesis</b> — Hilbert's eighth problem, a Clay million, unproven since 1859 —
+  says every nontrivial zero sits exactly on the mirror line Re(s)&nbsp;=&nbsp;½. If true, the
+  primes are as orderly as they could possibly be. Below, you can walk the line yourself and watch
+  the function thread the origin.</p>
+
+  <div class="widget">
+    <div class="widget-title"><b>Interactive</b> · ζ on the critical line — hunting zeros by hand</div>
+    <canvas id="zetaCanvas" height="380" aria-label="The path of zeta of one-half plus i t in the complex plane; the curve passes through the origin at each nontrivial zero"></canvas>
+    <div class="controls">
+      <label>t <input type="range" id="zetaT" min="0" max="3200" value="1600" step="5"> <span class="val" id="zetaTVal">16.0</span></label>
+      <button class="wbtn" id="zetaZero">★ jump to next zero</button>
+    </div>
+    <div class="readout" id="zetaReadout" aria-live="polite"></div>
+    <p class="widget-caption">The green curve is the journey of ζ(½&nbsp;+&nbsp;it) through the complex
+    plane as t rises from 0 to your slider — computed live with a convergence-accelerated series. Every
+    pass through the origin is a nontrivial zero: the first three sit at
+    t&nbsp;≈&nbsp;14.135, 21.022, 25.011. Ten trillion zeros have been checked; all on the line;
+    none proven to stay there.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 9 · Compute ζ anywhere — and catch its zeros</span><button class="copy">copy</button></div>
+<pre><span class="c">% Zeta via the eta series + Cohen-Villegas-Zagier acceleration ---</span>
+1;  <span class="c">% script marker</span>
+
+<span class="kw">function</span> z = <span class="fn">zeta_cvz</span>(s, n)
+  <span class="c">% alternating eta series, accelerated: good far into the strip</span>
+  d = (3 + sqrt(8))^n;  d = (d + 1/d) / 2;
+  b = -1;  c = -d;  acc = 0;
+  <span class="kw">for</span> k = 0:n-1
+    c = b - c;
+    acc = acc + c * (-1)^k * exp(-s * log(k+1));
+    b = b * 2*(k+n)*(k-n) / ((2*k+1)*(k+1));
+  <span class="kw">endfor</span>
+  eta = acc / d;
+  z = eta / (1 - 2^(1-s));            <span class="c">% eta -&gt; zeta</span>
+<span class="kw">endfunction</span>
+
+<span class="c">% --- Sanity against Euler's specials ----------------------------</span>
+<span class="fn">printf</span>(<span class="st">'zeta(2) = %.12f  (pi^2/6  = %.12f)\n'</span>, real(zeta_cvz(2,40)), pi^2/6);
+<span class="fn">printf</span>(<span class="st">'zeta(4) = %.12f  (pi^4/90 = %.12f)\n'</span>, real(zeta_cvz(4,40)), pi^4/90);
+
+<span class="c">% --- Walk the critical line, flag the dips ----------------------</span>
+t = 10:0.02:27;
+mag = arrayfun(@(tt) abs(zeta_cvz(0.5 + 1i*tt, 60)), t);
+<span class="kw">for</span> k = 2:numel(t)-1
+  <span class="kw">if</span> mag(k) &lt; mag(k-1) &amp;&amp; mag(k) &lt; mag(k+1) &amp;&amp; mag(k) &lt; 0.05
+    <span class="fn">printf</span>(<span class="st">'zero near t = %.3f   |zeta| = %.2e\n'</span>, t(k), mag(k));
+  <span class="kw">endif</span>
+<span class="kw">endfor</span>
+<span class="c">% -&gt; 14.135, 21.022, 25.011 : the first three notes of the music</span>
+
+plot(t, mag, <span class="st">'linewidth'</span>, 1.3);
+xlabel(<span class="st">'t'</span>); ylabel(<span class="st">'|zeta(1/2 + it)|'</span>);
+title(<span class="st">'The critical line: every touch of zero is a Riemann zero'</span>);</pre>
+    <div class="lab-note">The CVZ acceleration (1999) turns the uselessly slow alternating series
+    into ~1.3<sup>−n</sup> convergence per term — sixty terms give the strip to full double
+    precision for moderate t. The same routine drives the widget above.</div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><span class="lab-title">Lab 10 · The zeros speak: Riemann's R(x) vs Gauss's Li(x)</span><button class="copy">copy</button></div>
+<pre><span class="c">% How much better does zeta make the prime count? -----------------</span>
+1;  <span class="c">% script marker</span>
+
+<span class="kw">function</span> pr = <span class="fn">sieve</span>(N)
+  isp = true(1, N); isp(1) = false;
+  <span class="kw">for</span> k = 2:floor(sqrt(N))
+    <span class="kw">if</span> isp(k), isp(2*k:k:N) = false; <span class="kw">endif</span>
+  <span class="kw">endfor</span>
+  pr = find(isp);
+<span class="kw">endfunction</span>
+
+<span class="kw">function</span> v = <span class="fn">li</span>(x)     <span class="c">% Li via the convergent series (E&amp;G guide, fixed)</span>
+  g = 0.57721566490153286;  L = log(x);
+  s = g + log(L);  term = 1;
+  <span class="kw">for</span> k = 1:120
+    term = term * L / k;  s = s + term / k;
+  <span class="kw">endfor</span>
+  v = s - 1.04516378011749278;          <span class="c">% subtract li(2)</span>
+<span class="kw">endfunction</span>
+
+<span class="kw">function</span> v = <span class="fn">R</span>(x)      <span class="c">% Riemann's R via the Gram series</span>
+  L = log(x);  v = 1;  term = 1;
+  <span class="kw">for</span> k = 1:80
+    term = term * L / k;
+    zk = sum((1:400).^(-(k+1)));        <span class="c">% zeta(k+1) by direct sum</span>
+    v = v + term / (k * zk);
+  <span class="kw">endfor</span>
+<span class="kw">endfunction</span>
+
+N = 1e6;  pr = sieve(N);
+<span class="kw">for</span> x = [1e4 1e5 1e6]
+  pix = sum(pr &lt;= x);
+  <span class="fn">printf</span>(<span class="st">'x=%7d  pi=%6d   Li err %+6.1f   R err %+6.1f\n'</span>, ...
+         x, pix, li(x)-pix, R(x)-pix);
+<span class="kw">endfor</span>
+<span class="c">% R(x), built from zeta, lands roughly 5-10x closer than Li(x).</span>
+<span class="c">% Add the zeros' oscillating terms and the formula becomes EXACT.</span></pre>
+    <div class="lab-note">Gauss's Li(x) is the smooth guess; Riemann's R(x) corrects it using ζ
+    itself, and the error drops dramatically. The remaining error is carried entirely by the
+    nontrivial zeros — the ones the widget walked past. That is the sense in which the Riemann
+    Hypothesis is a statement about how honest the primes are.</div>
+  </div>
+
+  <div class="shelf">
+    <div class="shelf-card sz"><b>Continue in · Mathematical Tapestry</b>
+      Analytic continuation done properly, the functional equation derived, and zeta's appearances
+      in Hilbert-space language.</div>
+    <div class="shelf-card sz"><b>Continue in · String Theory / M-Theory</b>
+      Where ζ(−1) = −1/12 earns its keep: the critical dimension calculation, honestly performed.</div>
+    <div class="shelf-card sz"><b>Loops back to · Thread II</b>
+      The Euler product is the bridge: zeta on one bank, the primes of cryptography on the other.</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     CODA
+     ================================================================ -->
+<section id="coda">
+  <div class="kicker"><span class="dot dot-w"></span><span class="dot dot-k"></span><span class="dot dot-c"></span><span class="dot dot-z"></span>Coda</div>
+  <h2>The Loom, Read Backwards</h2>
+
+  <p class="lead">Four threads, one warp. Every row of this table is a straight line from a
+  1700s desk in Basel or a 1800s observatory in Göttingen to a guide already on your shelf.</p>
+
+  <table class="loom-table">
+    <thead><tr><th>Thread</th><th>The seed</th><th>The weaver</th><th>The fabric</th><th>On your shelf</th></tr></thead>
+    <tbody>
+      <tr class="rw"><td>〜 Wave</td>
+        <td><b>Euler</b>, e<sup>iθ</sup> (1748)</td>
+        <td>Fourier 1822 · Dirichlet 1829</td>
+        <td>Impedance, filters, FFT, spectra</td>
+        <td>Circuits · Maxwell</td></tr>
+      <tr class="rk"><td>⚿ Key</td>
+        <td><b>Euler</b>, φ &amp; theorem (1763) · <b>Gauss</b>, congruences (1801)</td>
+        <td>Diffie–Hellman 1976 · RSA 1977</td>
+        <td>Key exchange, signatures, TLS</td>
+        <td>Cryptography series</td></tr>
+      <tr class="rc"><td>◠ Curve</td>
+        <td><b>Gauss</b>, Theorema Egregium (1827)</td>
+        <td>Riemann 1854 · Einstein 1915</td>
+        <td>General relativity, worldsheets, 10 &amp; 11 dimensions</td>
+        <td>String / M-theory</td></tr>
+      <tr class="rz"><td>ζ Zeta</td>
+        <td><b>Euler</b>, Basel &amp; product (1735–37)</td>
+        <td>Riemann 1859</td>
+        <td>Prime counting, RH, −1/12 in physics</td>
+        <td>Mathematical Tapestry</td></tr>
+    </tbody>
+  </table>
+
+  <p>The threads also tie to <em>each other</em>: the FFT that analyzes your circuits multiplies
+  the giant integers of RSA; the Euler product hands the primes of Thread II to the analysis of
+  Thread IV; zeta's continuation pays string theory's bills in Thread III. Pull any one thread in
+  this library and the others move.</p>
+
+  <div class="manuscript">
+    <blockquote>The profound study of nature is the most fertile source of mathematical
+    discoveries.</blockquote>
+    <cite>— Joseph Fourier, Théorie analytique de la chaleur, 1822 — the weaver's creed</cite>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="thread-line"><span class="w">〜</span> · <span class="k">⚿</span> · <span class="c">◠</span> · <span class="z">ζ</span></div>
+  The Four Threads · a connection atlas for the Euler &amp; Gauss guide<br>
+  self-contained html — no external dependencies · widgets: vanilla canvas + js · code labs: gnu octave ≥ 7<br>
+  companion to: circuits · maxwell · cryptography · string / m-theory · mathematical tapestry
+</footer>
+
+<script>
+(function(){
+"use strict";
+/* ================= shared helpers ================= */
+var TAU = Math.PI*2;
+var W='#4FC4D6', K='#E2B44A', C='#D97A93', Z='#8FC97E',
+    TXT='#DFE3E9', MUT='#97A0AD', FNT='#5C6672', EDGE='#2A313D', BAD='#D97A6B',
+    GROUND='#12151B';
+var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var MONO = '12px "SF Mono", Menlo, Consolas, monospace';
+var DISP = '11px Futura, "Avenir Next", "Century Gothic", sans-serif';
+var redrawers = [];
+
+function setupCanvas(cv){
+  var dpr = window.devicePixelRatio || 1;
+  var rect = cv.getBoundingClientRect();
+  var cssH = +cv.getAttribute('height') || 300;
+  var w = Math.max(280, rect.width), h = cssH;
+  if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){
+    cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
+    cv.style.height = h + 'px';
+  }
+  var ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return { ctx:ctx, w:w, h:h };
+}
+function clear(ctx,w,h){ ctx.clearRect(0,0,w,h); }
+function fmt(x,d){ return (+x).toFixed(d===undefined?3:d); }
+
+/* copy buttons */
+Array.prototype.forEach.call(document.querySelectorAll('.lab'), function(lab){
+  var btn = lab.querySelector('button.copy'), pre = lab.querySelector('pre');
+  if (!btn || !pre) return;
+  btn.addEventListener('click', function(){
+    var txt = pre.textContent;
+    function done(ok){ btn.textContent = ok ? 'copied ✓' : 'select & copy';
+      setTimeout(function(){ btn.textContent = 'copy'; }, 1600); }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){done(true);},function(){done(false);});
+    } else {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      try { done(document.execCommand('copy')); } catch(e){ done(false); }
+      sel.removeAllRanges();
+    }
+  });
+});
+
+/* ================= 1. THE LOOM (hero) ================= */
+(function(){
+  var cv = document.getElementById('loomCanvas');
+  if (!cv) return;
+  var Y0=1728, Y1=2033;
+  function themes(h){
+    /* per-thread waypoints: [year, lane offset] — lanes weave */
+    var l = h/5;
+    return [
+      { col:W, id:'#fourier', name:'wave', pts:[[Y0,l*1.4],[1748,l*1.1],[1805,l*2.2],[1822,l*0.9],[1865,l*1.6],[1965,l*1.0],[2026,l*1.0]],
+        nodes:[[1748,'e^{iθ} · Euler'],[1805,'FFT ms. · Gauss'],[1822,'Fourier'],[1865,'Maxwell'],[1965,'Cooley–Tukey']] },
+      { col:K, id:'#congruence', name:'key', pts:[[Y0,l*2.4],[1763,l*2.0],[1801,l*2.9],[1900,l*2.1],[1977,l*2.6],[2026,l*2.0]],
+        nodes:[[1763,'totient · Euler'],[1801,'Disquisitiones · Gauss'],[1977,'RSA']] },
+      { col:C, id:'#curvature', name:'curve', pts:[[Y0,l*3.4],[1827,l*3.0],[1854,l*3.8],[1915,l*2.9],[1984,l*3.4],[2026,l*3.0]],
+        nodes:[[1827,'Egregium · Gauss'],[1854,'Riemann'],[1915,'Einstein'],[1984,'strings']] },
+      { col:Z, id:'#zeta', name:'zeta', pts:[[Y0,l*4.3],[1735,l*4.0],[1737,l*4.35],[1859,l*3.6],[1896,l*4.3],[2026,l*4.0]],
+        nodes:[[1735,'Basel · Euler'],[1859,'ζ zeros · Riemann'],[1896,'PNT']] }
+    ];
+  }
+  var hover = -1, t0 = performance.now(), threads = null, samples = null;
+
+  function xOf(year,w){ return 30 + (year - Y0)/(Y1 - Y0) * (w - 60); }
+  function curvePoints(pts, w){
+    /* Catmull-Rom sampled polyline */
+    var P = pts.map(function(p){ return [xOf(p[0],w), p[1]]; });
+    var out = [];
+    for (var i = 0; i < P.length-1; i++){
+      var p0 = P[Math.max(0,i-1)], p1 = P[i], p2 = P[i+1], p3 = P[Math.min(P.length-1,i+2)];
+      for (var s = 0; s < 22; s++){
+        var t = s/22, t2 = t*t, t3 = t2*t;
+        out.push([
+          0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),
+          0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)
+        ]);
+      }
+    }
+    out.push(P[P.length-1]);
+    return out;
+  }
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    threads = themes(h);
+    samples = threads.map(function(th){ return curvePoints(th.pts, w); });
+    clear(ctx,w,h);
+    /* warp: faint vertical year rules */
+    ctx.font = DISP; ctx.textAlign = 'center';
+    [1735,1801,1859,1915,1977].forEach(function(yr){
+      var x = xOf(yr,w);
+      ctx.strokeStyle = 'rgba(42,49,61,0.6)'; ctx.beginPath();
+      ctx.moveTo(x,18); ctx.lineTo(x,h-24); ctx.stroke();
+      ctx.fillStyle = FNT; ctx.fillText(String(yr), x, h-10);
+    });
+    ctx.fillStyle = FNT; ctx.fillText('your library →', w-52, h-10);
+    var flow = RM ? 0 : (performance.now()-t0)/40;
+    threads.forEach(function(th, i){
+      var dim = (hover !== -1 && hover !== i);
+      ctx.save();
+      ctx.globalAlpha = dim ? 0.16 : 1;
+      ctx.strokeStyle = th.col; ctx.lineWidth = hover===i ? 2.6 : 1.8;
+      ctx.setLineDash([10,7]); ctx.lineDashOffset = -flow;
+      ctx.beginPath();
+      samples[i].forEach(function(p,j){ j ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]); });
+      ctx.stroke();
+      ctx.setLineDash([]);
+      /* nodes */
+      th.nodes.forEach(function(nd){
+        var x = xOf(nd[0],w);
+        /* find y on the sampled curve */
+        var best = samples[i][0];
+        samples[i].forEach(function(p){ if (Math.abs(p[0]-x) < Math.abs(best[0]-x)) best = p; });
+        ctx.fillStyle = th.col;
+        ctx.beginPath(); ctx.arc(x, best[1], hover===i?4:3, 0, TAU); ctx.fill();
+        if (hover === i){
+          ctx.fillStyle = TXT; ctx.font = DISP; ctx.textAlign = 'center';
+          ctx.fillText(nd[1], Math.min(w-60, Math.max(60,x)), best[1]-10);
+        }
+      });
+      ctx.restore();
+    });
+    if (hover !== -1){
+      ctx.fillStyle = threads[hover].col; ctx.font = DISP; ctx.textAlign='left';
+      ctx.fillText('→ follow the ' + threads[hover].name + ' thread', 30, 16);
+    }
+  }
+  function nearest(mx,my){
+    var best = -1, bd = 20;
+    samples && samples.forEach(function(sm,i){
+      sm.forEach(function(p){
+        var d = Math.abs(p[1]-my) + Math.abs(p[0]-mx)*0.02;
+        if (Math.abs(p[0]-mx) < 200 && d < bd){ bd = d; best = i; }
+      });
+    });
+    return best;
+  }
+  cv.addEventListener('pointermove', function(e){
+    var r = cv.getBoundingClientRect();
+    var nh = nearest(e.clientX-r.left, e.clientY-r.top);
+    if (nh !== hover){ hover = nh; if (RM) draw(); }
+  });
+  cv.addEventListener('pointerleave', function(){ hover = -1; if (RM) draw(); });
+  cv.addEventListener('click', function(){
+    if (hover !== -1){ var el = document.querySelector(threads[hover].id); if (el) el.scrollIntoView({behavior: RM?'auto':'smooth'}); }
+  });
+  cv.addEventListener('keydown', function(){});
+  if (RM){ draw(); } else {
+    (function loop(){ draw(); requestAnimationFrame(loop); })();
+  }
+  redrawers.push(draw);
+})();
+
+/* ================= 2. FOURIER BUILDER ================= */
+(function(){
+  var cv = document.getElementById('fourierCanvas');
+  if (!cv) return;
+  var selW = document.getElementById('fourierWave'),
+      slN = document.getElementById('fourierN'),
+      valN = document.getElementById('fourierNVal'),
+      cbS = document.getElementById('fourierSpectrum'),
+      readout = document.getElementById('fourierReadout');
+
+  function target(kind,t){
+    var x = ((t % TAU) + TAU) % TAU;
+    if (kind==='square') return x < Math.PI ? 1 : -1;
+    if (kind==='saw') return (x/Math.PI) - 1 < 0 ? x/Math.PI : x/Math.PI - 2;
+    /* triangle */
+    return x < Math.PI ? -1 + 2*x/Math.PI : 3 - 2*x/Math.PI;
+  }
+  function coeff(kind,k){
+    if (kind==='square') return (k%2===1) ? 4/(Math.PI*k) : 0;
+    if (kind==='saw')    return -2/(Math.PI*k) * (k%2===0?1:-1); /* saw = sum 2/(pi k) (-1)^{k+1} sin kt */
+    if (k%2===0) return 0;
+    var m=(k-1)/2;
+    return 8/(Math.PI*Math.PI*k*k) * (m%2===0?1:-1) * -1;
+  }
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    var kind = selW.value, N = +slN.value;
+    var showSpec = cbS.checked;
+    var waveH = showSpec ? h*0.66 : h;
+    var midY = waveH/2, amp = waveH*0.32;
+    /* axes */
+    ctx.strokeStyle = EDGE; ctx.beginPath();
+    ctx.moveTo(0,midY); ctx.lineTo(w,midY); ctx.stroke();
+    /* target */
+    ctx.strokeStyle = 'rgba(151,160,173,0.55)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    var t;
+    for (var px = 0; px <= w; px++){
+      t = px/w * 2*TAU - Math.PI/2;
+      var y = midY - target(kind,t)*amp;
+      px ? ctx.lineTo(px,y) : ctx.moveTo(px,y);
+    }
+    ctx.stroke();
+    /* partial sum */
+    var maxVal = 0;
+    ctx.strokeStyle = W; ctx.lineWidth = 1.9;
+    ctx.beginPath();
+    for (px = 0; px <= w; px++){
+      t = px/w * 2*TAU - Math.PI/2;
+      var s = 0;
+      for (var k = 1; k <= N; k++){ var b = coeff(kind,k); if (b) s += b*Math.sin(k*t); }
+      if (s > maxVal) maxVal = s;
+      var y2 = midY - s*amp;
+      px ? ctx.lineTo(px,y2) : ctx.moveTo(px,y2);
+    }
+    ctx.stroke();
+    /* Gibbs marker for square */
+    if (kind==='square'){
+      ctx.strokeStyle = 'rgba(217,122,107,0.7)'; ctx.setLineDash([3,4]);
+      ctx.beginPath(); ctx.moveTo(0, midY-maxVal*amp); ctx.lineTo(w, midY-maxVal*amp); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = BAD; ctx.font = MONO; ctx.textAlign='left';
+      ctx.fillText('overshoot', 8, midY - maxVal*amp - 6);
+    }
+    /* spectrum */
+    if (showSpec){
+      var specTop = waveH + 14, specH = h - specTop - 18;
+      ctx.strokeStyle = EDGE; ctx.beginPath();
+      ctx.moveTo(0, h-18); ctx.lineTo(w, h-18); ctx.stroke();
+      var kMax = 60, bw = (w-40)/kMax;
+      var c1 = Math.abs(coeff(kind,1)) || 1;
+      for (k = 1; k <= kMax; k++){
+        var bk = Math.abs(coeff(kind,k));
+        if (!bk) continue;
+        var bh = bk/c1 * specH;
+        ctx.fillStyle = k <= N ? W : 'rgba(79,196,214,0.18)';
+        ctx.fillRect(20 + (k-1)*bw, h-18-bh, Math.max(2,bw*0.55), bh);
+      }
+      ctx.fillStyle = FNT; ctx.font = DISP; ctx.textAlign='left';
+      ctx.fillText('spectrum |b_k| · lit bars are in the sum', 20, specTop+4);
+    }
+    valN.textContent = N;
+    var names = {square:'square', saw:'sawtooth', tri:'triangle'};
+    var extra = kind==='square'
+      ? ' &nbsp; overshoot = <b>' + fmt((maxVal-1)/2*100,2) + '%</b> of the jump (Gibbs limit 8.95%)'
+      : (kind==='tri' ? ' &nbsp; coefficients fall as <b>1/k²</b> — corners are gentler, convergence faster' 
+                      : ' &nbsp; all harmonics present, falling as <b>1/k</b>');
+    readout.innerHTML = '<span class="cw">' + names[kind] + '</span> wave &nbsp; harmonics used: <b>' + N + '</b>' + extra;
+  }
+  [selW, slN, cbS].forEach(function(el){ el.addEventListener('input', draw); });
+  redrawers.push(draw); draw();
+})();
+
+/* ================= 3. RLC RESONANCE ================= */
+(function(){
+  var cv = document.getElementById('rlcCanvas');
+  if (!cv) return;
+  var slF = document.getElementById('rlcF'), valF = document.getElementById('rlcFVal'),
+      slR = document.getElementById('rlcR'), valR = document.getElementById('rlcRVal'),
+      readout = document.getElementById('rlcReadout');
+  var L = 50e-3, Cc = 2e-6;
+  var f0 = 1/(TAU*Math.sqrt(L*Cc));
+  function fOf(v){ return Math.pow(10, 1 + v/100*3); } /* 10 Hz .. 10 kHz */
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    var f = fOf(+slF.value), R = +slR.value;
+    var om = TAU*f;
+    var X = om*L - 1/(om*Cc);
+    var Zmag = Math.hypot(R,X), phase = Math.atan2(X,R);
+    var I = 1/Zmag;
+    var split = Math.min(300, w*0.42);
+    /* ---- left: phasor diagram ---- */
+    var pcx = split/2, pcy = h/2 - 8;
+    var scale = (Math.min(split,h)-90) / Math.max(Zmag, 1e-9) * 0.9;
+    ctx.strokeStyle = EDGE;
+    ctx.beginPath(); ctx.moveTo(14,pcy); ctx.lineTo(split-14,pcy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pcx,26); ctx.lineTo(pcx,h-40); ctx.stroke();
+    function arrow(x0,y0,dx,dy,col,label){
+      var x1 = x0+dx, y1 = y0+dy;
+      ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+      var a = Math.atan2(dy,dx);
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x1-8*Math.cos(a-0.42), y1-8*Math.sin(a-0.42));
+      ctx.lineTo(x1-8*Math.cos(a+0.42), y1-8*Math.sin(a+0.42));
+      ctx.closePath(); ctx.fill();
+      ctx.font = MONO; ctx.textAlign='left';
+      ctx.fillText(label, x1+6, y1+4);
+    }
+    var vR = R*scale, vL = om*L*scale, vC = (1/(om*Cc))*scale;
+    arrow(pcx,pcy, vR,0, W, 'V_R');
+    arrow(pcx+vR,pcy, 0,-vL, MUT, 'V_L');
+    arrow(pcx+vR,pcy-vL, 0,vC, MUT, 'V_C');
+    arrow(pcx,pcy, vR, -(vL-vC), TXT, 'V_src');
+    ctx.fillStyle = FNT; ctx.font = DISP; ctx.textAlign='center';
+    ctx.fillText('phasors at f = ' + fmt(f,0) + ' Hz', split/2, h-16);
+    /* ---- right: |I|(f) ---- */
+    var gx0 = split+24, gx1 = w-16, gy0 = 28, gy1 = h-44;
+    ctx.strokeStyle = EDGE;
+    ctx.strokeRect(gx0, gy0, gx1-gx0, gy1-gy0);
+    /* response with current R */
+    var Imax = 1/R; /* peak current at resonance */
+    ctx.strokeStyle = W; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    for (var px = gx0; px <= gx1; px++){
+      var ff = Math.pow(10, 1 + (px-gx0)/(gx1-gx0)*3);
+      var oo = TAU*ff;
+      var ii = 1/Math.hypot(R, oo*L - 1/(oo*Cc));
+      var y = gy1 - (ii/Imax)*(gy1-gy0)*0.92;
+      px===gx0 ? ctx.moveTo(px,y) : ctx.lineTo(px,y);
+    }
+    ctx.stroke();
+    /* resonance rule + marker */
+    var xr = gx0 + (Math.log10(f0)-1)/3*(gx1-gx0);
+    ctx.strokeStyle = 'rgba(226,180,74,0.5)'; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(xr,gy0); ctx.lineTo(xr,gy1); ctx.stroke(); ctx.setLineDash([]);
+    var xm = gx0 + (Math.log10(f)-1)/3*(gx1-gx0);
+    var ym = gy1 - (I/Imax)*(gy1-gy0)*0.92;
+    ctx.fillStyle = TXT;
+    ctx.beginPath(); ctx.arc(xm,ym,4.5,0,TAU); ctx.fill();
+    ctx.fillStyle = FNT; ctx.font = DISP; ctx.textAlign='center';
+    ctx.fillText('10 Hz', gx0+16, h-28); ctx.fillText('10 kHz', gx1-20, h-28);
+    ctx.fillStyle = K; ctx.fillText('f₀', xr, gy0-6);
+    ctx.fillStyle = FNT;
+    ctx.fillText('|I| vs frequency (log)', (gx0+gx1)/2, h-16);
+    valF.textContent = f >= 1000 ? fmt(f/1000,2)+' kHz' : fmt(f,0)+' Hz';
+    valR.textContent = R + ' Ω';
+    var Q = (1/R)*Math.sqrt(L/Cc);
+    readout.innerHTML = '|Z| = <b>' + fmt(Zmag,1) + ' Ω</b> &nbsp; phase = <b>' + fmt(phase*180/Math.PI,1) + '°</b>' +
+      (Math.abs(X) < R*0.05 ? ' <span class="ok">≈ resonance!</span>' : (X>0?' (inductive)':' (capacitive)')) +
+      ' &nbsp;·&nbsp; f₀ = <b class="ck">' + fmt(f0,0) + ' Hz</b> &nbsp; Q = <b>' + fmt(Q,1) + '</b>' +
+      ' &nbsp;·&nbsp; L = 50 mH, C = 2 µF';
+  }
+  [slF, slR].forEach(function(el){ el.addEventListener('input', draw); });
+  redrawers.push(draw); draw();
+})();
+
+/* ================= 4. DISCRETE-LOG ORBIT ================= */
+(function(){
+  var cv = document.getElementById('orbitCanvas');
+  if (!cv) return;
+  var selP = document.getElementById('orbitP'),
+      slG = document.getElementById('orbitG'), valG = document.getElementById('orbitGVal'),
+      slK = document.getElementById('orbitK'), valK = document.getElementById('orbitKVal'),
+      readout = document.getElementById('orbitReadout');
+  function order(g,p){
+    var x = 1;
+    for (var k = 1; k <= p; k++){ x = (x*g) % p; if (x === 1) return k; }
+    return -1;
+  }
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    var p = +selP.value;
+    var gMax = Math.min(20, p-2);
+    if (+slG.value > gMax) slG.value = gMax;
+    slG.max = gMax;
+    var g = +slG.value;
+    slK.max = p-1;
+    if (+slK.value > p-1) slK.value = p-1;
+    var steps = +slK.value;
+    var cx = w/2, cy = h/2, R = Math.min(w,h)*0.40;
+    /* residue dots */
+    function pos(r){
+      var a = (r-1)/(p-1)*TAU - Math.PI/2;
+      return [cx + R*Math.cos(a), cy + R*Math.sin(a)];
+    }
+    ctx.fillStyle = 'rgba(151,160,173,0.6)';
+    for (var r = 1; r < p; r++){
+      var q = pos(r);
+      ctx.beginPath(); ctx.arc(q[0],q[1], p>60?1.6:2.4, 0, TAU); ctx.fill();
+    }
+    /* chords g^k -> g^{k+1} */
+    var x = 1, seq = [1];
+    for (var k = 0; k < steps; k++){
+      var nx = (x*g) % p;
+      var a = pos(x), b = pos(nx);
+      var age = (k+1)/steps;
+      ctx.strokeStyle = 'rgba(226,180,74,' + (0.18 + 0.72*age) + ')';
+      ctx.lineWidth = 1 + age;
+      ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+      x = nx; seq.push(x);
+    }
+    /* start & current markers */
+    var s0 = pos(1), sc = pos(x);
+    ctx.fillStyle = TXT; ctx.beginPath(); ctx.arc(s0[0],s0[1],4,0,TAU); ctx.fill();
+    ctx.fillStyle = K;  ctx.beginPath(); ctx.arc(sc[0],sc[1],5,0,TAU); ctx.fill();
+    ctx.font = MONO; ctx.fillStyle = FNT; ctx.textAlign='center';
+    ctx.fillText('1', s0[0], s0[1]-10);
+    ctx.fillStyle = K;
+    ctx.fillText('g^'+steps+' = '+x, Math.min(w-46, Math.max(46, sc[0])), sc[1]-12);
+    valG.textContent = g; valK.textContent = steps;
+    var ord = order(g,p);
+    var prim = ord === p-1;
+    var head = seq.slice(0, Math.min(9, seq.length)).join(' → ') + (seq.length>9?' → …':'');
+    readout.innerHTML = 'orbit: <span class="ck">' + head + '</span><br>' +
+      'ord(' + g + ') mod ' + p + ' = <b>' + ord + '</b> of ' + (p-1) +
+      (prim ? ' &nbsp;<span class="ok">✓ primitive root — full scramble, Diffie–Hellman grade</span>'
+            : ' &nbsp;<span class="no">✗ short cycle — a weak generator</span>');
+  }
+  [selP, slG, slK].forEach(function(el){ el.addEventListener('input', draw); });
+  redrawers.push(draw); draw();
+})();
+
+/* ================= 5. RSA PLAYGROUND ================= */
+(function(){
+  var cv = document.getElementById('rsaCanvas');
+  if (!cv) return;
+  var selP = document.getElementById('rsaP'), selQ = document.getElementById('rsaQ'),
+      inMsg = document.getElementById('rsaMsg'),
+      keysOut = document.getElementById('rsaKeys'),
+      table = document.getElementById('rsaTable');
+  function powmod(a,k,n){
+    var r = 1; a = a % n;
+    while (k > 0){
+      if (k & 1) r = (r*a) % n;
+      a = (a*a) % n; k >>= 1;
+    }
+    return r;
+  }
+  function egcd(a,b){
+    if (!b) return [a,1,0];
+    var t = egcd(b, a % b);
+    return [t[0], t[2], t[1] - Math.floor(a/b)*t[2]];
+  }
+  function draw(){
+    var p = +selP.value, q = +selQ.value;
+    var warn = '';
+    if (p === q){ q = (q === 53) ? 47 : 53; selQ.value = q; warn = ' (q adjusted: p and q must differ)'; }
+    var n = p*q, phi = (p-1)*(q-1);
+    var e = 17;
+    while (egcd(e,phi)[0] !== 1) e += 2;
+    var d = ((egcd(e,phi)[1] % phi) + phi) % phi;
+    var msg = (inMsg.value || '').toUpperCase().replace(/[^A-Z]/g,'').slice(0,8);
+    if (inMsg.value !== msg) inMsg.value = msg;
+    keysOut.innerHTML =
+      'n = ' + p + ' × ' + q + ' = <b>' + n + '</b>' + warn + '<br>' +
+      'φ(n) = ' + (p-1) + ' × ' + (q-1) + ' = <b>' + phi + '</b> &nbsp;← the trapdoor (needs the factors!)<br>' +
+      'public key (n, e) = (' + n + ', <b class="ck">' + e + '</b>) &nbsp;·&nbsp; private d = <b class="ck">' + d + '</b>' +
+      ' &nbsp;·&nbsp; check: e·d mod φ = <span class="ok">' + (e*d % phi) + '</span>';
+    /* table */
+    var rows = '<tr><th>letter</th><th>m</th><th>m^e mod n → c</th><th>c^d mod n</th><th>back</th></tr>';
+    for (var i = 0; i < msg.length; i++){
+      var m = msg.charCodeAt(i) - 64;
+      var c = powmod(m, e, n);
+      var b = powmod(c, d, n);
+      rows += '<tr><td>' + msg[i] + '</td><td>' + m + '</td><td class="ck">' + c +
+              '</td><td>' + b + '</td><td>' + String.fromCharCode(64+b) + '</td></tr>';
+    }
+    table.innerHTML = rows;
+    /* scatter of the full map */
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    ctx.strokeStyle = EDGE; ctx.strokeRect(30, 10, w-46, h-40);
+    var step = Math.max(1, Math.floor(n/420));
+    ctx.fillStyle = 'rgba(226,180,74,0.5)';
+    for (var m2 = 1; m2 < n; m2 += step){
+      var c2 = powmod(m2, e, n);
+      var x = 30 + m2/n*(w-46), y = h-30 - c2/n*(h-50);
+      ctx.fillRect(x, y, 1.6, 1.6);
+    }
+    /* highlight the message letters */
+    ctx.fillStyle = TXT;
+    for (i = 0; i < msg.length; i++){
+      var mm = msg.charCodeAt(i) - 64, cc = powmod(mm, e, n);
+      var hx = 30 + mm/n*(w-46), hy = h-30 - cc/n*(h-50);
+      ctx.beginPath(); ctx.arc(hx, hy, 3.5, 0, TAU); ctx.fill();
+    }
+    ctx.font = DISP; ctx.fillStyle = FNT; ctx.textAlign='center';
+    ctx.fillText('the map m → mᵉ mod n · white dots: your letters (they hide at the far left)', w/2, h-8);
+    ctx.save(); ctx.translate(12, h/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('cipher c', 0, 0); ctx.restore();
+  }
+  [selP, selQ].forEach(function(el){ el.addEventListener('change', draw); });
+  inMsg.addEventListener('input', draw);
+  redrawers.push(draw); draw();
+})();
+
+/* ================= vector helpers for the sphere widgets ================= */
+function vdot(a,b){ return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]; }
+function vcross(a,b){ return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function vnorm(a){ var n = Math.sqrt(vdot(a,a))||1; return [a[0]/n,a[1]/n,a[2]/n]; }
+function vscale(a,s){ return [a[0]*s,a[1]*s,a[2]*s]; }
+function vadd(a,b){ return [a[0]+b[0],a[1]+b[1],a[2]+b[2]]; }
+function vsub(a,b){ return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]; }
+function rotAxis(v, axis, ang){
+  /* Rodrigues rotation */
+  var k = vnorm(axis), c = Math.cos(ang), s = Math.sin(ang);
+  return vadd(vadd(vscale(v,c), vscale(vcross(k,v),s)), vscale(k, vdot(k,v)*(1-c)));
+}
+function slerp(a,b,t){
+  var w = Math.acos(Math.max(-1,Math.min(1,vdot(a,b))));
+  if (w < 1e-9) return a.slice();
+  var s = Math.sin(w);
+  return vnorm(vadd(vscale(a, Math.sin((1-t)*w)/s), vscale(b, Math.sin(t*w)/s)));
+}
+
+/* ================= 6. HOLONOMY ON THE SPHERE ================= */
+(function(){
+  var cv = document.getElementById('holonomyCanvas');
+  if (!cv) return;
+  var btnT = document.getElementById('holoTransport'),
+      btnR = document.getElementById('holoReset'),
+      cbSpin = document.getElementById('holoSpin'),
+      readout = document.getElementById('holoReadout');
+  var V0 = [ vnorm([1,0.15,0.2]), vnorm([0.05,0.9,0.45]), vnorm([0.2,0.15,1]) ];
+  var V = V0.map(function(v){ return v.slice(); });
+  var spin = 0, animT = -1, animPhase = 0; /* animT in [0,3): edge progress */
+  var dragging = -1;
+  function viewRot(v){ /* rotate world by spin about y for display */
+    var c = Math.cos(spin), s = Math.sin(spin);
+    return [ v[0]*c + v[2]*s, v[1], -v[0]*s + v[2]*c ];
+  }
+  function invViewRot(v){
+    var c = Math.cos(-spin), s = Math.sin(-spin);
+    return [ v[0]*c + v[2]*s, v[1], -v[0]*s + v[2]*c ];
+  }
+  function project(v,cx,cy,R){ var q = viewRot(v); return [cx + q[0]*R, cy - q[1]*R, q[2]]; }
+  function corner(A,B,Cv){
+    var tb = vnorm(vsub(B, vscale(A, vdot(B,A))));
+    var tc = vnorm(vsub(Cv, vscale(A, vdot(Cv,A))));
+    return Math.acos(Math.max(-1,Math.min(1,vdot(tb,tc))));
+  }
+  function excess(){
+    return corner(V[0],V[1],V[2]) + corner(V[1],V[2],V[0]) + corner(V[2],V[0],V[1]) - Math.PI;
+  }
+  function lhuilier(){
+    var a = Math.acos(Math.max(-1,Math.min(1,vdot(V[1],V[2]))));
+    var b = Math.acos(Math.max(-1,Math.min(1,vdot(V[0],V[2]))));
+    var c = Math.acos(Math.max(-1,Math.min(1,vdot(V[0],V[1]))));
+    var s = (a+b+c)/2;
+    var t = Math.tan(s/2)*Math.tan((s-a)/2)*Math.tan((s-b)/2)*Math.tan((s-c)/2);
+    return 4*Math.atan(Math.sqrt(Math.max(0,t)));
+  }
+  /* transported arrow state: vector in tangent plane, current position */
+  function arrowAt(prog){
+    /* prog in [0,3): walk A->B->C->A, transporting initial tangent vector */
+    var edges = [[V[0],V[1]],[V[1],V[2]],[V[2],V[0]]];
+    /* initial vector: tangent at A pointing toward B */
+    var v = vnorm(vsub(V[1], vscale(V[0], vdot(V[1],V[0]))));
+    var pos = V[0];
+    for (var e = 0; e < 3; e++){
+      var a = edges[e][0], b = edges[e][1];
+      var full = Math.acos(Math.max(-1,Math.min(1,vdot(a,b))));
+      var axis = vcross(a,b);
+      var frac = Math.max(0, Math.min(1, prog - e));
+      if (frac <= 0) break;
+      v = rotAxis(v, axis, full*frac);
+      pos = slerp(a, b, frac);
+      if (frac < 1) break;
+    }
+    return { pos:pos, vec:v };
+  }
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    var cx = w/2, cy = h/2, R = Math.min(w,h)*0.40;
+    /* sphere outline + graticule */
+    ctx.strokeStyle = EDGE; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.strokeStyle = 'rgba(42,49,61,0.85)';
+    for (var lat = -60; lat <= 60; lat += 30){
+      ctx.beginPath();
+      var started = false;
+      for (var lo = 0; lo <= 360; lo += 4){
+        var th = lo*Math.PI/180, ph = lat*Math.PI/180;
+        var pt = project([Math.cos(ph)*Math.cos(th), Math.sin(ph), Math.cos(ph)*Math.sin(th)], cx,cy,R);
+        if (pt[2] > 0){ started ? ctx.lineTo(pt[0],pt[1]) : ctx.moveTo(pt[0],pt[1]); started = true; }
+        else started = false;
+      }
+      ctx.stroke();
+    }
+    for (var lon = 0; lon < 180; lon += 30){
+      ctx.beginPath(); started = false;
+      for (var la = -90; la <= 90; la += 4){
+        th = lon*Math.PI/180; ph = la*Math.PI/180;
+        pt = project([Math.cos(ph)*Math.cos(th), Math.sin(ph), Math.cos(ph)*Math.sin(th)], cx,cy,R);
+        if (pt[2] > 0){ started ? ctx.lineTo(pt[0],pt[1]) : ctx.moveTo(pt[0],pt[1]); started = true; }
+        else started = false;
+      }
+      ctx.stroke();
+    }
+    /* geodesic triangle */
+    ctx.strokeStyle = C; ctx.lineWidth = 2;
+    for (var e = 0; e < 3; e++){
+      var a = V[e], b = V[(e+1)%3];
+      ctx.beginPath(); started = false;
+      for (var t = 0; t <= 1.0001; t += 0.02){
+        var p = project(slerp(a,b,Math.min(1,t)), cx,cy,R);
+        if (p[2] > -0.02){ started ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]); started = true; }
+        else started = false;
+      }
+      ctx.stroke();
+    }
+    /* interior tint: sample small triangle fan (subtle) */
+    /* vertices */
+    var names = ['A','B','C'];
+    V.forEach(function(vv,i){
+      var p = project(vv,cx,cy,R);
+      if (p[2] > 0){
+        ctx.fillStyle = C;
+        ctx.beginPath(); ctx.arc(p[0],p[1], dragging===i?8:6, 0, TAU); ctx.fill();
+        ctx.fillStyle = TXT; ctx.font = MONO; ctx.textAlign='center';
+        ctx.fillText(names[i], p[0], p[1]-12);
+      }
+    });
+    /* transported arrow */
+    var st = arrowAt(animT >= 0 ? animT : 0);
+    var base = project(st.pos, cx,cy,R);
+    if (base[2] > -0.05){
+      var tip3 = vadd(st.pos, vscale(st.vec, 0.34));
+      var tip = project(vnorm(tip3), cx,cy,R);
+      ctx.strokeStyle = K; ctx.fillStyle = K; ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.moveTo(base[0],base[1]); ctx.lineTo(tip[0],tip[1]); ctx.stroke();
+      var aa = Math.atan2(tip[1]-base[1], tip[0]-base[0]);
+      ctx.beginPath();
+      ctx.moveTo(tip[0],tip[1]);
+      ctx.lineTo(tip[0]-9*Math.cos(aa-0.42), tip[1]-9*Math.sin(aa-0.42));
+      ctx.lineTo(tip[0]-9*Math.cos(aa+0.42), tip[1]-9*Math.sin(aa+0.42));
+      ctx.closePath(); ctx.fill();
+    }
+    /* readout */
+    var ex = excess(), ar = lhuilier();
+    var a1 = corner(V[0],V[1],V[2]), a2 = corner(V[1],V[2],V[0]), a3 = corner(V[2],V[0],V[1]);
+    var holo = '';
+    if (animT >= 3){
+      /* measure final rotation vs initial vector at A */
+      var v0 = vnorm(vsub(V[1], vscale(V[0], vdot(V[1],V[0]))));
+      var vf = arrowAt(2.99999).vec;
+      var ang = Math.atan2(vdot(vcross(v0,vf), V[0]), vdot(v0,vf));
+      holo = ' &nbsp;·&nbsp; arrow returned rotated by <b class="ck">' + fmt(Math.abs(ang),4) + '</b> rad <span class="ok">✓ = excess</span>';
+    }
+    readout.innerHTML =
+      'angles: ' + fmt(a1,3) + ' + ' + fmt(a2,3) + ' + ' + fmt(a3,3) +
+      ' = <b>' + fmt(a1+a2+a3,4) + '</b> rad (π = 3.1416)<br>' +
+      'excess = <b class="cc">' + fmt(ex,4) + '</b> &nbsp;·&nbsp; enclosed area (L\'Huilier) = <b class="cc">' + fmt(ar,4) + '</b>' +
+      ' <span class="ok">— equal, as Gauss–Bonnet demands</span>' + holo;
+  }
+  /* interaction: drag vertices on front hemisphere */
+  function pick(mx,my,cx,cy,R){
+    for (var i = 0; i < 3; i++){
+      var p = project(V[i],cx,cy,R);
+      if (p[2] > 0 && Math.hypot(p[0]-mx,p[1]-my) < 16) return i;
+    }
+    return -1;
+  }
+  cv.addEventListener('pointerdown', function(ev){
+    var r = cv.getBoundingClientRect();
+    var env = { w: r.width, h: +cv.getAttribute('height') };
+    var cx = env.w/2, cy = env.h/2, R = Math.min(env.w,env.h)*0.40;
+    dragging = pick(ev.clientX-r.left, ev.clientY-r.top, cx, cy, R);
+    if (dragging >= 0) cv.setPointerCapture(ev.pointerId);
+  });
+  cv.addEventListener('pointermove', function(ev){
+    if (dragging < 0) return;
+    var r = cv.getBoundingClientRect();
+    var envW = r.width, envH = +cv.getAttribute('height');
+    var cx = envW/2, cy = envH/2, R = Math.min(envW,envH)*0.40;
+    var x = (ev.clientX-r.left-cx)/R, y = -(ev.clientY-r.top-cy)/R;
+    var rr = x*x + y*y;
+    if (rr > 0.985) { var s = Math.sqrt(0.985/rr); x*=s; y*=s; rr = 0.985; }
+    var z = Math.sqrt(1-rr);
+    V[dragging] = invViewRot([x,y,z]);
+    animT = -1; animPhase = 0;
+    if (RM) draw();
+  });
+  window.addEventListener('pointerup', function(){ dragging = -1; });
+  btnR.addEventListener('click', function(){
+    V = V0.map(function(v){ return v.slice(); });
+    animT = -1; if (RM) draw();
+  });
+  btnT.addEventListener('click', function(){
+    if (RM){ animT = 3; draw(); }
+    else { animT = 0; animPhase = 1; }
+  });
+  function loop(){
+    if (!RM){
+      if (cbSpin.checked && dragging < 0) spin += 0.0022;
+      if (animPhase === 1){
+        animT += 0.014;
+        if (animT >= 3){ animT = 3; animPhase = 0; }
+      }
+      draw();
+      requestAnimationFrame(loop);
+    }
+  }
+  if (RM) draw(); else loop();
+  redrawers.push(draw);
+})();
+
+/* ================= 7. CURVATURE GALLERY ================= */
+(function(){
+  var cv = document.getElementById('galleryCanvas');
+  if (!cv) return;
+  var sel = document.getElementById('gallerySelect'),
+      btnP = document.getElementById('galleryPause'),
+      readout = document.getElementById('galleryReadout');
+  var rot = 0.6, paused = RM;
+  var SURF = {
+    sphere: {
+      pt:function(u,v){ var U=u*TAU, Vv=(v-0.5)*Math.PI;
+        return [Math.cos(Vv)*Math.cos(U), Math.sin(Vv), Math.cos(Vv)*Math.sin(U)]; },
+      K:function(){ return 1; },
+      scale:1.35, txt:'K = 1/R² everywhere — every geodesic triangle is fat',
+      form:'x² + y² + z² = R²   ·   K = +1/R²'
+    },
+    plane: {
+      pt:function(u,v){ return [(u-0.5)*2.6, 0, (v-0.5)*2.6]; },
+      K:function(){ return 0; },
+      scale:1.0, txt:'K = 0 — triangles sum to exactly π; rolling into a cylinder changes nothing intrinsic',
+      form:'z = 0   ·   K = 0'
+    },
+    saddle: {
+      pt:function(u,v){ var x=(u-0.5)*2.2, y=(v-0.5)*2.2; return [x, (x*x-y*y)*0.55, y]; },
+      K:function(u,v){ var x=(u-0.5)*2.2, y=(v-0.5)*2.2;
+        var d = 1 + 4*x*x*0.3 + 4*y*y*0.3; return -4/(d*d); },
+      scale:1.0, txt:'K < 0 — geodesics diverge, triangles are thin; the geometry Gauss kept in his drawer',
+      form:'z = x² − y²   ·   K = −4/(1+4x²+4y²)²'
+    },
+    torus: {
+      pt:function(u,v){ var U=u*TAU, Vv=v*TAU, Rr=1.0, rr=0.42;
+        return [(Rr+rr*Math.cos(Vv))*Math.cos(U), rr*Math.sin(Vv), (Rr+rr*Math.cos(Vv))*Math.sin(U)]; },
+      K:function(u,v){ var Vv=v*TAU, Rr=1.0, rr=0.42;
+        return Math.cos(Vv)/(rr*(Rr+rr*Math.cos(Vv))); },
+      scale:1.15, txt:'K > 0 outside, K < 0 inside — and ∬K dA = 2πχ = 0: topology (Euler!) taxes curvature (Gauss!)',
+      form:'K = cos v / ( r(R + r cos v) )   ·   ∬K dA = 2π·χ = 0'
+    }
+  };
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    var S = SURF[sel.value];
+    var cx = w/2, cy = h/2, R = Math.min(w,h)*0.33*S.scale;
+    var tilt = 0.42;
+    function proj(p){
+      var c = Math.cos(rot), s = Math.sin(rot);
+      var x = p[0]*c + p[2]*s, z = -p[0]*s + p[2]*c, y = p[1];
+      var y2 = y*Math.cos(tilt) - z*Math.sin(tilt);
+      var z2 = y*Math.sin(tilt) + z*Math.cos(tilt);
+      return [cx + x*R, cy - y2*R, z2];
+    }
+    function colorOf(k){
+      if (k > 0.04) return 'rgba(217,122,147,0.75)';
+      if (k < -0.04) return 'rgba(79,196,214,0.75)';
+      return 'rgba(151,160,173,0.55)';
+    }
+    var NU = 26, NV = 16;
+    ctx.lineWidth = 1.1;
+    /* u-lines */
+    for (var vi = 0; vi <= NV; vi++){
+      for (var ui = 0; ui < NU; ui++){
+        var u0 = ui/NU, u1 = (ui+1)/NU, vv = vi/NV;
+        var pA = proj(S.pt(u0,vv)), pB = proj(S.pt(u1,vv));
+        ctx.strokeStyle = colorOf(S.K((u0+u1)/2, vv));
+        ctx.globalAlpha = 0.35 + 0.65*Math.max(0,Math.min(1,(pA[2]+1.6)/3.2));
+        ctx.beginPath(); ctx.moveTo(pA[0],pA[1]); ctx.lineTo(pB[0],pB[1]); ctx.stroke();
+      }
+    }
+    /* v-lines */
+    for (var ui2 = 0; ui2 <= NU; ui2++){
+      for (var vi2 = 0; vi2 < NV; vi2++){
+        var uu = ui2/NU, v0 = vi2/NV, v1 = (vi2+1)/NV;
+        pA = proj(S.pt(uu,v0)); pB = proj(S.pt(uu,v1));
+        ctx.strokeStyle = colorOf(S.K(uu,(v0+v1)/2));
+        ctx.globalAlpha = 0.35 + 0.65*Math.max(0,Math.min(1,(pA[2]+1.6)/3.2));
+        ctx.beginPath(); ctx.moveTo(pA[0],pA[1]); ctx.lineTo(pB[0],pB[1]); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    readout.innerHTML = '<span class="cc">' + S.form + '</span><br>' + S.txt;
+  }
+  sel.addEventListener('input', draw);
+  btnP.addEventListener('click', function(){
+    paused = !paused;
+    btnP.textContent = paused ? '▷ resume spin' : '⏸ pause spin';
+  });
+  function loop(){
+    if (!RM){
+      if (!paused) rot += 0.004;
+      draw();
+      requestAnimationFrame(loop);
+    }
+  }
+  if (RM) draw(); else loop();
+  redrawers.push(draw);
+})();
+
+/* ================= 8. EULER PRODUCT RACE ================= */
+(function(){
+  var cv = document.getElementById('productCanvas');
+  if (!cv) return;
+  var slS = document.getElementById('prodS'), valS = document.getElementById('prodSVal'),
+      slN = document.getElementById('prodN'), valN = document.getElementById('prodNVal'),
+      readout = document.getElementById('prodReadout');
+  /* first 60 primes */
+  var PRIMES = (function(){
+    var out = [], n = 2;
+    while (out.length < 60){
+      var ok = true;
+      for (var i = 0; i < out.length && out[i]*out[i] <= n; i++) if (n % out[i] === 0){ ok = false; break; }
+      if (ok) out.push(n);
+      n++;
+    }
+    return out;
+  })();
+  function zetaRef(s){
+    var M = 4000, sum = 0;
+    for (var n = 1; n <= M; n++) sum += Math.pow(n, -s);
+    return sum + Math.pow(M, 1-s)/(s-1); /* Euler–Maclaurin tail, leading term */
+  }
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    var s = +slS.value/100, N = +slN.value;
+    var zr = zetaRef(s);
+    /* build sequences */
+    var sums = [], prods = [], acc = 0, pr = 1;
+    for (var k = 1; k <= N; k++){
+      acc += Math.pow(k, -s);
+      sums.push(acc);
+      if (k <= PRIMES.length){ pr *= 1/(1 - Math.pow(PRIMES[k-1], -s)); }
+      prods.push(pr);
+    }
+    var gx0 = 46, gx1 = w-16, gy0 = 18, gy1 = h-40;
+    var lo = Math.min(sums[0], zr*0.92), hi = Math.max(zr*1.06, prods[N-1]);
+    function X(k){ return gx0 + (k-1)/(N-1||1)*(gx1-gx0); }
+    function Y(v){ return gy1 - (v-lo)/(hi-lo)*(gy1-gy0); }
+    ctx.strokeStyle = EDGE; ctx.strokeRect(gx0,gy0,gx1-gx0,gy1-gy0);
+    /* zeta reference line */
+    ctx.strokeStyle = 'rgba(223,227,233,0.45)'; ctx.setLineDash([5,5]);
+    ctx.beginPath(); ctx.moveTo(gx0,Y(zr)); ctx.lineTo(gx1,Y(zr)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = TXT; ctx.font = MONO; ctx.textAlign='left';
+    ctx.fillText('ζ('+fmt(s,2)+') = '+fmt(zr,6), gx0+8, Y(zr)-7);
+    /* curves */
+    function curve(arr, col){
+      ctx.strokeStyle = col; ctx.lineWidth = 1.9;
+      ctx.beginPath();
+      arr.forEach(function(v,i){ var x = X(i+1), y = Y(v); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+      ctx.stroke();
+      ctx.fillStyle = col;
+      arr.forEach(function(v,i){ ctx.beginPath(); ctx.arc(X(i+1), Y(v), 2.2, 0, TAU); ctx.fill(); });
+    }
+    curve(sums, Z);
+    curve(prods, K);
+    ctx.font = DISP; ctx.textAlign='center'; ctx.fillStyle = FNT;
+    ctx.fillText('number of terms (green: integers) / factors (amber: primes)', (gx0+gx1)/2, h-12);
+    valS.textContent = fmt(s,2); valN.textContent = N;
+    var basel = Math.abs(s-2) < 0.011 ? ' &nbsp;<span class="cz">← the Basel value: π²/6 = ' + fmt(Math.PI*Math.PI/6,6) + '</span>' : '';
+    readout.innerHTML =
+      'Σ 1/n^s (' + N + ' terms) = <b class="cz">' + fmt(sums[N-1],6) + '</b> &nbsp;·&nbsp; ' +
+      'Π over ' + Math.min(N,60) + ' primes = <b class="ck">' + fmt(prods[N-1],6) + '</b> &nbsp;·&nbsp; ' +
+      'ζ(' + fmt(s,2) + ') = <b>' + fmt(zr,6) + '</b>' + basel;
+  }
+  [slS, slN].forEach(function(el){ el.addEventListener('input', draw); });
+  redrawers.push(draw); draw();
+})();
+
+/* ================= 9. CRITICAL-LINE WALKER ================= */
+(function(){
+  var cv = document.getElementById('zetaCanvas');
+  if (!cv) return;
+  var slT = document.getElementById('zetaT'), valT = document.getElementById('zetaTVal'),
+      btnZ = document.getElementById('zetaZero'),
+      readout = document.getElementById('zetaReadout');
+  var ZEROS = [14.1347, 21.0220, 25.0109, 30.4249];
+  var NCVZ = 60;
+  /* CVZ coefficients precomputed once */
+  var CVZ = (function(){
+    var n = NCVZ;
+    var d = Math.pow(3 + Math.sqrt(8), n); d = (d + 1/d)/2;
+    var b = -1, c = -d, coef = [];
+    for (var k = 0; k < n; k++){
+      c = b - c;
+      coef.push(c * (k%2===0 ? 1 : -1)); /* c * (-1)^k */
+      b = b * 2*(k+n)*(k-n) / ((2*k+1)*(k+1));
+    }
+    return { d:d, coef:coef };
+  })();
+  function zetaHalf(t){
+    /* zeta(1/2 + i t) via accelerated eta */
+    var re = 0, im = 0;
+    for (var k = 0; k < NCVZ; k++){
+      var L = Math.log(k+1);
+      var mag = Math.exp(-0.5*L) * CVZ.coef[k];
+      re += mag * Math.cos(t*L);
+      im -= mag * Math.sin(t*L);
+    }
+    re /= CVZ.d; im /= CVZ.d;
+    /* divide by (1 - 2^{1-s}), s = 1/2 + it */
+    var l2 = Math.LN2;
+    var pr = Math.exp(0.5*l2); /* 2^{1/2} */
+    var ar = 1 - pr*Math.cos(t*l2), ai = pr*Math.sin(t*l2);
+    var den = ar*ar + ai*ai;
+    return [ (re*ar + im*ai)/den, (im*ar - re*ai)/den ];
+  }
+  /* incremental cache of path samples */
+  var STEP = 0.05, cache = [];
+  function ensure(tMax){
+    var need = Math.floor(tMax/STEP) + 1;
+    while (cache.length < need){
+      cache.push(zetaHalf(cache.length*STEP));
+    }
+  }
+  function draw(){
+    var env = setupCanvas(cv), ctx = env.ctx, w = env.w, h = env.h;
+    clear(ctx,w,h);
+    var t = +slT.value/100;
+    ensure(t);
+    var cx = w*0.46, cy = h/2, S = Math.min(w,h)*0.155;
+    /* axes */
+    ctx.strokeStyle = EDGE;
+    ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(w,cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,h); ctx.stroke();
+    ctx.font = MONO; ctx.fillStyle = FNT; ctx.textAlign='left';
+    ctx.fillText('Re', w-26, cy-8); ctx.fillText('Im', cx+8, 14);
+    /* origin target */
+    ctx.strokeStyle = 'rgba(217,122,107,0.8)';
+    ctx.beginPath(); ctx.arc(cx,cy,6,0,TAU); ctx.stroke();
+    /* path */
+    var nPts = Math.floor(t/STEP)+1;
+    ctx.lineWidth = 1.7;
+    ctx.strokeStyle = Z;
+    ctx.beginPath();
+    for (var i = 0; i < nPts; i++){
+      var x = cx + cache[i][0]*S, y = cy - cache[i][1]*S;
+      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    }
+    ctx.stroke();
+    /* head */
+    var zh = cache[nPts-1];
+    var hx = cx + zh[0]*S, hy = cy - zh[1]*S;
+    ctx.fillStyle = TXT;
+    ctx.beginPath(); ctx.arc(hx,hy,4.5,0,TAU); ctx.fill();
+    /* zero stars passed */
+    ctx.fillStyle = BAD; ctx.font = MONO; ctx.textAlign='center';
+    ZEROS.forEach(function(z0){
+      if (t >= z0-0.02){
+        ctx.fillText('★ t='+fmt(z0,2), cx, cy + 20 + 16*ZEROS.indexOf(z0));
+      }
+    });
+    var mag = Math.hypot(zh[0], zh[1]);
+    valT.textContent = fmt(t,1);
+    var next = null;
+    for (var zi = 0; zi < ZEROS.length; zi++) if (ZEROS[zi] > t + 0.01){ next = ZEROS[zi]; break; }
+    var passed = ZEROS.filter(function(z0){ return t >= z0-0.02; }).length;
+    readout.innerHTML =
+      'ζ(½ + ' + fmt(t,2) + 'i) = <b>' + fmt(zh[0],4) + (zh[1]>=0?' + ':' − ') + fmt(Math.abs(zh[1]),4) + 'i</b>' +
+      ' &nbsp;·&nbsp; |ζ| = <b class="cz">' + fmt(mag,4) + '</b>' +
+      (mag < 0.05 ? ' <span class="ok">← standing on a zero!</span>' : '') +
+      ' &nbsp;·&nbsp; zeros passed: <b>' + passed + '</b>' +
+      (next ? ' &nbsp;·&nbsp; next at t ≈ ' + fmt(next,3) : '');
+  }
+  slT.addEventListener('input', draw);
+  btnZ.addEventListener('click', function(){
+    var t = +slT.value/100, target = null;
+    for (var i = 0; i < ZEROS.length; i++) if (ZEROS[i] > t + 0.05){ target = ZEROS[i]; break; }
+    if (target === null) target = ZEROS[0];
+    slT.value = Math.round(target*100);
+    draw();
+  });
+  redrawers.push(draw); draw();
+})();
+
+/* ================= resize ================= */
+var rszTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(rszTimer);
+  rszTimer = setTimeout(function(){ redrawers.forEach(function(f){ try{ f(); }catch(e){} }); }, 140);
+});
+
+})();
+</script>
+</body>
+</html>
