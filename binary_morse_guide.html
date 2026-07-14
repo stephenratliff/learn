@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Binary & Morse — The Language of Signals</title>
+<style>
+  :root{
+    --bg:#09090f; --panel:#13131d; --panel2:#181828; --border:#26263a; --text:#ececf6; --muted:#9aa0b6; --dim:#6c708a;
+    --violet:#8a6cff; --violet2:#5d3eff; --amber:#ff8a3d; --amber2:#ff5c1a;
+    --mono: ui-monospace, SFMono-Regular, Menlo, JetBrains Mono, monospace;
+    --sans: Inter, SF Pro Display, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 10% -10%, #1a1650 0%, transparent 60%), radial-gradient(900px 500px at 90% 0%, #3d1a00 0%, transparent 60%), var(--bg); color:var(--text); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased}
+  a{color:var(--violet)}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  header.hero{padding:84px 0 36px; border-bottom:1px solid var(--border); position:relative; overflow:hidden}
+  .eyebrow{display:inline-flex; gap:8px; align-items:center; font-family:var(--mono); font-size:11px; letter-spacing:.22em; color:var(--violet); background:linear-gradient(90deg, #1e183f, #1a162f); border:1px solid #2d265f; padding:6px 10px; border-radius:999px}
+  h1{font-size:56px; line-height:.95; letter-spacing:-.04em; margin:18px 0 14px; font-weight:800}
+  h1 i{font-style:normal; background:linear-gradient(90deg,var(--violet),var(--amber)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{max-width:680px; color:var(--muted); font-size:18px}
+  .grid-deco{position:absolute; right:-40px; top:-20px; font-family:var(--mono); font-size:13px; line-height:1.2; color:#1e1e36; user-select:none; pointer-events:none}
+  nav.sticky{position:sticky; top:0; z-index:20; backdrop-filter:blur(14px); background:rgba(9,9,15,.75); border-bottom:1px solid var(--border)}
+  nav.sticky .inner{display:flex; gap:8px; padding:12px 0; overflow:auto}
+  nav.sticky a{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; padding:8px 14px; border-radius:999px; border:1px solid var(--border); color:var(--muted); text-decoration:none; white-space:nowrap}
+  nav.sticky a.active, nav.sticky a:hover{background:var(--panel2); color:var(--text); border-color:#3a3a5e}
+  .section{padding:56px 0}
+  .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.2em; color:var(--violet); margin-bottom:10px}
+  .kicker.amber{color:var(--amber)}
+  h2{font-size:32px; letter-spacing:-.02em; margin:0 0 12px}
+  .lead{color:var(--muted); max-width:720px}
+  .card{background:linear-gradient(180deg, var(--panel2), var(--panel)); border:1px solid var(--border); border-radius:20px; padding:22px; box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  .grid2{display:grid; grid-template-columns:1.1fr .9fr; gap:22px}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+  @media(max-width:980px){ .grid2,.grid3,.grid4{grid-template-columns:1fr} h1{font-size:38px} }
+  .mono{font-family:var(--mono)}
+  .bit-row{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0}
+  .bit{width:52px; height:52px; display:grid; place-items:center; border-radius:12px; border:1px solid var(--border); background:#0e0e18; font-family:var(--mono); font-weight:700; cursor:pointer; user-select:none; transition:.15s}
+  .bit.on{background:linear-gradient(180deg,#7c5cff,#5a36ff); color:white; border-color:#8a6cff; box-shadow:0 6px 20px rgba(124,92,255,.45); transform:translateY(-1px)}
+  .pill{display:inline-flex; padding:6px 10px; border-radius:999px; background:#0f0f18; border:1px solid var(--border); font-family:var(--mono); font-size:12px; color:var(--muted)}
+  table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:14px; border:1px solid var(--border)}
+  th{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--dim); text-align:left; padding:10px 12px; background:#0f0f18; border-bottom:1px solid var(--border)}
+  td{padding:10px 12px; border-bottom:1px solid #1c1c2b; font-family:var(--mono); font-size:13px}
+  tr:last-child td{border-bottom:none}
+  textarea, input[type=text]{width:100%; background:#0c0c14; color:var(--text); border:1px solid var(--border); border-radius:14px; padding:14px; font-family:var(--mono); font-size:13.5px; outline:none; transition:.15s}
+  textarea:focus, input[type=text]:focus{border-color:#3e3a7a; box-shadow:0 0 0 4px rgba(124,92,255,.12)}
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px; border:1px solid var(--border); background:#16162a; color:var(--text); font-family:var(--mono); font-size:12px; cursor:pointer; transition:.15s}
+  .btn:hover{background:#1d1d35; transform:translateY(-1px)}
+  .btn.violet{background:linear-gradient(180deg,#7c5cff,#5e3bff); border-color:#8b75ff}
+  .btn.amber{background:linear-gradient(180deg,#ff8a3d,#ff5c1a); border-color:#ff9b5e; color:white}
+  .lab-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+  .viz{height:88px; border-radius:14px; background:repeating-linear-gradient(90deg,#10101a 0 1px, transparent 1px 18px), linear-gradient(180deg,#0c0c14,#121225); border:1px solid var(--border); position:relative; overflow:hidden}
+  .viz .cursor{position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--amber); box-shadow:0 0 12px var(--amber); transform:translateX(0); transition:transform linear}
+  .tap{height:112px; display:grid; place-items:center; border-radius:16px; border:1px dashed #3a325f; background:radial-gradient(400px 200px at 50% 0%, #211a4a, transparent), #121225; cursor:pointer; user-select:none; font-family:var(--mono); letter-spacing:.12em}
+  .tap:active{transform:scale(.995)}
+  pre{margin:0; white-space:pre-wrap; word-break:break-word; font-family:var(--mono); font-size:12.6px; line-height:1.7}
+  .code-head{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#0f0f18; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--dim)}
+  .octave-block{border:1px solid var(--border); border-radius:16px; overflow:hidden; background:linear-gradient(180deg,#141428,#111122)}
+  .tag{display:inline-flex; font-size:10px; letter-spacing:.14em; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-family:var(--mono)}
+  .range{accent-color:var(--violet)}
+  .divider{height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); margin:28px 0}
+  .footnote{color:var(--dim); font-size:12px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span>● LIVE SIGNAL</span> <span style="opacity:.6">BINARY × MORSE • 2 SYMBOLS → INFINITY</span></div>
+    <h1>BINARY <i>&</i> MORSE<br><span style="font-weight:400; letter-spacing:-.02em; font-size:.58em; color:var(--muted)">The two original codes that taught machines and humans to talk</span></h1>
+    <p class="sub">One is the language of computers. The other crossed oceans with a wire and a key. Both use only two states, yet they built the modern world. This guide is fully interactive — translate, listen, tap, and run it in GNU Octave.</p>
+    <div class="grid-deco">01010101 00110011 01001101 01001111 01010010 01010011 01000101<br>.-.. --- ...- . / -.-. --- -.. .<br>-- --- .-. ... . / -.-. --- -.. . / .. ... / .--. --- . - .-. -.--</div>
+  </div>
+</header>
+
+<nav class="sticky"><div class="wrap"><div class="inner">
+  <a href="#binary">01 Binary</a><a href="#morse">02 Morse</a><a href="#lab">03 Translators</a><a href="#octave">04 GNU Octave Lab</a><a href="#bridge">05 Bridge</a>
+</div></div></nav>
+
+<section id="binary" class="section"><div class="wrap">
+  <div class="kicker">01 — BINARY CODE</div>
+  <div class="grid2">
+    <div>
+      <h2>Why 0 and 1 run everything.</h2>
+      <p class="lead">Gottfried Leibniz described base-2 in 1703. Claude Shannon proved in 1937 that electrical switches can do logic with it. From there: computers.</p>
+      <div class="card" style="margin-top:18px">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap">
+          <strong class="mono" style="font-size:13px">Bit Explorer — 8-bit</strong>
+          <span class="pill" id="bit-dec">dec 0 • hex 0x00 • char NUL</span>
+        </div>
+        <div class="bit-row" id="bit-row"></div>
+        <div class="lab-row">
+          <button class="btn" onclick="bitAdd(-1)">−1</button>
+          <button class="btn" onclick="bitAdd(1)">+1</button>
+          <button class="btn" onclick="bitShift(-1)">≫ 1</button>
+          <button class="btn" onclick="bitShift(1)">≪ 1</button>
+          <button class="btn" onclick="bitInvert()">NOT</button>
+          <span class="tag">unsigned <span id="bit-u">0</span> / signed <span id="bit-s">0</span></span>
+        </div>
+        <div class="divider"></div>
+        <div class="grid4 mono" style="font-size:11px; color:var(--dim)"><div>128</div><div>64</div><div>32</div><div>16</div><div>8</div><div>4</div><div>2</div><div>1</div></div>
+        <p class="footnote" style="margin-top:10px">Place value. Tap bits above. This is how ASCII, images, and floating point are all stored.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="tag">FUNDAMENTALS</div>
+        <div style="margin-top:12px; display:grid; gap:10px; font-size:14px; color:var(--muted)">
+          <div><strong style="color:var(--text)">Bit</strong> — one binary digit, 0 or 1. Smallest unit.</div>
+          <div><strong style="color:var(--text)">Nibble</strong> — 4 bits, one hex digit. 0xA = 1010</div>
+          <div><strong style="color:var(--text)">Byte</strong> — 8 bits, 256 values. The classic atom.</div>
+          <div><strong style="color:var(--text)">Two's Complement</strong> — signed ints: invert +1. So -1 = 11111111</div>
+          <div><strong style="color:var(--text)">IEEE 754 Float</strong> — sign | exponent | mantissa. Why 0.1+0.2 ≠ 0.3</div>
+        </div>
+        <div class="divider"></div>
+        <table><thead><tr><th>CHAR</th><th>BINARY</th><th>DEC</th><th>HEX</th></tr></thead><tbody id="ascii-table"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section id="morse" class="section" style="background:linear-gradient(180deg, transparent, rgba(255,138,61,.06), transparent)"><div class="wrap">
+  <div class="kicker amber">02 — MORSE CODE</div>
+  <div class="grid2">
+    <div>
+      <h2>Dots, dashes, and perfect timing.</h2>
+      <p class="lead">Samuel Morse & Alfred Vail, 1836. International Morse (1865) standardizes it. SOS is not words — it's <span class="mono">...---...</span>, chosen because it's unmistakable.</p>
+      <div class="card">
+        <div class="tag">TIMING IS THE CODE</div>
+        <div style="margin:12px 0 8px; font-family:var(--mono); font-size:12px; color:var(--muted)">dit = 1 unit • dah = 3 units • intra-char gap = 1 • char gap = 3 • word gap = 7</div>
+        <div class="viz" id="timing-viz"></div>
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+          <span class="pill">E = · (shortest)</span><span class="pill">T = — (2nd shortest)</span><span class="pill">SOS = ··· ——— ··· no gaps</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center"><strong>International Morse</strong><span class="pill">tap to hear</span></div>
+      <div id="morse-grid" class="grid3" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="lab" class="section"><div class="wrap">
+  <div class="kicker">03 — INTERACTIVE LAB</div>
+  <h2>Four translators that actually work.</h2>
+  <div class="grid2" style="margin-top:18px">
+    <!-- Binary translator -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center"><strong class="mono">Text ↔ Binary</strong><span class="tag">LIVE</span></div>
+      <label style="display:block; margin:12px 0 6px; font-size:12px; color:var(--dim)" class="mono">TEXT</label>
+      <textarea id="txt2bin-in" rows="3" placeholder="Hello world"></textarea>
+      <div class="lab-row"><button class="btn violet" onclick="copyEl('txt2bin-in')">Copy Text</button><button class="btn" onclick="swapBin()">⇄ Swap</button><button class="btn" onclick="clearBin()">Clear</button><select id="bin-mode" class="btn" style="padding-right:22px"><option value="8">8-bit ASCII</option><option value="7">7-bit</option><option value="utf8">UTF-8 bytes</option></select></div>
+      <label style="display:block; margin:14px 0 6px; font-size:12px; color:var(--dim)" class="mono">BINARY</label>
+      <textarea id="bin2txt-in" rows="4" placeholder="01001000 01101001"></textarea>
+      <div class="lab-row"><button class="btn violet" onclick="copyEl('bin2txt-in')">Copy Binary</button><span class="footnote" id="bin-status"></span></div>
+    </div>
+    <!-- Morse translator -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center"><strong class="mono">Text ↔ Morse</strong><span class="tag">· — /</span></div>
+      <label class="mono" style="display:block; margin:12px 0 6px; font-size:12px; color:var(--dim)">TEXT</label>
+      <textarea id="txt2morse-in" rows="3" placeholder="SOS help"></textarea>
+      <div class="lab-row"><button class="btn amber" onclick="morsePlay(document.getElementById('morse2txt-in').value)">▶ Play</button><button class="btn" onclick="copyEl('txt2morse-in')">Copy</button><label class="btn" style="cursor:pointer"><input id="morse-unicode" type="checkbox" checked style="accent-color:var(--amber)"> Unicode · —</label></div>
+      <label class="mono" style="display:block; margin:14px 0 6px; font-size:12px; color:var(--dim)">MORSE</label>
+      <textarea id="morse2txt-in" rows="4" placeholder="... --- ... / .... . .-.. .--."></textarea>
+      <div class="lab-row"><button class="btn amber" onclick="copyEl('morse2txt-in')">Copy Morse</button><span class="footnote" id="morse-status"></span></div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:18px">
+    <div class="card">
+      <strong class="mono">Morse Audio & Light Lab</strong>
+      <div class="grid3" style="margin-top:12px">
+        <label class="mono" style="font-size:11px;color:var(--dim)">WPM <span id="wpm-v">18</span><br><input id="wpm" type="range" min="5" max="40" value="18" class="range" style="width:100%"></label>
+        <label class="mono" style="font-size:11px;color:var(--dim)">FREQ <span id="freq-v">650Hz</span><br><input id="freq" type="range" min="300" max="1200" value="650" step="10" class="range" style="width:100%"></label>
+        <label class="mono" style="font-size:11px;color:var(--dim)">VOL <span id="vol-v">0.5</span><br><input id="vol" type="range" min="0" max="1" value="0.5" step="0.05" class="range" style="width:100%"></label>
+      </div>
+      <div class="viz" id="audio-viz" style="margin-top:12px"><div class="cursor" id="viz-cursor"></div></div>
+      <div class="lab-row"><button class="btn amber" id="play-btn" onclick="togglePlay()">▶ Play Current Morse</button><button class="btn" onclick="stopPlay()">■ Stop</button></div>
+      <p class="footnote" style="margin-top:8px">Uses Web Audio API. Visualizer syncs to timing units. No external files.</p>
+    </div>
+    <div class="card">
+      <strong class="mono">Tap Pad — send with your finger</strong>
+      <div class="tap" id="tap-pad">HOLD SHORT = · &nbsp; HOLD LONG = —<br><span style="font-size:11px; color:var(--muted)">Release gap = letter separation • double pause = word</span></div>
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center"><span class="pill mono" id="tap-buffer">buffer: —</span><span class="pill mono" id="tap-decoded">decoded: </span><button class="btn" onclick="clearTap()">Clear</button></div>
+      <p class="footnote">Tip: try tapping SOS: ··· ——— ···</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="octave" class="section"><div class="wrap">
+  <div class="kicker">04 — GNU OCTAVE LAB</div>
+  <h2>Same ideas, scientific computing flavor.</h2>
+  <p class="lead">All snippets run in Octave 7+. Copy, paste, and plot. Octave's <code class="mono">dec2bin</code> / <code class="mono">bin2dec</code> and <code class="mono">containers.Map</code> make these two codes trivial.</p>
+  <div style="display:grid; gap:16px; margin-top:18px" id="octave-grid"></div>
+</div></section>
+
+<section id="bridge" class="section"><div class="wrap">
+  <div class="card" style="display:grid; grid-template-columns:.9fr 1.1fr; gap:22px">
+    <div>
+      <div class="kicker">05 — BRIDGE</div>
+      <h2 style="font-size:26px">Binary is Morse made deterministic.</h2>
+      <p class="lead" style="font-size:14px">Morse optimizes for humans: common letters are short (Huffman-like, 1840 before Huffman). Binary optimizes for machines: fixed length, easy to clock, perfect for error correction.</p>
+      <div class="pill mono" style="margin-top:10px">Baudot 1870 = first 5-bit binary telegraph — the child of both worlds.</div>
+    </div>
+    <table><thead><tr><th>PROPERTY</th><th>BINARY</th><th>MORSE</th></tr></thead><tbody>
+      <tr><td>Symbols</td><td>0, 1</td><td>·, —, gaps</td></tr>
+      <tr><td>Length</td><td>Fixed (8-bit)</td><td>Variable (E=1, Q=4)</td></tr>
+      <tr><td>Clock</td><td>Crystal</td><td>Human ear</td></tr>
+      <tr><td>Error Tolerance</td><td>Needs ECC</td><td>Redundant timing</td></tr>
+      <tr><td>Density</td><td>1 bit / symbol</td><td>~0.6 bits / unit, slower</td></tr>
+    </tbody></table>
+  </div>
+  <footer style="padding:34px 0 60px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px" class="mono footnote"><span>Built for explorers of signals — binary & morse // 2 symbols, infinite worlds.</span><span>● No deps • Pure HTML/CSS/JS • 2026</span></footer>
+</div></section>
+
+<script>
+// --- Shared helpers
+const $ = s=>document.getElementById(s);
+function copyEl(id){const el=$(id); el.select(); document.execCommand('copy'); const b=el; const orig=b.placeholder; b.placeholder='Copied!'; setTimeout(()=>b.placeholder=orig,900); }
+function escapeHtml(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+
+// --- Binary Explorer
+let bitsVal = 0;
+const bitRow = $('bit-row');
+for(let i=7;i>=0;i--){const d=document.createElement('div'); d.className='bit'; d.textContent='0'; d.dataset.pos=i; d.onclick=()=>toggleBit(i); bitRow.appendChild(d);}
+function renderBits(){const ds=[...bitRow.children]; ds.forEach(el=>{const p=+el.dataset.pos; const on=(bitsVal>>p)&1; el.textContent=on?'1':'0'; el.className='bit'+(on?' on':'');}); const ch = bitsVal>=32 && bitsVal<127 ? String.fromCharCode(bitsVal) : (bitsVal===0?'NUL':bitsVal===10?'LF':'·'); $('bit-dec').textContent=`dec ${bitsVal} • hex 0x${bitsVal.toString(16).padStart(2,'0')} • char ${ch}`; $('bit-u').textContent=bitsVal; $('bit-s').textContent=(bitsVal<<24>>24); }
+function toggleBit(pos){bitsVal ^= (1<<pos); renderBits(); syncBinFromBits();}
+function bitAdd(d){bitsVal=(bitsVal+d+256)%256; renderBits(); syncBinFromBits();}
+function bitShift(dir){if(dir>0) bitsVal=(bitsVal<<1)&255; else bitsVal=bitsVal>>1; renderBits(); syncBinFromBits();}
+function bitInvert(){bitsVal=(~bitsVal)&255; renderBits(); syncBinFromBits();}
+function syncBinFromBits(){const bin=bitsVal.toString(2).padStart(8,'0'); $('bin2txt-in').value=bin; binToText();} renderBits();
+
+// --- ASCII table
+const asciiBody=$('ascii-table'); const sample="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?".split('');
+sample.slice(0,28).forEach(ch=>{const code=ch.charCodeAt(0); const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(ch)}</td><td>${code.toString(2).padStart(8,'0')}</td><td>${code}</td><td>0x${code.toString(16).padStart(2,'0')}</td>`; asciiBody.appendChild(tr);});
+
+// --- Text <-> Binary
+const txtIn=$('txt2bin-in'), binIn=$('bin2txt-in');
+function textToBin(){const mode=$('bin-mode').value; let out=[]; const s=txtIn.value; if(mode==='utf8'){const enc=new TextEncoder().encode(s); enc.forEach(b=>out.push(b.toString(2).padStart(8,'0')));} else {const bits=mode==='7'?7:8; for(let i=0;i<s.length;i++){out.push(s.charCodeAt(i).toString(2).padStart(bits,'0'));}} binIn.value=out.join(' '); $('bin-status').textContent=`${s.length} chars → ${out.length} bytes`;}
+function binToText(){const raw=binIn.value.trim(); if(!raw){txtIn.value=''; return;} const parts=raw.split(/[^01]+/).filter(Boolean); let chars=[]; let valid=true; for(const p of parts){if(p.length>32){valid=false; break;} const code=parseInt(p,2); if(isNaN(code)) {valid=false; break;} if(code<=0x10FFFF) chars.push(String.fromCharCode(code));} if(valid){txtIn.value=chars.join(''); $('bin-status').textContent=`${parts.length} bytes decoded`;} else $('bin-status').textContent='Invalid binary — use 0/1 groups';}
+txtIn.addEventListener('input', textToBin); binIn.addEventListener('input', binToText); $('bin-mode').addEventListener('change', textToBin);
+function swapBin(){const a=txtIn.value, b=binIn.value; txtIn.value=b; binIn.value=a; textToBin();} function clearBin(){txtIn.value=''; binIn.value=''; $('bin-status').textContent='';}
+txtIn.value='Hi SOS'; textToBin();
+
+// --- Morse
+const MORSE_MAP={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..','0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.',' ':'/','.'.:'.-.-.-',',':'--..--','?':'..--..','/':'-..-.','@':'.--.-.','!':'-.-.--','SOS':'...---...'};
+const REV_MAP=Object.fromEntries(Object.entries(MORSE_MAP).map(([k,v])=>[v,k])); REV_MAP['/']=' ';
+function toMorseText(s, unicode){const useU=unicode; return s.toUpperCase().split('').map(ch=>{let m=MORSE_MAP[ch]||''; if(useU) m=m.replace(/\./g,'·').replace(/-/g,'—'); return m;}).join(' ').replace(/\s+/g,' ').trim();}
+function fromMorse(s){const norm=s.replace(/·/g,'.').replace(/—/g,'-').replace(/_/g,'-').trim(); const parts=norm.split(/\s+/); return parts.map(p=>REV_MAP[p]|| (p==='/'?' ':'?')).join('');}
+const txtM=$('txt2morse-in'), morseM=$('morse2txt-in');
+function txtToMorse(){const uni=$('morse-unicode').checked; morseM.value=toMorseText(txtM.value, uni); $('morse-status').textContent=`${txtM.value.length} chars`;} 
+function morseToTxt(){const uni=$('morse-unicode').checked; let out=fromMorse(morseM.value); if(uni){} txtM.value=out; $('morse-status').textContent='decoded';}
+txtM.addEventListener('input', txtToMorse); morseM.addEventListener('input', ()=>{const t=fromMorse(morseM.value); txtM.value=t;}); $('morse-unicode').addEventListener('change', txtToMorse);
+txtM.value='SOS HELP'; txtToMorse();
+
+// Morse grid
+const mg=$('morse-grid'); Object.entries(MORSE_MAP).slice(0,36).forEach(([k,v])=>{const d=document.createElement('div'); d.className='pill mono'; d.style.cssText='justify-content:space-between;display:flex'; d.innerHTML=`<span>${k}</span><span style="color:var(--amber)">${v.replace(/\./g,'·').replace(/-/g,'—')}</span>`; d.style.cursor='pointer'; d.onclick=()=>morsePlay(v); mg.appendChild(d);});
+
+// Timing viz
+(function(){const c=$('timing-viz'); const pattern=[1,1,1,3,3,1,1,1,3,7]; let x=0; pattern.forEach((len,i)=>{const seg=document.createElement('div'); seg.style.position='absolute'; seg.style.top=i%2===0?'18px':'48px'; seg.style.left=(x*12+12)+'px'; seg.style.width=(len*12)+'px'; seg.style.height='18px'; seg.style.borderRadius='4px'; seg.style.background=i%2===0?'linear-gradient(90deg,#ff8a3d,#ff5c1a)':'#1d1d2f'; seg.style.border=i%2===0?'1px solid #ff9b5e':'1px solid #2a2a44'; c.appendChild(seg); x+=len;});})();
+
+// --- Audio
+let audioCtx=null, playing=false, stopFlag=false, curTimer=null;
+function ensureCtx(){if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
+function tone(duration, freq, vol){ensureCtx(); const osc=audioCtx.createOscillator(); const g=audioCtx.createGain(); osc.type='sine'; osc.frequency.value=freq; g.gain.value=0; osc.connect(g); g.connect(audioCtx.destination); const t=audioCtx.currentTime; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.005); g.gain.linearRampToValueAtTime(0,t+duration-0.01); osc.start(t); osc.stop(t+duration); return duration;}
+function sleep(ms){return new Promise(r=>{curTimer=setTimeout(r,ms);});}
+async function morsePlay(morseStr){if(!morseStr) morseStr=$('morse2txt-in').value; const norm=morseStr.replace(/·/g,'.').replace(/—/g,'-'); const wpm=+$('wpm').value; const freq=+$('freq').value; const vol=+$('vol').value; const unit=1200/wpm/1000; // seconds per dit (PARIS std) approx 1.2/wpm
+ ensureCtx(); stopFlag=false; playing=true; $('play-btn').textContent='⏸ Playing...'; const viz=$('audio-viz'); const cursor=$('viz-cursor'); viz.innerHTML=''; viz.appendChild(cursor); let x=0; const totalUnits = norm.split('').reduce((a,c)=>a+(c=='.'?2:c=='-'?4:c=='/'?7:c==' '?3:0),0); // rough
+ for(let i=0;i<norm.length && !stopFlag;i++){const ch=norm[i]; let dur=0, on=false; if(ch=='.'){dur=unit; on=true;} else if(ch=='-'){dur=unit*3; on=true;} else if(ch==' '){dur=unit*3;} else if(ch=='/'){dur=unit*7; on=false;} else {dur=unit;} // gap after element
+   if(on){tone(dur,freq,vol); const bar=document.createElement('div'); bar.style.position='absolute'; bar.style.left=(x*14+8)+'px'; bar.style.top='22px'; bar.style.width=(dur/unit*12)+'px'; bar.style.height='44px'; bar.style.borderRadius='6px'; bar.style.background=ch=='.'?'#ff8a3d':'linear-gradient(90deg,#ff8a3d,#ffb06b)'; viz.appendChild(bar);} 
+   x+=dur/unit; cursor.style.transform=`translateX(${x*14+8}px)`; await sleep(dur*1000); // inter-element gap
+   if((ch=='.'||ch=='-') && norm[i+1] && norm[i+1]!=' ' && norm[i+1]!='/'){ await sleep(unit*1000); x+=1; }
+ } playing=false; $('play-btn').textContent='▶ Play Current Morse';}
+function togglePlay(){if(playing){stopPlay();} else morsePlay();} function stopPlay(){stopFlag=true; if(curTimer) clearTimeout(curTimer); playing=false; $('play-btn').textContent='▶ Play Current Morse';}
+$('wpm').addEventListener('input', e=>{$('wpm-v').textContent=e.target.value}); $('freq').addEventListener('input', e=>{$('freq-v').textContent=e.target.value+'Hz'}); $('vol').addEventListener('input', e=>{$('vol-v').textContent=e.target.value});
+
+// --- Tap Pad
+let tapStart=0, tapBuffer='', tapDecoded='', lastRelease=0, wordTimer=null;
+const pad=$('tap-pad'); pad.addEventListener('pointerdown', e=>{e.preventDefault(); tapStart=performance.now(); pad.style.borderColor='#ff8a3d';});
+pad.addEventListener('pointerup', e=>{const dur=performance.now()-tapStart; const isDash=dur>200; tapBuffer+=isDash?'-':'.'; $('tap-buffer').textContent='buffer: '+tapBuffer.replace(/\./g,'·').replace(/-/g,'—'); pad.style.borderColor='#3a325f'; lastRelease=performance.now(); clearTimeout(wordTimer); wordTimer=setTimeout(()=>{if(tapBuffer){decodeTapBuffer(); tapBuffer=''; $('tap-buffer').textContent='buffer: —';} if(performance.now()-lastRelease>1200){tapDecoded+=' '; updateTapDecoded();}}, 650);});
+function decodeTapBuffer(){const k=tapBuffer; const ch=REV_MAP[k]||'?'; tapDecoded+=ch; updateTapDecoded();} function updateTapDecoded(){$('tap-decoded').textContent='decoded: '+tapDecoded; $('txt2morse-in').value=tapDecoded; txtToMorse();} function clearTap(){tapBuffer=''; tapDecoded=''; $('tap-buffer').textContent='buffer: —'; $('tap-decoded').textContent='decoded: ';}
+
+// --- Octave snippets
+const snippets=[
+{title:"1. Decimal ↔ Binary",desc:"Core conversion",code:`% Decimal <-> Binary in Octave
+dec2bin(42)        % ans = '101010'
+bin2dec('101010')  % ans = 42
+
+dec2bin(255, 8)    % '11111111' with width
+bin2dec(['1010';'1111']) % vector -> [10;15]`},
+{title:"2. Text → Binary matrix",desc:"String to 8-bit rows",code:`function B = text2bin(str)
+  % Convert ASCII string to binary matrix (rows = chars)
+  B = dec2bin(double(str), 8);
+endfunction
+
+text2bin('Hi')
+% ans =
+% 01001000
+% 01101001
+
+% Count bits
+sum(text2bin('SOS')=='1',2)`},
+{title:"3. Binary → Text",desc:"Reverse it, handle spaces",code:`function str = bin2text(B)
+  % B can be string matrix or cell array of '0101'
+  if ischar(B), str = char(bin2dec(B))';
+  else, str = char(cellfun(@bin2dec, B))'; endif
+  endfunction
+
+bin2text(['01001000';'01101001']) % -> 'Hi'
+
+% One-liner from spaced binary:
+str = char(bin2dec(strsplit('01001000 01101001')))'`},
+{title:"4. Bitwise Playground",desc:"AND OR XOR NOT shifts",code:`a = 12; b = 10; % 1100, 1010
+bitand(a,b)   % AND -> 8  (1000)
+bitor(a,b)    % OR  -> 14 (1110)
+bitxor(a,b)   % XOR -> 6  (0110)
+bitcmp(a,4)   % NOT (4-bit) -> 3
+
+bitshift(a,1)   % <<1 -> 24
+bitshift(a,-1)  % >>1 -> 6
+sum(dec2bin(a)-'0') % popcount -> 2 ones`},
+{title:"5. Visualize Byte",desc:"Stem plot — great for teaching",code:`% Visualize byte as stem plot
+bits = dec2bin(197,8)-'0'; % 11000101
+figure; stem(bits, 'filled', 'LineWidth',2);
+ylim([-0.5 1.5]); xlim([0 9]);
+set(gca,'XTick',1:8,'XTickLabel',{'128','64','32','16','8','4','2','1'});
+title('Byte 197 = 11000101'); ylabel('bit'); grid on;
+
+% As image
+imagesc(bits); colormap(gray); colorbar;`},
+{title:"6. Morse Map & Encode",desc:"containers.Map dictionary",code:`morse_keys = {'A','B','C','D','E','F','G','H','I','J','K','L','M', ...
+              'N','O','P','Q','R','S','T','U','V','W','X','Y','Z', ...
+              '0','1','2','3','4','5','6','7','8','9',' ','SOS'};
+morse_vals = {'.-','-...','-.-.','-..','.','..-.','--.','....', ...
+              '..','.---','-.-','.-..','--','-.','---','.--.', ...
+              '--.-','.-.','...','-','..-','...-','.--','-..-', ...
+              '-.--','--..','-----','.----','..---','...--','....-', ...
+              '.....','-....','--...','---..','----.','/','...---...'};
+
+morseMap = containers.Map(morse_keys, morse_vals);
+
+function code = morse_encode(txt, map)
+  txt = toupper(txt); code = "";
+  for i=1:length(txt)
+    k = txt(i); if isKey(map,k), code=[code map(k) " "]; endif
+  endfor
+endfunction
+
+morse_encode('SOS HELP', morseMap)`},
+{title:"7. Morse Decode + Audio Vector",desc:"Reverse map + sound()",code:`function txt = morse_decode(code, map)
+  invKeys = values(map); invVals = keys(map);
+  rev = containers.Map(invKeys, invVals);
+  parts = strsplit(strtrim(code));
+  txt = "";
+  for p=parts
+    s = p{1};
+    if strcmp(s,'/'), txt=[txt " "];
+    elseif isKey(rev,s), txt=[txt rev(s)];
+    else, txt=[txt "?"]; endif
+  endfor
+endfunction
+
+% Audio synthesis: dit=0.1s, dah=0.3s, Fs=8000Hz
+Fs = 8000; f0=650; dit=0.1; dah=0.3;
+tone = @(d) sin(2*pi*f0*(0:1/Fs:d-1/Fs));
+gap  = @(d) zeros(1, round(Fs*d));
+wave = [tone(dit) gap(dit) tone(dah) gap(dit*3)];
+% sound(wave, Fs); % play`},
+{title:"8. Binary ↔ Morse Bridge",desc:"Fixed vs variable length",code:`% Show binary is fixed-length morse
+letters = 'A':'Z';
+bin5 = dec2bin(0:25,5); % 5 bits covers 26 letters
+for i=1:5
+  c = letters(i);
+  printf("%c -> morse %5s  binary %s\\n", c, morseMap(c), bin5(i,:));
+endfor
+
+% Entropy comparison
+% Morse avg ~2.5 dits/char, binary 5 bits/char fixed
+% Morse optimizes for human frequency (E,T shortest)`}
+];
+const og=$('octave-grid'); snippets.forEach(s=>{const d=document.createElement('div'); d.className='octave-block'; d.innerHTML=`<div class="code-head"><div><strong style="color:var(--text)">${s.title}</strong> <span style="margin-left:8px;color:var(--dim)">${s.desc}</span></div><button class="btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">Copy</button></div><pre style="padding:16px">${escapeHtml(s.code)}</pre>`; og.appendChild(d);});
+</script>
+</body>
+</html>
