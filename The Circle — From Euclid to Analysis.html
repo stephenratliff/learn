@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Circle — From Euclid to Analysis</title>
+<style>
+:root {
+  --bg:#fdfcfa; --fg:#1c1c1e; --accent:#7c3aed; --accent2:#0ea5e9; --muted:#6b7280; --card:#ffffff; --border:#e5e7eb;
+}
+@media (prefers-color-scheme: dark){
+  :root { --bg:#0b0c0f; --fg:#e5e7eb; --card:#111319; --border:#23262d; --muted:#9ca3af; }
+}
+html { scroll-behavior:smooth }
+body { margin:0; font-family: Georgia, 'Times New Roman', Times, serif; background:var(--bg); color:var(--fg); line-height:1.75; }
+header { padding:4rem 1.5rem 3rem; background: radial-gradient(1200px 600px at 20% -10%, #a855f7 0%, transparent 60%), radial-gradient(1000px 500px at 80% 0%, #0ea5e9 0%, transparent 60%), linear-gradient(135deg, #1e1b4b, #0f172a); color:white; text-align:center; }
+header h1 { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:clamp(2.2rem,6vw,4rem); margin:0; font-weight:800; letter-spacing:-.02em; }
+header p { max-width:900px; margin:1.2rem auto 0; opacity:.92; font-size:1.25rem; font-family: system-ui; }
+nav#toc { position:sticky; top:0; backdrop-filter: blur(10px); background:color-mix(in srgb, var(--bg) 80%, transparent); border-bottom:1px solid var(--border); z-index:50; }
+nav#toc .inner { max-width:1100px; margin:auto; display:flex; gap:.5rem; overflow-x:auto; padding:.6rem 1rem; }
+nav#toc a { white-space:nowrap; font-family:system-ui; font-size:.88rem; color:var(--muted); text-decoration:none; padding:.4rem .75rem; border-radius:999px; transition:.2s; }
+nav#toc a:hover { background:var(--border); color:var(--fg); }
+main { max-width:900px; margin:0 auto; padding:2rem 1.25rem 4rem; }
+article h2 { font-family:system-ui, sans-serif; margin-top:3.5rem; font-size:2rem; line-height:1.2; border-top:3px solid var(--border); padding-top:1.5rem; }
+article h3 { font-family:system-ui, sans-serif; margin-top:2.2rem; font-size:1.35rem; color:var(--accent2); }
+.lede { font-size:1.28rem; color:var(--muted); }
+p { margin:1.1rem 0; }
+.widget { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:1.25rem; margin:2.2rem 0; box-shadow:0 8px 30px rgba(0,0,0,.06); }
+.widget h4 { margin:.2rem 0 .8rem; font-family:system-ui; font-size:1.1rem; }
+canvas { width:100%; height:auto; background:#fff; border-radius:12px; border:1px solid var(--border); display:block; margin:0 auto; touch-action:none; }
+.controls { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; margin-top:.9rem; font-family:system-ui; font-size:.95rem; }
+.controls label { display:flex; align-items:center; gap:.5rem; }
+input[type=range]{ accent-color:var(--accent2); width:180px; }
+.output { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:color-mix(in srgb, var(--border) 40%, transparent); padding:.25rem .5rem; border-radius:6px; }
+pre { background:#0f172a; color:#e2e8f0; padding:1.1rem; border-radius:12px; overflow:auto; font-size:.9rem; line-height:1.6; }
+code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+table { width:100%; border-collapse:collapse; margin:1.5rem 0; font-family:system-ui; font-size:.95rem; }
+th,td { border:1px solid var(--border); padding:.6rem .8rem; text-align:left; }
+th { background:color-mix(in srgb, var(--border) 50%, transparent); }
+.callout { border-left:4px solid var(--accent2); padding:.8rem 1rem; background:color-mix(in srgb, var(--accent2) 10%, transparent); margin:1.5rem 0; border-radius:0 10px 10px 0; font-family:system-ui; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+@media(max-width:760px){ .grid-2{grid-template-columns:1fr} }
+figure { margin:1.5rem 0 } figcaption { font-size:.9rem; color:var(--muted); text-align:center; margin-top:.5rem; font-family:system-ui; }
+.katex { font-size:1.05em }
+footer { text-align:center; padding:3rem 1rem; color:var(--muted); font-family:system-ui; border-top:1px solid var(--border); margin-top:3rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Circle — From Euclid to Analysis</h1>
+  <p>A complete journey through the most perfect shape: its geometry, algebra, analysis, topology, and endless applications.</p>
+</header>
+<nav id="toc"><div class="inner">
+  <a href="#euclid">Euclid</a>
+  <a href="#analytic">Analytic</a>
+  <a href="#trig">Trigonometry</a>
+  <a href="#calculus">Calculus</a>
+  <a href="#complex">Complex</a>
+  <a href="#topology">Topology</a>
+  <a href="#higher">Higher Dimensions</a>
+  <a href="#applications">Applications</a>
+  <a href="#appendix">Octave</a>
+</div></nav>
+
+<main>
+<article>
+<p class="lede">The circle is the first shape a child draws and the last shape mathematics ever finishes explaining. It is defined by a single number — its radius — yet it encodes π, the trigonometric functions, the complex exponential, Fourier analysis, and the fundamental group of the punctured plane. This page traces that expansion from a compass-drawn curve to the 1-dimensional manifold S¹.</p>
+
+<h2 id="euclid">1. Euclidean Geometry: Definition, π, and the Impossible Square</h2>
+<p>Euclid, Book I, Definition 15: "A circle is a plane figure contained by one line such that all the straight lines falling upon it from one point among those lying within the figure are equal to one another." That point is the center, the equal lines are radii. For the Greeks, this was perfection: complete symmetry under rotation, no beginning or end, the shape of cosmic order.</p>
+
+<p>From this definition follows the entire Euclidean theory. A chord cuts the circle at two points; the longest chord through the center is the diameter d = 2r. A line touching at exactly one point is a tangent, perpendicular to the radius at the point of contact. The central angle theorem states that an inscribed angle subtending an arc is half the central angle — the basis for Thales' theorem that an angle in a semicircle is right.</p>
+
+<p>The constancy of shape implies two universal ratios. For any circles, circumference C is proportional to diameter: C/d = π. Likewise area A is proportional to r²: A/r² = π. That the same constant appears is not coincidence; Archimedes proved it by exhaustion.</p>
+
+<p>He imagined regular polygons inside and outside the circle. A hexagon inscribed has perimeter 6r = 3d, so π > 3. By repeatedly doubling sides to 12, 24, 48, 96, he squeezed the circle. With 96-gons he proved 223/71 < π < 22/7, that is 3.1408 < π < 3.1429. The method is the ancestor of the integral: bound a curve by simpler shapes and take a limit.</p>
+
+<h3>The Area Proof</h3>
+<p>Cut the circle into many thin sectors and rearrange them alternately to form a near-parallelogram of height r and base half the circumference. As the sectors become infinitesimal, the shape becomes exact: A = (C/2)·r = (2πr/2)·r = πr². This intuition became rigorous 2,000 years later.</p>
+
+<p>π itself resisted arithmetic. The Egyptians used (16/9)² ≈ 3.1605. Babylonians used 3.125. Aryabhata (499 CE) gave 3.1416. Madhava in Kerala (c. 1400) discovered the infinite series π/4 = 1 − 1/3 + 1/5 − 1/7 + …, two centuries before Leibniz. Ludolph van Ceulen spent his life computing 35 digits (1596), engraved on his tombstone.</p>
+
+<p>In 1761 Lambert proved π is irrational: it cannot be a fraction. In 1882 Lindemann proved it is transcendental: it is not the root of any non-zero polynomial with integer coefficients. Therefore squaring the circle — constructing a square of equal area with compass and straightedge — is impossible, because it would require constructing √π.</p>
+
+<h3>Constructions</h3>
+<p>With compass and straightedge you can construct a circle through any three non-collinear points (intersection of perpendicular bisectors), bisect any arc, and construct tangents from an exterior point. Gauss proved at 19 that a regular 17-gon is constructible because 17 is a Fermat prime. In general, a regular n-gon is constructible iff n = 2^k·p₁·p₂… where the p_i are distinct Fermat primes. The circle is thus deeply tied to number theory.</p>
+
+<div class="widget">
+  <h4>1. Circle Builder — Drag the radius</h4>
+  <canvas id="builder" width="600" height="340"></canvas>
+  <div class="controls">
+    <label>Radius: <input type="range" id="rslider" min="30" max="160" value="100"> <span class="output" id="rval">100</span> px</label>
+    <span>Circumference: <span class="output" id="cval"></span></span>
+    <span>Area: <span class="output" id="aval"></span></span>
+  </div>
+  <p style="font-family:system-ui;color:var(--muted);margin:.5rem 0 0">Drag the red handle or use the slider. C = 2πr, A = πr². The linear vs quadratic growth is visible.</p>
+</div>
+
+<h2 id="analytic">2. Analytic Geometry: The Equation</h2>
+<p>Descartes' revolution (1637) turned geometry into algebra. Place the center at (a,b). By Pythagoras, a point (x,y) lies on the circle iff its distance to the center is r:</p>
+<p style="text-align:center;font-family:ui-monospace;font-size:1.1rem">(x − a)² + (y − b)² = r²</p>
+<p>Expanded: x² + y² + Dx + Ey + F = 0 with D = −2a, E = −2b, F = a² + b² − r². Completing the square recovers center (−D/2, −E/2) and radius √(a² + b² − F). The condition for a real circle is D² + E² − 4F > 0.</p>
+
+<p>This form makes intersections easy. Two circles intersect where their equations subtract to a linear equation — the radical axis — perpendicular to the line of centers. Three circles pairwise give three radical axes concurrent at the radical center.</p>
+
+<h3>Tangents Algebraically</h3>
+<p>For point (x₁,y₁) on the circle, replace x² by x·x₁ and y² by y·y₁ (the "T" substitution): (x₁−a)(x−a)+(y₁−b)(y−b)=r². For the unit circle at origin, this simplifies to x₁x + y₁y = 1. The slope is −(x₁−a)/(y₁−b), confirming perpendicularity to radius.</p>
+
+<p>The power of a point P at distance d from center is Pow(P)=d²−r². If a line through P meets the circle at A,B then PA·PB = |Pow(P)|, positive outside, negative inside. This unifies intersecting-chords and secant-tangent theorems.</p>
+
+<p>Parametrization avoids square roots: (x,y) = (a + r cos t, b + r sin t), t∈[0,2π). A rational parametrization, from stereographic projection of the unit circle from (−1,0), is x = (1−t²)/(1+t²), y = 2t/(1+t²). For rational t you get Pythagorean triples.</p>
+
+<h2 id="trig">3. Trigonometry and the Unit Circle</h2>
+<p>Hipparchus made tables of chords; Indians replaced chords with half-chords — jya, our sine. Euler finally settled notation in 1748. The decisive step was making the circle radius 1.</p>
+
+<p>Define the unit circle x²+y²=1. Travel counterclockwise arc length θ from (1,0). Your coordinates are (cos θ, sin θ). This defines sine and cosine for all real θ, not just acute triangles. The arc length on a unit circle is the radian measure — the only angle unit where d/dθ sin θ = cos θ exactly, with no scaling constant.</p>
+
+<p>Periodicity is symmetry: rotating by 2π returns. sin(θ+2π)=sinθ. Even-odd: cos(−θ)=cosθ, sin(−θ)=−sinθ. The Pythagorean identity is the circle itself: cos²θ + sin²θ = 1.</p>
+
+<p>Angle addition follows from rotation matrices: rotating by α then β is same as by α+β. Multiplying [cos α −sin α; sin α cos α] by the β-matrix yields cos(α+β)=cosα cosβ − sinα sinβ, sin(α+β)=sinα cosβ+cosα sinβ. All identities derive from this.</p>
+
+<table>
+<thead><tr><th>Identity</th><th>Form</th><th>Geometric meaning</th></tr></thead>
+<tbody>
+<tr><td>Pythagorean</td><td>sin²+cos²=1</td><td>Point stays on unit circle</td></tr>
+<tr><td>Double-angle</td><td>cos2θ=cos²−sin²</td><td>Duplicate rotation</td></tr>
+<tr><td>Euler (preview)</td><td>e^{iθ}=cosθ+i sinθ</td><td>Complex rotation</td></tr>
+<tr><td>Law of cosines</td><td>c²=a²+b²−2ab cos C</td><td>Generalized Pythagoras</td></tr>
+</tbody>
+</table>
+
+<div class="widget">
+  <h4>2. Unit Circle Explorer</h4>
+  <div class="grid-2">
+    <div>
+      <canvas id="trig" width="500" height="500"></canvas>
+    </div>
+    <div style="font-family:system-ui">
+      <p>Move mouse/touch over circle. Angle θ measured from positive x-axis.</p>
+      <p>θ = <span class="output" id="th_deg">0</span>° (<span class="output" id="th_rad">0</span> rad)</p>
+      <p>cos θ = <span class="output" id="cosv">1.000</span> (x-coordinate)</p>
+      <p>sin θ = <span class="output" id="sinv">0.000</span> (y-coordinate)</p>
+      <p>tan θ = <span class="output" id="tanv">0.000</span></p>
+      <p>cos²+sin² = <span class="output" id="pyth">1.000</span></p>
+      <div class="callout">The projection onto x is cosine (adjacent/hypotenuse), onto y is sine. Tangent is the length intercepted on the vertical line x=1.</div>
+    </div>
+  </div>
+</div>
+
+<h2 id="calculus">4. Calculus: Length, Area, Curvature</h2>
+<p>Calculus makes Archimedes' exhaustion exact. For y = √(r²−x²), upper semicircle, dy/dx = −x/√(r²−x²). Arc length element ds = √(1+(dy/dx)²)dx = r/√(r²−x²) dx. Integrate from −r to r: L = ∫ ds = r[arcsin(x/r)]_{-r}^{r} = πr. Double for full circle: 2πr.</p>
+
+<p>Area via single integral: A = 2∫_{-r}^{r} √(r²−x²) dx. Substitute x = r sin t, dx = r cos t dt, limits −π/2 to π/2: A = 2∫ r² cos²t dt = r²∫(1+cos2t)dt = πr².</p>
+
+<p>Simpler with polar coordinates: area element dA = ½ r² dθ (sector). Integrate θ 0→2π: A = ½ r²·2π = πr². Green’s theorem gives same: A = ½ ∮(x dy − y dx) = ½∮r² dθ.</p>
+
+<p>Parametric speed is constant: |c'(t)| = r for c(t)=(r cos t, r sin t). Curvature κ = |c'×c''|/|c'|³ = 1/r, constant. The circle is the only plane curve with constant non-zero curvature (up to translation).</p>
+
+<p>The isoperimetric inequality states that for any closed curve length L enclosing area A, 4πA ≤ L², with equality only for the circle. Proof uses Fourier series or calculus of variations: the circle uniquely maximizes area for given perimeter — why bubbles are round.</p>
+
+<div class="widget">
+  <h4>3. Archimedes' π by Polygons</h4>
+  <canvas id="piCanvas" width="600" height="380"></canvas>
+  <div class="controls">
+    <label>Sides n: <input type="range" id="nSlider" min="3" max="192" value="6" step="1"> <span class="output" id="nVal">6</span></label>
+    <span>Inscribed: π ≈ <span class="output" id="piLow">3.000</span></span>
+    <span>Circumscribed: π ≈ <span class="output" id="piHigh">3.464</span></span>
+  </div>
+</div>
+
+<div class="widget">
+  <h4>4. Area by Integration (Riemann Sums)</h4>
+  <canvas id="integrate" width="600" height="340"></canvas>
+  <div class="controls">
+    <label>Strips: <input type="range" id="stripSlider" min="4" max="200" value="20" step="2"> <span class="output" id="stripVal">20</span></label>
+    <span>Approx area: <span class="output" id="approxA">0</span></span>
+    <span>Error: <span class="output" id="errA">0</span>%</span>
+  </div>
+</div>
+
+<h2 id="complex">5. Complex Analysis: Euler’s Formula</h2>
+<p>Identify the plane with ℂ. The unit circle is U = { z ∈ ℂ : |z| = 1 }. Multiplication by a unit complex number rotates: |zw|=|z||w| preserves radius.</p>
+
+<p>Write z = x+iy. The power series e^z = Σ z^n/n! converges everywhere. Restrict to imaginary axis: e^{iθ}= Σ (iθ)^n/n! = (1 − θ²/2! + θ⁴/4! − …) + i(θ − θ³/3! + …) = cos θ + i sin θ. This is Euler’s formula, 1748.</p>
+
+<p>Consequences are immediate: e^{i(θ+φ)} = e^{iθ}e^{iφ} encodes angle addition. e^{iπ} = −1 links five constants. De Moivre: (cosθ+i sinθ)^n = cos nθ + i sin nθ. The n-th roots of unity are vertices of a regular n-gon: ζ_k = e^{2πik/n}, k=0…n−1, solutions to z^n=1.</p>
+
+<p>Integrals around the circle become trivial: ∮_{|z|=1} z^n dz = 0 for n≠−1, and =2πi for n=−1. In general ∮ f(z) dz = 2πi·(sum of residues inside). For f(z)=1/z, the integral counts winding around 0.</p>
+
+<p>Möbius transformations z ↦ (az+b)/(cz+d) map circles and lines to circles and lines in the Riemann sphere. They are the automorphisms of the circle preserving cross-ratio.</p>
+
+<h2 id="topology">6. Topology: S¹ and the Winding Number</h2>
+<p>Topologists denote the circle S¹ = ℝ/ℤ, the real line modulo integers, or {(x,y)∈ℝ²: x²+y²=1}. It is compact, connected, path-connected, 1-dimensional manifold, but not simply connected.</p>
+
+<p>Its universal cover is p: ℝ → S¹, p(t)=e^{2πit}. The real line wraps infinitely around. Path lifting says any loop γ: [0,1]→S¹ with γ(0)=γ(1) lifts uniquely to γ̃ with p∘γ̃=γ. The integer γ̃(1)−γ̃(0) is the degree or winding number.</p>
+
+<p>Thus the fundamental group π₁(S¹) ≅ ℤ. Loops are classified by how many times they wind, with sign for direction. Two loops are homotopic iff they have same winding. This integer is homotopy invariant — you cannot unwind a loop around a hole without crossing it.</p>
+
+<p>Analytically, winding number of closed curve γ around point a∉γ is:</p>
+<p style="text-align:center;font-family:ui-monospace">W(γ,a) = (1/2πi) ∮_γ dz/(z−a) = (1/2π) Δ_γ arg(z−a)</p>
+<p>It is integer-valued, constant on components of complement, jumps by ±1 crossing γ. It appears in Cauchy's integral formula, the argument principle (number of zeros minus poles inside), Rouché's theorem, and the fundamental theorem of algebra.</p>
+
+<p>S¹ also carries group structure under complex multiplication, making it a Lie group U(1). Its cohomology H¹(S¹;ℤ)=ℤ classifies maps to the circle — the origin of degree theory.</p>
+
+<div class="widget">
+  <h4>5. Winding Number Playground</h4>
+  <canvas id="winding" width="600" height="400"></canvas>
+  <div class="controls">
+    <button id="clearW" style="font-family:system-ui;padding:.4rem .8rem">Clear</button>
+    <span>Click to add vertices, double-click to close. Winding around red center: <span class="output" id="windVal">0</span></span>
+  </div>
+  <p style="font-family:system-ui;color:var(--muted);margin:.5rem 0 0">The red dot is the puncture. A simple counterclockwise loop gives +1, clockwise −1, figure-eight gives 0.</p>
+</div>
+
+<h2 id="higher">7. Higher Dimensions: Spheres</h2>
+<p>The circle generalizes to the n-sphere Sⁿ = {x∈ℝ^{n+1}: ||x||=r}. S¹ is the 1-sphere, ordinary sphere surface is S².</p>
+
+<p>Volume and surface area involve the gamma function Γ: for radius r,</p>
+<p style="text-align:center;font-family:ui-monospace">Surface(Sⁿ) = 2π^{(n+1)/2} / Γ((n+1)/2) · rⁿ</p>
+<p style="text-align:center;font-family:ui-monomial">Vol(B^{n+1}) = Surface/(n+1)</p>
+<p>For n=1: circumference 2πr. n=2: area 4πr², volume 4/3πr³. n=3: "surface" of 3-sphere is 2π²r³.</p>
+
+<p>Stereographic projection maps Sⁿ minus north pole bijectively to ℝⁿ, preserving circles. The Hopf fibration S³→S² partitions the 3-sphere into linked circles, each fiber a great circle. It models qubit states in quantum mechanics.</p>
+
+<p>All Sⁿ for n≥2 are simply connected (π₁=0), unlike S¹. S² has π₂=ℤ, leading to hairy-ball theorem: no continuous non-vanishing tangent vector field on even-dimensional spheres.</p>
+
+<h2 id="applications">8. Applications: From Fourier to π</h2>
+<p><strong>Fourier Analysis.</strong> A function on the circle is 2π-periodic on ℝ. Write f(θ)= Σ_{k∈ℤ} c_k e^{ikθ}. The basis e^{ikθ} are eigenfunctions of d²/dθ² with eigenvalue −k². Fourier series solve the heat equation on a ring, model sound, and underpin the discrete Fourier transform used in every phone.</p>
+
+<p>The circle's symmetry makes convolution diagonal: (f∗g)^̂ = f̂·ĝ. This is why circular convolution becomes pointwise multiplication in frequency domain.</p>
+
+<p><strong>Physics.</strong> Uniform circular motion projects to simple harmonic motion: x(t)=r cos ωt satisfies x''+ω²x=0. Centripetal acceleration a=v²/r points to center. Planetary orbits are perturbed circles/ellipses.</p>
+
+<p><strong>Probability.</strong> Buffon's needle: drop needle length ℓ on lines spaced d>ℓ; probability of crossing = 2ℓ/(πd). So π can be estimated by random drops — Monte Carlo integration. The normal distribution in 2D is radially symmetric: density ∝ e^{−r²/2}, integral over plane gives 2π, linking Gaussian integral to π.</p>
+
+<p><strong>Engineering.</strong> Gears, bearings, wheels rely on constant distance property. Circular interpolation (G-code G02/G03) drives CNC machines. Bresenham's circle algorithm rasterizes using only integers.</p>
+
+<p><strong>Computing π.</strong> Modern records use Chudnovsky series (1987): 1/π = 12 Σ (−1)^k (6k)! (13591409+545140134k) / [(3k)!(k!)³ 640320^{3k+3/2}], each term adds ~14 digits. As of 2024, >10¹⁴ digits are known, testing hardware, not geometry.</p>
+
+<p>The circle begins as Euclid's definition and ends as the space of phases, the classifier of loops, the carrier of Fourier modes, the perfect isoperimetrix. From a child's compass to π₁(S¹)=ℤ, it remains mathematics' simplest closed curve — and its richest.</p>
+
+<h2 id="appendix">Computational Appendix — Octave/MATLAB Scripts</h2>
+<p style="font-family:system-ui">Copy-paste into Octave (free) or MATLAB. No toolboxes required.</p>
+
+<h3>1. Monte Carlo estimation of π</h3>
+<pre><code>% monte_pi.m — estimate pi by random points in square
+N = 1e6;
+x = rand(N,1)*2-1; y = rand(N,1)*2-1;
+inside = (x.^2 + y.^2) <= 1;
+pi_est = 4*sum(inside)/N;
+fprintf('pi ≈ %.6f, error %.2e\n', pi_est, abs(pi-pi_est));
+% Visualize
+plot(x(inside), y(inside), '.', x(~inside), y(~inside), '.'); axis equal;</code></pre>
+
+<h3>2. Archimedes polygon bounds</h3>
+<pre><code>% archimedes.m
+for k=2:8
+  n = 6*2^k;
+  low = n*sin(pi/n);      % inscribed
+  high = n*tan(pi/n);     % circumscribed
+  fprintf('%3d-gon: %.10f < pi < %.10f, width=%.2e\n', n, low, high, high-low);
+end</code></pre>
+
+<h3>3. Area by numerical integration</h3>
+<pre><code>% area_quad.m
+r = 1; f = @(x) sqrt(r^2 - x.^2);
+N = 10000; x = linspace(-r, r, N);
+A = 2*trapz(x, f(x));   % trapezoidal rule
+fprintf('Numeric area = %.12f, error = %.2e\n', A, abs(A - pi*r^2));</code></pre>
+
+<h3>4. Parametric circle and curvature</h3>
+<pre><code>% param_circle.m
+t = linspace(0,2*pi,400);
+r=2; x = r*cos(t); y = r*sin(t);
+xp = -r*sin(t); xpp = -r*cos(t);
+yp = r*cos(t); ypp = -r*sin(t);
+kappa = abs(xp.*ypp - yp.*xpp)./(xp.^2+yp.^2).^(3/2);
+plot(x,y); axis equal; title(sprintf('mean curvature = %.4f (1/r=%.4f)', mean(kappa),1/r));</code></pre>
+
+<h3>5. Fourier series on the circle — square wave</h3>
+<pre><code>% fourier_square.m
+t = linspace(-pi, pi, 2000);
+f = sign(sin(t));
+hold on; plot(t,f,'k','LineWidth',1.5);
+for K = [1 3 5 15 51]
+  s = zeros(size(t));
+  for k=1:2:K
+    s += 4/(pi*k) * sin(k*t);
+  end
+  plot(t,s);
+end
+legend('square','1','1+3','...+5','...+15','...+51'); axis([-pi pi -1.5 1.5]);</code></pre>
+
+<h3>6. Euler's formula orbit</h3>
+<pre><code>% euler_orbit.m
+theta = linspace(0, 4*pi, 800);
+z = exp(1i*theta);
+plot(real(z), imag(z)); axis equal; grid on;
+title('z = e^{i\theta}, two windings around unit circle');
+% Roots of unity
+n=7; zeta = exp(2*pi*1i*(0:n-1)/n);
+hold on; plot(real(zeta), imag(zeta), 'ro','MarkerSize',8);</code></pre>
+
+<div class="callout">All six scripts run offline. They illustrate the same ideas explored interactively above: convergence to π, integration, parametrization, Fourier synthesis, and complex rotation.</div>
+
+</article>
+</main>
+
+<footer>
+  Built as a self-contained HTML file — no CDNs, no external images. From compass to cohomology, the circle endures.
+</footer>
+
+<script>
+// Utility
+function dpiCanvas(c, w, h){ const dpr = window.devicePixelRatio||1; c.width=w*dpr; c.height=h*dpr; c.style.width=w+'px'; c.style.height=h+'px'; const ctx=c.getContext('2d'); ctx.scale(dpr,dpr); return ctx; }
+
+// 1. Circle Builder
+(() => {
+  const c = document.getElementById('builder'); const ctx = dpiCanvas(c,600,340);
+  const slider = document.getElementById('rslider');
+  const rval = document.getElementById('rval'), cval=document.getElementById('cval'), aval=document.getElementById('aval');
+  const cx=300, cy=170; let r=100; let dragging=false;
+  function draw(){
+    ctx.clearRect(0,0,600,340);
+    ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,600,340);
+    // grid
+    ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=1;
+    for(let x=0;x<=600;x+=50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,340); ctx.stroke(); }
+    for(let y=0;y<=340;y+=50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(600,y); ctx.stroke(); }
+    // circle
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='rgba(14,165,233,0.12)'; ctx.fill(); ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2; ctx.stroke();
+    // radius
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+r,cy); ctx.strokeStyle='#7c3aed'; ctx.lineWidth=3; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,3,0,7); ctx.fillStyle='#111'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+r,cy,8,0,7); ctx.fillStyle='#ef4444'; ctx.fill(); ctx.strokeStyle='white'; ctx.lineWidth=2; ctx.stroke();
+    rval.textContent=r; cval.textContent=(2*Math.PI*r).toFixed(1)+' px'; aval.textContent=(Math.PI*r*r).toFixed(1)+' px²';
+  }
+  slider.addEventListener('input', e=>{ r=parseInt(e.target.value); draw(); });
+  c.addEventListener('pointerdown', e=>{ const rect=c.getBoundingClientRect(); const x=(e.clientX-rect.left)*600/rect.width; const y=(e.clientY-rect.top)*340/rect.height; if(Math.hypot(x-(cx+r), y-cy)<12) dragging=true; });
+  window.addEventListener('pointerup', ()=>dragging=false);
+  c.addEventListener('pointermove', e=>{ if(!dragging) return; const rect=c.getBoundingClientRect(); const x=(e.clientX-rect.left)*600/rect.width; r=Math.max(30, Math.min(160, Math.round(Math.hypot(x-cx, (e.clientY-rect.top)*340/rect.height - cy)))); slider.value=r; draw(); });
+  draw();
+})();
+
+// 2. Unit Circle
+(() => {
+  const c=document.getElementById('trig'); const ctx=dpiCanvas(c,500,500);
+  const cx=250, cy=250, R=180;
+  const cosv=document.getElementById('cosv'), sinv=document.getElementById('sinv'), tanv=document.getElementById('tanv'), thd=document.getElementById('th_deg'), thr=document.getElementById('th_rad'), py=document.getElementById('pyth');
+  function draw(theta){
+    ctx.clearRect(0,0,500,500);
+    ctx.fillStyle='white'; ctx.fillRect(0,0,500,500);
+    // axes
+    ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(500,cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,500); ctx.stroke();
+    // circle
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.stroke();
+    // angle
+    const x=cx+R*Math.cos(theta), y=cy-R*Math.sin(theta);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=3; ctx.stroke();
+    // projections
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,cy); ctx.setLineDash([5,5]); ctx.strokeStyle='#7c3aed'; ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(cx,y); ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+    // point
+    ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fillStyle='#ef4444'; ctx.fill();
+    const cos=Math.cos(theta), sin=Math.sin(theta);
+    cosv.textContent=cos.toFixed(3); sinv.textContent=sin.toFixed(3); tanv.textContent=Math.abs(cos)<0.001?'∞':(sin/cos).toFixed(3);
+    thd.textContent=(theta*180/Math.PI).toFixed(1); thr.textContent=theta.toFixed(3); py.textContent=(cos*cos+sin*sin).toFixed(3);
+  }
+  c.addEventListener('pointermove', e=>{ const rect=c.getBoundingClientRect(); const x=(e.clientX-rect.left)*500/rect.width - cx; const y=cy - (e.clientY-rect.top)*500/rect.height; const th=Math.atan2(y,x); draw(th<0?th+2*Math.PI:th); });
+  draw(0);
+})();
+
+// 3. Archimedes pi
+(() => {
+  const c=document.getElementById('piCanvas'); const ctx=dpiCanvas(c,600,380);
+  const slider=document.getElementById('nSlider'), nVal=document.getElementById('nVal'), piLow=document.getElementById('piLow'), piHigh=document.getElementById('piHigh');
+  const cx=300, cy=190, R=140;
+  function draw(){
+    const n=parseInt(slider.value); nVal.textContent=n;
+    ctx.clearRect(0,0,600,380); ctx.fillStyle='white'; ctx.fillRect(0,0,600,380);
+    // circle
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.stroke();
+    // inscribed
+    ctx.beginPath(); for(let i=0;i<=n;i++){ const a=2*Math.PI*i/n - Math.PI/2; const x=cx+R*Math.cos(a), y=cy+R*Math.sin(a); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2; ctx.stroke();
+    // circumscribed
+    const Rc=R/Math.cos(Math.PI/n);
+    ctx.beginPath(); for(let i=0;i<=n;i++){ const a=2*Math.PI*i/n - Math.PI/2; const x=cx+Rc*Math.cos(a), y=cy+Rc*Math.sin(a); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.strokeStyle='#7c3aed'; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+    const low=n*Math.sin(Math.PI/n), high=n*Math.tan(Math.PI/n);
+    piLow.textContent=low.toFixed(6); piHigh.textContent=high.toFixed(6);
+  }
+  slider.addEventListener('input', draw); draw();
+})();
+
+// 4. Integration
+(() => {
+  const c=document.getElementById('integrate'); const ctx=dpiCanvas(c,600,340);
+  const slider=document.getElementById('stripSlider'), sv=document.getElementById('stripVal'), av=document.getElementById('approxA'), ev=document.getElementById('errA');
+  const cx=300, cy=170, R=130;
+  function draw(){
+    const n=parseInt(slider.value); sv.textContent=n;
+    ctx.clearRect(0,0,600,340); ctx.fillStyle='white'; ctx.fillRect(0,0,600,340);
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.stroke();
+    const dx=2*R/n; let sum=0;
+    for(let i=0;i<n;i++){ const x0=-R+i*dx; const xm=x0+dx/2; const h=2*Math.sqrt(Math.max(0,R*R-xm*xm)); const x = cx+xm; ctx.fillStyle='rgba(124,58,237,0.25)'; ctx.fillRect(x-dx*R/(2*R), cy-h/2, dx, h); ctx.strokeStyle='rgba(124,58,237,0.6)'; ctx.strokeRect(x-dx*R/(2*R), cy-h/2, dx, h); sum+=dx*h; }
+    const approx = sum/(R*R); // compare to pi
+    av.textContent=sum.toFixed(1); ev.textContent=(Math.abs(sum - Math.PI*R*R)/ (Math.PI*R*R)*100).toFixed(2);
+  }
+  slider.addEventListener('input', draw); draw();
+})();
+
+// 5. Winding number
+(() => {
+  const c=document.getElementById('winding'); const ctx=dpiCanvas(c,600,400);
+  const windVal=document.getElementById('windVal'), clearBtn=document.getElementById('clearW');
+  const cx=300, cy=200; let pts=[];
+  function draw(){
+    ctx.clearRect(0,0,600,400); ctx.fillStyle='white'; ctx.fillRect(0,0,600,400);
+    // center
+    ctx.beginPath(); ctx.arc(cx,cy,5,0,7); ctx.fillStyle='#ef4444'; ctx.fill();
+    if(pts.length>0){
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]); if(pts.length>2) ctx.closePath(); ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle='rgba(14,165,233,0.15)'; ctx.fill();
+      for(const p of pts){ ctx.beginPath(); ctx.arc(p[0],p[1],4,0,7); ctx.fillStyle='#111'; ctx.fill(); }
+    }
+    windVal.textContent = computeWinding();
+  }
+  function computeWinding(){
+    if(pts.length<3) return 0;
+    let wn=0;
+    for(let i=0;i<pts.length;i++){
+      const [x1,y1]=pts[i], [x2,y2]=pts[(i+1)%pts.length];
+      if(y1<=cy){ if(y2>cy && isLeft(x1,y1,x2,y2,cx,cy)>0) wn++; }
+      else { if(y2<=cy && isLeft(x1,y1,x2,y2,cx,cy)<0) wn--; }
+    }
+    return wn;
+  }
+  function isLeft(x1,y1,x2,y2,px,py){ return (x2-x1)*(py-y1) - (px-x1)*(y2-y1); }
+  c.addEventListener('click', e=>{ const rect=c.getBoundingClientRect(); const x=(e.clientX-rect.left)*600/rect.width; const y=(e.clientY-rect.top)*400/rect.height; pts.push([x,y]); draw(); });
+  c.addEventListener('dblclick', e=>{ e.preventDefault(); pts=[]; draw(); });
+  clearBtn.addEventListener('click', ()=>{ pts=[]; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

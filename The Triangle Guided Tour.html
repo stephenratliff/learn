@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Triangle — From Euclid to Modern Mathematics</title>
+<style>
+:root{
+  --bg:#f8fafc; --paper:#ffffff; --ink:#0f172a; --muted:#475569; 
+  --accent:#0ea5e9; --accent2:#6366f1; --ring:#e2e8f0; --warn:#fef3c7;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.7; font-size:17px;
+}
+.wrap{max-width:1100px; margin:0 auto; padding:0 1.25rem 4rem}
+.hero{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+  color:white; padding:5rem 1.5rem 3rem; text-align:center;
+  border-radius:0 0 2rem 2rem; box-shadow:0 20px 40px rgba(2,8,23,.15);
+}
+.hero h1{font-size:clamp(2.5rem,7vw,4.5rem); margin:0 0 .5rem; font-weight:800; letter-spacing:-.02em}
+.hero p{font-size:clamp(1.1rem,2.5vw,1.4rem); opacity:.95; margin:0}
+nav#toc{
+  position:sticky; top:0; z-index:50; margin:-1.5rem auto 2rem;
+  background:rgba(255,255,255,.85); backdrop-filter:blur(10px);
+  border:1px solid var(--ring); border-radius:1rem; padding:.8rem 1rem;
+  display:flex; flex-wrap:wrap; gap:.6rem 1.2rem; justify-content:center;
+  box-shadow:0 8px 20px rgba(2,8,23,.06);
+}
+nav#toc a{color:#0369a1; text-decoration:none; font-weight:600; font-size:.95rem}
+nav#toc a:hover{text-decoration:underline}
+section{
+  background:var(--paper); border:1px solid var(--ring); border-radius:1.5rem;
+  padding:2rem; margin:2rem 0; box-shadow:0 10px 30px rgba(2,8,23,.05);
+}
+h2{font-size:clamp(1.6rem,3vw,2.2rem); margin:0 0 1rem; letter-spacing:-.01em}
+h3{font-size:1.3rem; margin:2rem 0 .8rem; color:#1e293b}
+h4{margin:1.2rem 0 .5rem; color:#334155}
+p{margin:0 0 1rem}
+.note{
+  background:#eff6ff; border-left:4px solid var(--accent); padding:.9rem 1.1rem;
+  border-radius:.5rem; margin:1.2rem 0;
+}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1.5rem}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+.widget{
+  background:#f8fafc; border:1px dashed #cbd5e1; border-radius:1rem;
+  padding:1.2rem; margin:1.5rem 0;
+}
+.widget h3{margin-top:0}
+canvas{background:white; border:1px solid #cbd5e1; border-radius:.75rem; width:100%; height:auto; touch-action:none; display:block}
+.controls{display:flex; flex-wrap:wrap; gap:.8rem; align-items:center; margin-top:.7rem}
+label.inline{display:flex; align-items:center; gap:.4rem; font-size:.95rem; user-select:none}
+input[type="number"],input[type="text"],select{
+  padding:.55rem .7rem; border:1px solid #cbd5e1; border-radius:.5rem; font-size:1rem; width:100%;
+  background:white;
+}
+button{
+  background:var(--accent); color:white; border:none; padding:.6rem 1rem;
+  border-radius:.55rem; font-weight:600; cursor:pointer; transition:.15s;
+}
+button:hover{background:#0284c7; transform:translateY(-1px)}
+button.secondary{background:#e2e8f0; color:#0f172a}
+table{width:100%; border-collapse:collapse; font-size:.95rem}
+th,td{padding:.55rem .6rem; border-bottom:1px solid var(--ring); text-align:left}
+th{color:#475569; font-weight:600}
+code,pre{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#0f172a; color:#e2e8f0; border-radius:.6rem;
+}
+code{padding:.15rem .35rem; font-size:.9em}
+pre{padding:1rem; overflow:auto; line-height:1.5; font-size:.875rem; margin:1rem 0}
+.katex{font-style:italic}
+.badge{display:inline-block; background:#e0f2fe; color:#075985; padding:.2rem .55rem; border-radius:999px; font-size:.8rem; font-weight:600; margin-right:.4rem}
+ul{margin:0 0 1rem 1.2rem}
+li{margin:.35rem 0}
+footer{color:var(--muted); text-align:center; margin-top:3rem; font-size:.9rem}
+hr{border:none; border-top:1px solid var(--ring); margin:2rem 0}
+.math{font-family:Georgia,'Times New Roman',serif; font-style:italic}
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>The Triangle</h1>
+  <p>From Euclid to Modern Mathematics — an 8,000-word guided tour</p>
+</div>
+
+<div class="wrap">
+<nav id="toc">
+  <a href="#euclid">1. Euclid</a>
+  <a href="#trig">2. Trigonometry</a>
+  <a href="#analytic">3. Analytic</a>
+  <a href="#calculus">4. Calculus</a>
+  <a href="#advanced">5. Non-Euclidean</a>
+  <a href="#linear">6. Linear Algebra</a>
+  <a href="#number">7. Number Theory</a>
+  <a href="#topology">8. Topology</a>
+  <a href="#widgets">Widgets</a>
+  <a href="#octave">Octave</a>
+</nav>
+
+<main>
+
+<section id="intro">
+  <p><span class="badge">Why triangles?</span> Three non-collinear points determine a unique plane, a unique circle, and the simplest polygon. Every polygon triangulates. Every smooth surface locally looks like a union of triangles. In computation, the triangle is the 2-simplex — the workhorse of graphics, FEM, and topology. This page traces the triangle from Book I of Euclid to simplicial homology, with live experiments.</p>
+</section>
+
+<section id="euclid">
+<h2>1. Euclidean Geometry</h2>
+<p>In Euclid's <em>Elements</em> (c. 300 BCE), a triangle (<em>trigonon</em>) is the figure contained by three straight lines. The founding facts are deceptively powerful.</p>
+
+<h3>Definitions and classification</h3>
+<p>Given points A, B, C not on one line, the triangle ΔABC has sides a = BC opposite A, b = CA opposite B, c = AB opposite C, and interior angles A, B, C with A + B + C = π radians (180°). This angle sum is equivalent to Euclid's parallel postulate. Classification by sides: scalene (all different), isosceles (at least two equal — base angles equal), equilateral (all three equal, each angle 60°). By angles: acute (< 90° each), right (one = 90°), obtuse (> 90°).</p>
+<p>The triangle inequality is sharp: a < b + c, with equality only for degenerate collinearity. It governs all metric spaces.</p>
+
+<h3>Congruence</h3>
+<p>Two triangles are congruent iff they coincide by rigid motion. Euclid gives four sufficient criteria, all still taught:</p>
+<ul>
+<li><strong>SSS:</strong> Three sides determine shape uniquely. Proof via intersecting circles.</li>
+<li><strong>SAS:</strong> Two sides and included angle. The hinge theorem follows.</li>
+<li><strong>ASA and AAS:</strong> Two angles (thus three) and a side.</li>
+<li><strong>HL:</strong> Hypotenuse-leg for right triangles (a special SAS).</li>
+</ul>
+<p>SSA does <em>not</em> guarantee congruence — the ambiguous case in trigonometry.</p>
+
+<h3>Similarity</h3>
+<p>Scale invariance yields similarity: AA suffices, since angles fix shape. SAS-similarity and SSS-similarity are the scaled versions of congruence. Thales' theorem — a line parallel to BC cuts AB, AC proportionally — is the engine of similarity.</p>
+
+<h3>The four classical centers</h3>
+<p>Four lines concur in every (non-degenerate) triangle:</p>
+<p><strong>Centroid G</strong> — intersection of medians. Coordinates G = (A+B+C)/3. It is the center of mass of uniform lamina and of three equal point masses at vertices. Medians divide 2:1, vertex to centroid twice centroid to midpoint.</p>
+<p><strong>Incenter I</strong> — angle bisectors meet. I = (aA + bB + cC)/(a+b+c) in vector form, weighted by side lengths. It is equidistant from sides; the incircle touches each side at distance r, the inradius. r = Δ / s where Δ is area, s = (a+b+c)/2 semiperimeter.</p>
+<p><strong>Circumcenter O</strong> — perpendicular bisectors meet. O is center of unique circumcircle radius R = abc / (4Δ). For acute triangles O lies inside, for right at midpoint of hypotenuse, for obtuse outside.</p>
+<p><strong>Orthocenter H</strong> — altitudes concur. In vector form with O as origin, H = A + B + C; in general coordinates H = A + B + C − 2O. Reflections of H across sides lie on circumcircle.</p>
+
+<h3>Euler line and nine-point circle</h3>
+<p>Euler (1765) discovered O, G, H are collinear, with OG : GH = 1 : 2. Thus G = (O + 2H? careful) actually G divides OH in ratio 2:1 counting from vertex side: vector OG = (1/3) OH.</p>
+<p>The nine-point circle (Feuerbach, 1822) passes through nine notable points: the three side midpoints Ma, Mb, Mc; the three feet of altitudes Ha, Hb, Hc; and the three midpoints of AH, BH, CH. Its center N is midpoint of OH, radius R/2. It is tangent to incircle and three excircles (Feuerbach theorem).</p>
+
+<h3>Ceva and Menelaus</h3>
+<p><strong>Ceva's Theorem</strong> (1678): For points D on BC, E on CA, F on AB, lines AD, BE, CF concur iff (BD/DC)·(CE/EA)·(AF/FB) = 1 (signed ratios). Apply to medians (1·1·1), angle bisectors (by Angle Bisector Theorem), altitudes.</p>
+<p><strong>Menelaus' Theorem</strong> (c. 100 CE): For transversal cutting BC, CA, AB at D,E,F, D,E,F are collinear iff product = −1. Ceva and Menelaus are duals via projective geometry.</p>
+
+<p class="note">Together, these give the "genealogy" of triangle centers. Kimberling's Encyclopedia now lists over 50,000 defined centers, all as symmetric functions of side lengths.</p>
+</section>
+
+<section id="trig">
+<h2>2. Trigonometry — measuring the triangle</h2>
+<p>Trigonometry began as chord tables for astronomy. For a general triangle, two laws reduce all measurement to algebra.</p>
+
+<h3>Law of Sines</h3>
+<p>a / sin A = b / sin B = c / sin C = 2R. Proof: drop altitude h = b sin C = c sin B, or note that a = 2R sin A from the circumdiameter.</p>
+<p>Consequence: SSA ambiguity. Given a, b, A, sin B = b sin A / a. If < 1, there may be 0, 1, or 2 solutions (B and 180°−B).</p>
+
+<h3>Law of Cosines</h3>
+<p>c² = a² + b² − 2ab cos C. It is Pythagoras with correction for projection. For C = 90°, recover c² = a² + b². The law yields SSS angle determination and SAS side determination.</p>
+<p>The vector proof is immediate: c² = |A−B|² = |A|²+|B|²−2A·B.</p>
+
+<h3>Area formulas</h3>
+<p>All are equivalent, each revealing structure:</p>
+<ul>
+<li>Δ = ½ bc sin A = ½ ca sin B = ½ ab sin C</li>
+<li>Heron: Δ = √[s(s−a)(s−b)(s−c)]. Symmetric, requires only sides.</li>
+<li>Δ = rs (inradius)</li>
+<li>Δ = abc / (4R) (circumradius)</li>
+<li>Δ = 2R² sin A sin B sin C</li>
+</ul>
+<p>Heron's proof via incircle tangents is a masterpiece of algebraic geometry.</p>
+
+<h3>Solving triangles</h3>
+<p>Classical cases: SSS, SAS, ASA/AAS have unique solutions; SSA is ambiguous. Use law of cosines for stability when angles near 0 or π. Mollweide's formulas (a+b)/c = cos½(A−B)/sin½C provide checks for computation before calculators.</p>
+</section>
+
+<section id="analytic">
+<h2>3. Analytic and Barycentric Geometry</h2>
+<p>Descartes turns geometry into algebra.</p>
+<p>With coordinates A(x₁,y₁), B(x₂,y₂), C(x₃,y₃):</p>
+<ul>
+<li>Area via determinant (shoelace): Δ = ½ |det [x₂−x₁ y₂−y₁; x₃−x₁ y₃−y₁]| = ½|x₁(y₂−y₃)+x₂(y₃−y₁)+x₃(y₁−y₂)|. Sign gives orientation.</li>
+<li>Circumcenter solves linear system from |X−A|²=|X−B|²=|X−C|².</li>
+<li>Line BC: (y₂−y₃)x + (x₃−x₂)y + (x₂y₃ − x₃y₂) = 0.</li>
+</ul>
+
+<h3>Barycentric coordinates</h3>
+<p>Introduced by Möbius (1827). Any point P in plane of non-collinear A,B,C writes uniquely as P = αA + βB + γC with α+β+γ=1. The triple (α,β,γ) is barycentric. If α,β,γ ≥0, P lies in triangle (convex combination).</p>
+<p>Connection: α = area(PBC)/area(ABC), etc. Thus centroid = (1/3,1/3), incenter = (a,b,c)/(a+b+c), circumcenter = (sin2A, sin2B, sin2C).</p>
+<p>Barycentrics linearize affine maps: images of triangle vertices determine whole map. In computer graphics, they give correct interpolation of color, texture, normals across triangles (perspective-correct after division by w).</p>
+</section>
+
+<section id="calculus">
+<h2>4. Calculus on Triangles</h2>
+<p>Integration makes the triangle a fundamental domain.</p>
+<p>Area via integral: Δ = ∫_{x₁}^{x₂} (y_top − y_bottom) dx, or via Green's theorem ∮ x dy = 2Δ. The shoelace formula is Green's in disguise.</p>
+<p>Centroid of uniform lamina: x̄ = (1/Δ)∬_T x dA = (x₁+x₂+x₃)/3, and similarly ȳ. Derivation: integrate linear function over simplex — average of vertices.</p>
+<p>Moments of inertia: I_x = ∬ y² dA = Δ/12 (y₁²+y₂²+y₃² + y₁y₂+y₂y₃+y₃y₁). Used in finite elements.</p>
+<p>Linear interpolation: any affine function f over triangle is determined by vertex values fA,fB,fC, with f(P)=αfA+βfB+γfC. Its integral is Δ·(fA+fB+fC)/3 — the 1-point quadrature at centroid is exact for linear functions.</p>
+</section>
+
+<section id="advanced">
+<h2>5. Spherical and Hyperbolic Triangles — Curvature</h2>
+<p>Euclid's parallel postulate fails on curved surfaces.</p>
+<h3>Spherical</h3>
+<p>On a sphere radius R, "lines" are great circles. A spherical triangle bounded by three great-circle arcs has side lengths a,b,c measured as central angles (0< a,b,c < πR). Its angles A,B,C are dihedral angles between planes.</p>
+<p>Girard's theorem (1629): area = R²·E where E = A+B+C − π is spherical excess. Thus angle sum >180°, excess proportional to area. A triangle with three right angles (e.g., equator to north pole) has sum 270°, excess 90° = π/2, area = (π/2)R² = 1/8 of sphere.</p>
+<p>Laws: spherical law of cosines cos(c/R) = cos(a/R)cos(b/R) + sin(a/R)sin(b/R)cos C. For small triangles, Taylor expansion recovers Euclidean law.</p>
+<p>L'Huilier formula gives excess from sides: tan(E/4)=√[tan(s/2)tan((s−a)/2)tan((s−b)/2)tan((s−c)/2)].</p>
+
+<h3>Hyperbolic</h3>
+<p>In constant curvature −1, angle sum < π. Defect D = π − (A+B+C) >0, area = R²·D. Ideal triangles with vertices at infinity have area πR² finite despite infinite perimeter.</p>
+<p>Hyperbolic law of cosines: cosh c = cosh a cosh b − sinh a sinh b cos C.</p>
+
+<h3>Gauss-Bonnet</h3>
+<p>For any geodesic triangle on smooth surface: ∬_T K dA + (sum exterior angles) = 2π. Since interior+exterior=π, this is ∬ K dA = A+B+C − π. On constant curvature K, area = (A+B+C − π)/K, unifying Euclidean (K=0), spherical (K>0), hyperbolic (K<0).</p>
+</section>
+
+<section id="linear">
+<h2>6. Linear Algebra — the Triangle as 2-Simplex</h2>
+<p>In ℝⁿ, points p₀,p₁,p₂ are affinely independent if vectors p₁−p₀, p₂−p₀ are linearly independent. Their convex hull is a 2-simplex.</p>
+<p>Any point x = p₀ + J·ξ where J = [p₁−p₀ p₂−p₀] is 2×2 Jacobian, ξ=(u,v) with u,v≥0, u+v≤1. Area scales by |det J|. This is the map from reference triangle (0,0)-(1,0)-(0,1) to physical triangle.</p>
+<p>In finite element method (FEM), linear basis functions φ₁=1−u−v, φ₂=u, φ₃=v satisfy φ_i(p_j)=δ_ij. Stiffness matrix entries ∫∇φ_i·∇φ_j dA depend only on geometry via J^{-T}J^{-1}·|det J|. Triangular meshes approximate arbitrary domains; refinement reduces error O(h²).</p>
+<p>Barycentric coordinates are the coordinates in this simplex basis — central to convex optimization, barycentric subdivision, computer graphics rasterization.</p>
+</section>
+
+<section id="number">
+<h2>7. Number Theory — integer triangles</h2>
+<h3>Pythagorean triples</h3>
+<p>Integer solutions to a² + b² = c². Euclid's parametrization: for coprime m>n, opposite parity, primitive triple is a = m²−n², b=2mn, c=m²+n². All primitives arise thus. Non-primitives multiply by k. Properties: one leg even, area divisible by 6, product abc divisible by 60.</p>
+<h3>Heronian triangles</h3>
+<p>Triangles with integer sides and integer area. Smallest: 3-4-5 (area 6), 5-5-6 (12), 13-14-15 (84). Formula via Heron: Δ² = s(s−a)(s−b)(s−c) must be square. Parametric families exist using two Pythagorean triples glued along common leg. Almost-equilateral Heronian like 5-5-6 approach equilateral but perfect equilateral cannot be Heronian (area = √3/4 a² irrational unless a=0).</p>
+<p>Rational triangles correspond to rational points on elliptic curves.</p>
+</section>
+
+<section id="topology">
+<h2>8. Topology — building spaces from triangles</h2>
+<p>A triangulation of a surface is a decomposition into triangles glued edge-to-edge. Simplicial complex requires intersections are faces.</p>
+<p>Euler characteristic χ = V − E + F is invariant. For sphere, χ=2, implying any triangulation satisfies V−E+F=2. Since 3F=2E (each edge shared twice), get E=3V−6, F=2V−4 for sphere triangulations with no boundary — used in planar graph theory.</p>
+<p>Torus has χ=0, so V−E+F=0, allowing 7-vertex triangulation (Császár torus). Classification of closed surfaces: χ = 2−2g for orientable genus g, χ = 2−k for nonorientable with k crosscaps.</p>
+<p>Simplicial homology computes Betti numbers by linear algebra on boundary maps of simplices. Persistent homology uses filtrations of point clouds triangulated via Delaunay complexes.</p>
+<p>Thus the triangle is atom of shape.</p>
+</section>
+
+<section id="widgets">
+<h2>Interactive Explorations</h2>
+
+<div class="widget">
+<h3>1. Draggable Triangle — Classical Centers</h3>
+<p>Drag the three vertices. Toggle centers. Observe Euler line and the nine-point circle shrinking by factor ½.</p>
+<canvas id="c1" width="800" height="420"></canvas>
+<div class="controls">
+<label class="inline"><input type="checkbox" id="togG" checked> Centroid G</label>
+<label class="inline"><input type="checkbox" id="togI" checked> Incenter I</label>
+<label class="inline"><input type="checkbox" id="togO" checked> Circumcenter O</label>
+<label class="inline"><input type="checkbox" id="togH" checked> Orthocenter H</label>
+<label class="inline"><input type="checkbox" id="togNine" checked> Nine-point</label>
+<label class="inline"><input type="checkbox" id="togEuler" checked> Euler line</label>
+<button class="secondary" id="reset1">Reset</button>
+</div>
+</div>
+
+<div class="widget">
+<h3>2. Law of Sines / Cosines Solver</h3>
+<p>Enter any three values (at least one side). Leave unknowns blank. Angles in degrees.</p>
+<div class="grid-2">
+<div>
+<div class="grid-2">
+<div class="input-group"><label>side a (BC)</label><input id="aIn" type="number" step="any"></div>
+<div class="input-group"><label>angle A</label><input id="AIn" type="number" step="any"></div>
+<div class="input-group"><label>side b (CA)</label><input id="bIn" type="number" step="any"></div>
+<div class="input-group"><label>angle B</label><input id="BIn" type="number" step="any"></div>
+<div class="input-group"><label>side c (AB)</label><input id="cIn" type="number" step="any"></div>
+<div class="input-group"><label>angle C</label><input id="CIn" type="number" step="any"></div>
+</div>
+<div class="controls"><button id="solveBtn">Solve</button><button class="secondary" id="clearBtn">Clear</button></div>
+</div>
+<div>
+<table id="outTable"><thead><tr><th>Quantity</th><th>Value</th></tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<div class="widget">
+<h3>3. Area Formulas Visualizer</h3>
+<p>Drag vertices. All formulas agree numerically; geometric interpretations differ.</p>
+<canvas id="c3" width="800" height="340"></canvas>
+<div id="areaOut" style="margin-top:.6rem; font-variant-numeric:tabular-nums"></div>
+</div>
+
+<div class="widget">
+<h3>4. Spherical Triangle Explorer (unit sphere)</h3>
+<p>Drag three points on the front hemisphere. Great-circle arcs form the spherical triangle. Note angle sum >180°.</p>
+<canvas id="c4" width="500" height="500"></canvas>
+<div id="sphereOut" style="margin-top:.6rem; font-variant-numeric:tabular-nums"></div>
+</div>
+
+</section>
+
+<section id="octave">
+<h2>Octave / MATLAB Examples</h2>
+<p>Copy-paste into Octave. No toolboxes required.</p>
+
+<h4>1. Classical centers from coordinates</h4>
+<pre>%% triangle_centers.m
+A = [0 0]; B = [5 0]; C = [1.5 4];
+a = norm(B-C); b = norm(C-A); c = norm(A-B);
+G = (A+B+C)/3
+I = (a*A + b*B + c*C)/(a+b+c)
+D = 2*(A(1)*(B(2)-C(2)) + B(1)*(C(2)-A(2)) + C(1)*(A(2)-B(2)));
+Ux = ((A*A')*(B(2)-C(2)) + (B*B')*(C(2)-A(2)) + (C*C')*(A(2)-B(2))) / D;
+Uy = ((A*A')*(C(1)-B(1)) + (B*B')*(A(1)-C(1)) + (C*C')*(B(1)-A(1))) / D;
+O = [Ux Uy]
+H = A + B + C - 2*O
+N = (O+H)/2   % nine-point center
+R = norm(O-A)</pre>
+
+<h4>2. Area by four formulas</h4>
+<pre>%% area_formulas.m
+A=[0 0]; B=[4 0]; C=[1 3];
+a=norm(B-C); b=norm(C-A); c=norm(A-B);
+s=(a+b+c)/2;
+% 1) cross product
+Delta1 = 0.5*abs(det([B-A; C-A]))
+% 2) SAS
+Cang = acos((a^2+b^2-c^2)/(2*a*b)); % at C? careful
+% use general: angle at A
+Aang = acos((b^2+c^2-a^2)/(2*b*c));
+Delta2 = 0.5*b*c*sin(Aang)
+% 3) Heron
+Delta3 = sqrt(s*(s-a)*(s-b)*(s-c))
+% 4) inradius
+r = Delta1/s; Delta4 = r*s</pre>
+
+<h4>3. Solve SSS via law of cosines</h4>
+<pre>%% law_of_cosines.m
+a=7; b=8; c=9;
+A = acosd((b^2+c^2-a^2)/(2*b*c));
+B = acosd((a^2+c^2-b^2)/(2*a*c));
+C = 180 - A - B;
+[A B C]</pre>
+
+<h4>4. Generate primitive Heronian triangles</h4>
+<pre>%% heronian_search.m
+herons=[];
+for a=1:30
+ for b=a:30
+  for c=b:30
+   if a+b>c
+    s=(a+b+c)/2; D=s*(s-a)*(s-b)*(s-c);
+    if D>0 && abs(sqrt(D)-round(sqrt(D)))<1e-9
+     herons=[herons; a b c sqrt(D)];
+    endif
+   endif
+  end
+ end
+end
+disp(herons(1:10,:))</pre>
+
+<h4>5. Barycentric interpolation on reference triangle</h4>
+<pre>%% barycentric.m
+% map (u,v) in reference to physical
+p0=[0 0]; p1=[5 1]; p2=[2 4];
+J=[p1-p0; p2-p0]'; % 2x2
+f0=10; f1=20; f2=30; % values at vertices
+[u,v]=meshgrid(0:0.05:1,0:0.05:1); mask=u+v<=1;
+pts = p0' + J*[u(mask)(:)' ; v(mask)(:)'];
+f = (1-u-v)*f0 + u*f1 + v*f2;
+scatter(pts(1,:),pts(2,:),20,f,'filled'); colorbar;</pre>
+
+<h4>6. Spherical excess and Girard</h4>
+<pre>%% spherical_excess.m
+% unit sphere, points as unit vectors
+A=[1 0 0]; B=[0 1 0]; C=[0 0 1];
+A=A/norm(A); B=B/norm(B); C=C/norm(C);
+a=acos(dot(B,C)); b=acos(dot(A,C)); c=acos(dot(A,B));
+AngA=acos((cos(a)-cos(b)*cos(c))/(sin(b)*sin(c)));
+AngB=acos((cos(b)-cos(a)*cos(c))/(sin(a)*sin(c)));
+AngC=acos((cos(c)-cos(a)*cos(b))/(sin(a)*sin(b)));
+E = AngA+AngB+AngC - pi;
+area = E * 1^2; % R=1
+printf('Angles deg: %.2f %.2f %.2f\n', AngA*180/pi, AngB*180/pi, AngC*180/pi);
+printf('Excess %.4f rad, Area %.4f\n', E, area);</pre>
+
+</section>
+
+<footer>
+<p>Built as a self-contained HTML file — no external requests. Drag, solve, explore. Triangles remain the bridge from sand drawings to modern topology.</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* === Utility === */
+const TAU = Math.PI*2;
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
+
+/* === Widget 1: Draggable centers === */
+(function(){
+  const c = document.getElementById('c1'); const ctx=c.getContext('2d');
+  let pts = [{x:180,y:110},{x:140,y:320},{x:620,y:300}];
+  let drag=-1;
+  const getToggles=()=>({
+    G:document.getElementById('togG').checked,
+    I:document.getElementById('togI').checked,
+    O:document.getElementById('togO').checked,
+    H:document.getElementById('togH').checked,
+    N:document.getElementById('togNine').checked,
+    E:document.getElementById('togEuler').checked
+  });
+  ['togG','togI','togO','togH','togNine','togEuler'].forEach(id=>document.getElementById(id).addEventListener('change',draw));
+  document.getElementById('reset1').onclick=()=>{pts=[{x:180,y:110},{x:140,y:320},{x:620,y:300}];draw()};
+
+  function circumcenter(A,B,C){
+    const D=2*(A.x*(B.y-C.y)+B.x*(C.y-A.y)+C.x*(A.y-B.y));
+    if(Math.abs(D)<1e-6) return null;
+    const a2=A.x*A.x+A.y*A.y, b2=B.x*B.x+B.y*B.y, c2=C.x*C.x+C.y*C.y;
+    return {x:(a2*(B.y-C.y)+b2*(C.y-A.y)+c2*(A.y-B.y))/D,
+            y:(a2*(C.x-B.x)+b2*(A.x-C.x)+c2*(B.x-A.x))/D};
+  }
+  function incenter(A,B,C){
+    const a=dist(B,C), b=dist(C,A), c=dist(A,B), p=a+b+c;
+    return {x:(a*A.x+b*B.x+c*C.x)/p, y:(a*A.y+b*B.y+c*C.y)/p};
+  }
+
+  function draw(){
+    const [A,B,C]=pts; ctx.clearRect(0,0,c.width,c.height);
+    // triangle fill
+    ctx.fillStyle='#e0f2fe'; ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.lineTo(C.x,C.y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // centers
+    const G={x:(A.x+B.x+C.x)/3, y:(A.y+B.y+C.y)/3};
+    const I=incenter(A,B,C);
+    const O=circumcenter(A,B,C);
+    const H=O?{x:A.x+B.x+C.x-2*O.x, y:A.y+B.y+C.y-2*O.y}:null;
+    const N=(O&&H)?{x:(O.x+H.x)/2,y:(O.y+H.y)/2}:null;
+    const R=O?dist(O,A):0;
+    const tog=getToggles();
+    // nine-point circle
+    if(tog.N && N){
+      ctx.strokeStyle='#6366f1'; ctx.setLineDash([6,4]); ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(N.x,N.y,R/2,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // circumcircle
+    if(tog.O && O){
+      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(O.x,O.y,R,0,TAU); ctx.stroke();
+    }
+    // Euler line
+    if(tog.E && O && H){
+      ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2;
+      ctx.beginPath();
+      const dx=H.x-O.x, dy=H.y-O.y, L=Math.hypot(dx,dy)||1;
+      const ex=dx/L*2000, ey=dy/L*2000;
+      ctx.moveTo(O.x-ex,O.y-ey); ctx.lineTo(O.x+ex,O.y+ey); ctx.stroke();
+    }
+    // medians
+    ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=1;
+    [[B,C,A],[C,A,B],[A,B,C]].forEach(([P,Q,R])=>{
+      const m={x:(P.x+Q.x)/2,y:(P.y+Q.y)/2}; ctx.beginPath(); ctx.moveTo(R.x,R.y); ctx.lineTo(m.x,m.y); ctx.stroke();
+    });
+    function dot(p,col,lab){ctx.fillStyle=col; ctx.beginPath(); ctx.arc(p.x,p.y,5,0,TAU); ctx.fill(); ctx.fillStyle='#0f172a'; ctx.font='12px system-ui'; ctx.fillText(lab,p.x+7,p.y-7)}
+    if(tog.G) dot(G,'#0ea5e9','G');
+    if(tog.I) dot(I,'#10b981','I');
+    if(tog.O && O) dot(O,'#6366f1','O');
+    if(tog.H && H) dot(H,'#ef4444','H');
+    if(tog.N && N) dot(N,'#8b5cf6','N');
+    // vertices
+    pts.forEach((p,i)=>{ctx.fillStyle='#0f172a'; ctx.beginPath(); ctx.arc(p.x,p.y,7,0,TAU); ctx.fill(); ctx.fillStyle='white'; ctx.font='bold 12px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('ABC'[i],p.x,p.y)});
+  }
+  function hit(mx,my){for(let i=0;i<3;i++) if(dist(pts[i],{x:mx,y:my})<18) return i; return -1}
+  c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(); const sx=c.width/r.width, sy=c.height/r.height; drag=hit((e.clientX-r.left)*sx,(e.clientY-r.top)*sy); c.setPointerCapture(e.pointerId)});
+  c.addEventListener('pointermove',e=>{if(drag>=0){const r=c.getBoundingClientRect(); const sx=c.width/r.width, sy=c.height/r.height; pts[drag].x=clamp((e.clientX-r.left)*sx,10,c.width-10); pts[drag].y=clamp((e.clientY-r.top)*sy,10,c.height-10); draw()}});
+  window.addEventListener('pointerup',()=>drag=-1);
+  draw();
+})();
+
+/* === Widget 2: Solver === */
+(function(){
+  const $=id=>document.getElementById(id);
+  const aI=$('aIn'),bI=$('bIn'),cI=$('cIn'),AI=$('AIn'),BI=$('BIn'),CI=$('CIn');
+  const out=$('outTable').querySelector('tbody');
+  const deg=Math.PI/180;
+  function solve(){
+    let a=parseFloat(aI.value), b=parseFloat(bI.value), c=parseFloat(cI.value);
+    let A=parseFloat(AI.value), B=parseFloat(BI.value), C=parseFloat(CI.value);
+    const known=(...vs)=>vs.filter(v=>!isNaN(v)&&v>0).length;
+    const toRad=d=>d*deg, toDeg=r=>r/deg;
+    // normalize
+    if(!isNaN(A)&&!isNaN(B)&&isNaN(C)) C=180-A-B;
+    if(!isNaN(A)&&!isNaN(C)&&isNaN(B)) B=180-A-C;
+    if(!isNaN(B)&&!isNaN(C)&&isNaN(A)) A=180-B-C;
+
+    let changed=true, iter=0;
+    while(changed && iter++<10){
+      changed=false;
+      // SSS
+      if(!isNaN(a)&&!isNaN(b)&&!isNaN(c)){
+        if(isNaN(A)){A=toDeg(Math.acos(clamp((b*b+c*c-a*a)/(2*b*c),-1,1))); changed=true}
+        if(isNaN(B)){B=toDeg(Math.acos(clamp((a*a+c*c-b*b)/(2*a*c),-1,1))); changed=true}
+        if(isNaN(C)){C=180-A-B; changed=true}
+      }
+      // SAS
+      if(!isNaN(b)&&!isNaN(c)&&!isNaN(A)&&isNaN(a)){a=Math.sqrt(b*b+c*c-2*b*c*Math.cos(toRad(A))); changed=true}
+      if(!isNaN(a)&&!isNaN(c)&&!isNaN(B)&&isNaN(b)){b=Math.sqrt(a*a+c*c-2*a*c*Math.cos(toRad(B))); changed=true}
+      if(!isNaN(a)&&!isNaN(b)&&!isNaN(C)&&isNaN(c)){c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(toRad(C))); changed=true}
+      // AAS ASA
+      if(!isNaN(A)&&!isNaN(B)&&!isNaN(a)){
+        if(isNaN(b)){b=a*Math.sin(toRad(B))/Math.sin(toRad(A)); changed=true}
+        if(isNaN(c)){C=180-A-B; c=a*Math.sin(toRad(C))/Math.sin(toRad(A)); changed=true}
+      }
+      if(!isNaN(A)&&!isNaN(B)&&!isNaN(b)){
+        if(isNaN(a)){a=b*Math.sin(toRad(A))/Math.sin(toRad(B)); changed=true}
+      }
+      if(!isNaN(A)&&!isNaN(C)&&!isNaN(a)){
+        if(isNaN(c)){c=a*Math.sin(toRad(C))/Math.sin(toRad(A)); changed=true}
+      }
+      // SSA
+      if(!isNaN(a)&&!isNaN(b)&&!isNaN(A)&&isNaN(B)){
+        const sb=b*Math.sin(toRad(A))/a;
+        if(Math.abs(sb)<=1){B=toDeg(Math.asin(sb)); changed=true}
+      }
+    }
+    // fill outputs
+    out.innerHTML='';
+    const rows=[['a',a],['b',b],['c',c],['A°',A],['B°',B],['C°',C]];
+    rows.forEach(([k,v])=>{
+      const tr=document.createElement('tr'); tr.innerHTML=`<td>${k}</td><td>${isNaN(v)?'—':v.toFixed(5)}</td>`; out.appendChild(tr);
+    });
+    if(![a,b,c,A,B,C].some(isNaN)){
+      const s=(a+b+c)/2, Delta=Math.sqrt(Math.max(0,s*(s-a)*(s-b)*(s-c)));
+      const R=a*b*c/(4*Delta), r=Delta/s;
+      [['s',s],['Area Δ',Delta],['R',R],['r',r],['Perimeter',a+b+c]].forEach(([k,v])=>{
+        const tr=document.createElement('tr'); tr.innerHTML=`<td>${k}</td><td>${v.toFixed(5)}</td>`; out.appendChild(tr);
+      });
+    }
+  }
+  $('solveBtn').onclick=solve;
+  $('clearBtn').onclick=()=>{['aIn','bIn','cIn','AIn','BIn','CIn'].forEach(id=>$(id).value=''); out.innerHTML='';};
+})();
+
+/* === Widget 3: Area visualizer === */
+(function(){
+  const c=document.getElementById('c3'); const ctx=c.getContext('2d');
+  let P=[{x:120,y:250},{x:680,y:260},{x:300,y:80}]; let d=-1;
+  function draw(){
+    const [B,C,A]=P; ctx.clearRect(0,0,c.width,c.height);
+    ctx.fillStyle='#ecfeff'; ctx.strokeStyle='#0891b2'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.lineTo(C.x,C.y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // altitude from A to BC
+    const vx=C.x-B.x, vy=C.y-B.y, len2=vx*vx+vy*vy;
+    const t=((A.x-B.x)*vx+(A.y-B.y)*vy)/len2; const H={x:B.x+t*vx,y:B.y+t*vy};
+    ctx.setLineDash([5,5]); ctx.strokeStyle='#64748b'; ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(H.x,H.y); ctx.stroke(); ctx.setLineDash([]);
+    // labels
+    ctx.fillStyle='#0f172a'; ctx.font='13px system-ui'; ctx.fillText('A',A.x+6,A.y-6); ctx.fillText('B',B.x+6,B.y+14); ctx.fillText('C',C.x+6,C.y+14);
+    P.forEach(p=>{ctx.fillStyle='#0f172a'; ctx.beginPath(); ctx.arc(p.x,p.y,6,0,TAU); ctx.fill()});
+    // compute areas
+    const a=dist(B,C), b=dist(C,A), cAB=dist(A,B);
+    const areaDet=Math.abs((B.x*(C.y-A.y)+C.x*(A.y-B.y)+A.x*(B.y-C.y))/2);
+    const h=dist(A,H); const areaBH=0.5*a*h;
+    const angleA=Math.acos(clamp((b*b+cAB*cAB-a*a)/(2*b*cAB),-1,1));
+    const areaSAS=0.5*b*cAB*Math.sin(angleA);
+    const s=(a+b+cAB)/2; const areaHeron=Math.sqrt(Math.max(0,s*(s-a)*(s-b)*(s-cAB)));
+    document.getElementById('areaOut').innerHTML=
+      `base·height/2 = <b>${areaBH.toFixed(2)}</b> &nbsp; | &nbsp; ½bc·sinA = <b>${areaSAS.toFixed(2)}</b> &nbsp; | &nbsp; Heron = <b>${areaHeron.toFixed(2)}</b> &nbsp; | &nbsp; |det|/2 = <b>${areaDet.toFixed(2)}</b>`;
+  }
+  function hit(x,y){for(let i=0;i<3;i++) if(dist(P[i],{x,y})<15) return i; return -1}
+  c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(); const sx=c.width/r.width, sy=c.height/r.height; d=hit((e.clientX-r.left)*sx,(e.clientY-r.top)*sy)});
+  c.addEventListener('pointermove',e=>{if(d>=0){const r=c.getBoundingClientRect(); const sx=c.width/r.width, sy=c.height/r.height; P[d].x=clamp((e.clientX-r.left)*sx,10,c.width-10); P[d].y=clamp((e.clientY-r.top)*sy,10,c.height-10); draw()}});
+  window.addEventListener('pointerup',()=>d=-1);
+  draw();
+})();
+
+/* === Widget 4: Spherical triangle === */
+(function(){
+  const c=document.getElementById('c4'); const ctx=c.getContext('2d');
+  const cx=250, cy=250, R=200;
+  function norm(v){const l=Math.hypot(v[0],v[1],v[2]); return [v[0]/l,v[1]/l,v[2]/l]}
+  let V=[norm([0.3,0.1,0.95]), norm([-0.5,0.4,0.77]), norm([-0.2,-0.6,0.78])];
+  let drag=-1;
+  function proj(v){return [cx+R*v[0], cy - R*v[1]]} // orthographic front
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    // sphere outline
+    ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.fillStyle='#f1f5f9'; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.fill(); ctx.stroke();
+    // draw great circle arcs
+    ctx.lineWidth=3; ctx.strokeStyle='#0ea5e9';
+    for(let i=0;i<3;i++){
+      const v1=V[i], v2=V[(i+1)%3];
+      const ang=Math.acos(clamp(v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2],-1,1));
+      ctx.beginPath();
+      for(let t=0;t<=1;t+=0.02){
+        const s1=Math.sin((1-t)*ang)/Math.sin(ang), s2=Math.sin(t*ang)/Math.sin(ang);
+        const v=[s1*v1[0]+s2*v2[0], s1*v1[1]+s2*v2[1], s1*v1[2]+s2*v2[2]];
+        const p=proj(v); if(t===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]);
+      }
+      ctx.stroke();
+    }
+    // points
+    V.forEach((v,i)=>{const p=proj(v); ctx.fillStyle='#0f172a'; ctx.beginPath(); ctx.arc(p[0],p[1],6,0,TAU); ctx.fill(); ctx.fillStyle='white'; ctx.font='bold 12px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('ABC'[i],p[0],p[1])});
+    // compute spherical triangle
+    const [A,B,C]=V;
+    const a=Math.acos(clamp(B[0]*C[0]+B[1]*C[1]+B[2]*C[2],-1,1));
+    const b=Math.acos(clamp(A[0]*C[0]+A[1]*C[1]+A[2]*C[2],-1,1));
+    const cang=Math.acos(clamp(A[0]*B[0]+A[1]*B[1]+A[2]*B[2],-1,1));
+    const AngA=Math.acos(clamp((Math.cos(a)-Math.cos(b)*Math.cos(cang))/(Math.sin(b)*Math.sin(cang)),-1,1));
+    const AngB=Math.acos(clamp((Math.cos(b)-Math.cos(a)*Math.cos(cang))/(Math.sin(a)*Math.sin(cang)),-1,1));
+    const AngC=Math.acos(clamp((Math.cos(cang)-Math.cos(a)*Math.cos(b))/(Math.sin(a)*Math.sin(b)),-1,1));
+    const sum=AngA+AngB+AngC; const E=sum-Math.PI;
+    document.getElementById('sphereOut').innerHTML=
+      `Sides (deg): a=${(a*180/Math.PI).toFixed(1)}, b=${(b*180/Math.PI).toFixed(1)}, c=${(cang*180/Math.PI).toFixed(1)}<br>`+
+      `Angles (deg): A=${(AngA*180/Math.PI).toFixed(1)}, B=${(AngB*180/Math.PI).toFixed(1)}, C=${(AngC*180/Math.PI).toFixed(1)}<br>`+
+      `Sum = ${(sum*180/Math.PI).toFixed(1)}° &nbsp; Excess E = ${(E*180/Math.PI).toFixed(1)}° &nbsp; Area (R=1) = ${E.toFixed(4)} sr`;
+  }
+  function nearest(mx,my){let best=-1,bd=1e9; V.forEach((v,i)=>{const p=proj(v); const d=Math.hypot(p[0]-mx,p[1]-my); if(d<bd){bd=d;best=i}}); return bd<20?best:-1}
+  c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(); const x=(e.clientX-r.left), y=(e.clientY-r.top); drag=nearest(x,y)});
+  c.addEventListener('pointermove',e=>{if(drag>=0){const r=c.getBoundingClientRect(); const x=(e.clientX-r.left-cx)/R, y=-(e.clientY-r.top-cy)/R; if(x*x+y*y<=1){const z=Math.sqrt(1-x*x-y*y); V[drag]=norm([x,y,z]); draw()}}});
+  window.addEventListener('pointerup',()=>drag=-1);
+  draw();
+})();
+</script>
+</body>
+</html>

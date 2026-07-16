@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Circle: Mathematics → Physics → Cryptography</title>
+<style>
+:root{--bg:#0f172a;--text:#e2e8f0;--muted:#94a3b8;--card:#1e293b;--accent:#14b8a6;--panel:#0b1220}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;line-height:1.55}
+.wrap{max-width:900px;margin:0 auto;padding:24px 16px}
+header{margin-bottom:16px}
+h1{font-size:2rem;margin:0 0 4px;color:var(--accent);letter-spacing:0.3px}
+header p{margin:0;color:var(--muted)}
+h2{margin:28px 0 12px;font-size:1.25rem;border-left:4px solid var(--accent);padding-left:10px}
+h3{margin:8px 0 6px;font-size:1rem;color:var(--accent)}
+section{background:var(--card);border-radius:14px;padding:16px;margin:18px 0;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+canvas{background:var(--panel);border-radius:10px;display:block;margin:8px auto;max-width:100%;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:8px 0}
+button{background:var(--accent);color:#042f2e;border:0;padding:7px 12px;border-radius:8px;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.05)}
+button:active{transform:translateY(1px)}
+input[type=range]{accent-color:var(--accent);width:140px}
+input[type=number]{background:var(--panel);border:1px solid #334155;color:var(--text);padding:5px 7px;border-radius:6px;width:68px}
+.output{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--panel);padding:8px 10px;border-radius:8px;text-align:center;margin:8px 0;font-size:0.92rem;overflow:auto}
+.explain{color:var(--muted);font-size:0.92rem;margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+label{font-size:0.88rem;color:#cbd5e1;display:flex;align-items:center;gap:6px}
+small{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>The Circle</h1>
+  <p>Mathematics → Physics → Cryptography. One shape, three worlds.</p>
+</header>
+
+<section>
+  <h2>1. Mathematics: Unit Circle & Euler</h2>
+  <canvas id="c1" width="300" height="300"></canvas>
+  <div class="controls">
+    <button id="toggleFourier">Toggle Fourier Epicycle</button>
+    <small>Drag the point on the circle</small>
+  </div>
+  <div class="output" id="mathOut"></div>
+  <div class="output">e<sup>iθ</sup> = cos θ + i sin θ</div>
+  <p class="explain">A point at angle θ on the unit circle is (cos θ, sin θ). Euler links rotation to complex exponentials. Summing rotations at 1×, 3×, 5× frequency traces a square wave — circles building any periodic signal.</p>
+</section>
+
+<section>
+  <h2>2. Physics: Circular Motion → SHM</h2>
+  <div class="grid">
+    <div>
+      <canvas id="c2" width="400" height="200"></canvas>
+      <div class="controls"><label>ω <input id="omega" type="range" min="0.5" max="3" step="0.1" value="1.5"></label> <span id="omegaVal">1.5</span> rad/s</div>
+    </div>
+    <div>
+      <canvas id="c3" width="400" height="200"></canvas>
+      <div class="controls"><label>ω₁ <input id="w1" type="range" min="0.5" max="3" step="0.1" value="2.0"></label> <label>ω₂ <input id="w2" type="range" min="0.7" max="3.2" step="0.1" value="2.2"></label></div>
+    </div>
+  </div>
+  <p class="explain">Uniform circular motion projected onto a line is Simple Harmonic Motion: x = A cos(ωt). Velocity is tangent to the circle. Two phasors at ω₁ and ω₂ add; when close, their sum pulses — acoustic beats are vector addition in disguise.</p>
+</section>
+
+<section>
+  <h2>3. Cryptography: Discrete Circle</h2>
+  <canvas id="c4" width="300" height="300"></canvas>
+  <div class="controls">
+    <label>n <input id="modN" type="range" min="5" max="23" value="13"></label>
+    <span id="nVal">13</span>
+    <span>• φ(n) = <span id="phiVal">12</span></span>
+  </div>
+  <div class="grid">
+    <div>
+      <h3>Modular Addition</h3>
+      <div class="controls"><input id="addA" type="number" value="7" min="0"> + <input id="addB" type="number" value="9" min="0"> mod n <button id="addBtn">Visualize</button></div>
+      <div class="output" id="addOut"></div>
+    </div>
+    <div>
+      <h3>Diffie–Hellman</h3>
+      <div class="controls"><label>g <input id="dhG" type="number" value="2" min="2"></label> <label>a <input id="dhA" type="number" value="6" min="1"></label> <label>b <input id="dhB" type="number" value="9" min="1"></label> <button id="dhBtn">Compute</button></div>
+      <div class="output" id="dhOut"></div>
+    </div>
+  </div>
+  <p class="explain">Integers mod n form a discrete circle. Addition wraps around. Diffie-Hellman uses repeated multiplication: g<sup>a</sup> mod p hops around the circle. Easy forward, hard backward (discrete log). φ(n) counts numbers coprime to n — the size of the multiplicative group.</p>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+// ===== DEMO 1 =====
+const c1=$('c1'), x1=c1.getContext('2d');
+let th=Math.PI/4, drag=false, fourier=false, t=0, trace=[];
+const updMath=()=>{const d=(th*180/Math.PI+360)%360,c=Math.cos(th),s=Math.sin(th);$('mathOut').textContent=`θ=${th.toFixed(2)} rad (${d.toFixed(0)}°) • cos=${c.toFixed(3)} • sin=${s.toFixed(3)} • e^{iθ}=${c.toFixed(3)} ${s>=0?'+':''}${s.toFixed(3)}i`};
+$('toggleFourier').onclick=()=>{fourier=!fourier;trace=[];$('toggleFourier').textContent=fourier?'Show Unit Circle':'Toggle Fourier Epicycle'};
+c1.addEventListener('pointerdown',e=>{if(fourier)return;const r=c1.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,px=150+100*Math.cos(th),py=150-100*Math.sin(th);if(Math.hypot(mx-px,my-py)<16)drag=true});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;const r=c1.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,dx=mx-150,dy=150-my;th=Math.atan2(dy,dx);if(th<0)th+=2*Math.PI;updMath()});
+function draw1(){x1.fillStyle='#0b1220';x1.fillRect(0,0,300,300);x1.lineWidth=1;
+ if(!fourier){x1.strokeStyle='#334155';x1.beginPath();x1.arc(150,150,100,0,7);x1.stroke();x1.beginPath();x1.moveTo(50,150);x1.lineTo(250,150);x1.moveTo(150,50);x1.lineTo(150,250);x1.stroke();const px=150+100*Math.cos(th),py=150-100*Math.sin(th);x1.strokeStyle='#14b8a6';x1.lineWidth=2;x1.beginPath();x1.moveTo(150,150);x1.lineTo(px,py);x1.stroke();x1.fillStyle='#14b8a6';x1.beginPath();x1.arc(px,py,5,0,7);x1.fill();x1.strokeStyle='#64748b';x1.setLineDash([3,3]);x1.beginPath();x1.moveTo(px,py);x1.lineTo(px,150);x1.lineTo(150,150);x1.stroke();x1.setLineDash([])}
+ else{t+=0.02;const cx=80,cy=150,r1=48,r2=r1/3,r3=r1/5,xA=cx+r1*Math.cos(t),yA=cy+r1*Math.sin(t),xB=xA+r2*Math.cos(3*t),yB=yA+r2*Math.sin(3*t),xC=xB+r3*Math.cos(5*t),yC=yB+r3*Math.sin(5*t);x1.strokeStyle='#334155';[[cx,cy,r1],[xA,yA,r2],[xB,yB,r3]].forEach(p=>{x1.beginPath();x1.arc(p[0],p[1],p[2],0,7);x1.stroke()});x1.strokeStyle='#14b8a6';x1.lineWidth=2;x1.beginPath();x1.moveTo(cx,cy);x1.lineTo(xA,yA);x1.lineTo(xB,yB);x1.lineTo(xC,yC);x1.stroke();x1.fillStyle='#14b8a6';[[xA,yA],[xB,yB],[xC,yC]].forEach(p=>{x1.beginPath();x1.arc(p[0],p[1],3,0,7);x1.fill()});trace.push(yC);if(trace.length>170)trace.shift();x1.strokeStyle='#475569';x1.beginPath();x1.moveTo(150,40);x1.lineTo(150,260);x1.stroke();x1.strokeStyle='#e2e8f0';x1.beginPath();for(let i=0;i<trace.length;i++)x1.lineTo(130+i,trace[i]);x1.stroke();x1.setLineDash([3,3]);x1.strokeStyle='#64748b';x1.beginPath();x1.moveTo(xC,yC);x1.lineTo(130,yC);x1.stroke();x1.setLineDash([])}
+ requestAnimationFrame(draw1)}updMath();draw1();
+
+// ===== DEMO 2 =====
+const c2=$('c2'),x2=c2.getContext('2d'),om=$('omega'),omV=$('omegaVal');let time=0,shmHist=[];om.oninput=()=>omV.textContent=om.value;
+function draw2(){const w=+om.value;time+=0.016*x2.canvas.width/400; x2.fillStyle='#0b1220';x2.fillRect(0,0,400,200);const cx=90,cy=100,r=55,ang=time*w,px=cx+r*Math.cos(ang),py=cy-r*Math.sin(ang);x2.strokeStyle='#334155';x2.beginPath();x2.arc(cx,cy,r,0,7);x2.stroke();x2.strokeStyle='#475569';x2.beginPath();x2.moveTo(cx-r-10,cy);x2.lineTo(cx+r+10,cy);x2.stroke();x2.strokeStyle='#14b8a6';x2.lineWidth=2;x2.beginPath();x2.moveTo(cx,cy);x2.lineTo(px,py);x2.stroke();x2.fillStyle='#14b8a6';x2.beginPath();x2.arc(px,py,4,0,7);x2.fill();const vx=-r*w*Math.sin(ang),vy=-r*w*Math.cos(ang),sc=0.18;x2.strokeStyle='#fbbf24';x2.beginPath();x2.moveTo(px,py);x2.lineTo(px+vx*sc,py+vy*sc);x2.stroke();x2.beginPath();x2.moveTo(px+vx*sc,py+vy*sc);x2.lineTo(px+vx*sc-5*Math.cos(ang+0.5),py+vy*sc+5*Math.sin(ang+0.5));x2.stroke();const projX=290+r*Math.cos(ang);x2.strokeStyle='#64748b';x2.setLineDash([3,3]);x2.beginPath();x2.moveTo(px,py);x2.lineTo(projX,py);x2.lineTo(projX,cy);x2.stroke();x2.setLineDash([]);x2.strokeStyle='#334155';x2.beginPath();x2.moveTo(230,cy);x2.lineTo(380,cy);x2.stroke();x2.fillStyle='#e2e8f0';x2.beginPath();x2.arc(projX,cy,5,0,7);x2.fill();shmHist.push(projX);if(shmHist.length>150)shmHist.shift();x2.strokeStyle='#14b8a6';x2.beginPath();shmHist.forEach((v,i)=>x2.lineTo(230+i,v-190));x2.stroke();x2.fillStyle='#94a3b8';x2.font='12px monospace';x2.fillText('x = cos(ωt)',250,30);requestAnimationFrame(draw2)}draw2();
+
+const c3=$('c3'),x3=c3.getContext('2d'),w1=$('w1'),w2=$('w2');let tb=0,beat=[];function draw3(){tb+=0.016;const a1=tb*+w1.value,a2=tb*+w2.value,r=35,cx=80,cy=100,xA=cx+r*Math.cos(a1),yA=cy-r*Math.sin(a1),xB=xA+r*Math.cos(a2),yB=yA-r*Math.sin(a2);x3.fillStyle='#0b1220';x3.fillRect(0,0,400,200);x3.strokeStyle='#334155';x3.beginPath();x3.arc(cx,cy,r,0,7);x3.stroke();x3.strokeStyle='#14b8a6';x3.lineWidth=2;x3.beginPath();x3.moveTo(cx,cy);x3.lineTo(xA,yA);x3.stroke();x3.strokeStyle='#22d3ee';x3.beginPath();x3.moveTo(xA,yA);x3.lineTo(xB,yB);x3.stroke();x3.fillStyle='#14b8a6';x3.beginPath();x3.arc(xA,yA,3,0,7);x3.fill();x3.fillStyle='#22d3ee';x3.beginPath();x3.arc(xB,yB,3,0,7);x3.fill();beat.push(yB);if(beat.length>260)beat.shift();x3.strokeStyle='#475569';x3.beginPath();x3.moveTo(140,20);x3.lineTo(140,180);x3.stroke();x3.strokeStyle='#e2e8f0';x3.beginPath();beat.forEach((v,i)=>x3.lineTo(140+i, v));x3.stroke();x3.fillStyle='#94a3b8';x3.font='12px monospace';x3.fillText('sum of two phasors → beats',150,30);requestAnimationFrame(draw3)}draw3();
+
+// ===== DEMO 3 =====
+const c4=$('c4'),x4=c4.getContext('2d'),nS=$('modN'),nV=$('nVal'),phiV=$('phiVal');let addState=null,dhState=null;
+function totient(n){let r=n;for(let p=2;p*p<=n;p++)if(n%p===0){while(n%p===0)n/=p;r-=r/p}if(n>1)r-=r/n;return r}
+function modPow(b,e,m){let r=1;b%=m;while(e>0){if(e&1)r=(r*b)%m;b=(b*b)%m;e>>=1}return r}
+function draw4(){const n=+nS.value,cx=150,cy=150,R=110;x4.fillStyle='#0b1220';x4.fillRect(0,0,300,300);x4.strokeStyle='#334155';x4.beginPath();x4.arc(cx,cy,R,0,7);x4.stroke();for(let i=0;i<n;i++){const a=-Math.PI/2+2*Math.PI*i/n,px=cx+R*Math.cos(a),py=cy+R*Math.sin(a);x4.fillStyle='#1e293b';x4.strokeStyle='#475569';x4.beginPath();x4.arc(px,py,14,0,7);x4.fill();x4.stroke();x4.fillStyle='#e2e8f0';x4.font='12px monospace';x4.textAlign='center';x4.textBaseline='middle';x4.fillText(i,px,py)}if(addState){const {a,b,res}=addState;const drawArc=(s,e,col)=>{x4.strokeStyle=col;x4.lineWidth=3;x4.beginPath();x4.arc(cx,cy,R-22,-Math.PI/2+2*Math.PI*s/n,-Math.PI/2+2*Math.PI*e/n,false);x4.stroke()};drawArc(0,a,'#22d3ee');drawArc(a,res,'#14b8a6')}if(dhState){x4.strokeStyle='#f59e0b';x4.lineWidth=2;for(let i=1;i<dhState.seq.length;i++){const p=dhState.seq[i-1],q=dhState.seq[i],ap=-Math.PI/2+2*Math.PI*p/n,aq=-Math.PI/2+2*Math.PI*q/n;x4.beginPath();x4.moveTo(cx+(R-26)*Math.cos(ap),cy+(R-26)*Math.sin(ap));x4.lineTo(cx+(R-26)*Math.cos(aq),cy+(R-26)*Math.sin(aq));x4.stroke()}}}nS.oninput=()=>{nV.textContent=nS.value;phiV.textContent=totient(+nS.value);addState=null;dhState=null;draw4()};nV.textContent=nS.value;phiV.textContent=totient(13);
+$('addBtn').onclick=()=>{const n=+nS.value,a=(+($('addA').value)%n+n)%n,b=(+($('addB').value)%n+n)%n,res=(a+b)%n;$('addOut').textContent=`${a} + ${b} ≡ ${res} (mod ${n})`;addState={a,b,res};dhState=null;draw4()};
+$('dhBtn').onclick=()=>{const p=+nS.value,g=+($('dhG').value),a=+($('dhA').value),b=+($('dhB').value);if(p<5){$('dhOut').textContent='Choose n ≥5 (prime best)';return}const A=modPow(g,a,p),B=modPow(g,b,p),s=modPow(B,a,p);$('dhOut').textContent=`A=g^a≡${A}, B=g^b≡${B}, shared s=${s}`;const seq=[1];let cur=1;for(let i=0;i<a;i++){cur=(cur*g)%p;seq.push(cur)}dhState={seq};addState=null;draw4()};
+$('addOut').textContent='7 + 9 ≡ 3 (mod 13)';addState={a:7,b:9,res:3};draw4();
+</script>
+</body>
+</html>
