@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euler, Hilbert, and the Fabric of Strings</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        electric: '#00d4ff',
+        gold: '#ffd700',
+        space: '#030712'
+      },
+      fontFamily: { display: ['"Space Grotesk"', 'system-ui'], mono: ['"JetBrains Mono"', 'monospace'] }
+    }
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"/>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #000; font-family: 'Space Grotesk', system-ui; overflow-x: hidden; }
+  #stars { position: fixed; inset: 0; z-index: 0; }
+  .glass {
+    background: linear-gradient(180deg, rgba(10,15,30,0.78), rgba(5,8,18,0.72));
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(0,212,255,0.18);
+    box-shadow: 0 0 60px rgba(0,212,255,0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .glow { text-shadow: 0 0 24px rgba(0,212,255,0.6), 0 0 48px rgba(255,215,0,0.25); }
+  .toc a { transition: all .2s; }
+  .toc a.active, .toc a:hover { color: #ffd700; transform: translateX(4px); }
+  input[type=range] { accent-color: #00d4ff; }
+  canvas { touch-action: none; }
+  ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: #00d4ff55; border-radius: 4px; }
+</style>
+<script>
+MathJax = { tex: { inlineMath: [['$', '$'], ['\\(','\\)']], displayMath: [['$$','$$']], packages: {'[+]': ['ams']}}, svg: {fontCache: 'global'} };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="text-gray-200 relative">
+<canvas id="stars"></canvas>
+
+<!-- HERO -->
+<header class="relative z-10 pt-24 pb-16 px-6">
+  <div class="max-w-7xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full glass mb-6 text-xs tracking-widest uppercase text-electric">
+      <span class="w-2 h-2 rounded-full bg-electric animate-pulse"></span> Euler • Hilbert • Strings
+    </div>
+    <h1 class="font-display text-5xl md:text-7xl font-bold glow bg-gradient-to-r from-electric via-cyan-200 to-gold bg-clip-text text-transparent leading-tight">
+      Euler, Hilbert, and the Fabric of Strings
+    </h1>
+    <p class="mt-6 max-w-3xl mx-auto text-lg text-gray-300">How Euler's complex phase $e^{i\theta}$ and Hilbert's infinite-dimensional geometry become the grammar of quantum mechanics, string worldsheets, and black hole horizons.</p>
+    
+    <div class="mt-12 grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      <div class="glass rounded-3xl p-6">
+        <h3 class="text-gold font-semibold mb-2">Euler's Engine: $e^{i\theta}$</h3>
+        <canvas id="heroEuler" width="500" height="300" class="w-full h-[300px]"></canvas>
+        <p class="text-xs text-gray-400 mt-2">Rotation generates everything unitary</p>
+      </div>
+      <div class="glass rounded-3xl p-6">
+        <h3 class="text-electric font-semibold mb-2">Hilbert's Stage: Infinite Cube</h3>
+        <canvas id="heroHilbert" width="500" height="300" class="w-full h-[300px]"></canvas>
+        <p class="text-xs text-gray-400 mt-2">Complete inner-product space for quantum states</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="relative z-10 max-w-[1600px] mx-auto px-4 lg:px-6 pb-32 grid lg:grid-cols-4 gap-8">
+  <aside class="lg:col-span-1">
+    <nav class="toc glass rounded-2xl p-6 lg:sticky lg:top-6 text-sm">
+      <p class="uppercase tracking-widest text-xs text-gray-500 mb-3">Contents</p>
+      <ul class="space-y-2">
+        <li><a href="#euler">1. Euler Mathematics</a></li>
+        <li><a href="#hilbert">2. Hilbert Spaces</a></li>
+        <li><a href="#qm">3. Quantum Bridge</a></li>
+        <li><a href="#strings">4. String Theory</a></li>
+        <li><a href="#mtheory">5. M-Theory</a></li>
+        <li><a href="#hawking">6. Hawking & Black Holes</a></li>
+        <li><a href="#lab">7. Octave Laboratory</a></li>
+        <li><a href="#demos">8. Interactive Demos</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="lg:col-span-3 space-y-16">
+
+    <!-- EULER -->
+    <section id="euler" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-gold mb-6">1. Euler Mathematics — The Engine</h2>
+      <div class="prose prose-invert max-w-none text-gray-300 leading-relaxed">
+        <p>Leonhard Euler gave physics its favorite gearbox: the complex exponential.</p>
+        $$e^{i\theta} = \cos\theta + i\sin\theta = \sum_{n=0}^\infty \frac{(i\theta)^n}{n!}$$
+        <p>Derivation via Taylor series: expand $e^{x}, \cos x, \sin x$ separately — the even powers give cosine, odd powers give $i$ sine. Periodicity $e^{i(\theta+2\pi)}=e^{i\theta}$ is pure topology.</p>
+        
+        <div class="grid md:grid-cols-2 gap-6 my-8">
+          <div class="bg-black/40 rounded-xl p-5 border border-electric/20">
+            <h4 class="text-electric font-semibold">Euler-Lagrange</h4>
+            <p>$$ \frac{\partial L}{\partial q} - \frac{d}{dt}\frac{\partial L}{\partial \dot q}=0 $$</p>
+            <p class="text-sm">Extremizes action $S=\int L\,dt$. String worldsheets obey this.</p>
+          </div>
+          <div class="bg-black/40 rounded-xl p-5 border border-gold/20">
+            <h4 class="text-gold font-semibold">Euler Characteristic</h4>
+            <p>$$ \chi = V-E+F = 2-2g $$</p>
+            <p class="text-sm">Sphere $g=0\Rightarrow\chi=2$. Torus $g=1\Rightarrow\chi=0$. Controls string loop counting.</p>
+          </div>
+        </div>
+
+        <p>Gauss-Bonnet: $\int_M K\,dA = 2\pi\chi(M)$. Curvature integrated knows topology.</p>
+        <p>Infinite products like $\sin \pi z = \pi z \prod_{n=1}^\infty\left(1-\frac{z^2}{n^2}\right)$ and modular forms $q=e^{2\pi i\tau}$ inherit Euler periodicity — the heart of string partition functions.</p>
+      </div>
+
+      <div class="mt-10 bg-black/50 rounded-2xl p-6 border border-electric/20">
+        <h3 class="text-xl font-semibold mb-4">Euler Circle Explorer</h3>
+        <div class="grid md:grid-cols-5 gap-6 items-center">
+          <div class="md:col-span-3">
+            <canvas id="eulerDemo" width="400" height="400" class="w-full max-w-[400px] mx-auto"></canvas>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm">θ = <span id="thetaVal" class="text-gold font-mono">1.00</span> rad</label>
+            <input id="thetaSlider" type="range" min="0" max="6.283185" step="0.01" value="1" class="w-full mt-2">
+            <div class="mt-6 font-mono text-sm space-y-1">
+              <div>$\Re = \cos\theta$ = <span id="reVal" class="text-electric">0.540</span></div>
+              <div>$\Im = \sin\theta$ = <span id="imVal" class="text-gold">0.841</span></div>
+              <div>$|e^{i\theta}|$ = <span class="text-green-400">1.000</span></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-4">Drag slider: Euler's formula traces the unit circle, keeping quantum amplitudes normalized.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HILBERT -->
+    <section id="hilbert" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-electric mb-6">2. Hilbert Spaces — The Stage</h2>
+      <p class="text-gray-300">A Hilbert space $\mathcal H$ is a complete vector space with inner product $\langle\cdot|\cdot\rangle$.</p>
+      <p class="mt-3">For wavefunctions: $$\langle\psi|\phi\rangle = \int_{-\infty}^{\infty}\psi^*(x)\phi(x)\,dx$$ Completeness means every Cauchy sequence converges — no holes for quantum evolution to fall through.</p>
+
+      <div class="grid md:grid-cols-3 gap-4 my-6 text-sm">
+        <div class="bg-black/40 p-4 rounded-xl border border-white/10"><b class="text-gold">$L^2(\mathbb R)$</b><br>Square-integrable functions</div>
+        <div class="bg-black/40 p-4 rounded-xl border border-white/10"><b class="text-gold">$\ell^2$</b><br>Sequences $\sum|a_n|^2<\infty$</div>
+        <div class="bg-black/40 p-4 rounded-xl border border-white/10"><b class="text-gold">Fock space</b><br>$\bigoplus_{n=0}^\infty \mathcal H^{\otimes_s n}$</div>
+      </div>
+
+      <p>Operators $A:\mathcal H\to\mathcal H$ are observables when self-adjoint $A^\dagger=A$. Spectral theorem guarantees real eigenvalues — measurement outcomes.</p>
+
+      <div class="mt-10 bg-black/50 rounded-2xl p-6 border border-gold/20">
+        <h3 class="text-xl font-semibold mb-4">Hilbert Projection Visualizer</h3>
+        <div class="grid md:grid-cols-5 gap-6">
+          <div class="md:col-span-3">
+            <canvas id="hilbertDemo" width="420" height="420" class="w-full bg-black/30 rounded-xl cursor-crosshair"></canvas>
+          </div>
+          <div class="md:col-span-2 font-mono text-sm">
+            <p>Drag the gold ($|\psi\rangle$) and cyan ($|\phi\rangle$) tips.</p>
+            <div class="mt-4 space-y-2">
+              <div>$|\psi|$ = <span id="normPsi" class="text-gold">1.00</span></div>
+              <div>$|\phi|$ = <span id="normPhi" class="text-electric">1.00</span></div>
+              <div>$\langle\psi|\phi\rangle$ = <span id="innerProd">0.00</span></div>
+              <div>$\cos\Delta$ = <span id="cosDelta">0.00</span></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-4">Inner product = projection length. Orthogonal vectors give $\langle\psi|\phi\rangle=0$ — the basis of quantum measurement.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QM -->
+    <section id="qm" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-gold mb-6">3. Quantum Mechanics Bridge</h2>
+      <p>Quantum states are rays in $\mathcal H$: $|\psi\rangle \sim e^{i\alpha}|\psi\rangle$.</p>
+      <p class="mt-3">Time evolution is Euler's exponential of an anti-Hermitian operator:</p>
+      $$ |\psi(t)\rangle = e^{-iHt/\hbar}|\psi(0)\rangle = U(t)|\psi(0)\rangle $$
+      <p>$U^\dagger U = I$ because $(-iH)^\dagger = iH$. Unitarity = probability conservation — directly from $e^{i\theta}$ lying on the unit circle.</p>
+      <div class="bg-black/40 p-5 rounded-xl mt-6 border border-electric/20">
+        <p><b>Measurement:</b> $|\psi\rangle \to \frac{P|\psi\rangle}{\|P\psi\|}$ where $P^2=P=P^\dagger$ projects onto eigenspace. This is Hilbert geometry.</p>
+        <p class="mt-3"><b>Black Hole factorization (from our Hawking discussion):</b> $$\mathcal H_{\text{total}} = \mathcal H_{\text{in}} \otimes \mathcal H_{\text{out}}$$ Hawking radiation entangles the two factors; unitarity demands the full $S$-matrix acts on $\mathcal H$, not a mixed state.</p>
+      </div>
+    </section>
+
+    <!-- STRINGS -->
+    <section id="strings" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-electric mb-6">4. String Theory — Euler Meets Hilbert</h2>
+      <p>Polyakov action for worldsheet $X^\mu(\sigma,\tau)$:</p>
+      $$ S_P = -\frac{1}{4\pi\alpha'}\int d^2\sigma\,\sqrt{-h}\,h^{ab}\partial_a X^\mu\partial_b X_\mu $$
+      <p>Euler-Lagrange gives wave equation $\partial_+\partial_- X^\mu=0$.</p>
+      <p>Mode expansion (closed string):</p>
+      $$ X^\mu = x_0^\mu + \alpha' p^\mu \tau + i\sqrt{\frac{\alpha'}{2}}\sum_{n\neq0}\frac{1}{n}\left(\alpha_n^\mu e^{-in\sigma^+} + \tilde\alpha_n^\mu e^{-in\sigma^-}\right) $$
+      <p>Crucially each mode carries $e^{-in\sigma} = \cos n\sigma - i\sin n\sigma$ — Euler.</p>
+      <p>Quantize: $[\alpha_m,\alpha_n^\dagger]=m\delta_{m,n}$. The Hilbert space is Fock space built by raising operators $\alpha_{-n}$ acting on vacuum $|0;p\rangle$.</p>
+      <p>Physical states satisfy Virasoro constraints: $L_n|\psi\rangle=0\;(n>0),\;(L_0-1)|\psi\rangle=0$.</p>
+
+      <div class="grid md:grid-cols-2 gap-6 my-8">
+        <div class="bg-black/40 p-5 rounded-xl border border-gold/20">
+          <h4 class="text-gold font-semibold">Genus Expansion</h4>
+          <p>$$ \mathcal A \sim \sum_{g\ge0} g_s^{2g-2}\int_{\mathcal M_g} \text{(integrand)} $$</p>
+          <p class="text-sm">$g_s$ string coupling. Power $2g-2=-\chi$ uses Euler characteristic!</p>
+        </div>
+        <div class="bg-black/40 p-5 rounded-xl border border-electric/20">
+          <h4 class="text-electric font-semibold">Modular Invariance</h4>
+          <p>$$ Z(\tau)=\mathrm{Tr}\, q^{L_0-c/24}\bar q^{\tilde L_0-c/24},\; q=e^{2\pi i\tau} $$</p>
+          <p class="text-sm">Invariant under $\tau\to\tau+1$ and $\tau\to-1/\tau$ because $e^{2\pi i}=1$.</p>
+        </div>
+      </div>
+
+      <div class="mt-8 bg-black/50 rounded-2xl p-6 border border-electric/20">
+        <h3 class="text-xl font-semibold mb-4">String Mode Builder</h3>
+        <div id="stringPlot" style="height:340px"></div>
+        <div class="grid grid-cols-3 gap-4 mt-4">
+          <div><label class="text-xs">a₁ (n=1)</label><input id="amp1" type="range" min="-1" max="1" step="0.01" value="1" class="w-full"></div>
+          <div><label class="text-xs">a₂ (n=2)</label><input id="amp2" type="range" min="-1" max="1" step="0.01" value="0.3" class="w-full"></div>
+          <div><label class="text-xs">a₃ (n=3)</label><input id="amp3" type="range" min="-1" max="1" step="0.01" value="0.15" class="w-full"></div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">$X(\sigma)=\sum a_n\cos n\sigma$ — superposition lives in Hilbert space $L^2(S^1)$.</p>
+      </div>
+    </section>
+
+    <!-- M THEORY -->
+    <section id="mtheory" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-gold mb-6">5. M-Theory — Hilbert Space Grows</h2>
+      <p>11D M-theory uplifts strings. BFSS matrix model conjectures:</p>
+      $$ H = \mathrm{Tr}\left(\frac{P_i^2}{2} - \frac{1}{4}[X^i,X^j]^2 + \text{fermions}\right) $$
+      <p>$X^i$ are $N\times N$ Hermitian matrices. Hilbert space = $L^2(\mathbb R^{9N^2})$ — vastly larger, but still a Hilbert space.</p>
+      <p>AdS/CFT: $\mathcal H_{\text{CFT on boundary}} \cong \mathcal H_{\text{quantum gravity in bulk}}$. A unitary isomorphism between two Hilbert spaces.</p>
+      <p>Compactify on Calabi-Yau 3-fold $CY_3$: number of particle generations $\approx |\chi(CY_3)|/2$. Euler characteristic dictates physics.</p>
+      <p>Dualities (T, S, U) are unitary maps $U:\mathcal H_A \to \mathcal H_B$ preserving inner products — changing basis, not physics.</p>
+    </section>
+
+    <!-- HAWKING -->
+    <section id="hawking" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-electric mb-6">6. Tying to Hawking and Our Conversations</h2>
+      <div class="space-y-4 text-gray-300">
+        <p><b class="text-gold">Hawking Temperature:</b> Wick rotate $t\to i\tau$. Near horizon Euclidean metric smooth iff $\tau\sim\tau+\beta$. Fields satisfy $\Phi(\tau+\beta)=e^{i\omega\beta}\Phi(\tau)=\Phi(\tau)$. Euler periodicity forces $\omega\beta=2\pi n\Rightarrow T_H=1/\beta=\kappa/2\pi$.</p>
+        <p><b class="text-gold">Entropy from Hilbert counting:</b> Strominger-Vafa count BPS states in string Fock space: $\dim\mathcal H_{BH}=e^{S}$. Then $S=\log\dim\mathcal H_{BH}=A/4G$. Hilbert dimension = geometry.</p>
+        <p><b class="text-gold">Information Paradox:</b> Evolution $U=e^{-iHt}$ is unitary on $\mathcal H_{\text{in}}\otimes\mathcal H_{\text{out}}$. Apparent loss is tracing out interior — a projection, not a breakdown. Completeness of Hilbert space saves unitarity.</p>
+        <p><b class="text-gold">Zeno & Time Reversal:</b> Frequent projections $P e^{-iH\Delta t}P\approx P(1-iH\Delta t)$ freeze evolution. $e^{-iHt}$ runs backward under $t\to -t$ because Euler phase conjugates.</p>
+      </div>
+      <div class="mt-8 bg-black/40 p-6 rounded-xl border border-white/10">
+        <div class="flex flex-wrap justify-center items-center gap-3 text-sm">
+          <span class="px-3 py-1 rounded-full bg-gold/20 text-gold">Euler $e^{i\theta}$</span>
+          <span>→</span>
+          <span class="px-3 py-1 rounded-full bg-electric/20 text-electric">Unitary phases</span>
+          <span>→</span>
+          <span class="px-3 py-1 rounded-full bg-gold/20 text-gold">Hilbert space</span>
+          <span>→</span>
+          <span class="px-3 py-1 rounded-full bg-electric/20 text-electric">String Fock</span>
+          <span>→</span>
+          <span class="px-3 py-1 rounded-full bg-gold/20 text-gold">Black hole microstates</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAB -->
+    <section id="lab" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-gold mb-6">7. GNU Octave Laboratory</h2>
+      <p class="text-gray-300 mb-6">Copy-paste into Octave to explore the mathematics directly.</p>
+
+      <div class="space-y-8">
+        <div>
+          <h4 class="text-electric font-semibold mb-2">a) Hilbert inner product and orthonormal basis</h4>
+          <pre class="rounded-xl overflow-hidden"><code class="language-matlab">% Create two wavefunctions on [0,2π]
+x = linspace(0,2*pi,1000); psi = exp(1i*2*x)/sqrt(2*pi); phi = exp(1i*3*x)/sqrt(2*pi);
+ip = trapz(x, conj(psi).*phi); % should be ~0
+norm_psi = sqrt(trapz(x, abs(psi).^2));
+printf('⟨psi|phi⟩ = %.2e, ||psi|| = %.3f\n', ip, norm_psi);
+plot(x, real(psi)); hold on; plot(x, imag(psi));
+legend('Re ψ','Im ψ'); title('L^2 orthonormal basis');</code></pre>
+          <p class="text-xs text-gray-400 mt-2">Verifies $\langle n|m\rangle=\delta_{nm}$ for Fourier basis — core of Hilbert space.</p>
+        </div>
+
+        <div>
+          <h4 class="text-electric font-semibold mb-2">b) Euler string modes</h4>
+          <pre class="rounded-xl overflow-hidden"><code class="language-matlab">alpha = 1; sigma = linspace(0,2*pi,500);
+X = cos(sigma) + 0.3*cos(2*sigma) + 0.1*cos(3*sigma);
+plot(sigma,X,'LineWidth',2); grid on;
+title('String shape Σ a_n cos(nσ)'); xlabel('\sigma');</code></pre>
+          <p class="text-xs text-gray-400 mt-2">Superposition of Euler exponentials builds classical string shape.</p>
+        </div>
+
+        <div>
+          <h4 class="text-electric font-semibold mb-2">c) Modular partition function (Euler product)</h4>
+          <pre class="rounded-xl overflow-hidden"><code class="language-matlab">tau = 0.5 + 0.8i; q = exp(2*pi*1i*tau);
+eta = q^(1/24) * prod(1 - q.^(1:50)); % Dedekind eta
+Z = abs(eta)^(-2);
+printf('Z(τ) approx %.4f\n', Z);</code></pre>
+          <p class="text-xs text-gray-400 mt-2">Uses Euler's product $\prod(1-q^n)$. Invariant under modular group.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEMOS -->
+    <section id="demos" class="glass rounded-3xl p-8 md:p-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-electric mb-6">8. Topology & Genus</h2>
+      <p class="text-gray-300">String amplitudes sum over worldsheets of genus $g$. Euler characteristic $\chi=2-2g$ controls the weight.</p>
+      <div class="mt-6 bg-black/50 rounded-2xl p-6 border border-gold/20">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <label class="text-sm">Genus g = <span id="gVal" class="text-gold font-mono">0</span></label>
+            <input id="genusSlider" type="range" min="0" max="3" step="1" value="0" class="w-full mt-2">
+            <div class="mt-4 font-mono">χ = 2 − 2g = <span id="chiVal" class="text-electric">2</span></div>
+            <div class="mt-2 font-mono">Amplitude ∝ $g_s^{2g-2}$ = <span id="ampVal" class="text-gold">g_s^{-2}</span></div>
+            <p class="text-xs text-gray-400 mt-4">g=0 sphere (tree level), g=1 torus (one-loop), higher g = quantum gravity corrections.</p>
+          </div>
+          <div class="flex justify-center">
+            <svg id="topoSvg" viewBox="0 0 200 200" width="220" height="220" class="overflow-visible">
+              <!-- sphere -->
+              <g id="g0">
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
+                <ellipse cx="100" cy="100" rx="70" ry="25" fill="none" stroke="#ffd700" stroke-width="1.5" opacity="0.6"/>
+                <ellipse cx="100" cy="100" rx="35" ry="70" fill="none" stroke="#ffd700" stroke-width="1" opacity="0.4"/>
+              </g>
+              <!-- torus -->
+              <g id="g1" opacity="0">
+                <ellipse cx="100" cy="100" rx="70" ry="35" fill="none" stroke="#00d4ff" stroke-width="2"/>
+                <ellipse cx="100" cy="100" rx="70" ry="35" fill="none" stroke="#00d4ff" stroke-width="2" transform="translate(0 -10)"/>
+                <ellipse cx="30" cy="100" rx="15" ry="25" fill="none" stroke="#00d4ff" stroke-width="2"/>
+                <ellipse cx="170" cy="100" rx="15" ry="25" fill="none" stroke="#00d4ff" stroke-width="2"/>
+              </g>
+              <!-- double torus -->
+              <g id="g2" opacity="0">
+                <path d="M20 100 c0-30 20-50 40-50 20 0 30 15 30 30 0-15 10-30 30-30 20 0 40 20 40 50" fill="none" stroke="#ffd700" stroke-width="2"/>
+                <path d="M20 100 c0 30 20 50 40 50 20 0 30-15 30-30 0 15 10 30 30 30 20 0 40-20 40-50" fill="none" stroke="#ffd700" stroke-width="2"/>
+                <ellipse cx="60" cy="80" rx="12" ry="8" fill="none" stroke="#00d4ff" opacity="0.7"/>
+                <ellipse cx="120" cy="80" rx="12" ry="8" fill="none" stroke="#00d4ff" opacity="0.7"/>
+              </g>
+              <!-- triple -->
+              <g id="g3" opacity="0">
+                <path d="M15 100 c0-28 18-45 35-45 17 0 25 12 25 25 0-13 8-25 25-25 17 0 25 12 25 25 0-13 8-25 25-25 17 0 35 17 35 45" fill="none" stroke="#ffd700" stroke-width="2"/>
+                <path d="M15 100 c0 28 18 45 35 45 17 0 25-12 25-25 0 13 8 25 25 25 17 0 25-12 25-25 0 13 8 25 25 25 17 0 35-17 35-45" fill="none" stroke="#ffd700" stroke-width="2"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="text-center text-xs text-gray-500 pt-12 border-t border-white/10">
+      <p>References: Euler (1748) <i>Introductio</i>; Hilbert (1904–1910) Integral equations; Hawking (1975) Commun. Math. Phys. 43; Witten (1995) Nucl. Phys. B 443.</p>
+      <p class="mt-2">Built with Euler phases, Hilbert completeness, and a touch of string duality.</p>
+    </footer>
+  </main>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-matlab.min.js"></script>
+<script>
+// STARFIELD
+const stars = document.getElementById('stars');
+const sctx = stars.getContext('2d');
+let w, h, pts=[];
+function resize(){ w=stars.width=innerWidth; h=stars.height=innerHeight; pts=Array.from({length:300},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.2+0.2,t:Math.random()*6.28}));}
+window.addEventListener('resize',resize); resize();
+function animateStars(){ sctx.clearRect(0,0,w,h); pts.forEach(p=>{p.t+=0.01; const a=0.5+0.5*Math.sin(p.t); sctx.fillStyle=`rgba(255,255,255,${a*0.8})`; sctx.beginPath(); sctx.arc(p.x,p.y,p.r,0,6.28); sctx.fill();}); requestAnimationFrame(animateStars);}
+animateStars();
+
+// HERO EULER
+const he = document.getElementById('heroEuler'); const hec = he.getContext('2d'); let th=0;
+function drawHeroEuler(){ const cx=250,cy=150,r=90; hec.clearRect(0,0,500,300); hec.strokeStyle='rgba(0,212,255,0.2)'; hec.lineWidth=1; hec.beginPath(); hec.arc(cx,cy,r,0,6.28); hec.stroke(); hec.strokeStyle='rgba(255,215,0,0.8)'; hec.lineWidth=2; hec.beginPath(); hec.moveTo(cx,cy); const x=cx+r*Math.cos(th), y=cy - r*Math.sin(th); hec.lineTo(x,y); hec.stroke(); hec.fillStyle='#ffd700'; hec.beginPath(); hec.arc(x,y,4,0,6.28); hec.fill(); hec.strokeStyle='rgba(0,212,255,0.5)'; hec.beginPath(); for(let i=0;i<200;i++){ const a=th-i*0.03; hec.lineTo(cx+r*0.7*Math.cos(a), cy - r*0.7*Math.sin(a)); } hec.stroke(); th+=0.018; requestAnimationFrame(drawHeroEuler);}
+drawHeroEuler();
+
+// HERO HILBERT CUBE
+const hh = document.getElementById('heroHilbert'); const hhc = hh.getContext('2d'); let ang=0;
+function drawHeroHilbert(){ hhc.clearRect(0,0,500,300); const cx=250,cy=150,s=80; const verts=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]]; const rotY=Math.sin(ang)*0.6+0.8, rotX=0.4; const proj=v=>{ let x=v[0],y=v[1],z=v[2]; const x1=x*Math.cos(rotY)-z*Math.sin(rotY); const z1=x*Math.sin(rotY)+z*Math.cos(rotY); const y1=y*Math.cos(rotX)-z1*Math.sin(rotX); return [cx+x1*s, cy - y1*s];}; const p=verts.map(proj); hhc.strokeStyle='rgba(0,212,255,0.7)'; hhc.lineWidth=2; const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]]; edges.forEach(e=>{hhc.beginPath(); hhc.moveTo(...p[e[0]]); hhc.lineTo(...p[e[1]]); hhc.stroke();}); hhc.fillStyle='#ffd700'; p.forEach(pt=>{hhc.beginPath(); hhc.arc(pt[0],pt[1],3,0,6.28); hhc.fill();}); ang+=0.008; requestAnimationFrame(drawHeroHilbert);}
+drawHeroHilbert();
+
+// EULER DEMO
+const ed = document.getElementById('eulerDemo'); const ectx = ed.getContext('2d');
+const slider = document.getElementById('thetaSlider'); const tv=document.getElementById('thetaVal'), rv=document.getElementById('reVal'), iv=document.getElementById('imVal');
+function drawEuler(){ const t=parseFloat(slider.value); const cx=200,cy=200,r=140; ectx.clearRect(0,0,400,400); ectx.strokeStyle='#334'; ectx.lineWidth=1; ectx.beginPath(); ectx.moveTo(0,cy); ectx.lineTo(400,cy); ectx.moveTo(cx,0); ectx.lineTo(cx,400); ectx.stroke(); ectx.strokeStyle='rgba(0,212,255,0.3)'; ectx.beginPath(); ectx.arc(cx,cy,r,0,6.28); ectx.stroke(); const x=cx+r*Math.cos(t), y=cy - r*Math.sin(t); ectx.strokeStyle='#ffd700'; ectx.lineWidth=2; ectx.beginPath(); ectx.moveTo(cx,cy); ectx.lineTo(x,y); ectx.stroke(); ectx.fillStyle='#00d4ff'; ectx.beginPath(); ectx.arc(x,y,5,0,6.28); ectx.fill(); ectx.strokeStyle='rgba(255,215,0,0.5)'; ectx.beginPath(); ectx.arc(cx,cy,20,0,-t,true); ectx.stroke(); tv.textContent=t.toFixed(2); rv.textContent=Math.cos(t).toFixed(3); iv.textContent=Math.sin(t).toFixed(3); }
+slider.addEventListener('input',drawEuler); drawEuler();
+
+// HILBERT DEMO
+const hd = document.getElementById('hilbertDemo'); const hctx=hd.getContext('2d');
+let psi={a:0.5,len:140}, phi={a:1.2,len:120}, drag=null;
+function toXY(v){ return [210+v.len*Math.cos(v.a),210 - v.len*Math.sin(v.a)];}
+function drawHilbert(){ hctx.clearRect(0,0,420,420); hctx.strokeStyle='#1f2937'; hctx.lineWidth=1; for(let i=0;i<=420;i+=42){ hctx.beginPath(); hctx.moveTo(i,0); hctx.lineTo(i,420); hctx.moveTo(0,i); hctx.lineTo(420,i); hctx.stroke();} hctx.strokeStyle='#374151'; hctx.lineWidth=2; hctx.beginPath(); hctx.moveTo(0,210); hctx.lineTo(420,210); hctx.moveTo(210,0); hctx.lineTo(210,420); hctx.stroke(); const p1=toXY(psi), p2=toXY(phi); const dot=psi.len*phi.len*Math.cos(psi.a-phi.a); const projLen=dot/(phi.len*phi.len); const pr=[210+phi.len*projLen*Math.cos(phi.a),210-phi.len*projLen*Math.sin(phi.a)]; hctx.setLineDash([5,5]); hctx.strokeStyle='rgba(255,215,0,0.5)'; hctx.beginPath(); hctx.moveTo(...p1); hctx.lineTo(...pr); hctx.stroke(); hctx.setLineDash([]); hctx.strokeStyle='#ffd700'; hctx.lineWidth=3; hctx.beginPath(); hctx.moveTo(210,210); hctx.lineTo(...p1); hctx.stroke(); hctx.fillStyle='#ffd700'; hctx.beginPath(); hctx.arc(...p1,6,0,6.28); hctx.fill(); hctx.strokeStyle='#00d4ff'; hctx.lineWidth=3; hctx.beginPath(); hctx.moveTo(210,210); hctx.lineTo(...p2); hctx.stroke(); hctx.fillStyle='#00d4ff'; hctx.beginPath(); hctx.arc(...p2,6,0,6.28); hctx.fill(); document.getElementById('normPsi').textContent=(psi.len/140).toFixed(2); document.getElementById('normPhi').textContent=(phi.len/140).toFixed(2); const ip=(dot/(140*140)).toFixed(2); document.getElementById('innerProd').textContent=ip; document.getElementById('cosDelta').textContent=Math.cos(psi.a-phi.a).toFixed(2); }
+hd.addEventListener('mousedown',e=>{ const r=hd.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top; const p1=toXY(psi), p2=toXY(phi); if(Math.hypot(mx-p1[0],my-p1[1])<12) drag='psi'; else if(Math.hypot(mx-p2[0],my-p2[1])<12) drag='phi';});
+window.addEventListener('mousemove',e=>{ if(!drag) return; const r=hd.getBoundingClientRect(); const mx=e.clientX-r.left-210, my=210-(e.clientY-r.top); const a=Math.atan2(my,mx); const len=Math.min(180,Math.hypot(mx,my)); if(drag==='psi'){psi.a=a; psi.len=len;} else {phi.a=a; phi.len=len;} drawHilbert();});
+window.addEventListener('mouseup',()=>drag=null); drawHilbert();
+
+// STRING PLOT
+const sigma=Array.from({length:500},(_,i)=>i*2*Math.PI/499);
+function updateString(){ const a1=parseFloat(document.getElementById('amp1').value); const a2=parseFloat(document.getElementById('amp2').value); const a3=parseFloat(document.getElementById('amp3').value); const y=sigma.map(s=> a1*Math.cos(s)+a2*Math.cos(2*s)+a3*Math.cos(3*s)); Plotly.react('stringPlot',[{x:sigma,y:y,type:'scatter',mode:'lines',line:{color:'#00d4ff',width:3},fill:'tozeroy',fillcolor:'rgba(0,212,255,0.1)'}],{paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',margin:{l:40,r:20,t:20,b:40},xaxis:{title:'σ',gridcolor:'#222',color:'#888'},yaxis:{gridcolor:'#222',color:'#888'},font:{color:'#ccc'}}); }
+['amp1','amp2','amp3'].forEach(id=>document.getElementById(id).addEventListener('input',updateString)); updateString();
+
+// GENUS
+const gs=document.getElementById('genusSlider'), gv=document.getElementById('gVal'), cv=document.getElementById('chiVal'), av=document.getElementById('ampVal');
+function updateGenus(){ const g=+gs.value; gv.textContent=g; const chi=2-2*g; cv.textContent=chi; av.textContent = g===0?'g_s^{-2}': g===1?'g_s^{0}':'g_s^{'+(2*g-2)+'}'; ['g0','g1','g2','g3'].forEach((id,i)=>document.getElementById(id).style.opacity=i===g?'1':'0');}
+gs.addEventListener('input',updateGenus); updateGenus();
+
+// TOC active
+const sections=[...document.querySelectorAll('section[id]')]; const links=[...document.querySelectorAll('.toc a')];
+const obs=new IntersectionObserver(entries=>{ entries.forEach(e=>{ if(e.isIntersecting){ links.forEach(l=>l.classList.toggle('active', l.getAttribute('href')==='#'+e.target.id)); } }) },{rootMargin:'-40% 0px -55% 0px'}); sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

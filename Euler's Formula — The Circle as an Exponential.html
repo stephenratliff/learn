@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euler's Formula — The Circle as an Exponential</title>
+<meta name="description" content="A complete visual guide to Euler's Formula e^{iθ} = cosθ + i sinθ: history, derivations, geometry, consequences, applications, and interactive demonstrations.">
+<style>
+:root{
+  --bg:#0b0e14;
+  --panel:#121821;
+  --panel-2:#0f141d;
+  --ink:#e6eefc;
+  --muted:#9fb0c3;
+  --accent:#7cc7ff;
+  --gold:#ffd479;
+  --teal:#5eead4;
+  --violet:#a78bfa;
+  --red:#ff7a7a;
+  --grid:#1b2432;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",sans-serif;
+  line-height:1.7;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+header.hero{
+  padding:5rem 0 2.5rem;
+  background:
+    radial-gradient(1200px 600px at 75% -10%, #1a2440 0%, transparent 60%),
+    radial-gradient(900px 500px at 10% -20%, #17324f 0%, transparent 55%),
+    linear-gradient(180deg, #0b0e14 0%, #0b0e14 60%, #0d121b 100%);
+  border-bottom:1px solid #1c2533;
+}
+.eyebrow{color:var(--teal);text-transform:uppercase;letter-spacing:.12em;font-weight:600;font-size:.8rem}
+h1{
+  font-size:clamp(2.1rem,5vw,3.4rem);
+  line-height:1.1;margin:.4rem 0 1rem;
+  font-weight:800;letter-spacing:-.02em;
+}
+.subtitle{color:var(--muted);font-size:clamp(1rem,2.2vw,1.25rem);max-width:70ch}
+.formula-hero{
+  margin:2rem 0 0;
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-size:clamp(1.6rem,4vw,2.6rem);
+  color:var(--gold);
+  text-shadow:0 0 24px rgba(255,212,121,.18);
+}
+.formula-hero sup{font-size:.65em}
+nav.toc{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:saturate(140%) blur(10px);
+  background:rgba(11,14,20,.75);
+  border-bottom:1px solid #1b2433;
+}
+nav.toc .inner{display:flex;gap:.5rem;overflow:auto;padding:.5rem 0;scrollbar-width:none}
+nav.toc a{
+  white-space:nowrap;color:var(--muted);padding:.55rem .8rem;border-radius:8px;
+  border:1px solid transparent;font-size:.92rem;
+}
+nav.toc a:hover{color:var(--ink);background:#111a26;border-color:#1e2a3b}
+main{padding:2rem 0 4rem}
+section{margin:3.5rem 0}
+h2{
+  font-size:clamp(1.6rem,3vw,2.2rem);
+  margin:0 0 1rem;
+  padding-top:.5rem;
+  border-bottom:1px solid #213042;
+  letter-spacing:-.01em;
+}
+h3{font-size:1.25rem;color:var(--accent);margin:1.8rem 0 .6rem}
+h4{margin:1.2rem 0 .4rem;color:var(--teal);font-size:1.05rem}
+p{margin:.9rem 0}
+.grid{display:grid;gap:1.2rem}
+.grid.two{grid-template-columns:1fr 1fr}
+.grid.three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.grid.two,.grid.three{grid-template-columns:1fr}}
+.card{
+  background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+  border:1px solid #1c2533;
+  border-radius:16px;
+  padding:1.1rem 1.2rem;
+  box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.02);
+}
+.note{
+  border-left:3px solid var(--gold);
+  background:rgba(255,212,121,.06);
+  padding:.7rem 1rem;
+  color:#f0e4c6;
+  border-radius:0 10px 10px 0;
+}
+.kicker{color:var(--muted);font-size:.95rem}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.formula{
+  font-family:ui-serif,Georgia,serif;
+  font-size:1.15em;
+  color:#fff;
+  padding:.1em .3em;
+  background:#0a1320;
+  border:1px solid #1d2a3a;
+  border-radius:6px;
+}
+.pill{display:inline-block;padding:.2rem .55rem;border:1px solid #2a3a52;background:#0f1926;border-radius:999px;font-size:.8rem;color:var(--muted)}
+ul.tight li, ol.tight li{margin:.35rem 0}
+hr.sep{border:none;border-top:1px dashed #253142;margin:2rem 0}
+canvas{
+  width:100%;height:340px;display:block;
+  background:radial-gradient(600px 200px at 50% 0%, #0e1724 0%, #070b12 70%);
+  border:1px solid #1d2635;border-radius:14px;
+}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem 1.2rem;align-items:center;margin:.8rem 0 0}
+.controls label{font-size:.92rem;color:var(--muted)}
+input[type="range"]{width:220px;accent-color:var(--accent)}
+button{
+  background:#132132;color:var(--ink);
+  border:1px solid #25405f;
+  padding:.5rem .85rem;border-radius:9px;cursor:pointer;
+  font-weight:600;letter-spacing:.01em;
+  transition:transform .05s ease, background .2s;
+}
+button:hover{background:#17304a}
+button:active{transform:translateY(1px)}
+.btn-ghost{background:transparent;border-color:#2a3a52;color:var(--muted)}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-size:.9rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:.4rem}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.gold{background:var(--gold)}
+.dot.teal{background:var(--teal)}
+.dot.violet{background:var(--violet)}
+.dot.red{background:var(--red)}
+pre,code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#080f17;border:1px solid #162231;color:#d6e6ff;
+}
+pre{padding:1rem;border-radius:12px;overflow:auto;line-height:1.5;font-size:.9rem}
+code.inline{padding:.15em .4em;border-radius:6px;font-size:.92em}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}
+th,td{border-bottom:1px solid #1f2b3a;padding:.55rem .6rem;text-align:left}
+th{color:var(--muted);font-weight:600;background:#0e1622}
+footer{padding:3rem 0;color:#7d8da1;text-align:center;border-top:1px solid #162232;margin-top:3rem}
+.badge{font-size:.75rem;padding:.2rem .5rem;border:1px solid #2b3c53;border-radius:6px;color:var(--muted);margin-left:.5rem}
+.small{font-size:.92rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow">complex analysis • geometry • physics</div>
+    <h1>Euler's Formula — The Circle as an Exponential</h1>
+    <p class="subtitle">The most elegant bridge in mathematics: an exponential function that draws a perfect circle, unifying algebra, geometry, analysis, and oscillation.</p>
+    <div class="formula-hero">e<sup>iθ</sup> = cos θ + i sin θ</div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="container inner">
+    <a href="#history">1. History</a>
+    <a href="#derivations">2. Derivations</a>
+    <a href="#geometry">3. Geometry</a>
+    <a href="#consequences">4. Consequences</a>
+    <a href="#applications">5. Applications</a>
+    <a href="#interactive">6. Interactive Lab</a>
+    <a href="#octave">7. Octave Scripts</a>
+  </div>
+</nav>
+
+<main class="container">
+<article>
+
+<section id="history">
+  <h2>1. History — Euler in 1748, and the long road to i</h2>
+  <div class="grid two">
+    <div>
+      <p>Leonhard Euler published the formula in its modern form in Chapter VIII of <em>Introductio in analysin infinitorum</em> (1748). He wrote, with his characteristic clarity, that for any real φ, <span class="formula">e<sup>+iφ</sup> = cos φ + i sin φ</span> and <span class="formula">e<sup>−iφ</sup> = cos φ − i sin φ</span>. From these, the cosine and sine followed as the even and odd parts of the exponential.</p>
+      <p>Euler was not working in a vacuum. Complex numbers had been regarded with suspicion since Cardano's <em>Ars Magna</em> (1545). Descartes called them "imaginary" in 1637, intending dismissal. Yet by the early 1700s, they proved unavoidable in solving cubics and in integration.</p>
+      <p>Roger Cotes, in 1714, had essentially discovered the logarithmic form: <span class="formula">iφ = ln(cos φ + i sin φ)</span>. He died at 33, and his <em>Harmonia Mensurarum</em> (1722) was published posthumously. The insight remained obscure.</p>
+    </div>
+    <div class="card">
+      <h4>Why 1748 mattered</h4>
+      <ul class="tight">
+        <li><strong>Infinite series as definition.</strong> Euler treated e<sup>z</sup>, sin z, cos z as power series, allowing z to be complex without hand-waving.</li>
+        <li><strong>Notation standardization.</strong> Euler popularized e, i, π, f(x), Σ — the language that lets the formula be read at a glance.</li>
+        <li><strong>Analytic continuation.</strong> The exponential, defined for reals by limits, was extended to the complex plane by its series.</li>
+      </ul>
+      <p class="small">Euler was already losing his sight. He would become fully blind in 1771, yet produce nearly half his work thereafter — dictating formulas that he visualized with extraordinary internal clarity.</p>
+    </div>
+  <p>Abraham de Moivre in 1707 and 1722 proved <span class="formula">(cos θ + i sin θ)<sup>n</sup> = cos nθ + i sin nθ</span> for integer n, by induction on trigonometry. He did not write it with e. Johann Bernoulli had manipulated e<sup>ix</sup> in correspondence with Leibniz around 1702, but with confusion about logarithms of negatives.</p>
+  <p>Euler's synthesis was to recognize that the exponential — the eigenfunction of d/dx — when fed an imaginary argument, must rotate rather than grow. The Taylor series makes this mechanically obvious: even powers of i are real, odd powers are imaginary, and signs alternate exactly as in cosine and sine.</p>
+  <p>The cultural resistance dissolved slowly. Wessel (1799), Argand (1806), and Gauss (1831) gave the complex plane a geometric home. Once you could <em>see</em> multiplication by i as a 90° rotation, Euler's formula ceased to be magic and became definition: e<sup>iθ</sup> is the point you reach after walking θ radians around the unit circle.</p>
+  <div class="note"><strong>Insight:</strong> Before Euler, trigonometry and exponentials lived in separate books. After Euler, they are two views of one object — circular motion is exponential motion with imaginary time.</div>
+</section>
+
+<section id="derivations">
+  <h2>2. Three Derivations — series, differential equation, limit</h2>
+
+  <h3>2.1 Taylor series (the classic proof)</h3>
+  <p>Define the exponential for all complex z by its absolutely convergent series:</p>
+  <p class="formula">e<sup>z</sup> = 1 + z + z<sup>2</sup>/2! + z<sup>3</sup>/3! + z<sup>4</sup>/4! + …</p>
+  <p>Set z = iθ with θ real. Use i<sup>2</sup> = −1, i<sup>3</sup> = −i, i<sup>4</sup> = 1, repeating every four terms:</p>
+  <pre>e^{iθ} = 1 + iθ − θ²/2! − iθ³/3! + θ⁴/4! + iθ⁵/5! − θ⁶/6! − …
+      = (1 − θ²/2! + θ⁴/4! − θ⁶/6! + …) + i(θ − θ³/3! + θ⁵/5! − …)</pre>
+  <p>The parentheses are precisely the Taylor series for cos θ and sin θ. Hence e<sup>iθ</sup> = cos θ + i sin θ. No geometric assumption is needed beyond the series definitions; convergence for all θ follows from ratio test.</p>
+
+  <h3>2.2 Differential equation (dynamical proof)</h3>
+  <p>Let f(θ) = cos θ + i sin θ. Differentiate: f'(θ) = −sin θ + i cos θ = i(cos θ + i sin θ) = i f(θ), and f(0)=1. The unique solution to f' = i f with f(0)=1 is the exponential e<sup>iθ</sup>, because the exponential is characterized by being its own derivative. Formally, consider g(θ)=f(θ)e<sup>−iθ</sup>. Then g' = f' e<sup>−iθ</sup> − i f e<sup>−iθ</sup>=0, so g is constant =g(0)=1. Thus f = e^{iθ}.</p>
+  <p>This viewpoint explains <em>why</em> the formula feels inevitable: both sides describe the same uniform circular motion — unit speed, starting at 1, always turning left at 90° to the radius.</p>
+
+  <h3>2.3 Limit definition (geometric multiplication)</h3>
+  <p>Recall e^{x}=lim_{n→∞}(1+x/n)^{n}. For imaginary x=iθ:</p>
+  <p class="formula">e^{iθ} = lim (1 + iθ/n)^{n}</p>
+  <p>Each factor (1 + iθ/n) is a complex number slightly above 1 on the real axis: magnitude √(1+(θ/n)²)≈1, argument arctan(θ/n)≈θ/n. Multiplying n copies adds the arguments: total angle ≈ n·θ/n = θ, while the magnitude →1. Geometrically you walk n tiny steps, each turning θ/n left; the polygon converges to an arc of the unit circle.</p>
+  <p>All three derivations agree because the complex exponential is entire — the same function arises from series, ODE, and limit.</p>
+</section>
+
+<section id="geometry">
+  <h2>3. Geometry — the unit circle in the complex plane</h2>
+  <p>Plot a complex number z = x + iy as the point (x,y). Its modulus |z| = √(x²+y²) is distance from origin; its argument arg z = θ is the angle from the positive real axis. Euler's formula gives the polar form:</p>
+  <p class="formula">z = r e^{iθ}  where r=|z|, θ=arg z</p>
+  <p>Multiplication becomes beautifully simple: r₁e^{iθ₁} · r₂e^{iθ₂} = r₁r₂ e^{i(θ₁+θ₂)}. Magnitudes multiply, angles add. In particular, multiplication by e^{iθ} is a pure rotation by θ about the origin.</p>
+  <table>
+    <thead><tr><th>θ</th><th>e^{iθ}</th><th>Geometric meaning</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>1</td><td>identity</td></tr>
+      <tr><td>π/2</td><td>i</td><td>90° CCW</td></tr>
+      <tr><td>π</td><td>−1</td><td>half-turn</td></tr>
+      <tr><td>3π/2</td><td>−i</td><td>270° CCW</td></tr>
+      <tr><td>2π</td><td>1</td><td>full turn</td></tr>
+    </tbody>
+  </table>
+  <p>The map θ ↦ e^{iθ} is a group homomorphism from (ℝ,+) to the unit circle (S¹,×). It wraps the infinite real line onto the circle, with period 2π. Its derivative is i e^{iθ}, a vector of length 1 tangent to the circle, confirming unit speed parametrization: arc length from 0 to θ is exactly θ.</p>
+  <p>This is why engineers write oscillations as Re[A e^{iωt}]. The real part projects the uniform circular motion onto the horizontal axis, yielding a cosine; the imaginary part yields sine.</p>
+</section>
+
+<section id="consequences">
+  <h2>4. Consequences — identity, de Moivre, roots of unity</h2>
+  <div class="grid two">
+    <div>
+      <h3>Euler's identity</h3>
+      <p>Set θ=π: cos π = −1, sin π = 0. Then <span class="formula">e^{iπ} + 1 = 0</span>. Five fundamental constants — e, i, π, 1, 0 — linked by three operations. It is not mystical; it is the statement that a half-turn around the unit circle lands at −1.</p>
+      <h3>de Moivre's formula</h3>
+      <p>From (e^{iθ})^{n}=e^{inθ} we obtain (cos θ + i sin θ)^{n}=cos nθ + i sin nθ for integer n, and by continuity for real n. Expand with binomial theorem to derive multiple-angle identities without memorizing triangles:</p>
+      <p class="mono">cos 2θ = cos²θ − sin²θ,  sin 2θ = 2 sinθ cosθ</p>
+    </div>
+    <div>
+      <h3>Roots of unity</h3>
+      <p>Solve z^{n}=1: write z = e^{iθ}. Then e^{inθ}=1 ⇒ nθ=2πk ⇒</p>
+      <p class="formula">z_k = e^{i2πk/n}, k=0,…,n−1</p>
+      <p>These n points form a regular n-gon. For n=3: 1, e^{i2π/3}=−1/2+i√3/2, e^{i4π/3}=−1/2−i√3/2. They are the vertices of an equilateral triangle and the basis of the discrete Fourier transform.</p>
+      <h3>Complex trig and logs</h3>
+      <p>Inverting Euler: <span class="formula">cos θ = (e^{iθ}+e^{−iθ})/2</span>, <span class="formula">sin θ = (e^{iθ}−e^{−iθ})/(2i)</span>. Allow θ complex and you define cosine and sine for complex arguments. The complex logarithm becomes multi-valued: ln(re^{iθ}) = ln r + i(θ+2πk).</p>
+    </div>
+  </div>
+</section>
+
+<section id="applications">
+  <h2>5. Applications — why the formula runs the modern world</h2>
+  <h3>Fourier analysis</h3>
+  <p>Any periodic signal can be written as a sum of complex exponentials: f(t)=Σ c_n e^{inωt}. Euler's formula converts this to sines and cosines, but exponentials are eigenfunctions of linear time-invariant systems: differentiation becomes multiplication by inω, convolution becomes multiplication. The Fourier transform kernel e^{−i2πft} is literally Euler's formula in the integrand.</p>
+  <h3>Electrical engineering — phasors</h3>
+  <p>A sinusoid V(t)=V₀cos(ωt+φ) is represented as Re[ V̰ e^{iωt} ] with phasor V̰=V₀e^{iφ}. Inductor voltage L dI/dt becomes iωL Ḭ, capacitor becomes 1/(iωC). Differential equations reduce to complex algebra. Three-phase power, impedance matching, and phasor measurement units (PMUs) all rely on rotating vectors = e^{iθ}.</p>
+  <h3>Quantum mechanics</h3>
+  <p>Time evolution is unitary: |ψ(t)⟩ = e^{−iĤt/ħ}|ψ(0)⟩. A free particle is a plane wave e^{i(kx−ωt)} = cos(kx−ωt)+i sin(kx−ωt). Interference patterns arise from addition of phases. The Schrödinger equation's i forces oscillation rather than exponential blow-up, preserving probability.</p>
+  <h3>Rotations and computer graphics</h3>
+  <p>In 2D, rotate vector (x,y) by θ via multiplication by e^{iθ}. In matrix form this is [[cos,−sin],[sin,cos]]. In 3D, unit quaternions q = e^{uθ/2}=cos(θ/2)+u sin(θ/2) (with u a pure imaginary unit) generalize Euler's formula, avoiding gimbal lock in robotics and games.</p>
+  <h3>Signal processing and control</h3>
+  <p>The z-transform evaluated on the unit circle z=e^{iω} gives the discrete-time Fourier transform. Stability of digital filters depends on poles inside |z|<1. The Nyquist plot maps the imaginary axis s=iω via the open-loop transfer function — again, evaluating along e^{iθ} directions.</p>
+  <div class="note">Bottom line: wherever something oscillates, rotates, or carries phase, Euler's formula replaces two real functions (sin, cos) with one complex exponential that adds angles when multiplied.</div>
+</section>
+
+<section id="interactive">
+  <h2>6. Interactive Lab <span class="badge">works offline</span></h2>
+  <p class="kicker">Drag sliders. All rendering is done with the browser's Canvas API — no external libraries.</p>
+
+  <div class="card">
+    <h3>1) Unit circle explorer</h3>
+    <canvas id="canvas-circle" width="800" height="340" aria-label="Unit circle visualization"></canvas>
+    <div class="controls">
+      <label>θ = <span id="theta-val" class="mono">1.00</span> rad (<span id="theta-deg" class="mono">57.3</span>°)</label>
+      <input id="theta" type="range" min="0" max="6.283185307179586" step="0.01" value="1">
+      <button id="animate1">Animate</button>
+      <button id="reset1" class="btn-ghost">Reset</button>
+    </div>
+    <div class="legend">
+      <span><span class="dot gold"></span> e^{iθ} = cosθ + i sinθ</span>
+      <span><span class="dot teal"></span> projection cosθ (real)</span>
+      <span><span class="dot violet"></span> projection sinθ (imag)</span>
+    </div>
+  </div>
+
+  <div class="grid two" style="margin-top:1.2rem">
+    <div class="card">
+      <h3>2) Taylor convergence</h3>
+      <canvas id="canvas-taylor" width="800" height="340"></canvas>
+      <div class="controls">
+        <label>θ <input id="theta2" type="range" min="-3.14" max="3.14" step="0.01" value="2.0"></label>
+        <label>terms N <input id="terms" type="range" min="1" max="24" step="1" value="6"></label>
+        <span class="mono small" id="taylor-err"></span>
+      </div>
+      <p class="small">Partial sum S_N = Σ_{k=0}^{N} (iθ)^k/k!. Vectors head-to-tail spiral toward the true point on the circle.</p>
+    </div>
+    <div class="card">
+      <h3>3) Multiplication = rotation</h3>
+      <canvas id="canvas-mult" width="800" height="340"></canvas>
+      <div class="controls">
+        <label>θ₁ <input id="thetaA" type="range" min="0" max="6.283" step="0.01" value="0.8"></label>
+        <label>θ₂ <input id="thetaB" type="range" min="0" max="6.283" step="0.01" value="1.3"></label>
+      </div>
+      <p class="small">z₁=e^{iθ₁}, z₂=e^{iθ₂}, z₁·z₂ = e^{i(θ₁+θ₂)}. Angles add.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.2rem">
+    <h3>4) Visual proof of e^{iπ} = −1</h3>
+    <canvas id="canvas-euler" width="800" height="340"></canvas>
+    <div class="controls">
+      <button id="playEuler">Play from 0 to π</button>
+      <span class="mono small" id="eulerLabel"></span>
+    </div>
+  </div>
+</section>
+
+<section id="octave">
+  <h2>7. Octave / MATLAB examples</h2>
+  <p class="kicker">Copy-paste into Octave (open-source) or MATLAB. No toolboxes required.</p>
+
+  <h4>7.1 Plot the unit circle via e^{iθ}</h4>
+  <pre><code>% plot_euler_circle.m
+theta = linspace(0, 2*pi, 1000);
+z = exp(1i*theta);          % Euler's formula
+figure; plot(real(z), imag(z), 'LineWidth', 2); axis equal; grid on;
+hold on; plot([-1.2 1.2], [0 0], 'k:', [0 0], [-1.2 1.2], 'k:');
+title("e^{i\\theta} traces the unit circle");
+xlabel('Re'); ylabel('Im');
+% mark special points
+pts = [0, pi/2, pi, 3*pi/2];
+plot(cos(pts), sin(pts), 'ro', 'MarkerFaceColor','r');
+text(cos(pts)+0.05, sin(pts)+0.05, {"0","\\pi/2","\\pi","3\\pi/2"});</code></pre>
+
+  <h4>7.2 Taylor series convergence</h4>
+  <pre><code>% taylor_convergence.m
+theta = 2.0; Nmax = 20;
+S = 0; z = 1i*theta;
+term = 1;
+figure; hold on; axis equal; grid on;
+th = linspace(0,2*pi,400); plot(cos(th),sin(th),'k:');
+for n = 0:Nmax
+  if n>0, term = term*z/n; end
+  S = S + term;
+  plot(real(S), imag(S), 'bo-');
+end
+plot(cos(theta), sin(theta), 'r*', 'MarkerSize',10);
+title(sprintf('Taylor partial sums to e^{i%.2f}, N=%d',theta,Nmax));
+legend('unit circle','partials','true');</code></pre>
+
+  <h4>7.3 Roots of unity</h4>
+  <pre><code>% roots_of_unity.m
+n = 7;
+k = 0:n-1;
+roots = exp(1i*2*pi*k/n);   % e^{i2πk/n}
+figure; plot(real(roots), imag(roots), 'o', 'MarkerSize',8,'LineWidth',2);
+hold on; plot([0 real(roots)],[0 imag(roots)],':'); axis equal; grid on;
+title(sprintf('%dth roots of unity', n));</code></pre>
+
+  <h4>7.4 Fourier epicycle (square wave)</h4>
+  <pre><code>% fourier_epicycles.m
+t = linspace(0, 2*pi, 2000);
+x = zeros(size(t)); y = zeros(size(t));
+N = 9; % odd harmonics
+figure; hold on; axis equal; grid on; xlim([-2 2]); ylim([-2 2]);
+for k = 1:2:2*N-1
+  r = 4/(pi*k);
+  x = x + r*cos(k*t);
+  y = y + r*sin(k*t);
+  % each term is r*e^{ik t} decomposed
+end
+plot(x, y, 'b', 'LineWidth',1.5);
+title('Fourier sum of odd harmonics ≈ square wave via Euler');</code></pre>
+
+  <p class="small">These scripts embody the same idea: replace sin/cos pairs with a single complex exponential, then let geometry do the algebra.</p>
+</section>
+
+<hr class="sep">
+
+<section>
+  <h2>Closing</h2>
+  <p>Euler's formula is not a trick of notation. It is the definition of the complex exponential forced by demanding that the derivative remain itself, even when the input is imaginary. That demand turns growth into rotation, and the result is the circle.</p>
+  <p>From this single identity flow de Moivre's theorem, the roots of unity, Fourier series, phasors, quantum phases, and the mathematics of rotation. Learn to read <span class="formula">e^{iθ}</span> as "rotate by θ", and much of modern science becomes a one-liner.</p>
+</section>
+
+</article>
+</main>
+
+<footer>
+  <div class="container">
+    Built as a self-contained HTML file — no CDNs, no external assets. You can save this page and open it offline.
+  </div>
+</footer>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const dpr = () => window.devicePixelRatio || 1;
+
+  function setupCanvas(canvas){
+    const ctx = canvas.getContext('2d');
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(300, Math.floor(rect.width * dpr()));
+      canvas.height = Math.floor(340 * dpr());
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(dpr(), dpr());
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    return {ctx, resize, w: ()=>canvas.getBoundingClientRect().width, h:()=>340};
+  }
+
+  // ---------- 1) Unit circle ----------
+  const c1 = document.getElementById('canvas-circle');
+  const s1 = setupCanvas(c1);
+  const theta = document.getElementById('theta');
+  const thetaVal = document.getElementById('theta-val');
+  const thetaDeg = document.getElementById('theta-deg');
+  const btnA1 = document.getElementById('animate1');
+  const btnR1 = document.getElementById('reset1');
+  let t = parseFloat(theta.value);
+  let anim1 = false;
+
+  function drawCircle(){
+    const ctx = s1.ctx, W=s1.w(), H=s1.h();
+    ctx.clearRect(0,0,W,H);
+    const cx = W*0.32, cy = H*0.55, R = Math.min(120, H*0.38);
+    // grid
+    ctx.strokeStyle = '#1b2432'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+    // circle
+    ctx.strokeStyle = '#2a3a52'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    // angle arc
+    ctx.strokeStyle = '#ffd479'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(cx,cy,R*0.3,0,-t, true); ctx.stroke();
+    // point
+    const x = cx + R*Math.cos(t);
+    const y = cy - R*Math.sin(t);
+    // projections
+    ctx.setLineDash([4,4]); ctx.strokeStyle='#5eead4';
+    ctx.beginPath(); ctx.moveTo(x,cy); ctx.lineTo(x,y); ctx.stroke();
+    ctx.strokeStyle='#a78bfa';
+    ctx.beginPath(); ctx.moveTo(cx,y); ctx.lineTo(x,y); ctx.stroke();
+    ctx.setLineDash([]);
+    // radius
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke();
+    // points
+    ctx.fillStyle='#e6eefc'; ctx.beginPath(); ctx.arc(cx,cy,3,0,TAU); ctx.fill();
+    ctx.fillStyle='#ffd479'; ctx.beginPath(); ctx.arc(x,y,4,0,TAU); ctx.fill();
+    // labels
+    ctx.fillStyle='#9fb0c3'; ctx.font='12px system-ui'; ctx.fillText('Re', W-20, cy-8); ctx.fillText('Im', cx+8, 14);
+    ctx.fillStyle='#5eead4'; ctx.fillText('cosθ = '+Math.cos(t).toFixed(3), x+8, cy+14);
+    ctx.fillStyle='#a78bfa'; ctx.fillText('sinθ = '+Math.sin(t).toFixed(3), cx-R-10, y-8);
+    // readout panel
+    const panelX = cx + R + 40, panelY = 40;
+    ctx.fillStyle='#0f1926'; ctx.strokeStyle='#1e2b3d'; ctx.lineWidth=1;
+    ctx.fillRect(panelX, panelY, 240, 110); ctx.strokeRect(panelX, panelY, 240, 110);
+    ctx.fillStyle='#e6eefc'; ctx.font='16px ui-monospace';
+    ctx.fillText('e^{iθ} = cosθ + i sinθ', panelX+12, panelY+26);
+    ctx.font='14px ui-monospace'; ctx.fillStyle='#9fb0c3';
+    ctx.fillText('cosθ = '+Math.cos(t).toFixed(4), panelX+12, panelY+52);
+    ctx.fillText('sinθ = '+Math.sin(t).toFixed(4), panelX+12, panelY+74);
+    ctx.fillText('|e^{iθ}| = 1.0000', panelX+12, panelY+96);
+  }
+  function updateLabels(){ thetaVal.textContent = t.toFixed(2); thetaDeg.textContent = (t*180/Math.PI).toFixed(1); }
+  theta.addEventListener('input', e=>{ t=parseFloat(e.target.value); updateLabels(); drawCircle(); });
+  btnA1.addEventListener('click', ()=>{ anim1 = !anim1; btnA1.textContent = anim1?'Pause':'Animate'; });
+  btnR1.addEventListener('click', ()=>{ t=0; theta.value=0; updateLabels(); drawCircle(); });
+  function loop1(){ if(anim1){ t+=0.012; if(t>TAU) t-=TAU; theta.value=t.toFixed(3); updateLabels(); } drawCircle(); requestAnimationFrame(loop1); }
+  updateLabels(); loop1();
+
+  // ---------- 2) Taylor ----------
+  const c2 = document.getElementById('canvas-taylor');
+  const s2 = setupCanvas(c2);
+  const th2 = document.getElementById('theta2');
+  const terms = document.getElementById('terms');
+  const errEl = document.getElementById('taylor-err');
+  function drawTaylor(){
+    const ctx=s2.ctx, W=s2.w(), H=s2.h();
+    ctx.clearRect(0,0,W,H);
+    const cx=W*0.5, cy=H*0.55, R=110;
+    const theta = parseFloat(th2.value), N = parseInt(terms.value,10);
+    // unit circle
+    ctx.strokeStyle='#223042'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    // true point
+    const tx = cx + R*Math.cos(theta), ty = cy - R*Math.sin(theta);
+    ctx.fillStyle='#ffd479'; ctx.beginPath(); ctx.arc(tx,ty,4,0,TAU); ctx.fill();
+    // partial sums
+    let re=1, im=0, sumRe=1, sumIm=0;
+    let px=cx+R*sumRe, py=cy-R*sumIm; // scale 1 -> R
+    ctx.strokeStyle='#7cc7ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx+R, cy); // start at 1
+    ctx.lineTo(px,py);
+    const pts=[[px,py]];
+    for(let k=1;k<=N;k++){
+      // multiply by iθ/k : (re+ i im)*(iθ/k) = (-im θ/k) + i(re θ/k)
+      const nre = -im * theta / k;
+      const nim =  re * theta / k;
+      re=nre; im=nim;
+      sumRe += re; sumIm += im;
+      const nx = cx + R*sumRe*0.6; // scale down to fit spiral
+      const ny = cy - R*sumIm*0.6;
+      ctx.lineTo(nx,ny);
+      pts.push([nx,ny]);
+    }
+    ctx.stroke();
+    // draw vectors
+    ctx.fillStyle='#7cc7ff';
+    pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p[0],p[1],2.5,0,TAU); ctx.fill(); });
+    // error
+    const trueRe = Math.cos(theta), trueIm = Math.sin(theta);
+    const approxRe = sumRe, approxIm = sumIm;
+    const err = Math.hypot(trueRe-approxRe, trueIm-approxIm);
+    errEl.textContent = `θ=${theta.toFixed(2)}, N=${N}, |error|≈${err.toExponential(2)}`;
+    // legend
+    ctx.fillStyle='#9fb0c3'; ctx.font='12px system-ui';
+    ctx.fillText('True = gold dot on circle', 14, 20);
+    ctx.fillText('Taylor partials = cyan path', 14, 38);
+  }
+  th2.addEventListener('input', drawTaylor);
+  terms.addEventListener('input', drawTaylor);
+  drawTaylor();
+
+  // ---------- 3) Multiplication ----------
+  const c3 = document.getElementById('canvas-mult');
+  const s3 = setupCanvas(c3);
+  const thA = document.getElementById('thetaA');
+  const thB = document.getElementById('thetaB');
+  function drawMult(){
+    const ctx=s3.ctx, W=s3.w(), H=s3.h();
+    ctx.clearRect(0,0,W,H);
+    const cx=W*0.5, cy=H*0.55, R=110;
+    const a=parseFloat(thA.value), b=parseFloat(thB.value), c=a+b;
+    ctx.strokeStyle='#223042'; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    function point(ang, col){
+      const x=cx+R*Math.cos(ang), y=cy-R*Math.sin(ang);
+      ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke();
+      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,4,0,TAU); ctx.fill();
+      return {x,y};
+    }
+    const p1=point(a,'#5eead4'); const p2=point(b,'#a78bfa'); const p3=point(c % TAU,'#ffd479');
+    // arcs
+    ctx.strokeStyle='#5eead4'; ctx.beginPath(); ctx.arc(cx,cy,R*0.25,0,-a,true); ctx.stroke();
+    ctx.strokeStyle='#a78bfa'; ctx.beginPath(); ctx.arc(cx,cy,R*0.35,0,-b,true); ctx.stroke();
+    ctx.strokeStyle='#ffd479'; ctx.beginPath(); ctx.arc(cx,cy,R*0.45,0,-c,true); ctx.stroke();
+    ctx.fillStyle='#9fb0c3'; ctx.font='13px ui-monospace';
+    ctx.fillText(`θ₁=${a.toFixed(2)}`, 14, 20);
+    ctx.fillText(`θ₂=${b.toFixed(2)}`, 14, 40);
+    ctx.fillText(`θ₁+θ₂=${c.toFixed(2)}`, 14, 60);
+  }
+  thA.addEventListener('input', drawMult);
+  thB.addEventListener('input', drawMult);
+  drawMult();
+
+  // ---------- 4) Euler identity ----------
+  const c4 = document.getElementById('canvas-euler');
+  const s4 = setupCanvas(c4);
+  const play = document.getElementById('playEuler');
+  const label = document.getElementById('eulerLabel');
+  let prog=0, playing=false;
+  function drawEuler(){
+    const ctx=s4.ctx, W=s4.w(), H=s4.h();
+    ctx.clearRect(0,0,W,H);
+    const cx=W*0.32, cy=H*0.55, R=120;
+    ctx.strokeStyle='#223042'; ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.strokeStyle='#1b2432'; ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+    const th = Math.PI * Math.min(1, prog);
+    // path traveled
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(cx,cy,R,0,-th,true); ctx.stroke();
+    const x=cx+R*Math.cos(th), y=cy-R*Math.sin(th);
+    ctx.fillStyle='#ffd479'; ctx.beginPath(); ctx.arc(x,y,5,0,TAU); ctx.fill();
+    ctx.strokeStyle='#ffd479'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke();
+    // panel
+    ctx.fillStyle='#0f1926'; ctx.strokeStyle='#1e2b3d'; ctx.fillRect(cx+R+40, 30, 300, 130); ctx.strokeRect(cx+R+40,30,300,130);
+    ctx.fillStyle='#e6eefc'; ctx.font='16px ui-monospace'; ctx.fillText('e^{iθ} = cosθ + i sinθ', cx+R+52, 58);
+    ctx.fillStyle='#9fb0c3'; ctx.font='14px ui-monospace';
+    ctx.fillText('θ = '+th.toFixed(3)+' rad', cx+R+52, 84);
+    ctx.fillText('cosθ = '+Math.cos(th).toFixed(4), cx+R+52, 106);
+    ctx.fillText('sinθ = '+Math.sin(th).toFixed(4), cx+R+52, 128);
+    if(th>=Math.PI-1e-3){
+      ctx.fillStyle='#ffd479'; ctx.font='16px ui-monospace'; ctx.fillText('e^{iπ} = -1  ⇒  e^{iπ}+1=0', cx+R+52, 152);
+      label.textContent = 'Half-turn complete.';
+    } else {
+      label.textContent = prog<1 ? 'Animating to π…' : '';
+    }
+  }
+  function loop4(){ if(playing){ prog += 0.008; if(prog>=1){ prog=1; playing=false; play.textContent='Replay'; } } drawEuler(); requestAnimationFrame(loop4); }
+  play.addEventListener('click', ()=>{ prog=0; playing=true; play.textContent='Playing…'; });
+  loop4();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculus: From Limits to Cryptography</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #ffffff;
+  --fg: #171717;
+  --muted: #5f6368;
+  --accent: #1d4ed8;
+  --accent-2: #0ea5e9;
+  --card: #f8fafc;
+  --border: #e5e7eb;
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
+  --toc-bg: #f1f5f9;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f14;
+    --fg: #e5e7eb;
+    --muted: #9aa0a6;
+    --accent: #60a5fa;
+    --accent-2: #22d3ee;
+    --card: #11151c;
+    --border: #1f2937;
+    --code-bg: #0b1220;
+    --code-fg: #d1e4ff;
+    --toc-bg: #0f172a;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  line-height: 1.75;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+}
+.wrapper {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 900px);
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 1280px;
+  padding: 2rem 1.25rem 4rem;
+}
+@media (max-width: 1100px) {
+  .wrapper { grid-template-columns: 1fr; padding-top: 1rem; }
+  #toc { position: relative !important; top: 0 !important; max-height: none; }
+}
+#toc {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  background: var(--toc-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1rem 1rem 1.25rem;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+#toc h3 { margin: 0.25rem 0 0.75rem; font-size: 1rem; letter-spacing: 0.02em; color: var(--muted); text-transform: uppercase; }
+#toc a { display: block; color: var(--fg); text-decoration: none; padding: 0.3rem 0.5rem; border-radius: 8px; }
+#toc a:hover { background: var(--card); color: var(--accent); }
+#toc .sub { padding-left: 1rem; font-size: 0.95em; color: var(--muted); }
+main { min-width: 0; }
+header { margin-bottom: 2rem; }
+h1 { font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.15; margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+.subtitle { color: var(--muted); font-size: 1.15rem; margin: 0; }
+section { margin: 3rem 0; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+section:first-of-type { border-top: none; }
+h2 { font-size: 1.9rem; margin: 0 0 1rem; line-height: 1.25; }
+h3 { font-size: 1.3rem; margin: 2rem 0 0.75rem; }
+p { margin: 1rem 0; }
+ul, ol { padding-left: 1.3rem; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+}
+pre { margin: 1rem 0; }
+code, pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.92rem;
+}
+pre code {
+  display: block;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  overflow-x: auto;
+  border: 1px solid #0a0f1a;
+  line-height: 1.6;
+}
+table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.98rem; }
+th, td { border-bottom: 1px solid var(--border); padding: 0.6rem 0.5rem; text-align: left; }
+th { background: var(--card); font-weight: 600; }
+details { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem; margin: 1rem 0; }
+summary { cursor: pointer; font-weight: 600; color: var(--accent); outline: none; }
+summary::-webkit-details-marker { display: none; }
+.kbd { font-family: ui-monospace; background: var(--card); border: 1px solid var(--border); padding: 0.1rem 0.35rem; border-radius: 6px; }
+footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--muted); text-align: center; }
+.note { font-size: 0.95rem; color: var(--muted); }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <nav id="toc">
+    <h3>Contents</h3>
+    <a href="#title">Overview</a>
+    <a href="#foundations">1. Foundations</a>
+    <a class="sub" href="#limit-sinx">sin x / x</a>
+    <a href="#derivative">2. The Derivative</a>
+    <a href="#trig">3. Trigonometric Functions</a>
+    <a href="#integration">4. Integration</a>
+    <a href="#series">5. Series and Approximations</a>
+    <a href="#crypto">6. Mathematics and Cryptography</a>
+    <a href="#octave">7. GNU Octave Laboratory</a>
+    <a href="#proofs">8. Proofs Appendix</a>
+    <a href="#exercises">9. Exercises</a>
+  </nav>
+
+<main id="content">
+<header id="title">
+  <h1>Calculus: From Limits to Cryptography</h1>
+  <p class="subtitle">Trigonometric functions, rigorous proofs, and GNU Octave labs</p>
+  <div class="card">
+    <strong>How to read this.</strong> Calculus is the language of change. We start with limits, build the derivative and integral, master trigonometry, then see why analysis matters even when cryptography lives in discrete worlds. Work the Octave labs as you read — computing makes the theory stick.
+  </div>
+</header>
+
+<section id="foundations">
+<h2>1. Foundations</h2>
+<p>A limit captures the idea of "arbitrarily close". Intuitively, $\lim_{x\to a} f(x)=L$ means we can make $f(x)$ as close to $L$ as we wish by taking $x$ sufficiently close (but not equal) to $a$.</p>
+<p><strong>Formal ($\varepsilon$-$\delta$):</strong> $$ \lim_{x\to a} f(x)=L \iff \forall \varepsilon>0\ \exists \delta>0 \text{ such that } 0<|x-a|<\delta \Rightarrow |f(x)-L|<\varepsilon. $$ This precise game is why calculus is provable, not just plausible.</p>
+<p><strong>Key limits you will use constantly:</strong></p>
+<ul>
+  <li>$\displaystyle \lim_{x\to 0}\frac{\sin x}{x}=1$ (radians!)</li>
+  <li>$\displaystyle \lim_{x\to 0}\frac{1-\cos x}{x}=0$, and $\displaystyle \lim_{x\to 0}\frac{1-\cos x}{x^2}=\frac12$</li>
+  <li>$\displaystyle \lim_{x\to 0}\frac{e^x-1}{x}=1$, $\displaystyle \lim_{x\to 0}(1+x)^{1/x}=e$</li>
+</ul>
+<p><strong>Continuity.</strong> $f$ is continuous at $a$ if $\lim_{x\to a}f(x)=f(a)$. Sums, products, compositions of continuous functions stay continuous. On a closed interval, a continuous function attains a max and min (Extreme Value Theorem) and hits every intermediate value (IVT).</p>
+
+<h3 id="limit-sinx">Proof that $\lim_{x\to0}\sin x / x = 1$</h3>
+<p>Work in radians. Consider a unit circle sector with central angle $0<x<\pi/2$. Compare three areas:</p>
+<ol>
+  <li>Small triangle $OAB$: $\tfrac12 \sin x$</li>
+  <li>Sector $OAB$: $\tfrac12 x$</li>
+  <li>Large triangle $OAC$: $\tfrac12 \tan x$</li>
+</ol>
+<p>Geometrically, $\tfrac12\sin x < \tfrac12 x < \tfrac12\tan x$. Divide by $\tfrac12\sin x>0$: $1 < \tfrac{x}{\sin x} < \tfrac1{\cos x}$. Taking reciprocals, $\cos x < \tfrac{\sin x}{x} < 1$. As $x\to0^+$, $\cos x\to1$, so by the squeeze theorem the middle tends to 1. Evenness gives the left-hand limit too.</p>
+<details><summary>Why radians are forced</summary>
+<p>The sector area formula $A=x/2$ is true only when $x$ is in radians. In degrees, $A=\pi x/360$, and the limit becomes $\pi/180$. Calculus chooses the unit that makes derivatives clean.</p>
+</details>
+</section>
+
+<section id="derivative">
+<h2>2. The Derivative</h2>
+<p>The derivative is the instantaneous rate of change:</p>
+$$ f'(x)=\lim_{h\to0}\frac{f(x+h)-f(x)}{h} $$
+<p>when the limit exists. Geometrically, it's the slope of the tangent.</p>
+<h3>Core rules (with proof sketches)</h3>
+<ul>
+  <li><strong>Linearity:</strong> $(af+bg)'=af'+bg'$. Follows directly from limit laws.</li>
+  <li><strong>Product:</strong> $(fg)'=f'g+fg'$. Add and subtract $f(x+h)g(x)$ in the numerator, factor, take limits.</li>
+  <li><strong>Quotient:</strong> $\left(\frac{f}{g}\right)'=\frac{f'g-fg'}{g^2}$ ($g\neq0$). Apply product to $f\cdot g^{-1}$.</li>
+  <li><strong>Chain:</strong> $(f\circ g)'(x)=f'(g(x))g'(x)$. Instantaneous change multiplies: a small change $h$ in $x$ changes $g$ by $\approx g'h$, then $f$ by $\approx f'\cdot(g'h)$.</li>
+</ul>
+<div class="card">
+<strong>Numerical derivative in Octave (central difference):</strong>
+<pre><code>fprime = @(f,x) (f(x+1e-8)-f(x-1e-8))/2e-8;
+fprime(@sin, 1)   % ≈ cos(1)</code></pre>
+Central differencing is $O(h^2)$ accurate; it's the workhorse before symbolic differentiation.
+</div>
+</section>
+
+<section id="trig">
+<h2>3. Trigonometric Functions</h2>
+<p>Define on the unit circle: for angle $\theta$ measured counterclockwise from $(1,0)$, the point is $(\cos\theta,\sin\theta)$. Then $\tan\theta=\sin\theta/\cos\theta$, $\sec=1/\cos$, etc. Periodicity: $\sin(\theta+2\pi)=\sin\theta$, $\cos$ likewise; $\tan$ has period $\pi$.</p>
+<p><strong>Essential identities:</strong> $\sin^2x+\cos^2x=1$, $\sin(a\pm b)=\sin a\cos b\pm\cos a\sin b$, $\cos(a\pm b)=\cos a\cos b\mp\sin a\sin b$.</p>
+
+<h3>Derivatives</h3>
+<p>Using $\sin(x+h)=\sin x\cos h+\cos x\sin h$:</p>
+$$ \frac{\sin(x+h)-\sin x}{h} = \sin x\frac{\cos h-1}{h} + \cos x\frac{\sin h}{h} \to \cos x $$
+since $(\cos h-1)/h\to0$ and $\sin h/h\to1$. Thus $(\sin x)'=\cos x$.</p>
+<p>Similarly $(\cos x)'=-\sin x$. Then
+$$ (\tan x)'=\left(\frac{\sin x}{\cos x}\right)'=\frac{\cos^2x+\sin^2x}{\cos^2x}=\sec^2x. $$
+By quotient rule:
+$$ (\sec x)'=\sec x\tan x,\quad (\csc x)'=-\csc x\cot x,\quad (\cot x)'=-\csc^2 x. $$</p>
+
+<h3>Integrals</h3>
+<p>Reversing derivatives (up to constant $C$):</p>
+$$ \int \sin x\,dx=-\cos x+C,\ \int\cos x\,dx=\sin x+C,\ \int\sec^2x\,dx=\tan x+C $$
+$$ \int\sec x\tan x\,dx=\sec x+C,\ \int\csc^2x\,dx=-\cot x+C $$
+
+<table>
+<thead><tr><th>Function $f$</th><th>Derivative $f'$</th><th>Antiderivative $\int f$</th></tr></thead>
+<tbody>
+<tr><td>$\sin x$</td><td>$\cos x$</td><td>$-\cos x$</td></tr>
+<tr><td>$\cos x$</td><td>$-\sin x$</td><td>$\sin x$</td></tr>
+<tr><td>$\tan x$</td><td>$\sec^2 x$</td><td>$-\ln|\cos x|$</td></tr>
+<tr><td>$\sec x$</td><td>$\sec x\tan x$</td><td>$\ln|\sec x+\tan x|$</td></tr>
+<tr><td>$\arcsin x$</td><td>$1/\sqrt{1-x^2}$</td><td>$x\arcsin x+\sqrt{1-x^2}$</td></tr>
+<tr><td>$\arctan x$</td><td>$1/(1+x^2)$</td><td>$x\arctan x-\tfrac12\ln(1+x^2)$</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="integration">
+<h2>4. Integration</h2>
+<p>An antiderivative $F$ satisfies $F'=f$. The definite integral is the signed area:</p>
+$$ \int_a^b f(x)\,dx = \lim_{\|P\|\to0}\sum_{i=1}^n f(x_i^*)\,\Delta x_i $$
+<p>a limit of Riemann sums.</p>
+
+<h3>Fundamental Theorem of Calculus</h3>
+<p><strong>Part 1:</strong> If $f$ is continuous and $F(x)=\int_a^x f(t)dt$, then $F'(x)=f(x)$. Intuitively, the rate at which area accumulates equals the height.</p>
+<p><strong>Part 2:</strong> If $F'=f$, then $\int_a^b f(x)dx = F(b)-F(a)$. Proof: Part 1 says $G(x)=\int_a^x f$ is an antiderivative; any two antiderivatives differ by a constant, evaluate at endpoints.</p>
+
+<h3>Techniques</h3>
+<ul>
+  <li><strong>Substitution:</strong> $\int f(g(x))g'(x)dx = \int f(u)du$. Essential for trig: $\int 2x\cos(x^2)dx=\sin(x^2)+C$.</li>
+  <li><strong>Integration by parts:</strong> $\int u\,dv = uv-\int v\,du$, from product rule. Example: $\int x\sin x\,dx = -x\cos x+\sin x+C$.</li>
+  <li><strong>Trig integrals:</strong> Use identities. $\int \sin^m x\cos^n x\,dx$ — save a factor for substitution when an exponent is odd; use power-reduction when both even.</li>
+  <li><strong>Trig substitution:</strong> $\sqrt{a^2-x^2}\to x=a\sin\theta$, $\sqrt{a^2+x^2}\to x=a\tan\theta$, $\sqrt{x^2-a^2}\to x=a\sec\theta$. This removes the root via $\sin^2+\cos^2=1$.</li>
+</ul>
+</section>
+
+<section id="series">
+<h2>5. Series and Approximations</h2>
+<p>If $f$ is infinitely differentiable at $a$,</p>
+$$ f(x)=\sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x-a)^n + R_N(x) $$
+<p>with remainder $R_N\to0$ in the interval of convergence.</p>
+<p><strong>Maclaurin series ($a=0$):</strong></p>
+$$ e^x = \sum_{n=0}^\infty \frac{x^n}{n!},\quad \sin x = \sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{(2n+1)!}=x-\frac{x^3}{6}+\frac{x^5}{120}-\cdots $$
+$$ \cos x = \sum_{n=0}^\infty (-1)^n\frac{x^{2n}}{(2n)!}=1-\frac{x^2}{2}+\frac{x^4}{24}-\cdots $$
+<p>Differentiate term-by-term: $(\sin)'$ series becomes $\cos$ series, confirming $(\sin)'=\cos$ analytically.</p>
+<h3>Euler's formula</h3>
+<p>Plug $ix$ into $e^x$ series and group even/odd terms:</p>
+$$ e^{ix}=\sum\frac{(ix)^n}{n!}= \sum (-1)^n\frac{x^{2n}}{(2n)!}+i\sum(-1)^n\frac{x^{2n+1}}{(2n+1)!}=\cos x + i\sin x. $$
+<p>This unifies exponentials and trigonometry — the beating heart of Fourier analysis and many cryptographic number-theoretic transforms.</p>
+</section>
+
+<section id="crypto">
+<h2>6. Mathematics and Cryptography of Calculus</h2>
+<p>Modern cryptography (RSA, ECC, symmetric ciphers) lives in finite rings and fields, where "derivative" has no direct meaning. Yet calculus provides the analytical infrastructure: approximations, optimization, continuous models of discrete phenomena, and the geometry that inspires elliptic curve arithmetic.</p>
+
+<h3>a) Continuous vs Discrete</h3>
+<p>Calculus analyzes functions $\mathbb{R}\to\mathbb{R}$ with limits. RSA uses $c\equiv m^e\pmod N$ in $\mathbb{Z}_N$. You cannot differentiate $m\mapsto m^e\bmod N$ — modular reduction is discontinuous. But analysis tells us how big $m^e$ is over the integers before reduction, which explains why low-exponent RSA with small $m$ and no padding is vulnerable (the real cube root works).</p>
+
+<h3>b) Calculus for cryptanalysis</h3>
+<p><strong>Newton's method.</strong> To solve $f(x)=x^e-c=0$ over reals, iterate $x_{k+1}=x_k - f/f'$. This converges quadratically because $f'$ tells the slope. For $e=3$, after a few iterations you get the integer $m$ if $m^3=c<N$. The derivative accelerates search compared to brute force.</p>
+<p><strong>Gradient descent and side channels.</strong> In power analysis, an attacker minimizes a loss $L(\theta)=\| \text{trace} - \text{model}(\theta)\|^2$ over key hypotheses $\theta$. The update $\theta\leftarrow\theta-\alpha\nabla L$ uses calculus to climb down the error surface, extracting bits from noisy measurements.</p>
+
+<h3>c) Information theory and entropy</h3>
+<p>For a continuous random variable with density $p(x)$, differential entropy is</p>
+$$ h(X)=-\int_{-\infty}^{\infty} p(x)\log_2 p(x)\,dx. $$
+<p>Measured in bits, this integral quantifies uncertainty. In cryptography we prefer min-entropy $H_\infty=-\log_2\max_x p(x)$, but calculus lets us approximate leakage when side-channels yield Gaussian noise.</p>
+
+<h3>d) "Differential" cryptanalysis</h3>
+<p>The name is coincidental but conceptually parallel. Instead of $f'=\lim \Delta f/\Delta x$, cryptanalysts study the propagation of discrete differences $\Delta Y = S(X\oplus\Delta)\oplus S(X)$ through S-boxes. Sensitivity to input change — the discrete analogue of a derivative — determines security.</p>
+
+<h3>e) Elliptic curves: calculus in plain sight</h3>
+<p>Over reals, $E: y^2 = x^3 + ax + b$. Implicit differentiation: $2y\,dy = (3x^2+a)dx$, so slope of tangent at $P=(x_1,y_1)$ is</p>
+$$ \lambda = \frac{dy}{dx} = \frac{3x_1^2 + a}{2y_1}. $$
+<p>Point doubling uses $x_{2P}=\lambda^2-2x_1$. The same algebraic formula works modulo a prime $p$ (with division meaning multiply by inverse). Calculus motivates the chord-and-tangent law; algebra makes it cryptographic.</p>
+
+<h3>f) Complexity analysis via calculus</h3>
+<p>Estimating factoring cost uses integrals. The harmonic sum $H_n=\sum_{k=1}^n1/k$ satisfies $H_n=\int_1^n dx/x + \gamma + o(1)=\ln n+\gamma$. The Number Field Sieve runtime $L_N[1/3,c]=\exp((c+o(1))(\ln N)^{1/3}(\ln\ln N)^{2/3})$ is found by optimizing a continuous parameter (smoothness bound) by setting a derivative to zero.</p>
+<div class="note">Takeaway: calculus doesn't break discrete crypto directly, but it designs, analyzes, and attacks it.</div>
+</section>
+
+<section id="octave">
+<h2>7. GNU Octave Laboratory</h2>
+<p>Copy, paste, and run. All code tested in Octave 7+.</p>
+
+<h3>1) Plot sin, cos, tan</h3>
+<pre><code>% Plot trig functions
+x = linspace(-2*pi, 2*pi, 1000);
+plot(x, sin(x), 'b', x, cos(x), 'r', x, tan(x), 'g');
+ylim([-4,4]); grid on;
+legend('sin','cos','tan'); title('Trigonometric functions');</code></pre>
+
+<h3>2) Numerical derivative vs analytic</h3>
+<pre><code>% Central difference for sin' at x0
+f = @(x) sin(x); fp = @(x) cos(x);
+h = 1e-6; x0 = 1.0;
+num = (f(x0+h)-f(x0-h))/(2*h);
+printf("num=%.9f analytic=%.9f err=%.2e\n", num, fp(x0), abs(num-fp(x0)));</code></pre>
+
+<h3>3) Verify limit sin(x)/x</h3>
+<pre><code>% Approach 0 from right
+x = logspace(-8, -1, 8);
+y = sin(x)./x;
+disp([x' y']);  % y -> 1</code></pre>
+
+<h3>4) Symbolic derivative (needs symbolic pkg)</h3>
+<pre><code>pkg load symbolic
+syms x
+f = sin(x)/x;
+df = diff(f, x);
+simplify(df)
+% df = (x*cos(x)-sin(x))/x^2</code></pre>
+
+<h3>5) Riemann sum for ∫0^π sin x dx</h3>
+<pre><code>a=0; b=pi; n=1e6;
+x = linspace(a,b,n);
+dx = (b-a)/n;
+I = sum(sin(x))*dx;
+printf("Riemann ≈ %.8f (exact 2)\n", I);</code></pre>
+
+<h3>6) Taylor series for sin</h3>
+<pre><code>x = linspace(-pi, pi, 400);
+s3 = x - x.^3/6;
+s5 = s3 + x.^5/120;
+s7 = s5 - x.^7/5040;
+plot(x, sin(x), 'k', x, s3, '--', x, s5, ':', x, s7, '-.');
+legend('sin','3rd','5th','7th'); grid on;</code></pre>
+
+<h3>7) Newton's method for cube root (RSA e=3 attack)</h3>
+<pre><code>% If c = m^3 < N, recover m without modulus
+c = 250047*250047*250047;  % simulate small message
+f = @(x) x.^3 - c;
+df = @(x) 3*x.^2;
+x = c^(1/3);  % initial
+for k=1:5
+  x = x - f(x)/df(x);
+endfor
+printf("m ≈ %.0f (error %.2e)\n", x, abs(x-250047));</code></pre>
+
+<h3>8) Gradient descent demo</h3>
+<pre><code>% Minimize J(x) = (x-3)^2 + sin(5x)
+J = @(x) (x-3).^2 + sin(5*x);
+dJ = @(x) 2*(x-3) + 5*cos(5*x);
+x = 0; alpha = 0.05;
+for i=1:200
+  x = x - alpha*dJ(x);
+endfor
+printf("min near x=%.4f, J=%.4f\n", x, J(x));</code></pre>
+
+<h3>9) Elliptic curve tangent slope</h3>
+<pre><code>% Curve y^2 = x^3 + a x + b, over reals
+a = -1; b = 1;
+x1 = 2; y1 = sqrt(x1^3 + a*x1 + b);
+lambda = (3*x1^2 + a)/(2*y1);  % derivative dy/dx
+x3 = lambda^2 - 2*x1;
+y3 = lambda*(x1 - x3) - y1;
+printf("lambda=%.5f, 2P=(%.5f, %.5f)\n", lambda, x3, y3);</code></pre>
+
+<h3>10) Numerical integration for Gaussian entropy</h3>
+<pre><code>sigma = 1;
+p = @(x) exp(-x.^2/(2*sigma^2))/(sigma*sqrt(2*pi));
+H = -quadgk(@(x) p(x).*log2(p(x)), -10, 10);
+theory = 0.5*log2(2*pi*exp(1)*sigma^2);
+printf("h ≈ %.5f bits, theory %.5f\n", H, theory);</code></pre>
+
+<h3>11) Logistic ODE (model saturation in searches)</h3>
+<pre><code>r = 0.3; K = 1e6;
+f = @(t,P) r*P*(1-P/K);
+[t,P] = ode45(f, [0 50], 1e3);
+plot(t,P); xlabel('t'); ylabel('Population'); title('Logistic growth');</code></pre>
+</section>
+
+<section id="proofs">
+<h2>8. Proofs Appendix</h2>
+
+<details open><summary>Product Rule: $(fg)'=f'g+fg'$</summary>
+<p>$$ \frac{f(x+h)g(x+h)-f(x)g(x)}{h} = f(x+h)\frac{g(x+h)-g(x)}{h}+g(x)\frac{f(x+h)-f(x)}{h} $$ Add-subtract $f(x+h)g(x)$. As $h\to0$, $f(x+h)\to f(x)$ by differentiability implying continuity. Limits give $f g' + g f'$.</p>
+</details>
+
+<details><summary>Chain Rule: $(f\circ g)' = (f'\circ g)\cdot g'$</summary>
+<p>Write $f$ differentiable at $y_0=g(x_0)$ as $f(y)=f(y_0)+f'(y_0)(y-y_0)+r(y)(y-y_0)$ with $r(y)\to0$. Set $y=g(x)$. Divide by $x-x_0$, let $x\to x_0$. The error term vanishes because $g$ is continuous; remainder gives $f'(g(x_0))g'(x_0)$.</p>
+</details>
+
+<details><summary>FTC Part 1: $F(x)=\int_a^x f \Rightarrow F'=f$</summary>
+<p>For $h>0$, $F(x+h)-F(x)=\int_x^{x+h} f(t)dt = f(c_h)h$ for some $c_h\in[x,x+h]$ by the Mean Value Theorem for integrals (continuity of $f$). Divide by $h$, get $F'(x)=\lim_{h\to0}f(c_h)=f(x)$.</p>
+</details>
+
+<details><summary>Derivative of $\sin$: full epsilon proof</summary>
+<p>From addition formula as above, need limits $(\sin h)/h\to1$ and $(1-\cos h)/h\to0$. The first is squeeze theorem. For the second: $1-\cos h =2\sin^2(h/2)$, so $(1-\cos h)/h = (\sin(h/2)/(h/2))\cdot\sin(h/2)\to1\cdot0=0$.</p>
+</details>
+
+<details><summary>Derivative of $\arcsin x$</summary>
+<p>Let $y=\arcsin x$, so $\sin y = x$, $y\in[-\pi/2,\pi/2]$. Differentiate implicitly: $\cos y \cdot y' =1$, thus $y' =1/\cos y =1/\sqrt{1-\sin^2 y}=1/\sqrt{1-x^2}$ (positive root by range).</p>
+</details>
+</section>
+
+<section id="exercises">
+<h2>9. Exercises</h2>
+<ol>
+  <li>Use the squeeze theorem to prove $\lim_{x\to0}x\sin(1/x)=0$.</li>
+  <li>Prove $\lim_{h\to0}(1-\cos h)/h^2=1/2$ using the half-angle identity.</li>
+  <li>Differentiate $f(x)=x^x$ for $x>0$ via logarithmic differentiation. Where is the minimum?</li>
+  <li>Show $(\sec x)'=\sec x\tan x$ and integrate $\int \tan x\,dx$.</li>
+  <li>Compute $\int_0^{\pi/2} \sin^n x\,dx$ for $n=2,4$ using power-reduction. Guess the reduction formula.</li>
+  <li>Use substitution $x=a\sin\theta$ to evaluate $\int \sqrt{a^2-x^2}\,dx$.</li>
+  <li>Find the 4th-degree Maclaurin polynomial for $\cos x$ and bound the error on $[-\pi/4,\pi/4]$.</li>
+  <li><strong>Crypto-flavored:</strong> Let $f(C)=C^d$ over $\mathbb{R}$. Compute $f'(C)$. Explain why this derivative gives no information about RSA decryption $C^d\bmod N$.</li>
+  <li>Implement Newton's method in Octave for $e=5$, $c=32^5$. How many iterations to recover $m=32$ starting from $x_0=c^{0.2}+10$?</li>
+  <li>For a Gaussian side-channel with $\sigma=0.5$, use Octave to numerically compute differential entropy. How many bits are lost if $\sigma$ doubles?</li>
+  <li>Show the tangent doubling formula for $y^2=x^3-2x$ at $P=(2,2)$ gives $\lambda=5/2$ and compute $2P$.</li>
+  <li>Use integration by parts twice to find $\int e^x\sin x\,dx$.</li>
+  <li>Approximate $e$ by $ (1+1/n)^n$ and use $\ln(1+u)\sim u-u^2/2$ to show error $\approx e/(2n)$.</li>
+  <li><strong>Differential cryptanalysis:</strong> If an S-box has maximum differential probability $2^{-6}$, estimate expected pairs needed to see the differential once. Relate to derivative magnitude.</li>
+  <li>Use L'Hôpital's rule (itself proved via Cauchy MVT) to evaluate $\lim_{x\to0}(\tan x - \sin x)/x^3$.</li>
+</ol>
+<div class="card"><strong>Tip:</strong> Do the analysis by hand, then check with Octave. The combination of proof and computation is how modern applied mathematics works.</div>
+</section>
+
+<footer>
+  Made for GNU Octave 7+ • Typeset with MathJax • Learn limits, prove theorems, write code.
+</footer>
+</main>
+</div>
+</body>
+</html>
