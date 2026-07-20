@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euler's Totient Function φ(n) — An Interactive Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1C2733;
+  --panel:#26343F;
+  --panel-2:#2D3D4A;
+  --line:#3B4C5A;
+  --text:#E9E4D8;
+  --dim:#9BAAB4;
+  --brass:#E2AA3E;
+  --brass-soft:rgba(226,170,62,.14);
+  --teal:#68BCA7;
+  --teal-soft:rgba(104,188,167,.12);
+  --rose:#CE7B6E;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --disp:'Fraunces',Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.65;
+}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px}
+
+/* ---------- hero ---------- */
+header{
+  padding:72px 0 56px;
+  border-bottom:1px solid var(--line);
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 10%, rgba(104,188,167,.08), transparent),
+    radial-gradient(ellipse 50% 60% at 15% 90%, rgba(226,170,62,.07), transparent);
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:13px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--teal);
+  margin-bottom:18px;
+}
+h1{
+  font-family:var(--disp);
+  font-weight:600;
+  font-size:clamp(38px,6vw,60px);
+  line-height:1.08;
+  letter-spacing:-.01em;
+}
+h1 .phi{color:var(--brass);font-style:italic}
+.lede{
+  margin-top:22px;
+  max-width:620px;
+  font-size:19px;
+  color:var(--dim);
+}
+.lede strong{color:var(--text);font-weight:500}
+.hero-def{
+  margin-top:34px;
+  display:inline-block;
+  padding:16px 22px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-left:3px solid var(--brass);
+  border-radius:6px;
+  font-family:var(--disp);
+  font-size:21px;
+}
+.hero-def .m{font-style:italic}
+
+/* ---------- sections ---------- */
+section{padding:56px 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:none}
+h2{
+  font-family:var(--disp);
+  font-weight:600;
+  font-size:clamp(26px,4vw,34px);
+  margin-bottom:8px;
+}
+.sec-note{
+  font-family:var(--mono);
+  font-size:12.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--teal);
+  margin-bottom:14px;
+}
+h3{
+  font-family:var(--disp);
+  font-weight:600;
+  font-size:21px;
+  margin:34px 0 10px;
+}
+p{margin:14px 0;max-width:70ch}
+p .m, li .m{font-family:var(--disp);font-style:italic;font-size:1.06em}
+p code, li code{
+  font-family:var(--mono);
+  font-size:.88em;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:1px 6px;
+  color:var(--teal);
+}
+a{color:var(--teal)}
+ul,ol{margin:14px 0 14px 26px;max-width:68ch}
+li{margin:8px 0}
+.hl-brass{color:var(--brass)}
+.hl-teal{color:var(--teal)}
+.hl-rose{color:var(--rose)}
+
+/* display equations */
+.eq{
+  margin:22px 0;
+  padding:18px 24px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:6px;
+  font-family:var(--disp);
+  font-size:20px;
+  overflow-x:auto;
+}
+.eq .m{font-style:italic}
+.eq sup, p sup{font-size:.68em}
+.eq sub, p sub{font-size:.68em}
+.eq .op{color:var(--dim);padding:0 4px}
+.eq-cap{
+  font-family:var(--mono);
+  font-size:12.5px;
+  color:var(--dim);
+  margin-top:-14px;
+  margin-bottom:22px;
+}
+
+/* callout */
+.callout{
+  margin:22px 0;
+  padding:16px 22px;
+  background:var(--teal-soft);
+  border:1px solid rgba(104,188,167,.3);
+  border-radius:6px;
+}
+.callout.gold{background:var(--brass-soft);border-color:rgba(226,170,62,.3)}
+.callout p{margin:6px 0}
+.callout .tag{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--teal);
+}
+.callout.gold .tag{color:var(--brass)}
+
+/* ---------- the totient ring widget ---------- */
+.widget{
+  margin:28px 0;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:26px;
+}
+.widget-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.widget-title{
+  font-family:var(--mono);
+  font-size:13px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--dim);
+}
+.widget-read{
+  font-family:var(--disp);
+  font-size:24px;
+}
+.widget-read .phi{color:var(--brass);font-style:italic}
+canvas{display:block;margin:0 auto;max-width:100%}
+.ctrl{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-top:18px;
+  flex-wrap:wrap;
+}
+.ctrl label{font-family:var(--mono);font-size:14px;color:var(--dim)}
+input[type=range]{
+  flex:1;
+  min-width:180px;
+  accent-color:var(--brass);
+  height:4px;
+}
+input[type=range]:focus-visible{outline:2px solid var(--teal);outline-offset:4px}
+.nval{
+  font-family:var(--mono);
+  font-size:16px;
+  min-width:3ch;
+  text-align:right;
+  color:var(--brass);
+}
+.legend{
+  display:flex;
+  gap:22px;
+  margin-top:14px;
+  flex-wrap:wrap;
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--dim);
+}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:baseline}
+.dot.b{background:var(--brass)}
+.dot.g{background:#4A5A67}
+.factor-line{
+  margin-top:16px;
+  padding:12px 16px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:6px;
+  font-family:var(--mono);
+  font-size:14.5px;
+  color:var(--dim);
+  overflow-x:auto;
+  white-space:nowrap;
+}
+.factor-line b{color:var(--brass);font-weight:500}
+.factor-line i{color:var(--teal);font-style:normal}
+
+/* worked example table */
+table{
+  border-collapse:collapse;
+  margin:22px 0;
+  font-size:15.5px;
+  width:100%;
+  max-width:640px;
+}
+th,td{
+  border:1px solid var(--line);
+  padding:9px 14px;
+  text-align:left;
+}
+th{
+  background:var(--panel);
+  font-family:var(--mono);
+  font-weight:500;
+  font-size:13px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--dim);
+}
+td{font-family:var(--mono);font-size:14.5px}
+td.co{color:var(--brass)}
+
+/* code blocks (octave lab) */
+pre{
+  margin:20px 0;
+  padding:20px 22px;
+  background:#141C25;
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow-x:auto;
+  font-family:var(--mono);
+  font-size:14px;
+  line-height:1.6;
+}
+pre .cm{color:#5F7386}
+pre .kw{color:var(--teal)}
+pre .st{color:var(--brass)}
+pre .fn{color:#8FBCD9}
+
+/* footer */
+footer{
+  padding:44px 0 64px;
+  color:var(--dim);
+  font-size:14.5px;
+  font-family:var(--mono);
+}
+footer .rule{width:56px;height:2px;background:var(--brass);margin-bottom:20px}
+
+@media(max-width:560px){
+  body{font-size:16px}
+  .widget{padding:18px}
+  header{padding:52px 0 40px}
+  section{padding:44px 0}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Number Theory · Foundations of Modern Cryptography</div>
+    <h1>Euler's Totient Function <span class="phi">φ(n)</span></h1>
+    <p class="lede">One deceptively simple question — <strong>how many numbers below <em>n</em> share no factor with it?</strong> — turns out to govern the structure of modular arithmetic, generalize Fermat's little theorem, and sit at the mathematical heart of RSA encryption.</p>
+    <div class="hero-def"><span class="m">φ(n)</span> &nbsp;=&nbsp; the count of integers <span class="m">k</span> in 1 ≤ <span class="m">k</span> ≤ <span class="m">n</span> with gcd(<span class="m">k, n</span>) = 1</div>
+  </div>
+</header>
+
+<section id="definition">
+  <div class="wrap">
+    <div class="sec-note">§1 · The Definition</div>
+    <h2>Counting the numbers that "don't interfere"</h2>
+    <p>Two integers are <strong>coprime</strong> (or <em>relatively prime</em>) when their greatest common divisor is 1 — they share no prime factor. Euler's totient function <span class="m">φ(n)</span> counts how many of the integers 1, 2, …, <span class="m">n</span> are coprime to <span class="m">n</span>.</p>
+    <p>Take <span class="m">n</span> = 12. Its prime factors are 2 and 3, so we strike out every multiple of 2 and every multiple of 3:</p>
+    <div class="eq">
+      1&nbsp; <span style="color:var(--rose)">2̶</span>&nbsp; <span style="color:var(--rose)">3̶</span>&nbsp; <span style="color:var(--rose)">4̶</span>&nbsp; <span class="hl-brass">5</span>&nbsp; <span style="color:var(--rose)">6̶</span>&nbsp; <span class="hl-brass">7</span>&nbsp; <span style="color:var(--rose)">8̶</span>&nbsp; <span style="color:var(--rose)">9̶</span>&nbsp; <span style="color:var(--rose)">1̶0̶</span>&nbsp; <span class="hl-brass">11</span>&nbsp; <span style="color:var(--rose)">1̶2̶</span>
+    </div>
+    <p class="eq-cap">survivors: 1, 5, 7, 11 &nbsp;→&nbsp; φ(12) = 4</p>
+    <p>Only <span class="hl-brass">1, 5, 7, 11</span> survive, so <span class="m">φ(12) = 4</span>. These four survivors are not just a curiosity — they are exactly the residues that have <strong>multiplicative inverses mod 12</strong>, and they form a group under multiplication: the <em>group of units</em> <span class="m">(ℤ/12ℤ)<sup>×</sup></span>. The totient is that group's size. This is the deeper reason φ keeps appearing: it measures how much genuine multiplicative structure lives inside arithmetic mod <span class="m">n</span>.</p>
+    <div class="callout">
+      <p class="tag">Convention</p>
+      <p>φ(1) = 1, since gcd(1, 1) = 1. And for any prime <span class="m">p</span>, every one of 1, …, <span class="m">p</span> − 1 is coprime to <span class="m">p</span>, so <span class="m">φ(p) = p − 1</span> — the largest the totient can ever be relative to <span class="m">n</span>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="ring">
+  <div class="wrap">
+    <div class="sec-note">§2 · Interactive — The Totient Ring</div>
+    <h2>See φ(n) on the circle of residues</h2>
+    <p>Modular arithmetic lives naturally on a circle: the residues 1 through <span class="m">n</span> arranged like marks on a clock face. Drag the slider and watch which residues light up <span class="hl-brass">brass</span> — those are the ones coprime to <span class="m">n</span>. Their count is <span class="m">φ(n)</span>.</p>
+    <p>Notice the patterns: primes light up <em>everything</em> except the top mark; even numbers immediately extinguish half the ring; and highly composite values like 30 or 60 leave surprisingly few survivors.</p>
+
+    <div class="widget">
+      <div class="widget-head">
+        <div class="widget-title">Totient Ring — coprime residues mod n</div>
+        <div class="widget-read"><span class="phi">φ</span>(<span id="rn">12</span>) = <span id="rphi" style="color:var(--brass)">4</span></div>
+      </div>
+      <canvas id="ringCanvas" width="640" height="460" aria-label="Circle of residues mod n with coprime residues highlighted"></canvas>
+      <div class="ctrl">
+        <label for="nSlider">n</label>
+        <input type="range" id="nSlider" min="2" max="90" value="12" aria-label="Choose n">
+        <span class="nval" id="nVal">12</span>
+      </div>
+      <div class="legend">
+        <span><span class="dot b"></span>coprime to n — counted by φ(n)</span>
+        <span><span class="dot g"></span>shares a factor with n</span>
+      </div>
+      <div class="factor-line" id="factorLine"></div>
+    </div>
+  </div>
+</section>
+
+<section id="computing">
+  <div class="wrap">
+    <div class="sec-note">§3 · Computing φ</div>
+    <h2>Three rules give you everything</h2>
+
+    <h3>Rule 1 — Prime powers</h3>
+    <p>Among 1, …, <span class="m">p<sup>k</sup></span>, the only numbers <em>not</em> coprime to <span class="m">p<sup>k</sup></span> are the multiples of <span class="m">p</span>, and there are exactly <span class="m">p<sup>k−1</sup></span> of them. Everything else survives:</p>
+    <div class="eq"><span class="m">φ(p<sup>k</sup>)</span> <span class="op">=</span> <span class="m">p<sup>k</sup> − p<sup>k−1</sup></span> <span class="op">=</span> <span class="m">p<sup>k−1</sup>(p − 1)</span></div>
+    <p class="eq-cap">example: φ(8) = 8 − 4 = 4 &nbsp;·&nbsp; the survivors are 1, 3, 5, 7</p>
+
+    <h3>Rule 2 — Multiplicativity</h3>
+    <p>If gcd(<span class="m">m, n</span>) = 1, then</p>
+    <div class="eq"><span class="m">φ(mn)</span> <span class="op">=</span> <span class="m">φ(m) · φ(n)</span></div>
+    <p>This is a direct consequence of the <strong>Chinese Remainder Theorem</strong>: a residue mod <span class="m">mn</span> corresponds to a <em>pair</em> of residues (one mod <span class="m">m</span>, one mod <span class="m">n</span>), and it's a unit exactly when both components are units. The unit group factors, so its size multiplies. Caution: the coprimality condition is essential — <span class="m">φ(4) = 2</span> but <span class="m">φ(2)·φ(2) = 1</span>.</p>
+
+    <h3>Rule 3 — Euler's product formula</h3>
+    <p>Combine the first two rules across the prime factorization <span class="m">n = p₁<sup>a₁</sup> p₂<sup>a₂</sup> ⋯ p<sub>r</sub><sup>a<sub>r</sub></sup></span> and the whole thing telescopes into one elegant expression:</p>
+    <div class="eq"><span class="m">φ(n)</span> <span class="op">=</span> <span class="m">n</span> <span class="op">·</span> <span class="m">∏<sub>p | n</sub></span> <span class="op">(</span>1 − 1/<span class="m">p</span><span class="op">)</span></div>
+    <p>Read it as a sieve: start with all <span class="m">n</span> residues, throw away the fraction 1/<span class="m">p</span> that each prime divisor claims, and what remains is φ. Each prime is "charged" only once, no matter its exponent.</p>
+
+    <h3>Worked example: φ(360)</h3>
+    <p>Factor first: <span class="m">360 = 2³ · 3² · 5</span>. Then:</p>
+    <div class="eq" style="font-size:18px">
+      <span class="m">φ(360)</span> <span class="op">=</span> 360 <span class="op">·</span> (1 − ½) <span class="op">·</span> (1 − ⅓) <span class="op">·</span> (1 − ⅕)
+      <span class="op">=</span> 360 <span class="op">·</span> ½ <span class="op">·</span> ⅔ <span class="op">·</span> ⅘
+      <span class="op">=</span> <span class="hl-brass">96</span>
+    </div>
+    <p>Or via prime powers and multiplicativity: <span class="m">φ(8)·φ(9)·φ(5) = 4 · 6 · 4 = 96</span>. Same answer, as it must be.</p>
+
+    <h3>Small values at a glance</h3>
+    <table>
+      <thead><tr><th>n</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th></tr></thead>
+      <tbody>
+        <tr><td>φ(n)</td><td class="co">1</td><td class="co">1</td><td class="co">2</td><td class="co">2</td><td class="co">4</td><td class="co">2</td><td class="co">6</td><td class="co">4</td><td class="co">6</td><td class="co">4</td><td class="co">10</td><td class="co">4</td></tr>
+      </tbody>
+    </table>
+    <p>The sequence looks erratic — it is famously <em>not</em> monotonic — but every value is fully determined by the prime factorization. That tight coupling between φ(n) and factoring is exactly what cryptography exploits.</p>
+  </div>
+</section>
+
+<section id="theorem">
+  <div class="wrap">
+    <div class="sec-note">§4 · Euler's Theorem</div>
+    <h2>The theorem the totient was built for</h2>
+    <p>Euler introduced φ in 1763 to generalize Fermat's little theorem beyond prime moduli. The result:</p>
+    <div class="callout gold">
+      <p class="tag">Euler's Theorem (1763)</p>
+      <p style="font-family:var(--disp);font-size:20px">If gcd(<span class="m">a, n</span>) = 1, then &nbsp;<span class="m">a<sup>φ(n)</sup> ≡ 1 (mod n)</span>.</p>
+    </div>
+    <p><strong>Why it's true, in one paragraph.</strong> The units mod <span class="m">n</span> form a group of order <span class="m">φ(n)</span>. Multiplying every unit by <span class="m">a</span> just permutes them, so the product of all units is unchanged — which forces <span class="m">a<sup>φ(n)</sup> = 1</span> in the group. (Equivalently: by Lagrange's theorem, every element's order divides the group's order.)</p>
+    <p>Setting <span class="m">n = p</span> prime recovers <strong>Fermat's little theorem</strong>, since φ(p) = p − 1:</p>
+    <div class="eq"><span class="m">a<sup>p−1</sup> ≡ 1 (mod p)</span> &nbsp;&nbsp;<span style="color:var(--dim);font-family:var(--sans);font-size:15px">for p prime, p ∤ a</span></div>
+    <h3>What the theorem buys you</h3>
+    <ul>
+      <li><strong>Fast modular exponentiation:</strong> exponents can be reduced mod φ(n). To compute <span class="m">7<sup>2026</sup> mod 12</span>: since φ(12) = 4 and 2026 ≡ 2 (mod 4), the answer is <span class="m">7² = 49 ≡ 1 (mod 12)</span>.</li>
+      <li><strong>Modular inverses:</strong> <span class="m">a<sup>φ(n)−1</sup></span> is the inverse of <span class="m">a</span> mod <span class="m">n</span> — an alternative to the extended Euclidean algorithm.</li>
+      <li><strong>Decryption that undoes encryption</strong> — the RSA story, next.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="rsa">
+  <div class="wrap">
+    <div class="sec-note">§5 · The Cryptographic Payoff</div>
+    <h2>φ(n) is RSA's trapdoor</h2>
+    <p>RSA rests on a beautiful asymmetry involving the totient:</p>
+    <ol>
+      <li>Pick two large primes <span class="m">p</span> and <span class="m">q</span>; publish <span class="m">n = pq</span>. Keep the primes secret.</li>
+      <li>Whoever knows the factors computes <span class="m">φ(n) = (p − 1)(q − 1)</span> <em>instantly</em>.</li>
+      <li>Whoever doesn't must factor <span class="m">n</span> first — computationally infeasible for 2048-bit moduli. Knowing φ(n) is provably as hard as factoring n: from n and φ(n) you can recover p and q by solving a quadratic.</li>
+    </ol>
+    <p>The key pair is built from φ: choose a public exponent <span class="m">e</span> coprime to φ(n), and compute the private exponent <span class="m">d ≡ e<sup>−1</sup> (mod φ(n))</span>. Then for a message <span class="m">m</span>:</p>
+    <div class="eq"><span class="m">(m<sup>e</sup>)<sup>d</sup></span> <span class="op">=</span> <span class="m">m<sup>ed</sup></span> <span class="op">=</span> <span class="m">m<sup>1 + kφ(n)</sup></span> <span class="op">≡</span> <span class="m">m (mod n)</span></div>
+    <p class="eq-cap">encryption then decryption returns the message — courtesy of Euler's theorem</p>
+    <p>The private key works <em>because</em> <span class="m">ed ≡ 1 (mod φ(n))</span>, so the exponent collapses via <span class="m">a<sup>φ(n)</sup> ≡ 1</span>. An 18th-century counting function turned out to be the hinge of internet security. (In practice, implementations use the Carmichael function λ(n) = lcm(p−1, q−1), a refinement of φ that gives the smallest universal exponent — the principle is identical.)</p>
+  </div>
+</section>
+
+<section id="lab">
+  <div class="wrap">
+    <div class="sec-note">§6 · Code Lab — GNU Octave</div>
+    <h2>Compute it yourself</h2>
+    <p>Two implementations: the transparent definition-based count, and the fast product-formula version built on <code>factor()</code>. Then a numerical check of Euler's theorem.</p>
+<pre><span class="cm">% --- totient_naive.m : straight from the definition ---</span>
+<span class="kw">function</span> t = <span class="fn">totient_naive</span>(n)
+  t = <span class="fn">sum</span>(<span class="fn">gcd</span>(1:n, n) == 1);
+<span class="kw">end</span>
+
+<span class="cm">% --- totient_fast.m : Euler's product formula ---</span>
+<span class="kw">function</span> t = <span class="fn">totient_fast</span>(n)
+  p = <span class="fn">unique</span>(<span class="fn">factor</span>(n));      <span class="cm">% distinct prime divisors</span>
+  t = n * <span class="fn">prod</span>(1 - 1 ./ p);   <span class="cm">% n * prod(1 - 1/p)</span>
+  t = <span class="fn">round</span>(t);               <span class="cm">% clean up float dust</span>
+<span class="kw">end</span>
+
+<span class="cm">% --- sanity checks ---</span>
+totient_fast(12)               <span class="cm">% ans = 4</span>
+totient_fast(360)              <span class="cm">% ans = 96</span>
+<span class="fn">arrayfun</span>(@totient_naive, 1:12) <span class="cm">% 1 1 2 2 4 2 6 4 6 4 10 4</span>
+
+<span class="cm">% --- verify Euler's theorem: a^phi(n) ≡ 1 (mod n) ---</span>
+n = 360;  a = 7;               <span class="cm">% gcd(7,360) = 1</span>
+<span class="fn">powermod</span> = @(a,e,n) <span class="fn">mod_pow</span>(a,e,n);  <span class="cm">% see below</span>
+
+<span class="kw">function</span> r = <span class="fn">mod_pow</span>(a, e, n)  <span class="cm">% square-and-multiply</span>
+  r = 1;  a = <span class="fn">mod</span>(a, n);
+  <span class="kw">while</span> e > 0
+    <span class="kw">if</span> <span class="fn">mod</span>(e, 2) == 1, r = <span class="fn">mod</span>(r*a, n); <span class="kw">end</span>
+    a = <span class="fn">mod</span>(a*a, n);  e = <span class="fn">floor</span>(e/2);
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+mod_pow(7, totient_fast(360), 360)   <span class="cm">% ans = 1  ✓ Euler</span></pre>
+    <p>Try <code>arrayfun(@totient_fast, 1:100)</code> and plot it — the scatter shows the p − 1 ceiling traced by the primes and the sparse floors carved out by highly composite numbers.</p>
+  </div>
+</section>
+
+<section id="reference">
+  <div class="wrap">
+    <div class="sec-note">§7 · Quick Reference</div>
+    <h2>Properties worth keeping on hand</h2>
+    <ul>
+      <li><span class="m">φ(p) = p − 1</span> for prime <span class="m">p</span>; &nbsp;<span class="m">φ(p<sup>k</sup>) = p<sup>k−1</sup>(p − 1)</span>.</li>
+      <li><span class="m">φ(mn) = φ(m)φ(n)</span> when gcd(<span class="m">m, n</span>) = 1 &nbsp;(multiplicative, via CRT).</li>
+      <li><span class="m">φ(n)</span> is even for all <span class="m">n</span> ≥ 3 &nbsp;(units pair up with their negatives).</li>
+      <li><strong>Gauss's identity:</strong> <span class="m">∑<sub>d | n</sub> φ(d) = n</span> — the totients of the divisors of n always sum to exactly n. (Try it: divisors of 12 give 1+1+2+2+2+4 = 12.)</li>
+      <li><span class="m">φ(n)</span> is the order of the unit group <span class="m">(ℤ/nℤ)<sup>×</sup></span>, hence the exponent period in Euler's theorem.</li>
+      <li>Density heuristic: on average <span class="m">φ(n)/n ≈ 6/π² ≈ 0.6079</span> — the probability that two random integers are coprime.</li>
+      <li>Open problem: <strong>Lehmer's conjecture</strong> (1932) asks whether φ(n) | n − 1 forces n to be prime. Still unsolved.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="rule"></div>
+    <p>Euler's Totient Function · An interactive guide · Companion to the Euler &amp; Gauss and Mathematics of Cryptography guides</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  function gcd(a, b){ while(b){ const t = a % b; a = b; b = t; } return a; }
+
+  function primeFactors(n){
+    const ps = [];
+    let m = n;
+    for(let p = 2; p * p <= m; p++){
+      if(m % p === 0){ ps.push(p); while(m % p === 0) m /= p; }
+    }
+    if(m > 1) ps.push(m);
+    return ps;
+  }
+
+  function totient(n){
+    let t = n;
+    for(const p of primeFactors(n)) t = t / p * (p - 1);
+    return t;
+  }
+
+  const canvas = document.getElementById('ringCanvas');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('nSlider');
+  const nVal = document.getElementById('nVal');
+  const rn = document.getElementById('rn');
+  const rphi = document.getElementById('rphi');
+  const factorLine = document.getElementById('factorLine');
+
+  const BRASS = '#E2AA3E', GRAY = '#4A5A67', TEXT = '#E9E4D8', DIM = '#9BAAB4';
+
+  function fitCanvas(){
+    const parentW = canvas.parentElement.clientWidth - 4;
+    const w = Math.min(640, parentW);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = w + 'px';
+    canvas.style.height = Math.round(w * 0.72) + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(w * 0.72 * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { w: w, h: Math.round(w * 0.72) };
+  }
+
+  function draw(){
+    const n = parseInt(slider.value, 10);
+    const size = fitCanvas();
+    const W = size.w, H = size.h;
+    ctx.clearRect(0, 0, W, H);
+
+    const cx = W / 2, cy = H / 2 + 6;
+    const R = Math.min(W, H) / 2 - 42;
+
+    // faint ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(155,170,180,0.18)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const phi = totient(n);
+    const showLabels = n <= 36;
+    const dotR = n <= 24 ? 9 : (n <= 48 ? 7 : 5);
+
+    for(let k = 1; k <= n; k++){
+      const ang = -Math.PI / 2 + (k / n) * Math.PI * 2;
+      const x = cx + R * Math.cos(ang);
+      const y = cy + R * Math.sin(ang);
+      const co = gcd(k, n) === 1;
+
+      if(co){
+        // spoke to center for coprime residues
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = 'rgba(226,170,62,0.16)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.arc(x, y, co ? dotR : dotR - 2, 0, Math.PI * 2);
+      ctx.fillStyle = co ? BRASS : GRAY;
+      ctx.fill();
+
+      if(showLabels){
+        const lx = cx + (R + 22) * Math.cos(ang);
+        const ly = cy + (R + 22) * Math.sin(ang);
+        ctx.fillStyle = co ? TEXT : 'rgba(155,170,180,0.55)';
+        ctx.font = (co ? '600 ' : '400 ') + '13px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(k), lx, ly);
+      }
+    }
+
+    // center readout
+    ctx.fillStyle = BRASS;
+    ctx.font = '600 34px Fraunces, Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(phi), cx, cy - 4);
+    ctx.fillStyle = DIM;
+    ctx.font = '13px "IBM Plex Mono", monospace';
+    ctx.fillText('φ(' + n + ')', cx, cy + 22);
+
+    // update readouts
+    nVal.textContent = n;
+    rn.textContent = n;
+    rphi.textContent = phi;
+
+    // factorization line
+    const ps = primeFactors(n);
+    if(ps.length === 1 && ps[0] === n){
+      factorLine.innerHTML = n + ' is prime &nbsp;→&nbsp; φ(' + n + ') = ' + n + ' − 1 = <b>' + phi + '</b>';
+    } else {
+      const prod = ps.map(function(p){ return '<i>(1 − 1/' + p + ')</i>'; }).join(' · ');
+      factorLine.innerHTML = 'φ(' + n + ') = ' + n + ' · ' + prod + ' = <b>' + phi + '</b>';
+    }
+  }
+
+  slider.addEventListener('input', draw);
+  window.addEventListener('resize', draw);
+  draw();
+})();
+</script>
+
+</body>
+</html>

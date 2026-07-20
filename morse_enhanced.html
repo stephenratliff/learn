@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Morse Code — Signals in the Dark • Comprehensive Edition</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0e12; --ink2:#0e1218; --panel:#12161d; --panel2:#161c24; --raised:#1b222c;
+  --line:#232c37; --line2:#2c3745;
+  --text:#e9edf2; --muted:#93a2b4; --dim:#5d6b7d;
+  --brass:#e8a13a; --brass-hi:#ffc464; --brass-dim:#7a5a22;
+  --phos:#5bd6c0; --phos-hi:#8ff0df; --phos-dim:#2a6b62;
+  --tape:#efe7d3; --alert:#ff6a5c;
+  --mono:"IBM Plex Mono",ui-monospace,monospace; --sans:"IBM Plex Sans",system-ui,sans-serif; --disp:"Big Shoulders Display",var(--sans);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1100px 520px at 8% -8%,#17140a 0%,transparent 55%),radial-gradient(900px 480px at 92% -4%,#0a1a1c 0%,transparent 55%),linear-gradient(180deg,#090c10,var(--ink));color:var(--text);font-family:var(--sans);line-height:1.62;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(232,161,58,.30)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 26px}.mono{font-family:var(--mono)}
+header.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);padding:72px 0 32px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--brass-hi);border:1px solid var(--brass-dim);background:rgba(232,161,58,.06);padding:6px 12px;border-radius:2px;text-transform:uppercase}
+.beacon{width:8px;height:8px;border-radius:50%;background:var(--brass-hi);box-shadow:0 0 0 0 rgba(255,196,100,.7);animation:beacon 2.4s ease-out infinite}
+@keyframes beacon{0%{box-shadow:0 0 0 0 rgba(255,196,100,.55)}70%{box-shadow:0 0 0 9px rgba(255,196,100,0)}100%{box-shadow:0 0 0 0 rgba(255,196,100,0)}}
+h1.title{font-family:var(--disp);font-weight:900;font-size:clamp(52px,11vw,138px);line-height:.84;margin:20px 0 8px;text-transform:uppercase}
+h1.title .amp{color:var(--phos)}.hero-sub{max-width:700px;color:var(--muted);font-size:18px;margin:18px 0 22px}
+.hero-scope{margin:10px 0 8px;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg,#0a1417,#0c1013);overflow:hidden}
+.hero-scope canvas{display:block;width:100%;height:120px}
+.hero-cap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.12em;margin-top:8px}
+nav.sticky{position:sticky;top:0;z-index:40;backdrop-filter:blur(12px);background:rgba(11,14,18,.86);border-bottom:1px solid var(--line)}
+nav .inner{display:flex;gap:6px;padding:11px 0;overflow-x:auto;scrollbar-width:none}nav .inner::-webkit-scrollbar{display:none}
+nav a{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 13px;border:1px solid transparent;border-radius:3px;white-space:nowrap;display:flex;gap:7px;align-items:center;text-decoration:none}
+nav a .dd{color:var(--brass)}nav a:hover,nav a.active{color:var(--text);background:var(--raised);border-color:var(--line2)}
+section{padding:70px 0;border-bottom:1px solid var(--line)}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--phos);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.kick .num{color:var(--brass)}.kick.brass{color:var(--brass)}.kick.brass .num{color:var(--phos)}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.8vw,48px);line-height:.94;letter-spacing:.01em;margin:0 0 14px;text-transform:uppercase}
+h3{font-family:var(--disp);font-weight:700;font-size:24px;letter-spacing:.02em;text-transform:uppercase;margin:0 0 10px}
+.lead{color:var(--muted);max-width:780px;font-size:16.8px}p{margin:0 0 14px}
+.grid2{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;margin-top:26px}.grid2.rev{grid-template-columns:.95fr 1.05fr}.gridw{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:940px){.grid2,.grid2.rev,.gridw,.grid3{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:10px;padding:22px}.card.tight{padding:16px}
+.tag{display:inline-flex;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line2);border-radius:3px;padding:4px 8px}
+.tag.brass{color:var(--brass-hi);border-color:var(--brass-dim)}.tag.phos{color:var(--phos-hi);border-color:var(--phos-dim)}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--line2),transparent);margin:22px 0}.foot{color:var(--dim);font-size:12.5px;font-family:var(--mono)}.small{font-size:13.5px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;padding:9px 14px;border-radius:5px;border:1px solid var(--line2);background:var(--raised);color:var(--text);cursor:pointer;transition:transform .12s,background .12s}
+.btn:hover{background:#212a35;transform:translateY(-1px)}.btn.brass{background:linear-gradient(180deg,#f0ac47,#d98a24);border-color:#f0b968;color:#1a1204;font-weight:600}.btn.phos{background:linear-gradient(180deg,#63dcc6,#37b3a0);border-color:#84ecd9;color:#052620;font-weight:600}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+label.fld{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px}
+textarea,input[type=text]{width:100%;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:13px;font-family:var(--mono);font-size:14px;line-height:1.7;outline:none;resize:vertical}
+textarea:focus,input[type=text]:focus{border-color:var(--brass-dim);box-shadow:0 0 0 3px rgba(232,161,58,.14)}
+select.sel{font-family:var(--mono);font-size:12px;background:var(--raised);color:var(--text);border:1px solid var(--line2);border-radius:5px;padding:9px 10px}
+input[type=range]{width:100%;accent-color:var(--brass)}.slider{font-family:var(--mono);font-size:11px;color:var(--dim)}.slider b{color:var(--brass-hi);font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--ink2);border:1px solid var(--line);border-radius:999px;padding:6px 11px}
+.checkline{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer}
+table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:left;padding:10px 12px;background:var(--ink2);border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid #1a212a;font-size:13.5px;vertical-align:top}td.m{font-family:var(--mono)}tr:last-child td{border-bottom:none}tr:hover td{background:rgba(232,161,58,.03)}
+.math{background:var(--ink2);border:1px solid var(--line);border-left:3px solid var(--brass-dim);border-radius:8px;padding:14px 16px;margin:14px 0;overflow-x:auto}
+.math .note{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px}.katex{font-size:1.05em}
+.code{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#0f151c,#0c1016)}
+.code-head{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:var(--ink2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.code-head .ttl{color:var(--text)}.code pre{margin:0;padding:15px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65}
+.tok-c{color:#6b7787;font-style:italic}.tok-k{color:var(--brass-hi)}.tok-s{color:var(--phos-hi)}.tok-n{color:#e6b3ff}.tok-f{color:#9fd0ff}
+.chart{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:6px}
+.glyph{background:var(--ink2);border:1px solid var(--line);border-radius:8px;padding:10px 8px;cursor:pointer;text-align:center;transition:transform .1s,border-color .1s,background .1s;user-select:none}
+.glyph:hover{border-color:var(--brass-dim);background:#141a22;transform:translateY(-2px)}.glyph.play{border-color:var(--brass);background:rgba(232,161,58,.10)}
+.glyph .ch{font-family:var(--disp);font-weight:700;font-size:26px;line-height:1}.glyph .code{font-family:var(--mono);font-size:13px;color:var(--brass-hi);margin-top:5px;letter-spacing:.06em}
+.scope{border:1px solid var(--line);border-radius:8px;background:linear-gradient(180deg,#0a1316,#0b0f12);position:relative;overflow:hidden}.scope canvas{display:block;width:100%}
+.tapewrap{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:repeating-linear-gradient(90deg,transparent 0 26px,#0000 26px 27px),linear-gradient(180deg,#efe7d3,#e3d9c0)}.tapewrap canvas{display:block;width:100%}
+.key{height:150px;display:grid;place-items:center;border-radius:12px;cursor:pointer;user-select:none;border:1px solid var(--brass-dim);background:radial-gradient(600px 200px at 50% -30%,rgba(232,161,58,.18),transparent),linear-gradient(180deg,#1a1610,#14110b);font-family:var(--mono);letter-spacing:.14em;color:var(--muted);text-align:center;transition:background .06s,box-shadow .06s;touch-action:none}
+.key.down{background:radial-gradient(600px 220px at 50% -10%,rgba(255,196,100,.45),transparent),linear-gradient(180deg,#3a2c12,#241a0b);box-shadow:inset 0 0 40px rgba(255,196,100,.25);color:var(--brass-hi)}.key b{font-family:var(--disp);font-weight:800;font-size:34px;color:var(--brass-hi);display:block}
+.trainer .verdict{font-family:var(--mono);font-size:13px;min-height:22px}.ok{color:var(--phos-hi)}.bad{color:var(--alert)}.stat{font-family:var(--mono);font-size:12px;color:var(--dim)}.stat b{color:var(--brass-hi)}
+.led{width:14px;height:14px;border-radius:50%;background:#241a0b;border:1px solid var(--brass-dim);box-shadow:inset 0 0 6px #000;display:inline-block;vertical-align:middle;transition:background .04s,box-shadow .04s}.led.on{background:var(--brass-hi);box-shadow:0 0 14px var(--brass-hi),inset 0 0 4px #fff}
+.mark{color:var(--brass-hi)}.callout{border:1px solid var(--phos-dim);background:rgba(91,214,192,.05);border-radius:8px;padding:14px 16px;margin:16px 0;color:var(--muted);font-size:14.5px}.callout b{color:var(--phos-hi)}
+footer.end{padding:40px 0 80px;border-top:1px solid var(--line);margin-top:20px}.endline{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+<div class="eyebrow"><span class="beacon"></span> LIVE SIGNAL • COMPREHENSIVE EDITION v2 — KaTeX ✓ Interactive ✓ Octave ✓</div>
+<h1 class="title">MORSE <span class="amp">&</span> SIGNALS</h1>
+<div class="hero-sub">One wire, two states, infinite meaning. Morse is not a relic — it's a masterclass in compression, bandwidth, and human-machine symbiosis. This guide is extensive: history, math with KaTeX, full codex, 5 interactive labs, information theory, and 12 Octave labs you can run today.</div>
+<div class="hero-scope"><canvas id="hero-canvas" width="1200" height="120"></canvas></div>
+<div class="hero-cap"><span>PARIS = 50 units • \(T_{dit}=1200/WPM\) ms • 20 WPM = 60 ms dit</span><span id="hero-readout" class="mono">—</span></div>
+</div></header>
+
+<nav class="sticky"><div class="wrap"><div class="inner">
+<a href="#origin"><span class="dd">·—</span> Origin</a>
+<a href="#alphabet"><span class="dd">·—</span> Alphabet</a>
+<a href="#timing"><span class="dd">—</span> Timing & Math</a>
+<a href="#translate"><span class="dd">··</span> Translator</a>
+<a href="#audio"><span class="dd">·—··</span> Audio Lab</a>
+<a href="#key"><span class="dd">—·—</span> Key Trainer</a>
+<a href="#signal"><span class="dd">···</span> Signal & BW</a>
+<a href="#info"><span class="dd">··—</span> Information</a>
+<a href="#learn"><span class="dd">—·—</span> Learn</a>
+<a href="#apps"><span class="dd">·—·</span> Apps</a>
+<a href="#octave"><span class="dd">———</span> Octave Lab</a>
+<a href="#formulary"><span class="dd">·—·—</span> Formulary</a>
+</div></div></nav>
+
+<section id="origin"><div class="wrap">
+<div class="kick"><span class="num">01</span> — Origin • History</div>
+<div class="grid2">
+<div>
+<h2>A rhythm that crossed oceans</h2>
+<p class="lead">In 1844 Morse tapped "What hath God wrought" over 40 miles of wire. The device didn't transmit letters. It transmitted <em>time</em>: how long the circuit stayed closed, and how long it stayed open.</p>
+<p class="lead">Vail is credited with shaping the code itself, reportedly counting movable type in a printer's tray to give commonest English letters shortest signals. E is one dit; Q is four elements. That frequency-weighting is a Huffman code built by hand, a century before Huffman formalized it in 1952.</p>
+<div class="callout"><b>American vs International.</b> American Morse used internal spaces and varied dash lengths and was clumsy over radio. International Morse (1865) — clean dits and dahs with fixed 1:3 ratio — is what world settled on and what this guide teaches.</div>
+<div class="card" style="margin-top:16px">
+<h3>Timeline that matters</h3>
+<div style="display:grid;gap:10px;font-size:13.5px;color:var(--muted);margin-top:10px">
+<div><span class="tag brass">1836</span> Morse & Vail build first key: numbers mapped to words via book.</div>
+<div><span class="tag brass">1848</span> Gerke refines for German: removes varied dashes.</div>
+<div><span class="tag brass">1865</span> International Morse standardized in Paris — 26 letters + 10 digits.</div>
+<div><span class="tag brass">1870</span> Baudot creates 5-bit binary telegraph — direct child: fixed-length + start/stop.</div>
+<div><span class="tag brass">1901</span> Marconi sends S transatlantic.</div>
+<div><span class="tag brass">1906</span> SOS ...---... adopted — not "Save Our Souls" but 9-unit unmistakable rhythm.</div>
+<div><span class="tag brass">1999</span> GMDSS replaces Morse as required distress, but ham radio, aviation still require it.</div>
+</div>
+</div>
+</div>
+<div>
+<div class="card">
+<div class="tag brass">The five durations that are the entire code</div>
+<table style="margin-top:14px"><thead><tr><th>Element</th><th>Symbol</th><th>Length</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>Dit</td><td class="m mark">·</td><td class="m">1 unit ON</td><td>short mark</td></tr>
+<tr><td>Dah</td><td class="m mark">—</td><td class="m">3 units ON</td><td>long mark</td></tr>
+<tr><td>Element gap</td><td class="m"> </td><td class="m">1 unit OFF</td><td>within letter</td></tr>
+<tr><td>Letter gap</td><td class="m">/</td><td class="m">3 units OFF</td><td>between letters</td></tr>
+<tr><td>Word gap</td><td class="m">//</td><td class="m">7 units OFF</td><td>between words</td></tr>
+</tbody></table>
+<div class="divider"></div>
+<p class="small foot">Every signal on this page built from exactly these five durations. Change the "unit" and you change speed — nothing else.</p>
+<div class="math">\[ \text{Total states}=5: \{dit,dah,g_{elem},g_{letter},g_{word}\} \neq binary \]</div>
+</div>
+<div class="card" style="margin-top:16px">
+<div class="tag phos">Why SOS?</div>
+<p class="small" style="margin-top:10px;color:var(--muted)">It isn't an abbreviation. Chosen in 1906 because <span class="mono mark">···---···</span> keyed as one unbroken nine-element string is impossible to mistake through heavy static. Rhythm was whole point.</p>
+<p class="small foot">SOS is actually one prosign: <span style="text-decoration:overline">SOS</span> with no letter gaps — 9 elements: 3 dits, 3 dahs, 3 dits as one fused character.</p>
+</div>
+</div>
+</div>
+</div></section>
+
+<section id="alphabet"><div class="wrap">
+<div class="kick brass"><span class="num">02</span> — Alphabet • Full Codex</div>
+<h2>The full International Morse chart — tap to hear</h2>
+<p class="lead">Every glyph clickable — tap to hear actual keyed signal at current lab settings. Dits <span class="mark">amber</span>, dahs <span style="color:var(--phos)">teal</span> by color.</p>
+<div class="row" style="margin-top:20px"><span class="pill"><span class="led" id="chart-led"></span> tap any glyph</span><span class="pill mono">tone <b class="mark" id="chart-freq">650</b> Hz</span><span class="pill mono"><b class="mark" id="chart-wpm">18</b> WPM</span><span class="pill mono" id="chart-last">Last: —</span></div>
+<h3 style="margin-top:26px">Letters</h3><div class="chart" id="chart-letters"></div>
+<h3 style="margin-top:26px">Digits</h3><div class="chart" id="chart-digits"></div>
+<h3 style="margin-top:26px">Punctuation</h3><div class="chart" id="chart-punct"></div>
+<div class="gridw" style="margin-top:30px">
+<div class="card"><h3>Prosigns — fused, no letter gap</h3><p class="small" style="color:var(--muted)">Procedural signals sent as one character — overbar shows fusion.</p><table style="margin-top:8px"><thead><tr><th>Prosign</th><th>Code</th><th>Means</th></tr></thead><tbody id="chart-prosign"></tbody></table></div>
+<div class="card"><h3>Operator's shorthand</h3><table style="margin-top:8px"><thead><tr><th>Signal</th><th>Meaning</th></tr></thead><tbody>
+<tr><td class="m mark">CQ</td><td>Calling any station</td></tr>
+<tr><td class="m mark">DE</td><td>"from" (this is ...)</td></tr>
+<tr><td class="m mark">K</td><td>Over</td></tr>
+<tr><td class="m mark">R</td><td>Received</td></tr>
+<tr><td class="m mark">73</td><td>Best regards</td></tr>
+<tr><td class="m mark">88</td><td>Love and kisses</td></tr>
+<tr><td class="m mark">QTH/QRM/QRN</td><td>Location / interference / static</td></tr>
+<tr><td class="m mark">SK</td><td>End of contact</td></tr>
+</tbody></table></div>
+</div>
+</div></section>
+
+<section id="timing"><div class="wrap">
+<div class="kick"><span class="num">03</span> — Timing & Math • KaTeX</div>
+<h2>Speed is one number</h2>
+<p class="lead">Because every duration is multiple of single "unit," Morse transmission has exactly one free parameter: length of one dit. Fix that, and dahs, gaps all follow. Standard way to name parameter is <strong>words per minute</strong>.</p>
+<div class="grid2" style="margin-top:24px">
+<div>
+<h3>The PARIS standard</h3>
+<p class="small" style="color:var(--muted)">"WPM" needs reference word, because words differ. Convention is word <span class="mono mark">PARIS</span> followed by one word space — exactly <strong>50 units</strong>.</p>
+<div class="math">\[ \underbrace{11}_{P}+\underbrace{5}_{A}+\underbrace{7}_{R}+\underbrace{3}_{I}+\underbrace{5}_{S}+\underbrace{12}_{\text{letter gaps}}+\underbrace{7}_{\text{word gap}}=50\text{ units} \]<span class="note">31 char units + 19 spacing = 50</span></div>
+<p class="small" style="color:var(--muted)">If you send \(W\) words per minute, you emit \(50W\) units per minute. One unit therefore lasts:</p>
+<div class="math">\[ T_{\text{dit}}=\frac{60}{50W}\text{s}=\frac{1.2}{W}\text{s}=\frac{1200}{W}\text{ms} \]<span class="note">at 20 WPM dit=60ms; at 5 WPM dit=240ms</span></div>
+<div class="math">\[ T_{\text{dah}}=3T_{\text{dit}},\; g_{elem}=1T,\; g_{letter}=3T,\; g_{word}=7T \]</div>
+</div>
+<div>
+<div class="card">
+<div class="tag phos">Live timing diagram • oscilloscope + tape</div>
+<label class="fld">text to key</label><input type="text" id="tm-in" value="SOS" spellcheck="false">
+<div class="row"><span class="slider" style="flex:1">WPM <b id="tm-wpm-v">18</b><input type="range" id="tm-wpm" min="5" max="40" value="18"></span></div>
+<label class="fld" style="margin-top:14px">key-down envelope</label><div class="scope"><canvas id="tm-scope" width="1000" height="130"></canvas></div>
+<label class="fld" style="margin-top:14px">embossed register tape</label><div class="tapewrap"><canvas id="tm-tape" width="1000" height="66"></canvas></div>
+<div class="row"><span class="pill mono">1 dit=<b class="mark" id="tm-dit">66.7</b> ms</span><span class="pill mono">total <b class="mark" id="tm-total">—</b></span></div>
+</div>
+</div>
+</div>
+<div class="divider"></div>
+<div class="grid2 rev">
+<div>
+<div class="card">
+<div class="tag brass">Farnsworth calculator — fast chars, stretched gaps</div>
+<p class="small" style="color:var(--muted);margin-top:12px">Learners hear fast characters but need thinking time between them. Farnsworth keeps each character at brisk speed \(c\) but stretches gaps so overall rate is slower \(s\).</p>
+<div class="row"><span class="slider" style="flex:1">char speed c <b id="fw-c-v">18</b><input type="range" id="fw-c" min="10" max="35" value="18"></span></div>
+<div class="row"><span class="slider" style="flex:1">overall speed s <b id="fw-s-v">9</b><input type="range" id="fw-s" min="5" max="35" value="9"></span></div>
+<div class="math" style="margin-top:8px"><span id="fw-out" class="mono" style="color:var(--phos-hi);font-size:13px">—</span></div>
+</div>
+</div>
+<div>
+<h3>Farnsworth formula</h3>
+<p class="small" style="color:var(--muted)">Of PARIS's 50 units, 31 belong to characters and 19 are spacing. Send 31 at speed \(c\), then pad 19 until whole word fits budget for speed \(s\):</p>
+<div class="math">\[ t_c=\frac{1.2}{c}\text{s},\; t_{word}=\frac{60}{s}\text{s} \]<br>\[ u_{gap}=\frac{t_{word}-31t_c}{19}=\frac1{19}\left(\frac{60}{s}-\frac{37.2}{c}\right)\text{s} \]<span class="note">\(u_{gap}=t_c\) when \(s=c\)</span></div>
+<p class="small" style="color:var(--muted)">This is why 5-WPM practice can still contain crisp 18-WPM letters — only silence dilated.</p>
+<div class="math">\[ WPM_{eff}= \frac{60}{31t_c+19u_{gap}} \]</div>
+</div>
+</div>
+</div></section>
+
+<section id="translate"><div class="wrap">
+<div class="kick brass"><span class="num">04</span> — Translator • Interactive</div>
+<h2>Text in, dits out — both ways</h2>
+<p class="lead">Type in either field; other updates live. Morse field accepts dots/dashes or Unicode · —; letters separated by spaces, words by /.</p>
+<div class="gridw" style="margin-top:22px">
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><strong class="mono">Plain text</strong><span class="tag brass">live</span></div>
+<label class="fld">text</label><textarea id="tx-text" rows="4" spellcheck="false">What hath God wrought</textarea>
+<div class="row"><button class="btn brass" id="tx-play">▶ Play Morse</button><button class="btn" onclick="copyField('tx-text')">Copy</button><label class="checkline"><input type="checkbox" id="tx-uni" checked> unicode · —</label></div>
+</div>
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><strong class="mono">Morse</strong><span class="tag phos">· — /</span></div>
+<label class="fld">morse</label><textarea id="tx-morse" rows="4" spellcheck="false"></textarea>
+<div class="row"><button class="btn" onclick="copyField('tx-morse')">Copy</button><span class="foot" id="tx-status"></span><span class="pill" id="tx-last">—</span></div>
+</div>
+</div>
+</div></section>
+
+<section id="audio"><div class="wrap">
+<div class="kick"><span class="num">05</span> — Audio Lab • Web Audio API</div>
+<h2>See the envelope, hear the code</h2>
+<p class="lead">Proper Morse shaping: raised-cosine edges (≈5 ms) to kill key clicks. Watch envelope and listen.</p>
+<div class="grid2">
+<div>
+<div class="card">
+<div class="tag phos">Controls • visible feedback required</div>
+<label class="fld">message</label><input type="text" id="au-msg" value="CQ DE M1ABC">
+<div class="row"><span class="slider" style="flex:1">WPM <b id="au-wpm-v">18</b><input type="range" id="au-wpm" min="5" max="40" value="18"></span><span class="slider" style="flex:1">Eff WPM <b id="au-fw-v">18</b><input type="range" id="au-fw" min="5" max="40" value="18"></span></div>
+<div class="row"><span class="slider" style="flex:1">Tone <b id="au-freq-v">650</b> Hz<input type="range" id="au-freq" min="300" max="900" value="650" step="10"></span><span class="slider" style="flex:1">Vol <b id="au-vol-v">0.50</b><input type="range" id="au-vol" min="0" max="1" step="0.05" value="0.5"></span></div>
+<div class="row"><label class="checkline"><input type="checkbox" id="au-shape" checked> raised-cosine edges (5 ms)</label><span class="pill"><span class="led" id="audio-led"></span> key down</span></div>
+<div class="row"><button class="btn brass" id="au-play">▶ Play</button><button class="btn" id="au-stop">■ Stop</button><span class="pill mono" id="au-render">—</span></div>
+</div>
+</div>
+<div>
+<div class="card">
+<div class="tag brass">Oscilloscope • envelope with playhead</div>
+<div class="scope" style="margin-top:12px"><canvas id="au-scope" width="1000" height="160"></canvas></div>
+<p class="foot" style="margin-top:10px">Envelope shows ON time. Playhead is amber. Edge shaping removes click sidebands — see next section for spectrum.</p>
+</div>
+</div>
+</div>
+</div></section>
+
+<section id="key"><div class="wrap">
+<div class="kick"><span class="num">06</span> — Key Trainer • Tap</div>
+<div class="grid2">
+<div>
+<h2>Send with finger, mouse, or Space</h2>
+<p class="lead">Hold short = ·, long = —. Gap timing decodes automatically. This is how straight key feels.</p>
+<div class="card" style="margin-top:16px">
+<div class="key" id="key-pad" tabindex="0" role="button" aria-label="Morse key"><b>TAP / SPACE</b><span>Hold short=· long=—</span></div>
+<div class="row"><span class="pill mono">buffer <b class="mark" id="key-buf">—</b></span><span class="pill mono">live <b class="mark" id="key-live">·</b></span><span class="pill mono">speed <b id="key-spd-v">18</b> WPM<input type="range" id="key-spd" min="5" max="40" value="18" style="width:80px"></span><span class="pill mono">WPM ref <b id="key-wpm">18</b></span></div>
+<div class="row"><span class="pill mono" style="flex:1">decoded: <b id="key-out" style="color:var(--text)"> </b></span><button class="btn" id="key-clear">Clear</button></div>
+</div>
+</div>
+<div>
+<div class="card trainer">
+<div class="tag phos">Koch trainer — learn by ear, not by table</div>
+<p class="small" style="color:var(--muted);margin-top:10px">Koch method: start with 2 letters at full speed, add one when 90% copy. Never count dots.</p>
+<div class="row"><select id="koch-level" class="sel"></select><button class="btn brass" id="koch-play">▶ Play random</button><button class="btn" id="koch-reveal">Reveal</button><button class="btn" id="koch-reset">Reset</button></div>
+<div class="row"><input type="text" id="koch-guess" placeholder="Type what you hear" style="max-width:200px"><span class="pill mono">score <b id="koch-score">0 / 0</b> <span id="koch-acc">—</span></span></div>
+<div class="verdict" id="koch-verdict">&nbsp;</div>
+<div class="divider"></div>
+<p class="foot">Koch order used: K M R S U A P T L O W I N J E F Y V G Q Z H B C D X — maximizes early distinction.</p>
+</div>
+</div>
+</div>
+</div></section>
+
+<section id="signal"><div class="wrap">
+<div class="kick"><span class="num">07</span> — Signal & Bandwidth • KaTeX</div>
+<h2>Why Morse punches through noise</h2>
+<p class="lead">Morse is narrow. Voice SSB needs ~2700 Hz. CW at 25 WPM needs ~40 Hz. That's why QRP 5W Morse goes worldwide when voice doesn't.</p>
+<div class="grid2" style="margin-top:24px">
+<div>
+<h3>Keying rate</h3>
+<p class="small" style="color:var(--muted)">A string of dits at \(W\) WPM has fundamental keying frequency (one dit + one gap = 2 units):</p>
+<div class="math">\[ f_k=\frac{1}{2T_{dit}}=\frac{W}{2.4}\text{Hz} \]</div>
+<h3 style="margin-top:22px">Occupied bandwidth</h3>
+<p class="small" style="color:var(--muted)">Estimate using keying factor \(K\) (≈3 soft edges, ≈5 hard):</p>
+<div class="math">\[ B\approx K\cdot f_k=\frac{KW}{2.4}\text{Hz} \]<span class="note">30 WPM, K=3 → ~37 Hz; hard keying (K=5) nearly doubles</span></div>
+<div class="math">\[ \text{SNR gain vs SSB} \approx 10\log_{10}\frac{2700}{B} \text{ dB} \approx 14\text{ dB at 25 WPM soft} \]</div>
+</div>
+<div>
+<div class="card">
+<div class="tag phos">Envelope & spectrum • interactive edge time</div>
+<label class="fld" style="margin-top:10px">rise/fall shaping</label><div class="row"><span class="slider" style="flex:1">edge time tr <b id="sig-tr-v">5.0</b> ms<input type="range" id="sig-tr" min="0" max="12" step="0.5" value="5"></span></div>
+<label class="fld">one dit — key-down envelope</label><div class="scope"><canvas id="sig-env" width="1000" height="120"></canvas></div>
+<label class="fld">relative spectrum near carrier (log)</label><div class="scope"><canvas id="sig-spec" width="1000" height="150"></canvas></div>
+<p class="foot" style="margin-top:10px">Drag tr to 0 for rectangular key: watch sidelobes fill band. Increase it and skirts collapse.</p>
+</div>
+</div>
+</div>
+</div></section>
+
+<section id="info"><div class="wrap">
+<div class="kick brass"><span class="num">08</span> — Information Theory • KaTeX</div>
+<h2>A handmade Huffman code</h2>
+<p class="lead">Vail's frequency weighting was intuition that Shannon made exact: minimize average transmission time, assign shortest signals to most frequent symbols.</p>
+<div class="grid2" style="margin-top:24px">
+<div>
+<div class="card">
+<div class="tag phos">Cost vs frequency — English letters</div>
+<div class="scope" style="background:var(--ink2);border-left:3px solid var(--brass-dim);margin-top:12px"><canvas id="info-chart" width="1000" height="340"></canvas></div>
+<div class="row"><span class="pill mono"><span style="color:var(--brass)">■</span> unit-cost</span><span class="pill mono"><span style="color:var(--phos)">■</span> English freq</span></div>
+<p class="foot" id="info-stat" style="margin-top:10px">—</p>
+</div>
+</div>
+<div>
+<h3>Weighted average length</h3>
+<p class="small" style="color:var(--muted)">Let \(p_i\) frequency and \(\ell_i\) cost in time-units (dits=1, dahs=3, plus intra gaps). Expected units per letter:</p>
+<div class="math">\[ \bar{\ell}=\sum_i p_i\ell_i \approx \mathbf{__LBAR__}\text{ units/letter} \]<span class="note">uniform assignment would cost more</span></div>
+<p class="small" style="color:var(--muted)">Shannon entropy — theoretical floor:</p>
+<div class="math">\[ H=-\sum_i p_i\log_2 p_i \approx 4.14\text{ bits/letter} \]</div>
+<div class="callout"><b>Morse is not a prefix code.</b> E=· is prefix of I=··, which is prefix of S=···. In pure symbols ambiguous. Morse resolves in <em>time</em> domain — gaps are load-bearing information, not pauses. That third "symbol," silence of specific length, is what makes code work and what makes it strictly more than binary.</div>
+<p class="small" style="color:var(--muted)">Bridge to binary: fixed-length codes like ASCII throw away frequency weighting to gain machine-friendly clock. Morse optimizes for human ear; binary optimizes for crystal oscillator.</p>
+<div class="math">\[ \text{Baudot 1870: }5\text{ bits}=32\text{ codes, needs FIGS/LTRS shift} \]</div>
+<div class="math">\[ \text{ASCII 1963: }7\text{ bits}=128\text{ codes, no shift} \]</div>
+</div>
+</div>
+</div></section>
+
+<section id="learn"><div class="wrap">
+<div class="kick green"><span class="num">09</span> — Learn • Koch + Farnsworth</div>
+<div class="grid2">
+<div class="card">
+<h2 style="font-size:28px">Koch + Farnsworth = fastest path to 20 WPM</h2>
+<p class="lead" style="font-size:14px">Don't memorize dots. Memorize sound shapes. Di-dah for A, dah-di-di-dit for B. At 18 WPM you stop counting and start hearing words.</p>
+<div style="display:grid;gap:12px;margin-top:14px">
+<div><span class="pill">1. Koch order</span><p class="foot" style="margin-top:6px">Start K and M (far apart). Add one at 90% copy. Order: K M R S U A P T L O W I . N J E F 0 Y V G 5 / Q 9 Z H 3 8 B ? 4 2 7 C 1 D 6 X</p></div>
+<div><span class="pill">2. Farnsworth</span><p class="foot" style="margin-top:6px">Char speed 18-20 WPM always. Effective 10 WPM by stretching gaps. Shrink gaps as you improve.</p></div>
+<div><span class="pill">3. Never visual</span><p class="foot" style="margin-top:6px">If you write · — and translate, you'll never exceed 10 WPM. Train ear to hand.</p></div>
+</div>
+<div class="callout"><b>Practice:</b> 15 min twice daily, not 2h weekly. First plateau at 10 WPM (counting→hearing), second at 20 WPM (letters→words). Both normal — push through.</div>
+</div>
+<div class="card">
+<h3>Common pitfalls</h3>
+<table><thead><tr><th>MISTAKE</th><th>FIX</th></tr></thead><tbody>
+<tr><td>Counting dits</td><td>Raise char speed to 18+</td></tr>
+<tr><td>Visual table</td><td>Audio only trainer</td></tr>
+<tr><td>5 WPM start</td><td>Start 18/10 Farnsworth</td></tr>
+<tr><td>Stuck on one letter</td><td>Drill minimal pairs: S/H (... vs ....), D/B (-.. vs -...)</td></tr>
+</tbody></table>
+<div class="divider"></div>
+<strong class="mono">Goal speeds</strong>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px" class="foot"><div>5 WPM: license</div><div>12 WPM: conversational</div><div>20 WPM: ragchew</div><div>30+ WPM: contest</div></div>
+<div class="divider"></div>
+<p class="foot">Koch progress: 2 letters = 18% English text coverage. 10 letters = 70% coverage. Full alphabet = 100% but numbers/punct add extra.</p>
+</div>
+</div>
+</div></section>
+
+<section id="apps"><div class="wrap">
+<div class="kick"><span class="num">10</span> — Applications • Why still alive</div>
+<div class="grid3">
+<div class="card"><strong>Amateur Radio</strong><p class="small" style="color:var(--muted)">Most active mode. 14.020-14.070 MHz wall-to-wall Morse at 20-30 WPM. QRP 5W + wire = worldwide because 200 Hz BW beats SSB 2700 Hz by ~11 dB.</p><span class="tag brass">BW≈WPM×1.2 Hz</span></div>
+<div class="card"><strong>Aviation & Nav</strong><p class="small" style="color:var(--muted)">VOR, NDB, ILS IDs still send Morse: SFO = ... ..-. ---. No computer needed — AM detector + ear. Ultimate backup.</p><span class="tag">Failsafe</span></div>
+<div class="card"><strong>Assistive Tech</strong><p class="small" style="color:var(--muted)">Sip-and-puff, single switch, eye blink → Morse → text. Used for ALS. 2 switches faster: one dit, one dah.</p><span class="tag">Accessibility</span></div>
+</div>
+<div class="grid3" style="margin-top:16px">
+<div class="card"><strong>Emergency</strong><p class="small" style="color:var(--muted)">Mirror flashes, flashlight, tapping pipes. SOS mirror seen 10+ miles. International distress as one prosign.</p></div>
+<div class="card"><strong>Covert & Puzzles</strong><p class="small" style="color:var(--muted)">Hidden in music, movies, CTFs. Steganography: hide in image LSB as morse audio envelope.</p></div>
+<div class="card"><strong>BCI</strong><p class="small" style="color:var(--muted)">Brain-computer interfaces test Morse as output: 2 mental states → dit/dah. Slow but 2 bits/sec with 95% accuracy.</p></div>
+</div>
+</div></section>
+
+<section id="octave"><div class="wrap">
+<div class="kick"><span class="num">11</span> — GNU Octave Lab • 12 Snippets</div>
+<h2>Same signal, in a scientific computer</h2>
+<p class="lead">Everything on this page reduces to arrays and timing — exactly Octave's home turf. Snippets run in Octave 7+ (most also MATLAB). Cover encoding, audio synthesis with proper envelope, spectral analysis, decoding, Farnsworth, information theory, practice file generation. Copy any block. Leading <span class="mono">1;</span> marks file as script so inline functions allowed.</p>
+<div style="display:grid;gap:16px;margin-top:24px" id="octave-grid"></div>
+</div></section>
+
+<section id="formulary"><div class="wrap">
+<div class="kick green"><span class="num">12</span> — Formulary • KaTeX Reference</div>
+<div class="grid2">
+<div>
+<div class="card">
+<h3>All formulas</h3>
+<div class="math">\[ T_{dit}=\frac{1200}{WPM}\text{ms} \]</div>
+<div class="math">\[ T_{dah}=3T_{dit},\; g_{elem}=1T,\; g_{letter}=3T,\; g_{word}=7T \]</div>
+<div class="math">\[ N_{PARIS}=50,\; N_{CODEX}=60\text{ alt} \]</div>
+<div class="math">\[ f_k=\frac{1}{2T_{dit}}=\frac{W}{2.4}\text{Hz},\; B\approx Kf_k=\frac{KW}{2.4}\text{Hz} \]</div>
+<div class="math">\[ H=-\sum p_i\log_2p_i,\; \bar\ell=\sum p_i\ell_i,\; \bar\ell\ge H \]</div>
+<div class="math">\[ WPM_{eff}=\frac{60}{31t_c+19u_{gap}},\; u_{gap}=\frac1{19}\left(\frac{60}{s}-\frac{37.2}{c}\right) \]</div>
+<div class="callout"><b>Morse achieves</b> \(\bar\ell\approx\) __LBAR__ units/letter vs \(H\approx4.14\) bits — remarkably close for 1840, not optimal but time-weighted optimal for hand key.</div>
+</div>
+</div>
+<div>
+<table><thead><tr><th>CONCEPT</th><th>VALUE</th></tr></thead><tbody>
+<tr><td>Dit at 20 WPM</td><td>60 ms</td></tr>
+<tr><td>PARIS at 20 WPM</td><td>3.0 s</td></tr>
+<tr><td>Chars/min</td><td>≈5×WPM (PARIS)</td></tr>
+<tr><td>Bits/sec</td><td>≈0.6×WPM</td></tr>
+<tr><td>Entropy letters</td><td>~4.14 bits</td></tr>
+<tr><td>Entropy English</td><td>~1.1 bits with context</td></tr>
+<tr><td>Morse avg</td><td>~__LBAR__ units</td></tr>
+<tr><td>SNR gain vs SSB at 25WPM</td><td>~14 dB</td></tr>
+</tbody></table>
+<div class="card" style="margin-top:16px">
+<h3>Quick converter</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px" class="mono foot">
+<div>5 WPM → dit 240ms</div><div>12 WPM → dit 100ms</div><div>20 WPM → dit 60ms</div><div>30 WPM → dit 40ms</div><div>40 WPM → dit 30ms</div><div>50 WPM → dit 24ms contest</div>
+</div>
+<p class="foot" style="margin-top:12px">Sources: ITU-R M.1677-1, Shannon 1948 & 1951, ARRL Handbook, Koch 1936, ITU-T G.709.</p>
+</div>
+</div>
+</div>
+</div></section>
+
+<footer class="end"><div class="wrap">
+<div class="divider"></div>
+<div class="endline"><span>Morse — signals in the dark · dit · dah · silence · repeat • Comprehensive v2 • KaTeX ✓ Interactive ✓ Octave ✓</span><span id="foot-sig">— ···· ·  · —· ··— ··· ·  ·—·· ···— ·—·· ·</span></div>
+</div></footer>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const MORSE={A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..","0":"-----","1":".----","2":"..---","3":"...--","4":"....-","5":".....","6":"-....","7":"--...","8":"---..","9":"----.", ".":".-.-.-",",":"--..--","?":"..--..","'":".----.","!":"-.-.--","/":"-..-.","(":"-.--.",")":"-.--.-","&":".-...",":":"---...",";":"-.-.-.","=":"-...-","+":".-.-.","-":"-....-","_":"..--.-",'"':".-..-.","$":"...-..-","@":".--.-."};
+const REV={};for(const k in MORSE)REV[MORSE[k]]=k;
+const PROSIGNS=[["AR",".-.-.","End of message"],["AS",".-...","Wait"],["BT","-...-","Break"],["KN","-.--.","Go ahead, named only"],["SK","...-.-","End of contact"],["CT","-.-.-","Attention"],["SOS","...---...","Distress (fused)"],["HH","........","Error"]];
+function textToMorse(text,unicode){const out=text.toUpperCase().split("\n").map(line=>line.split(/\s+/).map(word=>[...word].map(ch=>MORSE[ch]||"").filter(Boolean).join(" ")).filter(Boolean).join(" / ")).join("\n");return unicode?out.replace(/\./g,"·").replace(/-/g,"—"):out;}
+function morseToText(morse){const norm=morse.replace(/·/g,".").replace(/—/g,"-").replace(/_/g,"-").trim();if(!norm)return"";return norm.split("\n").map(line=>line.split(/\s*\/\s*/).map(word=>word.split(/\s+/).filter(Boolean).map(c=>REV[c]||"█").join("")).join(" ")).join("\n");}
+function textToWords(text){return text.trim().toUpperCase().split(/\s+/).map(w=>[...w].map(ch=>MORSE[ch]).filter(Boolean)).filter(w=>w.length);}
+const ditSec=wpm=>1.2/wpm;
+function farnsGapUnit(wpm,fwpm){if(fwpm>=wpm)return ditSec(wpm);const u=(60/fwpm-37.2/wpm)/19;return Math.max(u,ditSec(wpm));}
+function schedule(text,wpm,fwpm){const uc=ditSec(wpm),uf=farnsGapUnit(wpm,fwpm==null?wpm:fwpm),words=textToWords(text),pulses=[];let t=0;words.forEach((word,wi)=>{word.forEach((code,li)=>{const els=[...code];els.forEach((el,ei)=>{const dur=(el==="."?1:3)*uc;pulses.push({t,dur});t+=dur;if(ei<els.length-1)t+=uc;});if(li<word.length-1)t+=3*uf;});if(wi<words.length-1)t+=7*uf;});return{pulses,total:t};}
+const settings={wpm:18,freq:650,vol:0.5,shape:true,fwpm:18};
+let AC=null;function audioCtx(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();return AC;}
+function cosCurve(from,to,n){const a=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1);a[i]=from+(to-from)*0.5*(1-Math.cos(Math.PI*x));}return a;}
+let PLAY=null;function stopAudio(){if(!PLAY)return;const c=AC;try{PLAY.gain.gain.cancelScheduledValues(c.currentTime);PLAY.gain.gain.setValueAtTime(0,c.currentTime);PLAY.osc.stop(c.currentTime+0.02);}catch(e){}cancelAnimationFrame(PLAY.raf);const oe=PLAY.onEnd;PLAY=null;if(oe)oe();}
+function play(sched,opts){opts=opts||{};const freq=opts.freq??settings.freq,vol=opts.vol??settings.vol,shape=opts.shape??settings.shape;stopAudio();if(!sched.pulses.length)return;const c=audioCtx();const t0=c.currentTime+0.06;const osc=c.createOscillator();osc.type="sine";osc.frequency.value=freq;const g=c.createGain();g.gain.setValueAtTime(0,t0);osc.connect(g);g.connect(c.destination);const softEdge=0.005,hardEdge=0.0004;for(const p of sched.pulses){const edge=Math.min(shape?softEdge:hardEdge,p.dur*0.45);const on=t0+p.t,off=on+p.dur;try{if(shape){g.gain.setValueCurveAtTime(cosCurve(0,vol,24),on,edge);g.gain.setValueAtTime(vol,on+edge);g.gain.setValueCurveAtTime(cosCurve(vol,0,24),Math.max(on+edge,off-edge),edge);}else{g.gain.setValueAtTime(vol,on);g.gain.setValueAtTime(0,off);}}catch(e){}}osc.start(t0);const endAt=t0+sched.total+0.06;osc.stop(endAt);PLAY={osc,gain:g,onEnd:opts.onEnd,raf:0};function frame(){if(!PLAY)return;const el=c.currentTime-t0;if(opts.onFrame)opts.onFrame(Math.max(0,el),sched.total);if(el<sched.total+0.06){PLAY.raf=requestAnimationFrame(frame);}else{const oe=PLAY.onEnd;PLAY=null;if(opts.onFrame)opts.onFrame(sched.total,sched.total);if(oe)oe();}}PLAY.raf=requestAnimationFrame(frame);}
+function keyText(text,opts){play(schedule(text,settings.wpm,(opts&&opts.fw)?settings.fwpm:settings.wpm),opts);}
+let SIDE=null;function sideOn(){const c=audioCtx();const osc=c.createOscillator();osc.type="sine";osc.frequency.value=settings.freq;const g=c.createGain();g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(settings.vol,c.currentTime+0.005);osc.connect(g);g.connect(c.destination);osc.start();SIDE={osc,g};}
+function sideOff(){if(!SIDE)return;const c=AC;try{SIDE.g.gain.cancelScheduledValues(c.currentTime);SIDE.g.gain.setValueAtTime(SIDE.g.gain.value,c.currentTime);SIDE.g.gain.linearRampToValueAtTime(0,c.currentTime+0.006);SIDE.osc.stop(c.currentTime+0.02);}catch(e){}SIDE=null;}
+function fitCanvas(cv){const dpr=window.devicePixelRatio||1;if(cv.dataset.logh===undefined)cv.dataset.logh=(cv.getAttribute("height")*1)||cv.height||120;const h=+cv.dataset.logh;const w=cv.clientWidth||(cv.getAttribute("width")*1)||600;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.height=h+"px";const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);return{ctx,w,h};}
+function sampleEnvelope(sched,N,edgeSec,shape){const y=new Float32Array(N);const total=sched.total||1;for(const p of sched.pulses){const a=p.t,b=p.t+p.dur;const iA=Math.max(0,Math.floor(a/total*(N-1))-2),iB=Math.min(N-1,Math.ceil(b/total*(N-1))+2);for(let i=iA;i<=iB;i++){const t=i/(N-1)*total;if(t>=a&&t<=b){let v=1;if(shape&&edgeSec>0){if(t<a+edgeSec)v=0.5*(1-Math.cos(Math.PI*(t-a)/edgeSec));else if(t>b-edgeSec)v=0.5*(1-Math.cos(Math.PI*(b-t)/edgeSec));}if(v>y[i])y[i]=v;}}}return y;}
+function drawEnvelope(cv,sched,o){o=o||{};const{ctx,w,h}=fitCanvas(cv);ctx.clearRect(0,0,w,h);ctx.strokeStyle="rgba(91,214,192,.08)";ctx.lineWidth=1;for(let x=0;x<w;x+=Math.max(18,w/40)){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}const base=h-14,top=12;ctx.strokeStyle="rgba(255,255,255,.06)";ctx.beginPath();ctx.moveTo(0,base);ctx.lineTo(w,base);ctx.stroke();if(!sched.pulses.length)return;const N=Math.max(200,Math.min(1600,Math.round(w)));const edge=o.shape===false?0:(o.edgeSec!=null?o.edgeSec:(sched.total/N)*3);const y=sampleEnvelope(sched,N,edge,o.shape!==false);const grad=ctx.createLinearGradient(0,top,0,base);grad.addColorStop(0,"rgba(232,161,58,.42)");grad.addColorStop(1,"rgba(232,161,58,.06)");ctx.beginPath();ctx.moveTo(0,base);for(let i=0;i<N;i++){const x=i/(N-1)*w,yy=base-y[i]*(base-top);ctx.lineTo(x,yy);}ctx.lineTo(w,base);ctx.closePath();ctx.fillStyle=grad;ctx.fill();ctx.beginPath();for(let i=0;i<N;i++){const x=i/(N-1)*w,yy=base-y[i]*(base-top);i?ctx.lineTo(x,yy):ctx.moveTo(x,yy);}ctx.strokeStyle="#8ff0df";ctx.lineWidth=1.6;ctx.shadowColor="rgba(143,240,223,.6)";ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0;if(o.playhead!=null&&sched.total>0){const x=Math.min(1,o.playhead/sched.total)*w;ctx.strokeStyle="#ffc464";ctx.lineWidth=2;ctx.shadowColor="#ffc464";ctx.shadowBlur=10;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();ctx.shadowBlur=0;}}
+function drawTape(cv,sched){const{ctx,w,h}=fitCanvas(cv);ctx.clearRect(0,0,w,h);ctx.fillStyle="rgba(0,0,0,.16)";for(let x=8;x<w;x+=27){ctx.beginPath();ctx.arc(x,8,2.4,0,7);ctx.fill();ctx.beginPath();ctx.arc(x,h-8,2.4,0,7);ctx.fill();}if(!sched.pulses.length||sched.total<=0)return;const laneY=h/2,laneH=12;ctx.fillStyle="#2a2419";for(const p of sched.pulses){const x=p.t/sched.total*(w-20)+10,bw=p.dur/sched.total*(w-20),r=laneH/2;ctx.beginPath();ctx.moveTo(x+r,laneY-r);ctx.arcTo(x+bw,laneY-r,x+bw,laneY,r);ctx.arcTo(x+bw,laneY+r,x+bw-r,laneY+r,r);ctx.arcTo(x,laneY+r,x,laneY,r);ctx.arcTo(x,laneY-r,x+r,laneY-r,r);ctx.closePath();ctx.fill();}}
+function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]];}}for(let len=2;len<=n;len<<=1){const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);for(let i=0;i<n;i+=len){let cwr=1,cwi=0;for(let k=0;k<len/2;k++){const uR=re[i+k],uI=im[i+k];const vR=re[i+k+len/2]*cwr-im[i+k+len/2]*cwi,vI=re[i+k+len/2]*cwi+im[i+k+len/2]*cwr;re[i+k]=uR+vR;im[i+k]=uI+vI;re[i+k+len/2]=uR-vR;im[i+k+len/2]=uI-vI;const nwr=cwr*wr-cwi*wi;cwi=cwr*wi+cwi*wr;cwr=nwr;}}}}
+function copyField(id){const el=$(id);el.select();navigator.clipboard?.writeText(el.value).catch(()=>{try{document.execCommand("copy");}catch(e){}});const last=$('tx-last');if(last)last.textContent='Copied '+id;}
+function flashLED(id){const l=$(id);if(l)l.classList.add("on");}function ledFollow(id,sched){const l=$(id);if(!l)return;play(sched,{onFrame:(el,total)=>{let on=false;for(const p of sched.pulses){if(el>=p.t&&el<=p.t+p.dur){on=true;break;}}l.classList.toggle("on",on);},onEnd:()=>l.classList.remove("on")});}
+function codeHTML(code){return [...code].map(c=>c==="."?'<span class="mark">·</span>':'<span style="color:var(--phos)">—</span>').join("");}
+function buildChart(containerId,entries){const el=$(containerId);el.innerHTML="";entries.forEach(([ch,code])=>{const d=document.createElement("div");d.className="glyph";const label=ch===" "?"␣":ch;d.innerHTML=`<div class="ch">${label==="&"?"&amp;":label}</div><div class="code">${codeHTML(code)}</div>`;d.onclick=()=>{d.classList.add("play");setTimeout(()=>d.classList.remove("play"),400);$('chart-last').textContent=`Last: ${ch} = ${code}`;ledFollow("chart-led",schedule(ch===" "?"":ch,settings.wpm,settings.wpm));};el.appendChild(d);});}
+function wireTranslator(){const tText=$("tx-text"),tMorse=$("tx-morse"),uni=$("tx-uni");function fromText(){tMorse.value=textToMorse(tText.value,uni.checked);$("tx-status").textContent=`${tText.value.replace(/\s/g,"").length} chars`; }function fromMorse(){tText.value=morseToText(tMorse.value);$("tx-status").textContent="decoded";}tText.addEventListener("input",fromText);tMorse.addEventListener("input",fromMorse);uni.addEventListener("change",fromText);$("tx-play").addEventListener("click",()=>keyText(tText.value,{onEnd:()=>{}}));fromText();}
+function wireTiming(){const inp=$("tm-in"),wpm=$("tm-wpm");function render(){const w=+wpm.value;$("tm-wpm-v").textContent=w;$("tm-dit").textContent=(1200/w).toFixed(1);const s=schedule(inp.value||"E",w,w);drawEnvelope($("tm-scope"),s,{shape:true});drawTape($("tm-tape"),s);$("tm-total").textContent=s.total>0?s.total.toFixed(2)+" s":"—";}inp.addEventListener("input",render);wpm.addEventListener("input",render);window.addEventListener("resize",render);render();}
+function wireFarns(){const c=$("fw-c"),s=$("fw-s");function upd(){let C=+c.value,S=Math.min(+s.value,C);s.value=S;$("fw-c-v").textContent=C;$("fw-s-v").textContent=S;const uc=ditSec(C)*1000,uf=farnsGapUnit(C,S)*1000,stretch=uf/uc;$("fw-out").innerHTML=`char dit=${uc.toFixed(1)} ms (fixed at ${C} WPM)<br>letter gap=3×${uf.toFixed(1)}=${(3*uf).toFixed(0)} ms <span style="color:var(--brass-hi)">(×${stretch.toFixed(2)})</span><br>word gap=7×${uf.toFixed(1)}=${(7*uf).toFixed(0)} ms`;}c.addEventListener("input",upd);s.addEventListener("input",upd);upd();}
+function wireAudio(){const msg=$("au-msg"),wpm=$("au-wpm"),freq=$("au-freq"),vol=$("au-vol"),fw=$("au-fw"),shape=$("au-shape");function syncSettings(){settings.wpm=+wpm.value;settings.freq=+freq.value;settings.vol=+vol.value;settings.shape=shape.checked;settings.fwpm=Math.min(+fw.value,settings.wpm);fw.value=settings.fwpm;$("au-wpm-v").textContent=settings.wpm;$("au-freq-v").textContent=settings.freq;$("au-vol-v").textContent=settings.vol.toFixed(2);$("au-fw-v").textContent=settings.fwpm;$("chart-wpm").textContent=settings.wpm;$("chart-freq").textContent=settings.freq;renderPreview();}function renderPreview(){$("au-render").innerHTML=textToMorse(msg.value,true)||"&nbsp;";drawEnvelope($("au-scope"),schedule(msg.value,settings.wpm,settings.fwpm),{shape:settings.shape});} [wpm,freq,vol,fw].forEach(x=>x.addEventListener("input",syncSettings));shape.addEventListener("change",syncSettings);msg.addEventListener("input",renderPreview);window.addEventListener("resize",renderPreview);$("au-play").addEventListener("click",()=>{const s=schedule(msg.value,settings.wpm,settings.fwpm);$("au-play").disabled=true;play(s,{fw:true,onFrame:(el,total)=>{drawEnvelope($("au-scope"),s,{shape:settings.shape,playhead:el});let on=false;for(const p of s.pulses){if(el>=p.t&&el<=p.t+p.dur){on=true;break;}}$("audio-led").classList.toggle("on",on);},onEnd:()=>{$("au-play").disabled=false;$("audio-led").classList.remove("on");renderPreview();}});});$("au-stop").addEventListener("click",()=>{stopAudio();$("au-play").disabled=false;$("audio-led").classList.remove("on");renderPreview();});syncSettings();}
+function wireKey(){const pad=$("key-pad"),spd=$("key-spd");let down=false,tStart=0,buffer="",output="",letterTimer=null,wordTimer=null;function unit(){return 1200/(+spd.value);}function press(){if(down)return;down=true;tStart=performance.now();pad.classList.add("down");clearTimeout(letterTimer);clearTimeout(wordTimer);sideOn();}function release(){if(!down)return;down=false;pad.classList.remove("down");sideOff();const dur=performance.now()-tStart;buffer+=dur<unit()*2?".":"-";$("key-buf").textContent=codeToUnicode(buffer);$("key-live").innerHTML=codeToUnicode(buffer);letterTimer=setTimeout(decodeLetter,unit()*3);wordTimer=setTimeout(()=>{if(output&&!output.endsWith(" ")){output+=" ";$("key-out").textContent=output;}},unit()*7);}function decodeLetter(){if(!buffer)return;output+=REV[buffer]||"█";buffer="";$("key-out").textContent=output;$("key-buf").textContent="—";$("key-live").textContent="·";}pad.addEventListener("pointerdown",e=>{e.preventDefault();press();});window.addEventListener("pointerup",()=>{if(down)release();});pad.addEventListener("keydown",e=>{if((e.key===" "||e.key==="Enter")&&!e.repeat){e.preventDefault();press();}});pad.addEventListener("keyup",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();release();}});$("key-clear").addEventListener("click",()=>{buffer="";output="";$("key-buf").textContent="—";$("key-out").textContent=" ";$("key-live").textContent="·";});spd.addEventListener("input",()=>{$("key-spd-v").textContent=spd.value;});}
+function codeToUnicode(c){return c?c.replace(/\./g,"·").replace(/-/g,"—"):"—";}
+const KOCH_ORDER=["K","M","R","S","U","A","P","T","L","O","W","I","N","J","E","F","Y","V","G","Q","Z","H","B","C","D","X"];
+function wireKoch(){const sel=$("koch-level"),guess=$("koch-guess");[["K M",2],["K M R S",4],["K M R S U A",6],["first 10",10],["full alphabet",26]].forEach(([label,n])=>{const o=document.createElement("option");o.value=n;o.textContent=`${label} (${n})`;sel.appendChild(o);});let current=null,correct=0,total=0;function set(){return KOCH_ORDER.slice(0,+sel.value);}function playOne(){const s=set();current=s[Math.floor(Math.random()*s.length)];$('koch-verdict').textContent='Listen...';ledFollow("chart-led",schedule(current,settings.wpm,settings.wpm));play(schedule(current,settings.wpm,settings.wpm),{onEnd:()=>{}});}function check(){if(!current)return;total++;const g=guess.value.trim().toUpperCase();if(g===current){correct++;$("koch-verdict").innerHTML=`<span class="ok">✓ ${current} — ${codeToUnicode(MORSE[current])}</span>`;}else{$("koch-verdict").innerHTML=`<span class="bad">✗ Was ${current}, you typed ${g||"—"}</span>`;}$("koch-score").textContent=`${correct} / ${total}`;$("koch-acc").textContent=total?Math.round(correct/total*100)+"%":"—";current=null;guess.value="";setTimeout(playOne,900);}guess.addEventListener("input",()=>{if(guess.value)check();});$("koch-play").addEventListener("click",playOne);$("koch-reveal").addEventListener("click",()=>{if(current)$("koch-verdict").innerHTML=`<span class="ok">${current} — ${codeToUnicode(MORSE[current])}</span>`;});$("koch-reset").addEventListener("click",()=>{correct=0;total=0;current=null;$("koch-score").textContent="0 / 0";$("koch-acc").textContent="—";$("koch-verdict").innerHTML="&nbsp;";});}
+function wireSignal(){const tr=$("sig-tr");const FS=8000,DIT=0.06;function keyingPulse(trSec,Nwin){const g=new Float32Array(Nwin);const onStart=Math.round(Nwin*0.42-DIT*FS/2),onLen=Math.round(DIT*FS),edge=Math.round(trSec*FS);for(let i=0;i<onLen;i++){const idx=onStart+i;if(idx<0||idx>=Nwin)continue;let v=1;if(edge>0){if(i<edge)v=0.5*(1-Math.cos(Math.PI*i/edge));else if(i>onLen-edge)v=0.5*(1-Math.cos(Math.PI*(onLen-i)/edge));}g[idx]=v;}return g;}function render(){const trSec=(+tr.value)/1000;$("sig-tr-v").textContent=(+tr.value).toFixed(1);const ec=$("sig-env");const e=fitCanvas(ec);const{ctx,w,h}=e;ctx.clearRect(0,0,w,h);ctx.strokeStyle="rgba(255,255,255,.06)";ctx.beginPath();ctx.moveTo(0,h-14);ctx.lineTo(w,h-14);ctx.stroke();const gp=keyingPulse(trSec,Math.round(0.14*FS));ctx.beginPath();const base=h-14,top=12;for(let i=0;i<gp.length;i++){const x=i/(gp.length-1)*w,y=base-gp[i]*(base-top);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.strokeStyle="#8ff0df";ctx.lineWidth=2;ctx.shadowColor="rgba(143,240,223,.6)";ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0;ctx.lineTo(w,base);ctx.lineTo(0,base);ctx.closePath();const grad=ctx.createLinearGradient(0,top,0,base);grad.addColorStop(0,"rgba(232,161,58,.35)");grad.addColorStop(1,"rgba(232,161,58,.04)");ctx.fillStyle=grad;ctx.fill();const NF=4096;const re=new Float32Array(NF),im=new Float32Array(NF);const g2=keyingPulse(trSec,NF);for(let i=0;i<NF;i++)re[i]=g2[i];fft(re,im);const sc=$("sig-spec");const s=fitCanvas(sc);const sx=s.ctx,sw=s.w,sh=s.h;sx.clearRect(0,0,sw,sh);const maxHz=300,bins=Math.round(maxHz/(FS/NF));let mmax=0;for(let k=0;k<bins;k++){const mag=Math.hypot(re[k],im[k]);if(mag>mmax)mmax=mag;}sx.strokeStyle="rgba(91,214,192,.10)";sx.fillStyle="rgba(147,162,180,.7)";sx.font="10px 'IBM Plex Mono'";for(let hz=0;hz<=maxHz;hz+=60){const x=hz/maxHz*sw;sx.beginPath();sx.moveTo(x,0);sx.lineTo(x,sh-14);sx.stroke();sx.fillText(hz+"Hz",x+3,sh-3);}sx.beginPath();for(let k=0;k<bins;k++){const mag=Math.hypot(re[k],im[k])/mmax,db=20*Math.log10(mag+1e-9),y=(-(Math.max(db,-80))/80)*(sh-16),x=k/(bins-1)*sw;k?sx.lineTo(x,y):sx.moveTo(x,y);}sx.strokeStyle="#ffc464";sx.lineWidth=1.8;sx.shadowColor="rgba(255,196,100,.5)";sx.shadowBlur=6;sx.stroke();sx.shadowBlur=0;}tr.addEventListener("input",render);window.addEventListener("resize",render);render();}
+const FREQ_EN={E:12.70,T:9.06,A:8.17,O:7.51,I:6.97,N:6.75,S:6.33,H:6.09,R:5.99,D:4.25,L:4.03,C:2.78,U:2.76,M:2.41,W:2.36,F:2.23,G:2.02,Y:1.97,P:1.93,B:1.29,V:0.98,K:0.77,J:0.15,X:0.15,Q:0.10,Z:0.07};
+function unitCost(code){let c=0;for(const e of code)c+=(e==="."?1:3);c+=code.length-1;return c;}function computeLbar(){let n=0,d=0;for(const L in FREQ_EN){n+=FREQ_EN[L]*unitCost(MORSE[L]);d+=FREQ_EN[L];}return n/d;}
+function drawInfoChart(){const cv=$("info-chart");const{ctx,w,h}=fitCanvas(cv);ctx.clearRect(0,0,w,h);const letters=Object.keys(FREQ_EN).sort((a,b)=>FREQ_EN[b]-FREQ_EN[a]);const n=letters.length,padL=8,padR=8,padB=26,padT=10;const bw=(w-padL-padR)/n,maxCost=Math.max(...letters.map(L=>unitCost(MORSE[L]))),maxFreq=Math.max(...letters.map(L=>FREQ_EN[L]));letters.forEach((L,i)=>{const x=padL+i*bw,ch=(h-padB-padT);const chH=unitCost(MORSE[L])/maxCost*ch;ctx.fillStyle="rgba(232,161,58,.85)";ctx.fillRect(x+bw*0.16,h-padB-chH,bw*0.34,chH);const fH=FREQ_EN[L]/maxFreq*ch;ctx.fillStyle="rgba(91,214,192,.85)";ctx.fillRect(x+bw*0.52,h-padB-fH,bw*0.34,fH);ctx.fillStyle="rgba(233,237,242,.8)";ctx.font="11px 'IBM Plex Mono'";ctx.textAlign="center";ctx.fillText(L,x+bw/2,h-padB+16);});const lbar=computeLbar();$("info-stat").innerHTML=`Weighted mean cost ℓ̄ ≈ <span class="mark">${lbar.toFixed(2)}</span> units/letter. Cheapest: E (1 unit, ${FREQ_EN.E}%). Four most frequent (E T A O) avg just ${((unitCost(MORSE.E)+unitCost(MORSE.T)+unitCost(MORSE.A)+unitCost(MORSE.O))/4).toFixed(1)} units.`;}
+function scheduleCode(code,wpm){const uc=ditSec(wpm),pulses=[];let t=0;const els=[...code];els.forEach((el,ei)=>{if(el!=="."&&el!=="-")return;const dur=(el==="."?1:3)*uc;pulses.push({t,dur});t+=dur;if(ei<els.length-1)t+=uc;});return{pulses,total:t};}
+function hlOctave(src){const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");return src.split("\n").map(line=>{let inStr=false,ci=-1;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==="'")inStr=!inStr;else if(ch==="%"&&!inStr){ci=i;break;}}let codePart=ci>=0?line.slice(0,ci):line;let comment=ci>=0?line.slice(ci):"";const strs=[];codePart=codePart.replace(/'[^']*'/g,m=>{strs.push(m);return "\uE000";});codePart=esc(codePart);codePart=codePart.replace(/\b(function|endfunction|for|endfor|while|endwhile|if|elseif|else|endif|end|return|do|until|switch|case|otherwise|break|continue)\b/g,'<span class="tok-k">$1</span>');codePart=codePart.replace(/\b(\d+\.?\d*(e-?\d+)?)\b/g,'<span class="tok-n">$1</span>');codePart=codePart.replace(/\uE000/g,()=>'<span class="tok-s">'+esc(strs.shift()||"")+'</span>');if(comment)comment='<span class="tok-c">'+esc(comment)+'</span>';return codePart+comment;}).join("\n");}
+const OCTAVE=[
+{title:"01 · Dictionary & encode",desc:"text → Morse",code:String.raw`1;
+function m = morse_map()
+  L = {'A','.-';'B','-...';'C','-.-.';'D','-..';'E','.';'F','..-.';'G','--.';'H','....';'I','..';'J','.---';'K','-.-';'L','.-..';'M','--';'N','-.';'O','---';'P','.--.';'Q','--.-';'R','.-.';'S','...';'T','-';'U','..-';'V','...-';'W','.--';'X','-..-';'Y','-.--';'Z','--..';'0','-----';'1','.----';'2','..---';'3','...--';'4','....-';'5','.....';'6','-....';'7','--...';'8','---..';'9','----.'};
+  m = containers.Map(L(:,1), L(:,2));
+endfunction
+function code = encode(text)
+  m = morse_map(); text = upper(text); parts = {};
+  for i = 1:numel(text)
+    ch = text(i); if ch == ' ', parts{end+1} = '/'; elseif isKey(m,ch), parts{end+1} = m(ch); endif
+  endfor
+  code = strtrim(strjoin(parts,' '));
+endfunction
+printf('%s\n', encode('SOS PARIS'));`},
+{title:"02 · Decode",desc:"Morse → text",code:String.raw`1;
+function text = decode(code)
+  m = morse_map(); rev = containers.Map(values(m), keys(m));
+  words = strsplit(code,'/'); out = {};
+  for w=1:numel(words)
+    letters=strsplit(strtrim(words{w}),' '); buf='';
+    for k=1:numel(letters), sym=letters{k}; if isKey(rev,sym), buf=[buf rev(sym)]; endif; endfor
+    out{end+1}=buf;
+  endfor
+  text=strjoin(out,' ');
+endfunction
+printf('%s\n', decode('... --- ... / .--. .- .-. .. ...'));`},
+{title:"03 · Synthesize CW audio",desc:"WPM + raised-cosine → sound()",code:String.raw`fs=8000; wpm=18; f0=650; tr=0.005; u=1.2/wpm; code=encode('CQ DE OCTAVE');
+g=[]; words=strsplit(code,'/'); for wi=1:numel(words), letters=strsplit(strtrim(words{wi}),' '); for li=1:numel(letters), sym=letters{li}; for ei=1:numel(sym), onlen=(sym(ei)=='-')*2*u+u; g=[g ones(1,round(onlen*fs))]; if ei<numel(sym), g=[g zeros(1,round(u*fs))]; endif; endfor if li<numel(letters), g=[g zeros(1,round(3*u*fs))]; endif; endfor if wi<numel(words), g=[g zeros(1,round(7*u*fs))]; endif; endfor
+n=max(1,round(tr*fs)); k=0.5*(1-cos(pi*(0:2*n-1)/(2*n-1))); k=k/sum(k); g=conv(g,k,'same');
+t=(0:numel(g)-1)/fs; y=g.*sin(2*pi*f0*t); sound(y,fs); audiowrite('cw.wav',y,fs);`},
+{title:"04 · Key clicks spectrum",desc:"hard vs soft keying",code:String.raw`fs=8000; u=1.2/18; f0=650; onlen=round(3*u*fs); pad=round(3*u*fs);
+hard=[zeros(1,pad) ones(1,onlen) zeros(1,pad)]; n=round(0.005*fs); k=0.5*(1-cos(pi*(0:2*n-1)/(2*n-1))); k=k/sum(k); soft=conv(hard,k,'same');
+t=(0:numel(hard)-1)/fs; N=8192; Sh=fftshift(abs(fft(hard.*sin(2*pi*f0*t),N))); Ss=fftshift(abs(fft(soft.*sin(2*pi*f0*t),N))); fax=(-N/2:N/2-1)/N*fs;
+plot(fax,20*log10(Sh/max(Sh)+1e-6),'r',fax,20*log10(Ss/max(Ss)+1e-6),'c','linewidth',1); xlim([f0-200 f0+200]); ylim([-80 0]); grid on; xlabel('Hz'); ylabel('dB'); legend('hard','soft'); title('Key-click sidebands');`},
+{title:"05 · Decode from audio",desc:"envelope → threshold → text",code:String.raw`1; % pkg load signal
+function text=decode_audio(y,fs,wpm)
+  u=1.2/wpm; env=abs(hilbert(y)); env=env/max(env); on=env>0.5; d=diff([0 on 0]); starts=find(d==1); stops=find(d==-1); code='';
+  for i=1:numel(starts), onlen=(stops(i)-starts(i))/fs; code=[code pick(onlen<2*u,'.','-')]; if i<numel(starts), gap=(starts(i+1)-stops(i))/fs; if gap>5*u, code=[code ' / ']; elseif gap>2*u, code=[code ' ']; endif; endif; endfor
+  text=decode(code);
+endfunction
+function r=pick(c,a,b), if c, r=a; else r=b; endif; endfunction`},
+{title:"06 · Farnsworth timing",desc:"fast chars, stretched gaps",code:String.raw`1;
+function [t_dit,u_gap]=farnsworth(c,s)
+  t_dit=1.2/c; if s>=c, u_gap=t_dit; else u_gap=(60/s-37.2/c)/19; endif
+endfunction
+[td,ug]=farnsworth(18,9); printf('char dit=%.1f ms gap unit=%.1f ms letter gap=%.0f ms\n',td*1000,ug*1000,3*ug*1000);`},
+{title:"07 · Information content",desc:"cost vs frequency, entropy",code:String.raw`1;
+function c=unit_cost(sym), c=sum((sym=='-')*3 + (sym=='.')*1)+(numel(sym)-1); endfunction
+letters='ETAOINSHRDLCUMWFGYPBVKJXQZ'; freq=[12.70 9.06 8.17 7.51 6.97 6.75 6.33 6.09 5.99 4.25 4.03 2.78 2.76 2.41 2.36 2.23 2.02 1.97 1.93 1.29 0.98 0.77 0.15 0.15 0.10 0.07]; p=freq/sum(freq);
+m=morse_map(); cost=arrayfun(@(k) unit_cost(m(letters(k))),1:numel(letters));
+lbar=sum(p.*cost); H=-sum(p.*log2(p)); printf('mean cost=%.2f units/letter entropy=%.2f bits/letter\n',lbar,H);
+bar(cost); set(gca,'xtick',1:numel(letters),'xticklabel',num2cell(letters)); xlabel('letter'); ylabel('units'); title('Cost rises as letters get rarer');`},
+{title:"08 · Bandwidth estimate",desc:"K factor",code:String.raw`wpm=25; fk=wpm/2.4; for K=[3 5], printf('K=%d -> B~=%3.0f Hz\n',K,K*fk); endfor`},
+{title:"09 · Prosigns fused",desc:"SOS as one 9-element signal",code:String.raw`sos='...---...'; u=1.2/18; fs=8000; g=[]; for i=1:numel(sos), onlen=(sos(i)=='-')*2*u+u; g=[g ones(1,round(onlen*fs)) zeros(1,round(u*fs))]; endfor; plot((0:numel(g)-1)/fs,g,'linewidth',1.5); ylim([-0.2 1.2]); xlabel('s'); ylabel('key'); title('SOS fused');`},
+{title:"10 · Practice file generator",desc:"Koch sets → WAV",code:String.raw`1;
+koch_order={'K','M','R','S','U','A','P','T','L','O','W','I','N','J','E','F','Y','V','G','Q','Z','H','B','C','D','X'};
+function s=koch_session(level,n), pool=koch_order(1:level); idx=randi(level,1,n); s=strjoin(pool(idx),''); endfunction
+fs=8000; f0=700; wpm=18; fwpm=10; u=1.2/wpm; uf=(60/fwpm-37.2/wpm)/19;
+% Build 20 groups of 5
+full=[]; for g=1:20, grp=koch_session(5,5); code=encode(grp); % encode from snip 01
+  % quick wave with Farnsworth gaps
+  wg=[]; words=strsplit(code,'/'); for wi=1:numel(words), letters=strsplit(strtrim(words{wi}),' '); for li=1:numel(letters), sym=letters{li}; for ei=1:numel(sym), on=(sym(ei)=='-')*2*u+u; wg=[wg ones(1,round(on*fs)) zeros(1,round(u*fs))]; endfor if li<numel(letters), wg=[wg zeros(1,round(3*uf*fs))]; endif; endfor if wi<numel(words), wg=[wg zeros(1,round(7*uf*fs))]; endif; endfor
+  full=[full wg zeros(1,round(1.0*fs))];
+endfor
+t=(0:numel(full)-1)/fs; y=full.*sin(2*pi*f0*t); audiowrite('koch_l5.wav',y,fs); printf('Wrote %.1f sec\n',numel(y)/fs);`},
+{title:"11 · Envelope decoder robust",desc:"Hilbert + adaptive threshold",code:String.raw`1; % pkg load signal
+function text=decode_envelope(y,fs,wpm)
+  u=1.2/wpm; env=abs(hilbert(y)); env=env/max(env);
+  % adaptive threshold via moving average
+  win=round(0.2*fs); thr=movmean(env,win)*0.6+0.2; on=env>thr;
+  d=diff([0;on;0]); s=find(d==1); e=find(d==-1);
+  morse=""; for i=1:numel(s), dur=(e(i)-s(i))/fs; morse=[morse (dur<2*u?'.':'-')]; if i<numel(s), gap=(s(i+1)-e(i))/fs; if gap>5*u, morse=[morse ' / ']; elseif gap>2*u, morse=[morse ' ']; endif; endif; endfor
+  text=decode(morse);
+endfunction
+% Test: y from snippet 03
+% decode_envelope(y,fs,wpm)`},
+{title:"12 · Baudot vs Morse bridge",desc:"5-bit fixed vs variable",code:String.raw`% Baudot 1870: first 5-bit binary telegraph, child of Morse
+% 5 bits =32 codes, needs FIGS/LTRS shift. Morse variable ~2.7 dits avg vs Baudot fixed 5 bits
+% Length comparison for same text
+txt='HELLO'; morse_len=sum(cellfun(@(c) numel(c), values(morse_map()))); % not accurate, use encode
+% Morse bits ~ variable, Baudot bits = len(txt)*5
+% Efficiency: Morse saves for common letters (E=1 vs 00001)
+% This tradeoff: Morse=time-optimal, Baudot=circuit-simple
+% ASCII is Baudot's grandchild: 7 bits=128 codes, no shift
+% UTF-8 brings back variable length, like Morse, for efficiency`},
+];
+function renderOctave(){const grid=$("octave-grid");OCTAVE.forEach(s=>{const raw=s.code.replace(/^\n+/,"").replace(/\s+$/,"");const wrap=document.createElement("div");wrap.className="code";const head=document.createElement("div");head.className="code-head";const left=document.createElement("span");left.innerHTML=`<span class="ttl">${s.title}</span> &nbsp;<span class="desc">${s.desc}</span>`;const btn=document.createElement("button");btn.className="btn";btn.textContent="Copy";btn.style.cssText="padding:4px 11px;font-size:11px";btn.onclick=()=>{(navigator.clipboard?.writeText(raw)||Promise.resolve()).then(()=>{btn.textContent="Copied";setTimeout(()=>btn.textContent="Copy",1200);});};head.appendChild(left);head.appendChild(btn);const pre=document.createElement("pre");const code=document.createElement("code");code.innerHTML=hlOctave(raw);pre.appendChild(code);wrap.appendChild(head);wrap.appendChild(pre);grid.appendChild(wrap);});}
+function heroAnim(){const cv=$("hero-canvas");if(!cv)return;const s=schedule("MORSE CODE",20,20);const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;if(reduce){drawEnvelope(cv,s,{shape:true});return;}let start=null;function frame(ts){if(start===null)start=ts;const el=((ts-start)/1000)%(s.total+0.9);drawEnvelope(cv,s,{shape:true,playhead:Math.min(el,s.total)});$("hero-readout").textContent=`${s.pulses.length} pulses • ${s.total.toFixed(2)}s @ 20WPM`;requestAnimationFrame(frame);}requestAnimationFrame(frame);}
+function buildProsigns(){const tb=$("chart-prosign");PROSIGNS.forEach(([name,code,mean])=>{const tr=document.createElement("tr");tr.innerHTML=`<td class="m mark" style="cursor:pointer"><span style="text-decoration:overline">${name}</span></td><td class="m">${codeHTML(code)}</td><td>${mean}</td>`;tr.firstChild.onclick=()=>ledFollow("chart-led",scheduleCode(code,settings.wpm));tb.appendChild(tr);});}
+function scrollSpy(){const links=[...document.querySelectorAll("nav.sticky a")];const map=links.map(a=>({a,sec:document.querySelector(a.getAttribute("href"))})).filter(x=>x.sec);const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove("active"));const m=map.find(x=>x.sec===e.target);if(m)m.a.classList.add("active");}});},{rootMargin:"-42% 0px -53% 0px"});map.forEach(x=>obs.observe(x.sec));}
+function renderMath(){const lbar=computeLbar().toFixed(2);document.querySelectorAll(".math").forEach(el=>{if(el.innerHTML.indexOf("__LBAR__")>=0)el.innerHTML=el.innerHTML.replace(/__LBAR__/g,lbar);});if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false},{left:"$$",right:"$$",display:true}],throwOnError:false,ignoredClasses:["code"]});}}
+function init(){buildChart("chart-letters",Object.keys(MORSE).filter(k=>/^[A-Z]$/.test(k)).map(k=>[k,MORSE[k]]));buildChart("chart-digits",Object.keys(MORSE).filter(k=>/^[0-9]$/.test(k)).map(k=>[k,MORSE[k]]));buildChart("chart-punct",Object.keys(MORSE).filter(k=>/^[^A-Z0-9]$/.test(k)).map(k=>[k,MORSE[k]]));buildProsigns();wireTranslator();wireTiming();wireFarns();wireAudio();wireKey();wireKoch();wireSignal();drawInfoChart();renderOctave();heroAnim();scrollSpy();renderMath();window.addEventListener("load",renderMath);}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+</script>
+</body>
+</html>
