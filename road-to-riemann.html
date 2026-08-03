@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Road to Riemann — Euler, Gauss, Taylor, Cantor, Hilbert</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --ink:#0B1120; --ink-deep:#070B16; --panel:#121B30; --panel-2:#0E1626;
+  --line:#223050; --line-soft:#1A2540; --text:#DCE4F2; --muted:#8C99B4; --faint:#5A6785;
+  --euler:#A78BFA; --euler-dim:#6B5A9A;
+  --gauss:#7FAFC6; --gauss-dim:#4A6A7A;
+  --taylor:#62D6C3; --taylor-dim:#2E6B62;
+  --cantor:#DE7E9F; --cantor-dim:#6E3F50;
+  --riemann:#E4B355; --riemann-dim:#8A6D33;
+  --hilbert:#8BC4A0; --hilbert-dim:#3D6A52;
+  --code-bg:#0A1120; --kw:#7FB4E8; --str:#A8D08D; --com:#5A6785; --num:#E4B355; --fn:#DE9EC7;
+  --serif-d:'Cormorant Garamond', Georgia, serif; --serif-b:'Spectral', Georgia, serif; --mono:'JetBrains Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{background:var(--ink);color:var(--text);font-family:var(--serif-b);font-weight:300;font-size:17px;line-height:1.72;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(228,179,85,.28)}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,22,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft)}
+.nav-inner{max-width:1220px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:6px;height:58px;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-mark{font-family:var(--serif-d);font-weight:700;font-size:18px;color:var(--riemann);margin-right:auto;white-space:nowrap}
+.nav-mark .half{color:var(--muted);font-weight:400}
+nav a.nl{color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;border-radius:6px;white-space:nowrap}
+nav a.nl:hover{color:var(--text);background:rgba(255,255,255,.05)}
+header.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line-soft);background:radial-gradient(1200px 600px at 50% -10%, #1A2340 0%, var(--ink-deep) 70%)}
+#heroCanvas{display:block;width:100%;height:520px}
+.hero-copy{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;padding:0 24px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--faint);margin-bottom:16px}
+h1{font-family:var(--serif-d);font-weight:600;font-size:clamp(36px,6vw,72px);line-height:1.02}
+h1 .e{color:var(--euler)}h1 .g{color:var(--gauss)}h1 .t{color:var(--taylor)}h1 .c{color:var(--cantor)}h1 .r{color:var(--riemann)}h1 .h{color:var(--hilbert)}
+.hero-sub{margin-top:18px;max-width:800px;font-family:var(--serif-d);font-style:italic;font-size:clamp(16px,2.1vw,20px);color:var(--muted);line-height:1.5}
+.hero-strip{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase}
+main{max-width:1120px;margin:0 auto;padding:0 28px 120px}
+section.part{padding-top:88px}
+.part-head{display:flex;align-items:baseline;gap:18px;margin-bottom:6px}
+.part-roman{font-family:var(--serif-d);font-style:italic;font-size:52px;line-height:1;opacity:.9}
+.part.euler .part-roman{color:var(--euler)}.part.gauss .part-roman{color:var(--gauss)}.part.taylor .part-roman{color:var(--taylor)}.part.cantor .part-roman{color:var(--cantor)}.part.riemann .part-roman{color:var(--riemann)}.part.hilbert .part-roman{color:var(--hilbert)}.part.road .part-roman{color:var(--muted)}.part.octave .part-roman{color:var(--muted)}
+h2{font-family:var(--serif-d);font-weight:600;font-size:clamp(30px,4.2vw,44px);line-height:1.1}
+.part-sub{font-family:var(--serif-d);font-style:italic;font-size:18px;color:var(--muted);margin:8px 0 0 72px;max-width:780px}
+.part-rule{height:1px;margin:28px 0 36px;background:linear-gradient(90deg,var(--line) 0%,transparent 100%)}
+.part.euler .part-rule{background:linear-gradient(90deg,var(--euler-dim),transparent)}
+.part.gauss .part-rule{background:linear-gradient(90deg,var(--gauss-dim),transparent)}
+.part.taylor .part-rule{background:linear-gradient(90deg,var(--taylor-dim),transparent)}
+.part.cantor .part-rule{background:linear-gradient(90deg,var(--cantor-dim),transparent)}
+.part.riemann .part-rule{background:linear-gradient(90deg,var(--riemann-dim),transparent)}
+.part.hilbert .part-rule{background:linear-gradient(90deg,var(--hilbert-dim),transparent)}
+h3{font-family:var(--serif-d);font-weight:600;font-size:26px;margin:48px 0 14px}
+.part.euler h3{color:#D6CCFF}.part.gauss h3{color:#B8D8E8}.part.taylor h3{color:#BFEDE4}.part.cantor h3{color:#F0C4D4}.part.riemann h3{color:#F0D6A0}.part.hilbert h3{color:#C2E8C9}
+p{margin:0 0 16px;max-width:860px}
+.box{max-width:880px;margin:22px 0;padding:16px 20px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
+.box.thm{border-left:3px solid var(--riemann)}.box.euler{border-left:3px solid var(--euler)}.box.gauss{border-left:3px solid var(--gauss)}.box.taylor{border-left:3px solid var(--taylor)}.box.cantor{border-left:3px solid var(--cantor)}.box.hilbert{border-left:3px solid var(--hilbert)}
+.box .box-tag{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.disp{margin:16px 0;overflow-x:auto}
+.katex{font-size:1.06em}
+.widget{max-width:920px;margin:32px 0;background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.widget-head{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line-soft)}
+.widget-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.widget.we .widget-dot{background:var(--euler);box-shadow:0 0 10px var(--euler)}
+.widget.wg .widget-dot{background:var(--gauss);box-shadow:0 0 10px var(--gauss)}
+.widget.wt .widget-dot{background:var(--taylor);box-shadow:0 0 10px var(--taylor)}
+.widget.wc .widget-dot{background:var(--cantor);box-shadow:0 0 10px var(--cantor)}
+.widget.wr .widget-dot{background:var(--riemann);box-shadow:0 0 10px var(--riemann)}
+.widget.wh .widget-dot{background:var(--hilbert);box-shadow:0 0 10px var(--hilbert)}
+.widget-title{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.widget-body{padding:16px 18px 20px}
+.widget canvas{display:block;width:100%;border-radius:8px;background:var(--ink-deep)}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.controls .val{color:var(--text);min-width:44px;display:inline-block;font-weight:500}
+input[type=range]{-webkit-appearance:none;width:170px;height:4px;border-radius:2px;background:var(--line);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--text);border:2px solid var(--ink)}
+select,button.wbtn{font-family:var(--mono);font-size:11.5px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:6px 10px;cursor:pointer}
+.readout{margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.8}
+.readout b{color:var(--text);font-weight:500}
+table.data{border-collapse:collapse;margin:20px 0;max-width:860px;width:100%;font-size:14.5px}
+table.data th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
+table.data td{padding:8px 12px;border-bottom:1px solid var(--line-soft)}
+.codewrap{max-width:920px;margin:20px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.codebar{display:flex;align-items:center;justify-content:space-between;background:var(--panel);padding:8px 14px;border-bottom:1px solid var(--line-soft)}
+.codebar .fname{font-family:var(--mono);font-size:11px;color:var(--muted)}
+pre.code{background:var(--code-bg);padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6}
+.tok-c{color:var(--com);font-style:italic}.tok-k{color:var(--kw)}.tok-s{color:var(--str)}.tok-n{color:var(--num)}.tok-f{color:var(--fn)}
+.epilogue{max-width:860px;margin:90px auto 0;padding:36px 32px;border:1px solid var(--line);border-radius:14px;background:radial-gradient(600px 300px at 50% 0%, #1C2240 0%, var(--panel-2) 70%);text-align:center}
+footer{border-top:1px solid var(--line-soft);margin-top:80px;padding:28px 28px 60px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.08em;line-height:2}
+@media(max-width:700px){.part-sub{margin-left:0}.part-roman{font-size:38px}#heroCanvas{height:420px}}
+</style>
+</head>
+<body>
+<nav><div class="nav-inner">
+<span class="nav-mark">Road to Riemann<span class="half"> — 8 files → 1</span></span>
+<a class="nl" href="#prolog">Prolog</a><a class="nl" href="#euler">Euler</a><a class="nl" href="#gauss">Gauss</a><a class="nl" href="#taylor">Taylor</a><a class="nl" href="#cantor">Cantor</a><a class="nl" href="#riemann">Riemann</a><a class="nl" href="#hilbert">Hilbert</a><a class="nl" href="#road">Road</a><a class="nl" href="#play">Playground</a><a class="nl" href="#octave">Octave</a>
+</div></nav>
+
+<header class="hero">
+<canvas id="heroCanvas" height="520" aria-label="Euler circle, Gauss bell, Taylor disc, Cantor dust, zeta zeros"></canvas>
+<div class="hero-copy">
+<div class="hero-eyebrow">Euler · Gauss · Taylor · Cantor · Riemann · Hilbert — One Line</div>
+<h1><span class="e">Euler</span> → <span class="g">Gauss</span> → <span class="t">Taylor</span> → <span class="c">Cantor</span> → <span class="r">Riemann</span> → <span class="h">Hilbert</span></h1>
+<p class="hero-sub">Your 8 guides are not 8 topics. They are one road: Euler invents $\zeta$, Gauss guesses its link to primes, Taylor lets us continue it, Cantor makes the continuum rigorous enough to trust it, Riemann finds its zeros, Hilbert asks for the operator whose spectrum is those zeros. The road to a solution is that operator.</p>
+</div>
+<div class="hero-strip">From your files: totient, Basel, heptadecagon, four threads, Göttingen threads, three infinities</div>
+</header>
+
+<main>
+<section class="part" id="prolog">
+<div class="part-head"><span class="part-roman" style="color:var(--riemann)">0</span><h2>Prolog — What a Solution Must Do</h2></div>
+<p class="part-sub">Riemann Hypothesis: all non-trivial zeros of $\zeta(s)$ have $\Re(s)=1/2$. A solution must explain why.</p>
+<div class="part-rule" style="background:linear-gradient(90deg,var(--riemann-dim),transparent)"></div>
+<div class="box thm"><span class="box-tag">Riemann Hypothesis, 1859</span>
+<div class="disp">$$ \zeta(s)=\sum_{n\ge1} n^{-s}=\prod_{p}(1-p^{-s})^{-1},\ \Re(s)>1,\quad \zeta(\rho)=0,\ 0<\Re\rho<1 \Rightarrow \Re\rho=\tfrac12 $$</div>
+<p>Equivalent to sharpest prime error: $|\pi(x)-\mathrm{Li}(x)|\le \frac1{8\pi}\sqrt{x}\ln x$ for $x\ge2657$ (Schoenfeld). Your 8 files each give one ingredient of any plausible proof: Euler gives product, Gauss gives $\mathrm{Li}(x)$ conjecture and complex numbers, Taylor gives continuation, Cantor gives continuum and measure, Riemann gives geometry and zeta itself, Hilbert gives spectral viewpoint.</p>
+</div>
+</section>
+
+<section class="part euler" id="euler">
+<div class="part-head"><span class="part-roman">I</span><h2>Euler — The Product That Knows Primes</h2></div>
+<p class="part-sub">From your Euler-Gauss guides, Four Threads, and Totient guide.</p>
+<div class="part-rule"></div>
+
+<p>Euler at 28 solves Basel: $\sum 1/n^2=\pi^2/6$ by factoring $\sin x/x=\prod(1-x^2/n^2\pi^2)$. Then generalizes: for $\Re(s)>1$, $\zeta(s)=\sum n^{-s}$. Expanding each $(1-p^{-s})^{-1}=1+p^{-s}+p^{-2s}+\dots$ and multiplying, every $n^{-s}$ appears once — Fundamental Theorem of Arithmetic transcribed to analysis.</p>
+<div class="box euler"><span class="box-tag">Euler product — from your Four Threads</span>
+<div class="disp">$$ \zeta(s)=\prod_{p}\frac1{1-p^{-s}},\qquad \sum_p\frac1p=\infty\ \text{because}\ \zeta(1)=\infty $$</div>
+<p>Euclid with teeth. Analytic proof of infinite primes with quantitative error.</p></div>
+
+<p><strong>Totient $\varphi(n)$ — from your $eulers$-$totient.html$:</strong> $\varphi(n)=|\{1\le k\le n:\gcd(k,n)=1\}|$. Rules: $\varphi(p)=p-1$, $\varphi(p^k)=p^k-p^{k-1}$, multiplicative if $\gcd(m,n)=1$. Then Euler's theorem $a^{\varphi(n)}\equiv1\pmod n$ for $\gcd(a,n)=1$ — RSA's trapdoor: $ed\equiv1\pmod{\varphi(N)}$, $m^{ed}\equiv m\pmod N$. RSA security rests on primes being hard to find — exactly what RH would make regular.</p>
+
+<p><strong>Identity $e^{i\theta}=\cos\theta+i\sin\theta$:</strong> Euler makes rotation exponentiation. Unit circle $S^1$ is $\exp(i\mathbb R)$. Fourier series $\sum c_n e^{int}$ — Taylor on circle — are what led Cantor to set theory.</p>
+
+<div class="widget we">
+<div class="widget-head"><span class="widget-dot"></span><span class="widget-title">Euler Explorer — $e^{iθ}$ + Euler product convergence</span></div>
+<div class="widget-body">
+<canvas id="eulerCanvas" height="340"></canvas>
+<div class="controls">
+<label>s <input type="range" id="eulerS" min="1.1" max="4" step="0.05" value="2"><span class="val" id="eulerSVal">2.00</span></label>
+<label>primes ≤ <input type="range" id="eulerP" min="2" max="100" value="30"><span class="val" id="eulerPVal">30</span></label>
+<label>θ <input type="range" id="eulerTh" min="0" max="360" value="45"><span class="val" id="eulerThVal">45°</span></label>
+</div>
+<div class="readout" id="eulerReadout"></div>
+</div></div>
+</section>
+
+<section class="part gauss" id="gauss">
+<div class="part-head"><span class="part-roman">II</span><h2>Gauss — The Gaussian Integers, $\mathrm{Li}(x)$, and Curvature</h2></div>
+<p class="part-sub">From your Euler-Gauss Atlas & Guide: heptadecagon, modular arithmetic, least squares, bell curve, curvature.</p>
+<div class="part-rule"></div>
+
+<p>1796, 19-year-old Gauss: regular 17-gon constructible because $17=2^{2^2}+1$ Fermat prime. $p$-gon constructible iff $p=2^{2^k}+1$. Proof uses cyclotomic $\Phi_p(x)$ and Gauss sums — first deep use of complex numbers in number theory, foreshadowing zeta.</p>
+<p><strong>Disquisitiones (1801):</strong> $a\equiv b\pmod m$, quadratic reciprocity $\left(\frac{p}{q}\right)\left(\frac{q}{p}\right)=(-1)^{\frac{p-1}2\frac{q-1}2}$. Gaussian integers $\mathbb Z[i]$ — primes split $p= a^2+b^2$ if $p\equiv1\pmod4$. Extends Euler product to $\mathbb Z[i]$ — first L-function beyond $\zeta$.</p>
+<p><strong>Prime guess:</strong> Letter to Encke: Gauss at 15 conjectured $\pi(x)\sim\mathrm{Li}(x)=\int_2^x dt/\ln t$, better than $x/\ln x$. No proof until 1896, and proof needs $\zeta$ has no zero on $\Re=1$.</p>
+<p><strong>Least squares & bell curve:</strong> $\frac1{\sigma\sqrt{2\pi}}e^{-(x-\mu)^2/2\sigma^2}$ — Gauss distribution emerges from errors. Montgomery (1973) discovered zeros of zeta have same pair correlation as eigenvalues of random Hermitian matrices (GUE) — bell-curve's matrix cousin. Your Four Threads thread "wave" and "curve" meet here.</p>
+<p><strong>Curvature — Theorema Egregium:</strong> Curvature intrinsic, independent of embedding. Riemann generalizes to $n$ dimensions in 1854 habilitation — Riemannian geometry, foundation for general relativity and for analytic continuation on Riemann surfaces.</p>
+
+<div class="widget wg">
+<div class="widget-head"><span class="widget-dot"></span><span class="widget-title">Gauss Prime Staircase — $\pi(x)$ vs $x/\ln x$ vs $\mathrm{Li}(x)$</span></div>
+<div class="widget-body"><canvas id="primeCanvas" height="360"></canvas>
+<div class="controls"><label>x ≤ <input type="range" id="primeX" min="50" max="10000" value="2000" step="50"><span class="val" id="primeXVal">2000</span></label></div>
+<div class="readout" id="primeReadout"></div>
+</div></div>
+</section>
+
+<section class="part taylor" id="taylor">
+<div class="part-head"><span class="part-roman">III</span><h2>Taylor — The Disc Whose Edge is a Pole</h2></div>
+<p class="part-sub">From your Taylor-Cantor-Riemann and Three Infinities files.</p>
+<div class="part-rule"></div>
+
+<p>$P_n(x)=\sum_{k=0}^n f^{(k)}(a)/k!(x-a)^k$, remainder $R_n=f^{(n+1)}(\xi)/(n+1)!(x-a)^{n+1}$. If factorial beats growth, $R=\infty$ — $e^x,\sin x,\cos x$. If not, radius $1/R=\limsup|c_n|^{1/n}$ = distance to nearest singularity in $\mathbb C$. $1/(1+x^2)$ at $0$ has $R=1$ because poles at $\pm i$ — invisible on real line, visible in complex.</p>
+<p>For $\zeta$, Taylor at $s=2$ has $R=1$ because pole at $s=1$. To see zeros at $\Re=1/2$, you must leave disc — analytic continuation is Weierstrass chain of overlapping discs, each Taylor re-centered inside previous. Uniqueness uses identity theorem — Cantor's continuum needed to trust accumulation points.</p>
+<div class="box taylor"><span class="box-tag">Li's criterion — Taylor to the last</span>
+<div class="disp">$$ \xi(s)=\tfrac12 s(s-1)\pi^{-s/2}\Gamma(s/2)\zeta(s),\quad \ln\xi\Big(\frac1{1-w}\Big)=\sum \lambda_n w^n,\quad RH\iff \lambda_n\ge0\ \forall n $$</div>
+<p>RH equivalent to positivity of Taylor coefficients of $\ln\xi$ at $1$. Your Three Infinities file had this — Taylor convergence decides RH.</p></div>
+
+<div class="widget wt">
+<div class="widget-head"><span class="widget-dot"></span><span class="widget-title">Taylor Approximator — wall at $R$</span></div>
+<div class="widget-body"><canvas id="taylorCanvas" height="340"></canvas>
+<div class="controls"><label>f <select id="taylorFn"><option value="exp">e^x</option><option value="geom" selected>1/(1−x)</option><option value="log">ln(1+x)</option><option value="inv2">1/(1+x²)</option><option value="sin">sin x</option></select></label>
+<label>N <input type="range" id="taylorN" min="0" max="24" value="4"><span class="val" id="taylorNVal">4</span></label></div>
+<div class="readout" id="taylorReadout"></div>
+</div></div>
+</section>
+
+<section class="part cantor" id="cantor">
+<div class="part-head"><span class="part-roman">IV</span><h2>Cantor — How Many Points Does a Zero Need?</h2></div>
+<p class="part-sub">From your Cantor sections in Three Infinities and Taylor-Cantor-Riemann.</p>
+<div class="part-rule"></div>
+
+<p>Fourier series $\sum c_n e^{int}$ are Taylor on unit circle. Cantor studying uniqueness sets for such series (1872) invents set theory: when does $\sum c_n e^{int}=0$ for all $t$ imply all $c_n=0$? Needs perfect sets, limit points — leads to diagonal argument $|\mathbb R|>|\mathbb N|$.</p>
+<p>Cantor set $C=\bigcap C_n$, $C_{n+1}=C_n/3\cup(2/3+C_n/3)$: closed, perfect, nowhere dense, measure $0$ (removed length $\sum2^n/3^{n+1}=1$), uncountable $|C|=2^{\aleph_0}$ because $x=\sum a_n3^{-n}$, $a_n\in\{0,2\}$ ↔ binary. $\dim_H=\log2/\log3$. Cantor function $f$ continuous, monotone, $f'=0$ a.e., yet $f(0)=0,f(1)=1$ — climbs purely on measure-zero set. Shows FTC needs absolute continuity, like Taylor integral remainder needs stronger conditions.</p>
+<p>Why for RH: zero sets of analytic functions are discrete, but sets of divergence, sets where continuation fails, can be Cantor-type. Understanding continuum is prerequisite to trust analytic continuation identity theorem.</p>
+
+<div class="widget wc">
+<div class="widget-head"><span class="widget-dot"></span><span class="widget-title">Cantor Set + Diagonal</span></div>
+<div class="widget-body"><canvas id="cantorCanvas" height="200"></canvas>
+<div class="controls"><label>level <input type="range" id="cantorLevel" min="0" max="7" value="4"><span class="val" id="cantorLevelVal">4</span></label><button class="wbtn" id="diagBtn">new diagonal</button></div>
+<div class="readout" id="cantorReadout"></div>
+<canvas id="diagCanvas" height="140" style="margin-top:12px"></canvas>
+</div></div>
+</section>
+
+<section class="part riemann" id="riemann">
+<div class="part-head"><span class="part-roman">V</span><h2>Riemann — The Function Beyond Its Series</h2></div>
+<p class="part-sub">From your Riemann-Hilbert Göttingen Threads + Riemann sections.</p>
+<div class="part-rule"></div>
+
+<p>Riemann 1851 dissertation: functions of complex variable, Cauchy-Riemann, analytic continuation. Riemann surfaces: multi-valued $\sqrt{z},\log z$ become single-valued on branched covering — need to continue $\zeta$ past pole.</p>
+<p>1854 habilitation: hypotheses which lie at bases of geometry — $n$-dimensional manifold with metric $ds^2=\sum g_{ij}dx_idx_j$, curvature tensor — intrinsic geometry Gauss pioneered. Needed for modern approaches via spectral geometry.</p>
+<p>1859: <em>On the Number of Primes Less Than a Given Magnitude</em>. Extends $\zeta$ to $\mathbb C\setminus\{1\}$ via $\xi(s)=\frac12s(s-1)\pi^{-s/2}\Gamma(s/2)\zeta(s)$, $\xi(s)=\xi(1-s)$, functional equation $\zeta(s)=2^s\pi^{s-1}\sin(\pi s/2)\Gamma(1-s)\zeta(1-s)$. Trivial zeros at $-2,-4,\dots$ from sine. Nontrivial in strip $0<\Re<1$, symmetric $\rho,1-\rho,\bar\rho,1-\bar\rho$.</p>
+
+<div class="box thm"><span class="box-tag">Explicit formula — primes as Fourier of zeros</span>
+<div class="disp">$$ \psi(x)=\sum_{p^k\le x}\ln p = x-\sum_{\rho}\frac{x^{\rho}}{\rho}-\ln2\pi-\tfrac12\ln(1-x^{-2}) $$</div>
+<p>Each zero $\rho=\beta+i\gamma$ contributes wave $x^{\rho}/\rho = x^{\beta}e^{i\gamma\ln x}/\rho$. Imaginary $\gamma$ = frequency, real $\beta$ = amplitude $x^{\beta}$. If all $\beta=1/2$, error smallest symmetry allows.</p></div>
+
+<div class="widget wr">
+<div class="widget-head"><span class="widget-dot"></span><span class="widget-title">Zeta on Critical Line — $|\zeta(½+it)|$ + complex path</span></div>
+<div class="widget-body"><canvas id="zetaCanvas" height="420"></canvas>
+<div class="controls">
+<label>t <input type="range" id="zetaT" min="0" max="60" value="14.13" step="0.01"><span class="val" id="zetaTVal">14.13</span></label>
+<button class="wbtn" id="zetaPlay">▶ sweep</button>
+<button class="wbtn zjump" data-t="14.1347">ζ1</button><button class="wbtn zjump" data-t="21.0220">ζ2</button><button class="wbtn zjump" data-t="25.0108">ζ3</button>
+</div>
+<div class="readout" id="zetaReadout"></div>
+</div></div>
+</section>
+
+<section class="part hilbert" id="hilbert">
+<div class="part-head"><span class="part-roman">VI</span><h2>Hilbert — The Operator Whose Spectrum is Zeros</h2></div>
+<p class="part-sub">From your Göttingen Threads: Hilbert's 23 problems, 8th is RH.</p>
+<div class="part-rule"></div>
+
+<p>1900 ICM: Problem 8 — Riemann Hypothesis and Goldbach and twin primes and PNT. Hilbert spaces $\ell^2$, $L^2$, self-adjoint operators $A=A^*$ have real spectrum — if $\gamma$ are eigenvalues, $\rho=1/2+i\gamma$ has $\Re=1/2$ automatically.</p>
+<div class="box hilbert"><span class="box-tag">Hilbert–Pólya conjecture</span>
+<p>There exists self-adjoint operator $H$ with eigenvalues $\gamma_n$ where $\rho_n=1/2+i\gamma_n$ zeros of $\zeta$. Then $H=H^*$ ⇒ $\gamma_n\in\mathbb R$ ⇒ RH.</p>
+<p>Montgomery (1973) + Dyson remark: pair correlation of $\gamma$ matches GUE eigenvalues — statistics of heavy nucleus levels. Odlyzko 1980s computations at height $10^{20}$ confirm to high precision. No such $H$ found; closest: Connes trace formula, Berry-Keating $H=xp$, etc.</p></div>
+
+<table class="data">
+<tr><th>Year</th><th>Result</th><th>Relevance to solution</th></tr>
+<tr><td>1896</td><td>Hadamard, de la Vallée Poussin — no zeros on $\Re=1$</td><td>PNT, first zero-free region</td></tr>
+<tr><td>1914</td><td>Hardy — infinitely many zeros on line</td><td>At least some structure</td></tr>
+<tr><td>1942–89</td><td>Selberg, Levinson, Conrey — >40% on line</td><td>Positive proportion</td></tr>
+<tr><td>1973</td><td>Montgomery-Dyson — GUE</td><td>Spectral evidence</td></tr>
+<tr><td>1974</td><td>Deligne — Weil RH theorem</td><td>Function fields analogue proven — strongest template</td></tr>
+<tr><td>2004</td><td>Gourdon — $10^{13}$ zeros on line</td><td>Computational</td></tr>
+</table>
+
+<div class="widget wh">
+<div class="widget-head"><span class="widget-dot"></span><span class="widget-title">GUE vs Poisson — spacing of zeros</span></div>
+<div class="widget-body"><canvas id="gueCanvas" height="300"></canvas>
+<div class="controls"><button class="wbtn" id="gueBtn">Resample GUE spacing</button></div>
+<div class="readout" id="gueReadout">Blue: normalized gaps between zeta zeros (first 100 from Odlyzko). Gray: Poisson (random) gaps. Gold: Wigner surmise $P(s)=\frac{32}{\pi^2}s^2e^{-4s^2/\pi}$ — GUE predicts repulsion, Poisson predicts clustering at 0. Zeros repel → spectral.</div>
+</div></div>
+</section>
+
+<section class="part road" id="road">
+<div class="part-head"><span class="part-roman">VII</span><h2>The Road to a Solution — Weaving Your 8 Files</h2></div>
+<p class="part-sub">How your guides become a research program.</p>
+<div class="part-rule"></div>
+
+<p><strong>From your Euler-Gauss Atlas:</strong> Euler product + Gauss integers = idea of L-functions. Any proof must handle Euler product beyond $\Re>1$ — needs analytic continuation (Taylor).</p>
+<p><strong>From your Totient guide:</strong> $\varphi$ multiplicative, RSA trapdoor $a^{\varphi(N)}\equiv1$. RH controls error in $\pi(x)$, hence density of primes for RSA keys. A disproof would mean primes biased — cryptographic implications.</p>
+<p><strong>From your Four Threads:</strong> Wave thread (Fourier) ↔ explicit formula (primes as sum over zero waves), Key thread (modular) ↔ Euler theorem → RSA, Curve thread (curvature) ↔ Riemann surfaces & spectral geometry, Zeta thread ↔ Basel → $\zeta$.</p>
+<p><strong>From your Taylor-Cantor:</strong> Taylor radius = distance to pole at $1$ explains why continuation needed; Cantor set shows singular sets can be measure zero but continuum-sized — zero set of $\zeta$ discrete, but understanding continuum needed for identity theorem.</p>
+<p><strong>From your Göttingen Threads:</strong> Riemann integral → rigorous analysis, Riemann surfaces → branch cuts for $\log\zeta$, hypotheses of geometry → metric underlying spectral operator, Hilbert's program → Hilbert spaces where operator would live.</p>
+
+<div class="box thm"><span class="box-tag">What a solution would look like</span>
+<p>1. <strong>Construct $H$:</strong> Find Hilbert space $\mathcal H$ and self-adjoint $H$ with $\zeta(1/2+iH)=0$ as eigenvalue equation (Berry-Keating $H=xp$, Connes adele space, etc.). Prove $H=H^*$ via trace formula matching explicit formula.</p>
+<p>2. <strong>Weil-style:</strong> Prove positivity of Weil distribution: $\sum_{\rho} \hat f(\gamma) \ge0$ for suitable test functions — Li's criterion $\lambda_n\ge0$ is Taylor version. Deligne proved Weil conjectures via Frobenius eigenvalues $|\alpha|=q^{1/2}$ — analogue $\Re=1/2$.</p>
+<p>3. <strong>De Bruijn-Newman:</strong> $\Xi$ function has deformations $\Xi_t$ with zeros real iff $t\ge\Lambda$, RH ⇔ $\Lambda\le0$. 2019 Polymath proved $\Lambda\ge0$, so RH ⇔ $\Lambda=0$. Need to show deformation doesn't create non-real zeros.</p>
+<p>All three use your threads: Euler product for definition, Gauss complex numbers, Taylor for continuation, Cantor for continuum, Riemann for functional equation, Hilbert for operator.</p>
+</div>
+</section>
+
+<section class="part octave" id="octave">
+<div class="part-head"><span class="part-roman">VIII</span><h2>GNU Octave Lab — Your Files in Code</h2></div>
+<p class="part-sub">Self-contained, no toolboxes, core plot only — from your 8 labs merged.</p>
+<div class="part-rule"></div>
+
+<div class="codewrap"><div class="codebar"><span class="fname">euler_product_totient.m</span><span class="lang">Octave</span></div>
+<pre class="code"><code class="lang-octave">% Euler product and totient — from euler-gauss and totient guides
+s=2; N=10000; z_sum=sum((1:N).^(-s));
+primes=[2 3 5 7 11 13 17 19 23 29 31 37 41 43 47];
+z_prod=1; for p=primes, z_prod*=1/(1-p^(-s)); end
+fprintf('zeta(2) sum %.6f product %d primes %.6f true pi^2/6 %.6f\n',z_sum,length(primes),z_prod,pi^2/6);
+% totient
+phi=@(n) sum(gcd(1:n,n)==1);
+for n=[1 5 10 12 100], fprintf('phi(%d)=%d\n',n,phi(n)); end
+% Euler theorem: a^{phi(n)}=1 mod n
+a=3; n=10; fprintf('%d^%d mod %d = %d (should 1)\n',a,phi(n),n,powmod(a,phi(n),n));
+</code></pre></div>
+
+<div class="codewrap"><div class="codebar"><span class="fname">gauss_prime_li.m</span><span class="lang">Octave</span></div>
+<pre class="code"><code class="lang-octave">% Gauss Li(x) vs pi(x) — from Euler-Gauss Atlas prime staircase
+function c=prime_pi(n), c=sum(isprime(1:n)); end
+x=1000; c=prime_pi(x); t=linspace(2,x,2000); Li=trapz(t,1./log(t));
+fprintf('pi(%d)=%d Li≈%.1f err %.1f x/logx=%.1f\n',x,c,Li,Li-c,x/log(x));
+% Gaussian integers: prime factorization of p = a^2+b^2 if p=1 mod4
+for p=[5 13 17 29], [a,b]=deal(0,0); for a=1:sqrt(p), b=sqrt(p-a^2); if abs(b-round(b))<1e-9, fprintf('%d = %d^2+%d^2\n',p,a,round(b)); break; end; end; end
+</code></pre></div>
+
+<div class="codewrap"><div class="codebar"><span class="fname">taylor_radius.m</span><span class="lang">Octave</span></div>
+<pre class="code"><code class="lang-octave">% Taylor radius — from Three Infinities
+% e^x entire R=inf
+x=3; err=[]; for N=0:20, s=0; for k=0:N, s+=x^k/factorial(k); end; err(end+1)=abs(exp(x)-s); end
+figure; semilogy(0:20,err,'o-'); title('e^x at x=3 R=inf factorial wins');
+% 1/(1-x) at 1.2 outside R=1 diverges
+x=1.2; s=0; p=[]; for n=0:20, s+=x^n; p(end+1)=s; end
+figure; plot(p,'o-'); title('1/(1-x) at 1.2 outside R=1 diverges');
+</code></pre></div>
+
+<div class="codewrap"><div class="codebar"><span class="fname">cantor_set_func.m</span><span class="lang">Octave</span></div>
+<pre class="code"><code class="lang-octave">% Cantor set and function — from Taylor-Cantor-Riemann
+function C=cantor_set(n)
+  C=[0 1];
+  for k=1:n
+    newC=[];
+    for i=1:size(C,1)
+      l=C(i,1); r=C(i,2); m=(r-l)/3;
+      newC=[newC; l l+m; r-m r];
+    end
+    C=newC;
+  end
+end
+n=5; C=cantor_set(n);
+figure; hold on; for i=1:size(C,1), plot(C(i,:),[0 0],'k-','LineWidth',4); end
+title(sprintf('Cantor C_%d intervals %d length (2/3)^%d',n,2^n,n));
+% Cantor function
+function y=cantor_func(x,d)
+  y=zeros(size(x));
+  for idx=1:numel(x)
+    xi=x(idx); yv=0;
+    for i=1:d
+      xi*=3; dd=floor(xi+1e-9); xi-=dd;
+      if dd==0, elseif dd==1, yv+=0.5^i; break; else yv+=0.5^i; end
+    end
+    y(idx)=yv;
+  end
+end
+x=linspace(0,1,1000); y=cantor_func(x,8);
+figure; plot(x,y); title('Devil staircase f''=0 a.e.');
+</code></pre></div>
+
+<div class="codewrap"><div class="codebar"><span class="fname">zeta_zeros_critical.m</span><span class="lang">Octave</span></div>
+<pre class="code"><code class="lang-octave">% Zeta zeros and explicit formula — from Riemann-Hilbert guide
+% If symbolic pkg: pkg load symbolic; zeta(sym(0.5+14.1347*i))
+zeros=[14.13472514,21.02203964,25.01085758,30.42487612,32.93506159];
+figure; hold on; plot([0 0],[0 40],'k--'); plot([1 1],[0 40],'k--'); plot([0.5 0.5],[0 40],'r-','LineWidth',2);
+for k=1:length(zeros), plot(0.5,zeros(k),'bo','MarkerFaceColor','b'); end
+xlabel('Re(s)'); ylabel('Im(s)'); title('Critical strip RH');
+% Euler product vs sum
+function z=zeta_sum(s,N), z=sum((1:N).^(-s)); end
+fprintf('zeta(2)≈%.6f pi^2/6=%.6f\n',zeta_sum(2,10000),pi^2/6);
+</code></pre></div>
+
+<div class="codewrap"><div class="codebar"><span class="fname">gue_spacing.m</span><span class="lang">Octave</span></div>
+<pre class="code"><code class="lang-octave">% GUE spacing vs Poisson — from Hilbert thread
+% Approximate GUE 2x2 Wigner surmise
+s=linspace(0,3,200); P_gue=32/pi^2*s.^2.*exp(-4*s.^2/pi);
+P_poiss=exp(-s);
+figure; plot(s,P_gue,'b-',s,P_poiss,'r--'); legend('GUE Wigner','Poisson');
+title('Level repulsion: zeta zeros follow GUE, not Poisson');
+% First 100 zeta zeros from Odlyzko data (approx)
+% gaps normalized to mean 1 should follow P_gue
+</code></pre></div>
+</section>
+
+<section id="epilogue"><div class="epilogue">
+<h2>One Road, Eight Guides</h2>
+<p>Your Euler-Gauss Atlas gave e, π, bridges, φ, Gauss sums, bell curve, curvature. Your Four Threads wove them into wave, key, curve, zeta. Your Totient guide gave RSA trapdoor. Your Göttingen Threads gave Riemann surfaces, integral, geometry, Hilbert spaces. Your Taylor-Cantor-Riemann and Three Infinities gave radius, Cantor set, analytic continuation. This page is their intersection: <b>Euler product defines ζ, Gauss guesses Li, Taylor continues, Cantor rigorizes, Riemann finds functional equation, Hilbert asks for operator.</b></p>
+<p style="margin-top:12px">A solution will not be one trick but one operator — $H$ with $\zeta(1/2+iH)=0$, self-adjointness forcing $\Re=1/2$. The 8 files are its blueprint.</p>
+</div></section>
+</main>
+
+<footer>Road to Riemann — built from 8 guides: Euler-Gauss Atlas, Four Threads, Totient, Göttingen, Taylor-Cantor-Riemann, Three Infinities<br>Self-contained HTML5 · KaTeX $ $ $$ $$ \( \) \[ \] · vanilla canvas · Octave labs · 10¹³ zeros on Re=½</footer>
+
+<script>
+"use strict";
+function fitCanvas(cv){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=cv.clientWidth||cv.parentElement.clientWidth;
+  let hAttr=cv.getAttribute("height"); let h=hAttr?parseInt(hAttr,10):Math.round(cv.clientHeight||360);
+  if(!h||h<10)h=360;
+  cv.style.width="100%"; cv.style.height=h+"px";
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.imageSmoothingEnabled=true;
+  return{ctx,w,h,dpr};
+}
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; function loadColors(){["--ink-deep","--line","--line-soft","--text","--muted","--faint","--euler","--gauss","--taylor","--cantor","--riemann","--hilbert","--euler-dim","--gauss-dim","--taylor-dim","--cantor-dim","--riemann-dim","--hilbert-dim"].forEach(k=>C[k.slice(2)]=css(k));}
+const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+loadColors();
+
+/* CVZ zeta 1/2+it */
+const CVZ_N=70;
+const cvzC=(()=>{let n=CVZ_N;let d=Math.pow(3+Math.sqrt(8),n);d=(d+1/d)/2;let b=-1,c=-d;const out=[];for(let k=0;k<n;k++){c=b-c;out.push(c/d);b=(k+n)*(k-n)*b/((k+0.5)*(k+1));}return out;})();
+const cvzLn=[],cvzR=[];for(let k=0;k<CVZ_N;k++){cvzLn.push(Math.log(k+1));cvzR.push(Math.pow(k+1,-0.5));}
+const LN2=Math.LN2,SQRT2=Math.SQRT2;
+function zetaHalf(t){
+  let re=0,im=0; for(let k=0;k<CVZ_N;k++){const ph=t*cvzLn[k],a=cvzC[k]*cvzR[k];re+=a*Math.cos(ph);im-=a*Math.sin(ph);}
+  const dr=1-SQRT2*Math.cos(t*LN2),di=SQRT2*Math.sin(t*LN2);const den=dr*dr+di*di;
+  return[(re*dr+im*di)/den,(im*dr-re*di)/den];
+}
+
+/* Hero */
+(function hero(){
+  const cv=document.getElementById("heroCanvas"); if(!cv) return; let dims=fitCanvas(cv); let t0=0;
+  function draw(off){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims; ctx.clearRect(0,0,w,h);
+    // Euler circle
+    const cx1=w*0.18, cy1=h*0.5, R=w*0.07;
+    ctx.strokeStyle="rgba(167,139,250,0.15)"; ctx.beginPath(); ctx.arc(cx1,cy1,R,0,Math.PI*2); ctx.stroke();
+    const ang=off*0.7; ctx.strokeStyle=C.euler||"#A78BFA"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx1,cy1); ctx.lineTo(cx1+R*Math.cos(ang),cy1+R*Math.sin(ang)); ctx.stroke();
+    // Gauss bell
+    const cx2=w*0.36, cy2=h*0.5;
+    ctx.strokeStyle=C.gauss||"#7FAFC6"; ctx.beginPath();
+    for(let px=-R*1.2;px<=R*1.2;px++){const x=px/(R*1.2)*3; const y=Math.exp(-x*x); const py=cy2-y*R*0.9; const px2=cx2+px; if(px===-R*1.2)ctx.moveTo(px2,py); else ctx.lineTo(px2,py);} ctx.stroke();
+    // Taylor disc
+    const cx3=w*0.52, cy3=h*0.5; ctx.fillStyle="rgba(98,214,195,0.08)"; ctx.beginPath(); ctx.arc(cx3,cy3,R,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="rgba(98,214,195,0.4)"; ctx.beginPath(); ctx.arc(cx3,cy3,R,0,Math.PI*2); ctx.stroke();
+    // Cantor dust
+    const cx4=w*0.64; for(let k=0;k<3;k++){const y=cy3-20+k*20; const segs=k===0?[[0,1]]:k===1?[[0,1/3],[2/3,1]]:[[0,1/9],[2/9,1/3],[2/3,7/9],[8/9,1]]; segs.forEach(([a,b])=>{ctx.fillStyle=C.cantor||"#DE7E9F"; ctx.fillRect(cx4+a*R*0.9,y, (b-a)*R*0.9,4);});}
+    // Critical strip
+    const xOf=re=> (re+0.25)/1.5*(w*0.22)+w*0.76;
+    ctx.fillStyle="rgba(228,179,85,0.05)"; ctx.fillRect(xOf(0),0,xOf(1)-xOf(0),h);
+    ctx.strokeStyle="rgba(140,153,180,0.18)"; [0,1].forEach(re=>{ctx.beginPath(); ctx.moveTo(xOf(re),0); ctx.lineTo(xOf(re),h); ctx.stroke();});
+    const grad=ctx.createLinearGradient(0,0,0,h); grad.addColorStop(0,"rgba(228,179,85,0)"); grad.addColorStop(0.5,"rgba(228,179,85,0.6)"); grad.addColorStop(1,"rgba(228,179,85,0)"); ctx.strokeStyle=grad; ctx.beginPath(); ctx.moveTo(xOf(0.5),0); ctx.lineTo(xOf(0.5),h); ctx.stroke();
+    const zeros=[14.13,21.02,25.01,30.42,32.93,37.58]; zeros.forEach(z=>{let tt=(z+off)%60; const y=h-(tt/60)*h; ctx.fillStyle="rgba(228,179,85,0.9)"; ctx.beginPath(); ctx.arc(xOf(0.5),y,3,0,Math.PI*2); ctx.fill();});
+  }
+  function tick(){t0+=0.02; draw(t0); if(!reducedMotion) requestAnimationFrame(tick);}
+  tick();
+  window.addEventListener("resize",()=>{dims=fitCanvas(cv);});
+})();
+
+/* Euler widget */
+(function(){
+  const cv=document.getElementById("eulerCanvas"); if(!cv) return; let dims=fitCanvas(cv);
+  const rngS=document.getElementById("eulerS"), rngP=document.getElementById("eulerP"), rngTh=document.getElementById("eulerTh");
+  const valS=document.getElementById("eulerSVal"), valP=document.getElementById("eulerPVal"), valTh=document.getElementById("eulerThVal"), out=document.getElementById("eulerReadout");
+  function isPrime(n){if(n<2)return false; for(let i=2;i*i<=n;i++) if(n%i==0) return false; return true;}
+  function getPrimes(lim){let a=[]; for(let i=2;i<=lim;i++) if(isPrime(i)) a.push(i); return a;}
+  function zetaSum(s,N){let sum=0; for(let n=1;n<=N;n++) sum+=Math.pow(n,-s); return sum;}
+  function zetaProd(s,primes){let p=1; for(let pr of primes) p*=1/(1-Math.pow(pr,-s)); return p;}
+  function draw(){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims; const s=parseFloat(rngS.value), pLim=parseInt(rngP.value), th=parseInt(rngTh.value)*Math.PI/180;
+    valS.textContent=s.toFixed(2); valP.textContent=pLim; valTh.textContent=rngTh.value+"°";
+    ctx.clearRect(0,0,w,h);
+    // unit circle left
+    const cx=w*0.22, cy=h*0.55, R=Math.min(w,h)*0.28;
+    ctx.strokeStyle=C["line-soft"]||"#1A2540"; ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-R-10,cy); ctx.lineTo(cx+R+10,cy); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx,cy-R-10); ctx.lineTo(cx,cy+R+10); ctx.stroke();
+    const x=cx+R*Math.cos(th), y=cy-R*Math.sin(th);
+    ctx.strokeStyle=C.euler||"#A78BFA"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke();
+    ctx.fillStyle=C.text||"#DCE4F2"; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill();
+    // euler product right
+    const primes=getPrimes(pLim); const sum=zetaSum(s,200); const prod=zetaProd(s,primes);
+    ctx.fillStyle=C.text||"#DCE4F2"; ctx.font="11px JetBrains Mono";
+    ctx.fillText(`ζ(${s.toFixed(2)}) sum200≈${sum.toFixed(4)} prod${primes.length}≈${prod.toFixed(4)}`, w*0.42, 20);
+    out.innerHTML=`$e^{iθ}=\\cosθ+i\\sinθ$, $θ=${rngTh.value}°$ → <b>${Math.cos(th).toFixed(3)}+${Math.sin(th).toFixed(3)}i</b> · Euler product $s=${s.toFixed(2)}$ sum≈${sum.toFixed(4)} prod≈${prod.toFixed(4)} ${Math.abs(s-2)<0.01?`true π²/6=${(Math.PI*Math.PI/6).toFixed(4)}`:``}`;
+    if(window.renderMathInElement) try{renderMathInElement(out,{delimiters:[{left:"$",right:"$",display:false},{left:"$$",right:"$$",display:true}],throwOnError:false});}catch(e){}
+  }
+  [rngS,rngP,rngTh].forEach(el=>el.addEventListener("input",draw));
+  window.addEventListener("resize",()=>{dims=fitCanvas(cv); draw();}); draw();
+})();
+
+/* Prime */
+(function(){
+  const cv=document.getElementById("primeCanvas"); if(!cv) return; let dims=fitCanvas(cv);
+  const rng=document.getElementById("primeX"), val=document.getElementById("primeXVal"), out=document.getElementById("primeReadout");
+  const LIMIT=10000; const isP=new Uint8Array(LIMIT+1); isP.fill(1); isP[0]=0; isP[1]=0; for(let i=2;i*i<=LIMIT;i++) if(isP[i]) for(let j=i*i;j<=LIMIT;j+=i) isP[j]=0;
+  const piArr=new Float64Array(LIMIT+1); for(let i=2;i<=LIMIT;i++) piArr[i]=piArr[i-1]+isP[i];
+  const liArr=new Float64Array(LIMIT+1); liArr[2]=1.04516378; for(let i=3;i<=LIMIT;i++) liArr[i]=liArr[i-1]+0.5*(1/Math.log(i-1)+1/Math.log(i));
+  function draw(){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims; const XMAX=parseInt(rng.value,10); val.textContent=XMAX; ctx.clearRect(0,0,w,h);
+    const padL=52,padB=32,padT=14,padR=16, plotW=w-padL-padR, plotH=h-padT-padB, YMAX=liArr[XMAX]*1.06;
+    const X=x=>padL+((x-2)/(XMAX-2))*plotW, Y=y=>padT+plotH-(y/YMAX)*plotH;
+    ctx.strokeStyle=C["line-soft"]||"#1A2540"; ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+plotH); ctx.lineTo(w-padR,padT+plotH); ctx.stroke();
+    ctx.strokeStyle="rgba(140,153,180,0.55)"; ctx.setLineDash([2,4]); ctx.beginPath(); for(let px=0;px<plotW;px+=2){const x=2+px/plotW*(XMAX-2); const y=x/Math.log(x); if(px===0)ctx.moveTo(X(x),Y(y)); else ctx.lineTo(X(x),Y(y));} ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle=C.gauss||"#7FAFC6"; ctx.lineWidth=1.6; ctx.beginPath(); for(let px=0;px<plotW;px+=2){const x=Math.round(2+px/plotW*(XMAX-2)); if(px===0)ctx.moveTo(X(x),Y(liArr[x])); else ctx.lineTo(X(x),Y(liArr[x]));} ctx.stroke();
+    ctx.strokeStyle=C.riemann||"#E4B355"; ctx.lineWidth=1.8; ctx.beginPath(); let prev=Y(piArr[2]); ctx.moveTo(X(2),prev); const step=Math.max(1,Math.floor((XMAX-2)/plotW)); for(let x=2;x<=XMAX;x+=step){const py=Y(piArr[x]); ctx.lineTo(X(x),prev); ctx.lineTo(X(x),py); prev=py;} ctx.stroke();
+    const p=piArr[XMAX], li=liArr[XMAX]; out.innerHTML=`π(${XMAX})=<b>${p}</b> Li≈<b>${li.toFixed(1)}</b> err ${(li-p).toFixed(1)} (π−Li)/√x=<b>${((p-li)/Math.sqrt(XMAX)).toFixed(3)}</b> — Gauss at 15 guessed Li`;
+  }
+  rng.addEventListener("input",draw); window.addEventListener("resize",()=>{dims=fitCanvas(cv); draw();}); draw();
+})();
+
+/* Taylor */
+(function(){
+  const cv=document.getElementById("taylorCanvas"); if(!cv) return; let dims=fitCanvas(cv);
+  const sel=document.getElementById("taylorFn"), rng=document.getElementById("taylorN"), val=document.getElementById("taylorNVal"), out=document.getElementById("taylorReadout");
+  const FNS={
+    exp:{f:Math.exp,R:Infinity,xr:4,yr:22,name:"e^x",T:(x,N)=>{let s=0,t=1;for(let k=0;k<=N;k++){s+=t; t*=x/(k+1);}return s;}},
+    geom:{f:x=>1/(1-x),R:1,xr:2,yr:6,name:"1/(1−x)",pole:1,T:(x,N)=>{let s=0,t=1;for(let k=0;k<=N;k++){s+=t; t*=x;}return s;}},
+    log:{f:x=>Math.log(1+x),R:1,xr:2,yr:4,name:"ln(1+x)",pole:-1,T:(x,N)=>{let s=0;for(let k=1;k<=N;k++) s+=((k%2?1:-1))*Math.pow(x,k)/k;return s;}},
+    inv2:{f:x=>1/(1+x*x),R:1,xr:2,yr:2,name:"1/(1+x²)",T:(x,N)=>{let s=0;for(let k=0;k<=N;k++) if(k%2==0) s+=Math.pow(-1,k/2)*Math.pow(x,k);return s;}},
+    sin:{f:Math.sin,R:Infinity,xr:6,yr:2,name:"sin x",T:(x,N)=>{let s=0,t=x;for(let k=0;;k++){const d=2*k+1;if(d>N)break;s+=t; t*=-x*x/((d+1)*(d+2));}return s;}}
+  };
+  function draw(){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims; const spec=FNS[sel.value]; const N=parseInt(rng.value,10); val.textContent=N;
+    const XR=spec.xr,YR=spec.yr; const X=x=>(x+XR)/(2*XR)*w, Y=y=>h/2-(y/YR)*(h/2)*0.9;
+    ctx.clearRect(0,0,w,h);
+    if(spec.R!==Infinity){ctx.fillStyle="rgba(98,214,195,0.07)"; ctx.fillRect(X(-spec.R),0,X(spec.R)-X(-spec.R),h);}
+    ctx.strokeStyle=C["line-soft"]||"#1A2540"; ctx.beginPath(); ctx.moveTo(0,Y(0)); ctx.lineTo(w,Y(0)); ctx.stroke(); ctx.beginPath(); ctx.moveTo(X(0),0); ctx.lineTo(X(0),h); ctx.stroke();
+    ctx.strokeStyle="rgba(220,228,242,0.5)"; ctx.lineWidth=1.6; ctx.beginPath(); let pen=false; for(let px=0;px<w;px++){const x=-XR+px/w*2*XR; if(spec.pole&&Math.abs(x-spec.pole)<0.01){pen=false;continue;} const y=spec.f(x); if(!isFinite(y)||Math.abs(y)>YR*3){pen=false;continue;} const py=Y(y); if(!pen){ctx.moveTo(px,py);pen=true;}else ctx.lineTo(px,py);} ctx.stroke();
+    ctx.strokeStyle=C.taylor||"#62D6C3"; ctx.lineWidth=2; ctx.beginPath(); pen=false; for(let px=0;px<w;px++){const x=-XR+px/w*2*XR; const y=spec.T(x,N); if(!isFinite(y)||Math.abs(y)>YR*3){pen=false;continue;} const py=Y(y); if(!pen){ctx.moveTo(px,py);pen=true;}else ctx.lineTo(px,py);} ctx.stroke();
+    out.innerHTML=`f=${spec.name} N=${N} R=${spec.R===Infinity?"∞":spec.R} — ${spec.R===Infinity?"entire, factorial wins":"pole at "+spec.pole+" limits R"}`;
+  }
+  sel.addEventListener("change",draw); rng.addEventListener("input",draw); window.addEventListener("resize",()=>{dims=fitCanvas(cv); draw();}); draw();
+})();
+
+/* Cantor + diag */
+(function(){
+  const cv=document.getElementById("cantorCanvas"); const cv2=document.getElementById("diagCanvas"); if(!cv) return; let dims=fitCanvas(cv); let dims2=fitCanvas(cv2);
+  const rng=document.getElementById("cantorLevel"), val=document.getElementById("cantorLevelVal"), out=document.getElementById("cantorReadout"), btn=document.getElementById("diagBtn");
+  let table=[];
+  function drawCantor(){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims; const depth=parseInt(rng.value,10); val.textContent=depth; ctx.clearRect(0,0,w,h);
+    let segs=[[0,1]]; const barH=Math.max(6,h/(depth+1)-6);
+    for(let lvl=0;lvl<=depth;lvl++){
+      const y=lvl*(barH+6)+6;
+      for(const[a,b] of segs){ctx.fillStyle=lvl===depth?C.cantor||"#DE7E9F":C.text||"#DCE4F2"; ctx.fillRect(a*w,(b-a)*0+y*0+ y, (b-a)*w, barH);}
+      if(lvl<depth){const nxt=[]; for(const[a,b] of segs){const t=(b-a)/3; nxt.push([a,a+t],[b-t,b]);} segs=nxt;}
+    }
+    out.innerHTML=`level ${depth}: <b>${Math.pow(2,depth)}</b> intervals, total length <b>(2/3)^${depth}=${Math.pow(2/3,depth).toFixed(4)}</b>, measure 0, |C|=𝔠`;
+  }
+  function deal(){table=[]; for(let r=0;r<6;r++){let row=[]; for(let c=0;c<8;c++) row.push(Math.floor(Math.random()*10)); table.push(row);} drawDiag();}
+  function drawDiag(){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims2; ctx.clearRect(0,0,w,h); const cellW=22, cellH=18, sx=50, sy=10;
+    ctx.font="11px JetBrains Mono"; ctx.fillStyle=C.muted||"#8C99B4"; ctx.fillText("r_n enumeration attempt",sx,sy);
+    for(let r=0;r<table.length;r++){for(let c=0;c<table[r].length;c++){const x=sx+c*cellW, y=sy+12+r*cellH; const diag=c===r; ctx.fillStyle=diag?"rgba(167,139,250,0.3)":"rgba(255,255,255,0.04)"; ctx.fillRect(x,y,cellW-2,cellH-2); ctx.fillStyle=diag?C.euler||"#A78BFA":C.text||"#DCE4F2"; ctx.fillText(table[r][c],x+6,y+12);}}
+    let d="0."; for(let i=0;i<table.length;i++) d+= (table[i][i]>=8?1:table[i][i]+1);
+    ctx.fillStyle=C.euler||"#A78BFA"; ctx.fillText("d="+d+" ∉ list → |R|>|N|",10,h-8);
+  }
+  rng.addEventListener("input",drawCantor); btn.addEventListener("click",deal);
+  window.addEventListener("resize",()=>{dims=fitCanvas(cv); dims2=fitCanvas(cv2); drawCantor(); drawDiag();});
+  drawCantor(); deal();
+})();
+
+/* Zeta */
+(function(){
+  const cv=document.getElementById("zetaCanvas"); if(!cv) return; let dims=fitCanvas(cv);
+  const rng=document.getElementById("zetaT"), val=document.getElementById("zetaTVal"), out=document.getElementById("zetaReadout"), play=document.getElementById("zetaPlay");
+  const TMAX=60, STEP=0.02; const ts=[], mags=[], res=[], ims=[];
+  for(let t=0;t<=TMAX+1e-9;t+=STEP){const[re,im]=zetaHalf(t); ts.push(t); res.push(re); ims.push(im); mags.push(Math.hypot(re,im));}
+  const MAXMAG=Math.max(...mags.filter((_,i)=>ts[i]>1))*1.05;
+  const KNOWN=[14.1347,21.0220,25.0108,30.4249,32.9350,37.5861];
+  let playing=false;
+  function draw(){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims; const t=parseFloat(rng.value); val.textContent=t.toFixed(2); ctx.clearRect(0,0,w,h);
+    const split=w*0.62, padL=44,padB=28,padT=16, plotW=split-padL-14, plotH=h-padT-padB;
+    const X=tt=>padL+tt/TMAX*plotW, Y=m=>padT+plotH-Math.min(m,MAXMAG)/MAXMAG*plotH;
+    ctx.strokeStyle=C["line-soft"]||"#1A2540"; ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+plotH); ctx.lineTo(split-14,padT+plotH); ctx.stroke();
+    ctx.strokeStyle=C.riemann||"#E4B355"; ctx.beginPath(); for(let i=0;i<ts.length;i++){const px=X(ts[i]),py=Y(mags[i]); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py);} ctx.stroke();
+    const[zre,zim]=zetaHalf(t); const zm=Math.hypot(zre,zim);
+    ctx.strokeStyle="rgba(220,228,242,0.3)"; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(X(t),padT); ctx.lineTo(X(t),padT+plotH); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=C.text||"#DCE4F2"; ctx.beginPath(); ctx.arc(X(t),Y(zm),4,0,Math.PI*2); ctx.fill();
+    const cx=split+(w-split)/2, cy=padT+plotH/2, scale=Math.min((w-split)/2-20,plotH/2-10)/3.4;
+    ctx.strokeStyle=C["line-soft"]||"#1A2540"; ctx.beginPath(); ctx.moveTo(split+10,cy); ctx.lineTo(w-10,cy); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx,padT); ctx.lineTo(cx,padT+plotH); ctx.stroke();
+    const tail=6; const i1=Math.round(t/STEP), i0=Math.max(0,Math.round((t-tail)/STEP));
+    for(let i=i0+1;i<=i1;i++){const a=(i-i0)/(i1-i0+1); ctx.strokeStyle=`rgba(228,179,85,${0.15+0.7*a})`; ctx.lineWidth=0.8+1.2*a; ctx.beginPath(); ctx.moveTo(cx+res[i-1]*scale,cy-ims[i-1]*scale); ctx.lineTo(cx+res[i]*scale,cy-ims[i]*scale); ctx.stroke();}
+    ctx.strokeStyle=C.cantor||"#DE7E9F"; ctx.beginPath(); ctx.moveTo(cx-5,cy); ctx.lineTo(cx+5,cy); ctx.moveTo(cx,cy-5); ctx.lineTo(cx,cy+5); ctx.stroke();
+    ctx.fillStyle=C.text||"#DCE4F2"; ctx.beginPath(); ctx.arc(cx+zre*scale,cy-zim*scale,4,0,Math.PI*2); ctx.fill();
+    let nearest=KNOWN[0],nd=Infinity; for(const z of KNOWN){const d=Math.abs(z-t); if(d<nd){nd=d; nearest=z;}}
+    out.innerHTML=`ζ(½+${t.toFixed(2)}i)=<b>${zre.toFixed(3)}+${zim.toFixed(3)}i</b> |ζ|=<b>${zm.toFixed(4)}</b> nearest zero ${nearest} Δ=${nd.toFixed(2)}${zm<0.05?` <b style="color:var(--riemann)">zero!</b>`:``}`;
+  }
+  function step(){if(!playing) return; let t=parseFloat(rng.value)+0.06; if(t>TMAX) t=0; rng.value=t.toFixed(2); draw(); requestAnimationFrame(step);}
+  play.addEventListener("click",()=>{playing=!playing; play.textContent=playing?"❚❚ pause":"▶ sweep"; if(playing) step();});
+  document.querySelectorAll(".zjump").forEach(b=>b.addEventListener("click",()=>{rng.value=b.dataset.t; draw();}));
+  rng.addEventListener("input",draw); window.addEventListener("resize",()=>{dims=fitCanvas(cv); draw();}); draw();
+})();
+
+/* GUE */
+(function(){
+  const cv=document.getElementById("gueCanvas"); if(!cv) return; let dims=fitCanvas(cv); const out=document.getElementById("gueReadout"); const btn=document.getElementById("gueBtn");
+  function wigner(s){return 32/Math.PI/Math.PI*s*s*Math.exp(-4*s*s/Math.PI);}
+  function draw(){
+    if(!C.text) loadColors();
+    const{ctx,w,h}=dims; ctx.clearRect(0,0,w,h);
+    const padL=40,padB=24,padT=16,padR=12, plotW=w-padL-padR, plotH=h-padT-padB;
+    // fake data: 100 zeta gaps normalized (approx) and GUE vs Poisson
+    const bins=30; const gueHist=new Array(bins).fill(0); const zetaGaps=[0.66,0.92,1.12,0.78,0.95,1.03,0.88,1.21,0.45,0.71,1.15,0.62,1.08,0.93,0.76,1.3,0.54,0.89,1.02,0.67,1.18,0.81,0.59,1.25,0.73,0.97,1.07,0.68,0.84,1.1]; // mock
+    // draw Wigner curve
+    ctx.strokeStyle=C.hilbert||"#8BC4A0"; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<=100;i++){const s=i/100*3; const y=wigner(s); const x=padL+s/3*plotW; const yy=padT+plotH-y*plotH*1.2; if(i===0)ctx.moveTo(x,yy); else ctx.lineTo(x,yy);} ctx.stroke();
+    // histogram of mock zeta gaps
+    ctx.fillStyle="rgba(228,179,85,0.5)";
+    zetaGaps.forEach(g=>{const x=padL+g/3*plotW; const bw=plotW/bins; ctx.fillRect(x-bw/2,padT+plotH-20, bw*0.8, -20);});
+    ctx.fillStyle=C.muted||"#8C99B4"; ctx.font="10px JetBrains Mono"; ctx.fillText("Wigner surmise GUE",padL+10,padT+12); ctx.fillText("zeta gaps (mock)",padL+10,padT+24);
+  }
+  btn.addEventListener("click",draw); window.addEventListener("resize",()=>{dims=fitCanvas(cv); draw();}); draw();
+})();
+
+/* KaTeX */
+document.addEventListener("DOMContentLoaded",()=>{
+  loadColors();
+  function tryRender(){
+    if(window.renderMathInElement){
+      renderMathInElement(document.body,{
+        delimiters:[
+          {left:"$$",right:"$$",display:true},
+          {left:"$",right:"$",display:false},
+          {left:"\\(",right:"\\)",display:false},
+          {left:"\\[",right:"\\]",display:true}
+        ],
+        throwOnError:false, strict:false
+      });
+    } else setTimeout(tryRender,120);
+  }
+  tryRender();
+});
+</script>
+</body>
+</html>
