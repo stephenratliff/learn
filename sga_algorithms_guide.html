@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychiatry Care Algorithms — SGAs &amp; Newer Agents</title>
+<style>
+  @font-face {
+    font-family: 'system-serif-fallback';
+    src: local('Georgia');
+  }
+  :root{
+    --bg:#0a0e16;
+    --bg-raised:#111726;
+    --bg-card:#141b2d;
+    --bg-card-hover:#182036;
+    --line:#232d43;
+    --line-soft:#1a2236;
+    --text:#e7ecf6;
+    --text-dim:#9aa6bd;
+    --text-faint:#5f6b84;
+
+    --d2:#d4a24e;      /* dopamine D2 — amber, the historical axis */
+    --d2-dim:#7a5f2f;
+    --ht2a:#4fc4b0;     /* serotonin 5-HT2A — teal, the "atypical" axis */
+    --ht2a-dim:#2c6e63;
+    --h1:#a988e8;       /* histamine H1 — violet, sedation/weight axis */
+    --h1-dim:#5f4c8a;
+    --m1:#e2896a;        /* muscarinic — clay, the new non-dopaminergic axis */
+    --m1-dim:#8a5644;
+    --a1:#6b96e8;        /* alpha-1 adrenergic — blue, orthostatic axis */
+    --a1-dim:#3f5a8a;
+
+    --warn:#e2605a;
+    --warn-dim:#7a3634;
+    --good:#6bbf8a;
+
+    --display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    --body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+    --radius: 10px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:
+      radial-gradient(ellipse 1200px 600px at 15% -10%, rgba(212,162,78,0.06), transparent 60%),
+      radial-gradient(ellipse 1000px 700px at 100% 10%, rgba(79,196,176,0.05), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+
+  ::selection{ background:var(--d2-dim); color:#fff; }
+
+  a{ color:inherit; }
+
+  img{max-width:100%;}
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  /* ---------- Top nav ---------- */
+  header.topnav{
+    position:sticky; top:0; z-index:100;
+    background:rgba(10,14,22,0.86);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .topnav-inner{
+    max-width:1180px; margin:0 auto; padding:0 32px;
+    display:flex; align-items:center; justify-content:space-between;
+    height:56px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:0.02em;
+  }
+  .topnav-brand{
+    color:var(--text); font-weight:600; letter-spacing:0.04em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .topnav-brand .rx{
+    color:var(--d2); font-family:var(--display); font-style:italic; font-size:18px;
+  }
+  nav.topnav-links{ display:flex; gap:22px; overflow-x:auto; }
+  nav.topnav-links a{
+    color:var(--text-dim); text-decoration:none; white-space:nowrap;
+    padding:4px 2px; border-bottom:1px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  nav.topnav-links a:hover{ color:var(--text); border-color:var(--line); }
+  nav.topnav-links a.active{ color:var(--d2); border-color:var(--d2); }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    padding:96px 0 72px;
+    overflow:hidden;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .hero canvas#heroCanvas{
+    position:absolute; inset:0; width:100%; height:100%;
+    opacity:0.55;
+    pointer-events:none;
+  }
+  .hero-inner{ position:relative; z-index:2; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--ht2a);
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:''; width:26px; height:1px; background:var(--ht2a);
+  }
+  h1.hero-title{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(2.4rem, 5.4vw, 4.1rem);
+    line-height:1.06;
+    letter-spacing:-0.01em;
+    max-width:15ch;
+    color:var(--text);
+  }
+  h1.hero-title em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--d2);
+  }
+  .hero-sub{
+    margin-top:26px;
+    max-width:56ch;
+    font-size:1.08rem;
+    color:var(--text-dim);
+  }
+  .hero-meta{
+    margin-top:40px;
+    display:flex; flex-wrap:wrap; gap:28px;
+    font-family:var(--mono); font-size:12.5px; color:var(--text-faint);
+  }
+  .hero-meta strong{ color:var(--text-dim); font-weight:500; }
+
+  /* ---------- Section shell ---------- */
+  section{ padding:88px 0; border-bottom:1px solid var(--line-soft); }
+  section:last-of-type{ border-bottom:none; }
+
+  .section-head{ margin-bottom:44px; max-width:70ch; }
+  .section-num{
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+    letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px;
+    display:block;
+  }
+  h2.section-title{
+    font-family:var(--display); font-weight:600;
+    font-size:clamp(1.7rem, 3vw, 2.3rem);
+    letter-spacing:-0.01em;
+  }
+  .section-dek{
+    margin-top:14px; color:var(--text-dim); font-size:1rem; max-width:62ch;
+  }
+
+  h3.sub-title{
+    font-family:var(--display); font-weight:600; font-size:1.3rem;
+    margin-bottom:14px; color:var(--text);
+  }
+
+  p{ color:var(--text-dim); }
+  p + p{ margin-top:12px; }
+
+  .callout{
+    border:1px solid var(--line); background:var(--bg-raised);
+    border-radius:var(--radius); padding:20px 22px; margin:22px 0;
+  }
+  .callout.warn{ border-color:var(--warn-dim); background:linear-gradient(180deg, rgba(226,96,90,0.07), rgba(226,96,90,0.02)); }
+  .callout.good{ border-color:#2f5d43; background:linear-gradient(180deg, rgba(107,191,138,0.07), rgba(107,191,138,0.02)); }
+  .callout-label{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--warn); margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  }
+  .callout.good .callout-label{ color:var(--good); }
+  .callout p{ color:var(--text); font-size:0.95rem; }
+</style>
+</head>
+<style>
+  /* ---------- Algorithm flow ---------- */
+  .algo-flow{
+    display:flex; flex-direction:column; gap:0;
+    counter-reset:algostep;
+    border-left:2px solid var(--line);
+    margin-left:14px;
+  }
+  .algo-step{
+    position:relative;
+    padding:0 0 34px 34px;
+    cursor:pointer;
+  }
+  .algo-step:last-child{ padding-bottom:0; }
+  .algo-step::before{
+    counter-increment:algostep;
+    content: counter(algostep);
+    position:absolute; left:-15px; top:0;
+    width:28px; height:28px; border-radius:50%;
+    background:var(--bg-card); border:2px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:12px; color:var(--text-dim);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .algo-step.branch::before{ border-color:var(--warn-dim); color:var(--warn); }
+  .algo-step:hover::before, .algo-step.open::before{
+    border-color:var(--d2); color:var(--d2); background:var(--bg-card-hover);
+  }
+  .algo-step-head{
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  }
+  .algo-step-title{ font-family:var(--display); font-weight:600; font-size:1.12rem; color:var(--text); }
+  .algo-step-tag{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint); white-space:nowrap;
+  }
+  .algo-step-body{
+    max-height:0; overflow:hidden;
+    transition:max-height .32s ease, margin-top .32s ease, opacity .25s ease;
+    opacity:0;
+  }
+  .algo-step.open .algo-step-body{
+    max-height:400px; margin-top:12px; opacity:1;
+  }
+  .algo-step-body p{ font-size:0.94rem; }
+  .algo-step-body ul{ margin-top:8px; padding-left:18px; color:var(--text-dim); font-size:0.94rem; }
+  .algo-step-body li{ margin-bottom:4px; }
+  .algo-step-hint{ font-size:0.85rem; color:var(--text-faint); margin-top:6px; }
+
+  /* ---------- Drug card grid ---------- */
+  .filter-bar{
+    display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px;
+  }
+  .filter-chip{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.03em;
+    padding:7px 13px; border-radius:100px; border:1px solid var(--line);
+    background:var(--bg-raised); color:var(--text-dim); cursor:pointer;
+    transition:all .15s ease; user-select:none;
+  }
+  .filter-chip:hover{ border-color:var(--text-faint); color:var(--text); }
+  .filter-chip.active{ border-color:var(--d2); color:var(--d2); background:rgba(212,162,78,0.08); }
+
+  .card-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr));
+    gap:16px;
+  }
+  .drug-card{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px 22px; transition:border-color .18s ease, transform .18s ease;
+  }
+  .drug-card:hover{ border-color:var(--text-faint); }
+  .drug-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .drug-name{ font-family:var(--display); font-size:1.15rem; font-weight:600; color:var(--text); }
+  .drug-brand{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); margin-top:2px; }
+  .drug-class-badge{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.04em; text-transform:uppercase;
+    padding:3px 8px; border-radius:5px; white-space:nowrap; margin-top:2px;
+  }
+  .badge-d2{ background:rgba(212,162,78,0.14); color:var(--d2); }
+  .badge-partial{ background:rgba(79,196,176,0.14); color:var(--ht2a); }
+  .badge-m1{ background:rgba(226,137,106,0.16); color:var(--m1); }
+  .badge-special{ background:rgba(226,96,90,0.14); color:var(--warn); }
+
+  .drug-meta-row{
+    display:flex; justify-content:space-between; margin-top:14px; padding-top:12px;
+    border-top:1px solid var(--line-soft); font-size:0.83rem; color:var(--text-faint);
+    font-family:var(--mono);
+  }
+  .drug-bars{ margin-top:14px; display:flex; flex-direction:column; gap:7px; }
+  .drug-bar-row{ display:grid; grid-template-columns:38px 1fr; align-items:center; gap:8px; }
+  .drug-bar-label{ font-family:var(--mono); font-size:10px; color:var(--text-faint); }
+  .drug-bar-track{ height:5px; border-radius:3px; background:var(--line-soft); overflow:hidden; }
+  .drug-bar-fill{ height:100%; border-radius:3px; }
+  .drug-notes{ margin-top:14px; font-size:0.86rem; color:var(--text-dim); }
+  .drug-notes b{ color:var(--text); font-weight:600; }
+
+  /* ---------- Receptor comparator widget ---------- */
+  .comparator{
+    display:grid; grid-template-columns:260px 1fr; gap:32px;
+    background:var(--bg-card); border:1px solid var(--line); border-radius:14px;
+    padding:28px;
+  }
+  .comparator-picker{ display:flex; flex-direction:column; gap:6px; max-height:520px; overflow-y:auto; padding-right:6px;}
+  .comparator-picker::-webkit-scrollbar{ width:6px; }
+  .comparator-picker::-webkit-scrollbar-thumb{ background:var(--line); border-radius:3px; }
+  .picker-item{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 10px; border-radius:7px; cursor:pointer;
+    font-size:0.88rem; color:var(--text-dim);
+    border:1px solid transparent;
+  }
+  .picker-item:hover{ background:var(--bg-raised); }
+  .picker-item.active{ background:var(--bg-raised); border-color:var(--line); color:var(--text); }
+  .picker-swatch{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .comparator-canvas-wrap{ position:relative; display:flex; align-items:center; justify-content:center; }
+  .comparator-legend{
+    display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:18px;
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+  }
+  .comparator-legend span{ display:flex; align-items:center; gap:6px; }
+  .comparator-legend i{ width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+  /* ---------- Tables ---------- */
+  .table-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); }
+  table.data-table{ width:100%; border-collapse:collapse; font-size:0.88rem; min-width:640px; }
+  table.data-table th{
+    text-align:left; font-family:var(--mono); font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase;
+    color:var(--text-faint); padding:12px 16px; background:var(--bg-raised); border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  table.data-table td{
+    padding:13px 16px; border-bottom:1px solid var(--line-soft); color:var(--text-dim); vertical-align:top;
+  }
+  table.data-table tr:last-child td{ border-bottom:none; }
+  table.data-table td.strong{ color:var(--text); font-weight:500; }
+  table.data-table tr:hover td{ background:rgba(255,255,255,0.015); }
+  .pill{
+    display:inline-block; font-family:var(--mono); font-size:10.5px;
+    padding:2px 8px; border-radius:100px; border:1px solid var(--line);
+    color:var(--text-dim); white-space:nowrap;
+  }
+  .pill.new{ border-color:var(--m1-dim); color:var(--m1); }
+
+  /* ---------- Monitoring checklist widget ---------- */
+  .monitor-grid{
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:2px;
+    background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+    font-family:var(--mono); font-size:11.5px;
+  }
+  .monitor-grid > div{ background:var(--bg-card); padding:12px 10px; }
+  .monitor-grid .mh{ background:var(--bg-raised); color:var(--text-faint); text-transform:uppercase; letter-spacing:0.04em; font-size:10px; text-align:center;}
+  .monitor-grid .mrow-label{ color:var(--text); font-weight:500; text-align:left; font-family:var(--body); font-size:12.5px;}
+  .monitor-cell{ display:flex; align-items:center; justify-content:center; }
+  .monitor-dot{ width:9px; height:9px; border-radius:50%; background:var(--line-soft); }
+  .monitor-dot.on{ background:var(--ht2a); }
+  .monitor-dot.base{ background:var(--d2); }
+
+  /* ---------- Titration widget ---------- */
+  .titration-box{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:26px 28px;
+  }
+  .titration-controls{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:22px; }
+  .titration-controls select{
+    background:var(--bg-raised); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:12.5px; padding:9px 12px; border-radius:7px; cursor:pointer;
+  }
+  #titrationOutput{ font-family:var(--mono); font-size:0.86rem; }
+  .titration-schedule-row{
+    display:grid; grid-template-columns:70px 1fr auto; gap:14px; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .titration-schedule-row:last-child{ border-bottom:none; }
+  .titration-week{ color:var(--text-faint); }
+  .titration-dose-bar-track{ height:8px; background:var(--line-soft); border-radius:4px; overflow:hidden; }
+  .titration-dose-bar-fill{ height:100%; background:linear-gradient(90deg, var(--d2-dim), var(--d2)); border-radius:4px; transition:width .4s ease; }
+  .titration-dose-label{ color:var(--text); white-space:nowrap; }
+
+  /* ---------- Footer ---------- */
+  footer{ padding:56px 0 80px; }
+  .footer-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:48px; }
+  footer h4{ font-family:var(--display); font-size:1rem; margin-bottom:14px; color:var(--text); }
+  footer ol{ padding-left:18px; color:var(--text-faint); font-size:0.83rem; }
+  footer ol li{ margin-bottom:8px; }
+  .footer-disclaimer{ font-size:0.83rem; color:var(--text-faint); max-width:52ch; }
+  .footer-disclaimer + .footer-disclaimer{ margin-top:10px; }
+  .footer-bottom{
+    margin-top:40px; padding-top:20px; border-top:1px solid var(--line-soft);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+  }
+
+  @media (max-width: 860px){
+    .comparator{ grid-template-columns:1fr; }
+    .footer-grid{ grid-template-columns:1fr; }
+    .monitor-grid{ grid-template-columns:repeat(3, 1fr); font-size:10px; }
+    nav.topnav-links{ display:none; }
+    section{ padding:60px 0; }
+    .wrap{ padding:0 20px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
+  }
+</style>
+<body>
+
+<header class="topnav">
+  <div class="topnav-inner">
+    <div class="topnav-brand"><span class="rx">℞</span> SGA Field Guide</div>
+    <nav class="topnav-links">
+      <a href="#algorithm">Algorithm</a>
+      <a href="#agents">Agents</a>
+      <a href="#comparator">Receptor Map</a>
+      <a href="#newer">Newer Agents</a>
+      <a href="#lai">LAIs</a>
+      <a href="#monitoring">Monitoring</a>
+      <a href="#clozapine">Clozapine</a>
+      <a href="#sources">Sources</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="wrap hero-inner">
+    <div class="eyebrow">Personal reference — pharmacology &amp; algorithms</div>
+    <h1 class="hero-title">Psychiatry Care Algorithms for <em>Second-Generation</em> Antipsychotics</h1>
+    <p class="hero-sub">
+      A working map of how second-generation (atypical) antipsychotics are sequenced in practice, how their
+      receptor profiles predict their side-effect signatures, and where the newest mechanisms — muscarinic
+      agonism chief among them — are reshaping the algorithm for the first time in seventy years.
+    </p>
+    <div class="hero-meta">
+      <div><strong>Framework</strong> INTEGRATE consensus algorithm, Lancet Psychiatry 2025</div>
+      <div><strong>Coverage</strong> 12 established SGAs + 3 newer-mechanism agents</div>
+      <div><strong>Status</strong> current to mid-2026 · offline reference, not clinical guidance</div>
+    </div>
+  </div>
+</section>
+<section id="algorithm">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">01 — The Pathway</span>
+      <h2 class="section-title">The INTEGRATE algorithm</h2>
+      <p class="section-dek">
+        Published in <em>The Lancet Psychiatry</em> in March 2025, INTEGRATE is the first consensus algorithmic
+        guideline assembled by authors from every UN region, built from an umbrella literature review, expert
+        workshops, and lived-experience focus groups. Its central move: stop treating "first-generation vs.
+        second-generation" as the operative category, and route treatment by receptor profile, side-effect
+        burden, and response timeline instead. Click a step to expand it.
+      </p>
+    </div>
+
+    <div class="algo-flow" id="algoFlow">
+
+      <div class="algo-step open" data-step="1">
+        <div class="algo-step-head">
+          <div class="algo-step-title">Baseline &amp; agent selection</div>
+          <div class="algo-step-tag">before dose 1</div>
+        </div>
+        <div class="algo-step-body">
+          <p>Select the first agent by side-effect profile and shared decision-making, not by assumed
+          efficacy — head-to-head efficacy differences between most SGAs are modest, with clozapine the
+          clear outlier. Establish a metabolic baseline before the first dose, not after weight gain appears.</p>
+          <ul>
+            <li>Baseline weight, waist circumference, fasting glucose or HbA1c, lipid panel</li>
+            <li>Baseline blood pressure, personal/family history of diabetes and cardiovascular disease</li>
+            <li>Discuss expected side-effect axis (metabolic vs. EPS vs. prolactin vs. sedation) with the patient up front</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="algo-step" data-step="2">
+        <div class="algo-step-head">
+          <div class="algo-step-title">Adequate trial</div>
+          <div class="algo-step-tag">≥ 4 weeks</div>
+        </div>
+        <div class="algo-step-body">
+          <p>Assuming confirmed adherence, the first antipsychotic should run at a therapeutic dose for at
+          least four weeks before response is judged. Reaching for a switch or an add-on earlier than this
+          window mistakes a slow responder for a non-responder.</p>
+          <div class="algo-step-hint">Confirm adherence before concluding non-response — this is the most common reason an adequate trial is misjudged.</div>
+        </div>
+      </div>
+
+      <div class="algo-step branch" data-step="3">
+        <div class="algo-step-head">
+          <div class="algo-step-title">Assess response</div>
+          <div class="algo-step-tag">decision point</div>
+        </div>
+        <div class="algo-step-body">
+          <p><b style="color:var(--good)">Responding</b> → continue, move to maintenance-phase monitoring and
+          consider earlier LAI conversion if adherence is a concern.</p>
+          <p><b style="color:var(--warn)">Persistent positive symptoms</b> → switch to a pharmacodynamically
+          <em>distinct</em> agent (e.g., a D2 full antagonist → a partial agonist, or vice versa) rather than
+          another drug from the same functional family. Shared decision-making around side-effect trade-offs
+          happens again at this branch.</p>
+        </div>
+      </div>
+
+      <div class="algo-step" data-step="4">
+        <div class="algo-step-head">
+          <div class="algo-step-title">Second adequate trial</div>
+          <div class="algo-step-tag">≥ 4 weeks, distinct mechanism</div>
+        </div>
+        <div class="algo-step-body">
+          <p>Same rules apply: confirm adherence, hold at therapeutic dose, reassess at four weeks. Side-effect
+          mitigation (metabolic, EPS, prolactin) continues in parallel — it is not deferred to "after" the
+          efficacy question is settled.</p>
+        </div>
+      </div>
+
+      <div class="algo-step branch" data-step="5">
+        <div class="algo-step-head">
+          <div class="algo-step-title">Treatment-resistant schizophrenia (TRS)</div>
+          <div class="algo-step-tag">two adequate trials failed</div>
+        </div>
+        <div class="algo-step-body">
+          <p>Non-response to two adequate trials of different antipsychotics, at therapeutic dose, with
+          confirmed adherence, defines TRS. INTEGRATE's key departure from older algorithms: move to
+          <b>clozapine promptly</b> at this point rather than cycling through additional D2-blocking agents
+          first. Delaying clozapine is one of the most consistently documented sources of prolonged, avoidable
+          disability in TRS.</p>
+        </div>
+      </div>
+
+      <div class="algo-step" data-step="6">
+        <div class="algo-step-head">
+          <div class="algo-step-title">Symptom-domain-specific care</div>
+          <div class="algo-step-tag">runs throughout, not sequentially</div>
+        </div>
+        <div class="algo-step-body">
+          <p>Positive, negative, and cognitive symptoms are treated as separate domains needing separate
+          strategies, rather than assuming one dose increase addresses all three. Negative and cognitive
+          symptoms respond far less reliably to dose escalation than positive symptoms do, and over-titrating
+          against them mainly adds side-effect burden.</p>
+        </div>
+      </div>
+
+      <div class="algo-step" data-step="7">
+        <div class="algo-step-head">
+          <div class="algo-step-title">Side-effect surveillance</div>
+          <div class="algo-step-tag">continuous</div>
+        </div>
+        <div class="algo-step-body">
+          <p>Psychiatric prescribers are expected to own physical-health monitoring, not defer it to primary
+          care by default — nonadherence is driven overwhelmingly by side-effect burden, especially metabolic
+          and sexual side effects patients may not spontaneously report. Substance-use comorbidity is treated
+          as an expected complicating factor to screen for, not an exception.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<section id="agents">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">02 — The Roster</span>
+      <h2 class="section-title">Established second-generation agents</h2>
+      <p class="section-dek">
+        Twelve SGAs in routine use, filterable by mechanism. Bars show relative receptor impact
+        (qualitative — teaching-level, not literal Ki values) across the five axes that predict most of what
+        you'll see clinically: D2 (efficacy + EPS + prolactin), 5-HT2A (the "atypical" antagonism that
+        softens EPS), H1 (sedation + weight), M1 (anticholinergic burden), and α1 (orthostatic risk).
+      </p>
+    </div>
+
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-chip active" data-filter="all">All 12</div>
+      <div class="filter-chip" data-filter="antagonist">D2 full antagonists</div>
+      <div class="filter-chip" data-filter="partial">D2/D3 partial agonists</div>
+      <div class="filter-chip" data-filter="metabolic">Highest metabolic risk</div>
+      <div class="filter-chip" data-filter="loweps">Lowest EPS burden</div>
+      <div class="filter-chip" data-filter="special">Special-handling</div>
+    </div>
+
+    <div class="card-grid" id="cardGrid">
+
+      <div class="drug-card" data-tags="antagonist loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Risperidone</div><div class="drug-brand">Risperdal</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:70%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:90%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:40%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:5%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:75%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>5–6 mg/day typical</span><span>oral + 3 LAI forms</span></div>
+        <div class="drug-notes"><b>Watch for:</b> dose-dependent EPS above ~6 mg, the most prolactin-elevating oral SGA short of paliperidone, orthostatic hypotension on titration.</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist metabolic">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Olanzapine</div><div class="drug-brand">Zyprexa</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:55%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:85%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:90%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:70%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:50%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>10–20 mg/day typical</span><span>oral + LAI (Relprevv)</span></div>
+        <div class="drug-notes"><b>Watch for:</b> the class-leading weight gain and dyslipidemia signal — pairs the most reliable efficacy in the class with the heaviest metabolic monitoring obligation. LAI form carries mandatory 3-hour post-injection observation (PDSS risk).</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Quetiapine</div><div class="drug-brand">Seroquel</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:30%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:60%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:85%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:10%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:70%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>150–750 mg/day (XR)</span><span>oral only</span></div>
+        <div class="drug-notes"><b>Watch for:</b> low D2 occupancy at usual doses means low EPS/prolactin but meaningfully sedating — useful where sleep and anxiety are prominent, less reliable for acute positive symptoms at low dose.</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Ziprasidone</div><div class="drug-brand">Geodon</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:55%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:85%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:20%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:2%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:45%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>40–160 mg/day, split</span><span>oral + IM (acute)</span></div>
+        <div class="drug-notes"><b>Watch for:</b> one of the most weight-neutral agents in the class, but requires dosing with a ≥500 kcal meal for absorption, and carries the most notable QTc-prolongation signal — baseline ECG in at-risk patients.</div>
+      </div>
+
+      <div class="drug-card" data-tags="partial loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Aripiprazole</div><div class="drug-brand">Abilify</div></div>
+          <div class="drug-class-badge badge-partial">D2/D3 partial agonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:65%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:60%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:20%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:2%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:30%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>10–15 mg/day typical</span><span>oral + LAI (Maintena, Asimtufii)</span></div>
+        <div class="drug-notes"><b>Watch for:</b> the prototype partial agonist — favorable metabolic/prolactin profile, but the most activating agent in the class; akathisia and insomnia are the practical limiters, not sedation.</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist special">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Paliperidone</div><div class="drug-brand">Invega</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:70%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:88%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:35%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:3%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:78%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>3–12 mg/day (ER)</span><span>oral + widest LAI family</span></div>
+        <div class="drug-notes"><b>Watch for:</b> risperidone's active metabolite — renally cleared (dose-adjust for renal impairment), the most prolactin-elevating agent in routine use, but anchors the deepest long-acting injectable lineup of any SGA: Sustenna (monthly), Trinza (every 3 months), Hafyera (every 6 months).</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Asenapine</div><div class="drug-brand">Saphris</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:60%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:92%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:45%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:3%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:55%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>10–20 mg/day, split</span><span>sublingual only</span></div>
+        <div class="drug-notes"><b>Watch for:</b> sublingual administration only — no food or drink for 10 minutes after dosing, or absorption drops sharply. Modest weight-gain signal relative to olanzapine/quetiapine.</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Lurasidone</div><div class="drug-brand">Latuda</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:58%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:80%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:15%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:2%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:50%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>40–160 mg/day</span><span>oral only</span></div>
+        <div class="drug-notes"><b>Watch for:</b> among the most weight-neutral SGAs and carries schizophrenia + bipolar depression indications, but absorption drops substantially without ≥350 kcal of food — take with a meal, every time.</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist special">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Iloperidone</div><div class="drug-brand">Fanapt</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:50%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:78%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:25%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:3%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:85%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>12–24 mg/day, split</span><span>oral; parent of Bysanti</span></div>
+        <div class="drug-notes"><b>Watch for:</b> requires slow titration over ~1 week specifically to manage orthostatic hypotension from high α1 affinity. Low EPS/prolactin burden. Its active metabolite is the basis for milsaperidone (Bysanti, 2025–26).</div>
+      </div>
+
+      <div class="drug-card" data-tags="partial loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Cariprazine</div><div class="drug-brand">Vraylar</div></div>
+          <div class="drug-class-badge badge-partial">D2/D3 partial agonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:60%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:55%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:15%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:2%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:35%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>1.5–6 mg/day</span><span>oral only</span></div>
+        <div class="drug-notes"><b>Watch for:</b> notably high D3 affinity relative to the rest of the class, with data specifically favoring negative-symptom improvement. Very long effective half-life (~2 days parent, ~1 week active metabolite) — side effects from a dose change can take weeks to fully appear or resolve.</div>
+      </div>
+
+      <div class="drug-card" data-tags="partial loweps">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Brexpiprazole</div><div class="drug-brand">Rexulti</div></div>
+          <div class="drug-class-badge badge-partial">D2/D3 partial agonist</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:55%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:70%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:30%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:2%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:35%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>2–4 mg/day</span><span>oral only</span></div>
+        <div class="drug-notes"><b>Watch for:</b> designed as a lower-akathisia alternative to aripiprazole via lower intrinsic D2 activity — also FDA-approved as MDD adjunct and, more recently, for agitation associated with Alzheimer's dementia.</div>
+      </div>
+
+      <div class="drug-card" data-tags="antagonist special">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Clozapine</div><div class="drug-brand">Clozaril</div></div>
+          <div class="drug-class-badge badge-special">TRS gold standard</div>
+        </div>
+        <div class="drug-bars">
+          <div class="drug-bar-row"><div class="drug-bar-label">D2</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:25%;background:var(--d2)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">5HT2A</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:85%;background:var(--ht2a)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">H1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:95%;background:var(--h1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">M1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:90%;background:var(--m1)"></div></div></div>
+          <div class="drug-bar-row"><div class="drug-bar-label">α1</div><div class="drug-bar-track"><div class="drug-bar-fill" style="width:88%;background:var(--a1)"></div></div></div>
+        </div>
+        <div class="drug-meta-row"><span>300–450 mg/day typical</span><span>oral only, no LAI</span></div>
+        <div class="drug-notes"><b>Watch for:</b> the only agent with proven superiority in TRS, but the lowest D2 occupancy of any SGA and the heaviest monitoring burden in psychiatry — see the dedicated section below. As of late 2025, REMS pharmacy/prescriber registration was eliminated in the US, though ANC monitoring remains mandatory.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<section id="comparator">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">03 — The Signature Read</span>
+      <h2 class="section-title">Receptor affinity comparator</h2>
+      <p class="section-dek">
+        Select up to four agents to overlay their receptor-impact profiles on one radar. This is the fastest
+        way to eyeball why two drugs that both "work" produce completely different side-effect conversations
+        with a patient — compare olanzapine against aripiprazole, or clozapine against cariprazine, to see the
+        shape of the trade-off.
+      </p>
+    </div>
+
+    <div class="comparator">
+      <div class="comparator-picker" id="comparatorPicker"></div>
+      <div>
+        <div class="comparator-canvas-wrap">
+          <canvas id="radarCanvas" width="560" height="480"></canvas>
+        </div>
+        <div class="comparator-legend" id="comparatorLegend"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="newer">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">04 — The New Axis</span>
+      <h2 class="section-title">Newer agents and mechanisms</h2>
+      <p class="section-dek">
+        For seventy years, "antipsychotic" meant D2 blockade or partial agonism. That changed in September 2024.
+        The agents below are current to mid-2026.
+      </p>
+    </div>
+
+    <div class="callout good" style="margin-bottom:32px;">
+      <div class="callout-label">◆ Mechanism shift</div>
+      <p><b>Cobenfy (xanomeline–trospium, formerly KarXT)</b> — FDA approved September 2024, the first
+      antipsychotic with no D2 blockade at all. Xanomeline is a dual M1/M4-preferring muscarinic agonist;
+      trospium is a peripherally restricted muscarinic antagonist added specifically to blunt the cholinergic
+      GI and autonomic side effects that made xanomeline unusable as monotherapy on its own. Because it never
+      touches D2, it sidesteps EPS, prolactin elevation, and — per EMERGENT trial data and the 52-week pooled
+      safety results presented at APA 2026 — much of the classic metabolic burden of dopamine-blocking agents.</p>
+      <p style="margin-top:10px;">Real-world data presented at APA's May 2026 annual meeting associated it with
+      reduced hospitalizations and lower overall antipsychotic burden; separate switch-study data (SIRS 2026,
+      Florence) showed symptom stability in patients transitioned directly from oral atypicals. Practically:
+      think of it first for patients whose EPS or metabolic tolerance has been the limiting factor on
+      conventional SGAs, not as a universal first-line replacement — the evidence base and clinician familiarity
+      are both still young relative to the D2-blocking class.</p>
+      <p style="margin-top:10px; color:var(--text-faint); font-size:0.85rem;">Watch: cholinergic GI effects
+      (nausea, dyspepsia, constipation, salivation) even with trospium on board — these are the main
+      tolerability-limiting side effects reported. More than seven companies now have distinct M1/M4-agonist
+      compounds in development, so this becomes a real subclass, not a one-off.</p>
+    </div>
+
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));">
+
+      <div class="drug-card">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Milsaperidone</div><div class="drug-brand">Bysanti</div></div>
+          <div class="drug-class-badge badge-d2">D2 antagonist</div>
+        </div>
+        <div class="drug-notes" style="margin-top:6px;"><b>Status:</b> FDA-approved for schizophrenia and bipolar I. It's the active metabolite of iloperidone
+        (Fanapt) — Vanda leaned on existing iloperidone trial data in the NDA submission. Its distinct
+        physicochemical properties are seen as favorable for a possible future long-acting injectable
+        formulation, which iloperidone itself never got.</div>
+      </div>
+
+      <div class="drug-card">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Lumateperone</div><div class="drug-brand">Caplyta</div></div>
+          <div class="drug-class-badge badge-partial">Multi-target</div>
+        </div>
+        <div class="drug-notes" style="margin-top:6px;"><b>Status:</b> already approved for schizophrenia and bipolar depression; now added to the roster of
+        atypical antipsychotics used as adjunctive MDD treatment, alongside aripiprazole, brexpiprazole, and
+        quetiapine XR. Mechanism combines 5-HT2A antagonism, relatively low striatal D2 occupancy, and
+        serotonin-reuptake / glutamatergic effects described in the literature — trial reports have emphasized
+        an absence of a mean weight, metabolic, or sexual side-effect signal versus placebo.</div>
+      </div>
+
+      <div class="drug-card">
+        <div class="drug-card-head">
+          <div><div class="drug-name">Next-gen muscarinics</div><div class="drug-brand">pipeline, watch list</div></div>
+          <div class="drug-class-badge badge-m1">M1/M4 agonist</div>
+        </div>
+        <div class="drug-notes" style="margin-top:6px;"><b>Status:</b> more than seven companies are now developing structurally distinct M1-selective, M4-selective,
+        and dual-agonist compounds within three years of Cobenfy's approval — including formulations aimed at
+        Alzheimer's disease psychosis, a large population with no FDA-approved pharmacologic treatment and where
+        existing antipsychotics carry a black-box mortality warning in dementia-related psychosis.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<section id="lai">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">05 — Adherence Engineering</span>
+      <h2 class="section-title">The long-acting injectable landscape</h2>
+      <p class="section-dek">
+        INTEGRATE pushes LAI conversion earlier — as a proactive adherence strategy, not a last resort after
+        repeated relapse. The pipeline here has been unusually active through 2025–2026, especially around
+        closing the gap for olanzapine, which has long lagged risperidone/paliperidone/aripiprazole in
+        injectable options.
+      </p>
+    </div>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Molecule</th>
+            <th>Brand (LAI)</th>
+            <th>Interval</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="strong">Risperidone</td>
+            <td>Risperdal Consta</td>
+            <td>Every 2 weeks</td>
+            <td><span class="pill">established</span></td>
+            <td>Original IM microsphere LAI; requires oral overlap during the first ~3 weeks.</td>
+          </tr>
+          <tr>
+            <td class="strong">Risperidone</td>
+            <td>Perseris</td>
+            <td>Monthly</td>
+            <td><span class="pill">established</span></td>
+            <td>Subcutaneous, no oral overlap needed.</td>
+          </tr>
+          <tr>
+            <td class="strong">Risperidone</td>
+            <td>Uzedy</td>
+            <td>Monthly or every 2 months</td>
+            <td><span class="pill">established</span></td>
+            <td>Subcutaneous. Label expanded to bipolar I maintenance — for that indication use the monthly schedule only; the 2-month interval is not approved for bipolar maintenance.</td>
+          </tr>
+          <tr>
+            <td class="strong">Risperidone (generic)</td>
+            <td>Amneal risperidone ER</td>
+            <td>Monthly</td>
+            <td><span class="pill new">new · 2025</span></td>
+            <td>FDA-approved Sept 2025 with 180-day Competitive Generic Therapy exclusivity; launch expected late 2025.</td>
+          </tr>
+          <tr>
+            <td class="strong">Paliperidone</td>
+            <td>Invega Sustenna</td>
+            <td>Monthly</td>
+            <td><span class="pill">established</span></td>
+            <td>Requires a same-day + day-8 loading protocol at initiation.</td>
+          </tr>
+          <tr>
+            <td class="strong">Paliperidone</td>
+            <td>Invega Trinza</td>
+            <td>Every 3 months</td>
+            <td><span class="pill">established</span></td>
+            <td>Requires ≥4 months stable on Sustenna first.</td>
+          </tr>
+          <tr>
+            <td class="strong">Paliperidone</td>
+            <td>Invega Hafyera</td>
+            <td>Every 6 months</td>
+            <td><span class="pill">established</span></td>
+            <td>The longest interval of any antipsychotic LAI; requires stability on Sustenna or Trinza first. Invega's LAI family is the deepest of any molecule in the class.</td>
+          </tr>
+          <tr>
+            <td class="strong">Aripiprazole</td>
+            <td>Abilify Maintena</td>
+            <td>Monthly</td>
+            <td><span class="pill">established</span></td>
+            <td>Requires 14 days of oral overlap at initiation.</td>
+          </tr>
+          <tr>
+            <td class="strong">Aripiprazole</td>
+            <td>Abilify Asimtufii</td>
+            <td>Every 2 months</td>
+            <td><span class="pill">established</span></td>
+            <td>First 2-month LAI antipsychotic indicated for both schizophrenia and bipolar I maintenance monotherapy in the US.</td>
+          </tr>
+          <tr>
+            <td class="strong">Olanzapine</td>
+            <td>Zyprexa Relprevv</td>
+            <td>Every 2–4 weeks</td>
+            <td><span class="pill">established, limited use</span></td>
+            <td>Carries a boxed warning for post-injection delirium/sedation syndrome (PDSS) — mandates observation for 3 hours post-injection at a certified facility, which has sharply limited real-world uptake.</td>
+          </tr>
+          <tr>
+            <td class="strong">Olanzapine</td>
+            <td>TEV-'749 (investigational)</td>
+            <td>Monthly (planned)</td>
+            <td><span class="pill new">pipeline · NDA filed 2025</span></td>
+            <td>Subcutaneous, Medincell SteadyTeq copolymer delivery. NDA submitted Dec 2025, accepted by FDA Feb 2026. Phase 3 SOLARIS data through week 56 showed no PDSS signal — if approved, this would be the first practical, low-observation-burden olanzapine LAI.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<section id="monitoring">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">06 — Surveillance</span>
+      <h2 class="section-title">Metabolic monitoring protocol</h2>
+      <p class="section-dek">
+        The standard ADA/APA-derived monitoring cadence, applied to any SGA — heavier for higher-metabolic-risk
+        agents (olanzapine, clozapine, quetiapine), lighter but not skipped for lower-risk agents (aripiprazole,
+        lurasidone, ziprasidone, cariprazine, brexpiprazole).
+      </p>
+    </div>
+
+    <div class="monitor-grid">
+      <div class="mh">Measure</div>
+      <div class="mh">Baseline</div>
+      <div class="mh">4 wk</div>
+      <div class="mh">8 wk</div>
+      <div class="mh">12 wk</div>
+      <div class="mh">Quarterly →</div>
+
+      <div class="mrow-label">Weight / BMI</div>
+      <div class="monitor-cell"><div class="monitor-dot base"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+
+      <div class="mrow-label">Waist circumference</div>
+      <div class="monitor-cell"><div class="monitor-dot base"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+
+      <div class="mrow-label">Blood pressure</div>
+      <div class="monitor-cell"><div class="monitor-dot base"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+
+      <div class="mrow-label">Fasting glucose / HbA1c</div>
+      <div class="monitor-cell"><div class="monitor-dot base"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+
+      <div class="mrow-label">Fasting lipid panel</div>
+      <div class="monitor-cell"><div class="monitor-dot base"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+
+      <div class="mrow-label">EPS / AIMS exam</div>
+      <div class="monitor-cell"><div class="monitor-dot base"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot on"></div></div>
+
+      <div class="mrow-label">Prolactin (if symptomatic)</div>
+      <div class="monitor-cell"><div class="monitor-dot base"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+      <div class="monitor-cell"><div class="monitor-dot"></div></div>
+    </div>
+    <p style="margin-top:16px; font-size:0.83rem;"><span style="color:var(--d2);">●</span> baseline draw &nbsp;&nbsp; <span style="color:var(--ht2a);">●</span> scheduled check &nbsp;&nbsp; annual reassessment of the full panel continues indefinitely thereafter.</p>
+
+    <div style="margin-top:56px;">
+      <h3 class="sub-title">Titration reference</h3>
+      <p style="margin-bottom:20px;">A rough starting-titration shape for a subset of agents — illustrative only, always defer to current prescribing information and the patient in front of you.</p>
+      <div class="titration-box">
+        <div class="titration-controls">
+          <select id="titrationSelect">
+            <option value="risperidone">Risperidone</option>
+            <option value="olanzapine">Olanzapine</option>
+            <option value="quetiapine">Quetiapine</option>
+            <option value="aripiprazole">Aripiprazole</option>
+            <option value="iloperidone">Iloperidone (slow — orthostatic risk)</option>
+            <option value="lurasidone">Lurasidone</option>
+          </select>
+        </div>
+        <div id="titrationOutput"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="clozapine">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">07 — The Ceiling Agent</span>
+      <h2 class="section-title">Clozapine &amp; treatment-resistant schizophrenia</h2>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">⚠ Boxed warnings</div>
+      <p><b>Severe neutropenia</b> — mandatory absolute neutrophil count (ANC) monitoring: weekly for 6 months,
+      biweekly for the next 6 months, then monthly indefinitely while on therapy. As of late 2025, US pharmacies
+      no longer require REMS enrollment to dispense clozapine, and prescribers no longer need to register
+      patients in a federal database — but the ANC monitoring obligation itself is unchanged and remains
+      mandatory.</p>
+      <p style="margin-top:10px;"><b>Myocarditis</b> (highest risk in the first 4–8 weeks), <b>seizure risk</b>
+      (dose-dependent, especially above ~600 mg/day), and <b>severe constipation / ileus</b> — the anticholinergic
+      burden from clozapine's high M1 affinity makes GI motility a frequently underweighted monitoring item
+      relative to the more heavily emphasized hematologic risk.</p>
+    </div>
+
+    <p style="margin-top:20px;">INTEGRATE's central practical recommendation on this front is timing: initiate
+    clozapine <b style="color:var(--text)">promptly</b> once TRS criteria are met — two adequate trials, confirmed
+    adherence, inadequate response — rather than after additional D2-blocking trials. Delayed clozapine
+    initiation is one of the most consistently reproduced findings in the TRS literature as a driver of avoidable
+    long-term disability, and it remains the only antipsychotic with demonstrated superiority specifically in
+    treatment-resistant illness.</p>
+  </div>
+</section>
+<section id="sources" style="border-bottom:none; padding-bottom:0;">
+  <div class="wrap">
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <h4>Sources consulted</h4>
+          <ol>
+            <li>INTEGRATE: international guidelines for the algorithmic treatment of schizophrenia. <i>The Lancet Psychiatry</i>, published online March 31, 2025.</li>
+            <li>Chokhawala KP, Stevens L. Antipsychotic Medications. <i>StatPearls</i>, NCBI Bookshelf, updated 2023–2026.</li>
+            <li>Guideline for pharmacological treatment of schizophrenia 2022. <i>Neuropsychopharmacology Reports</i>, Wiley, 2024–2025.</li>
+            <li>Bristol Myers Squibb. FDA approval announcement, COBENFY (xanomeline and trospium chloride), September 2024.</li>
+            <li>Xanomeline–Trospium Validates Muscarinic Agonism as an Effective Non-Dopaminergic Treatment for Schizophrenia. <i>Int. J. Mol. Sci.</i>, June 2026.</li>
+            <li>Real-World and Long-Term Trial Data Show Xanomeline/Trospium Cuts Hospitalizations, Antipsychotic Burden in Schizophrenia. <i>Psychiatric Times</i>, APA 2026 coverage, May 2026.</li>
+            <li>Open Label Outpatient Switch Study: Oral Atypical Antipsychotics to Cobenfy. BMS press release, SIRS 2026, March 2026.</li>
+            <li>FDA Approves Bysanti for Treatment of Bipolar 1 Disorder and Schizophrenia. <i>Psychiatric Times</i>, 2026.</li>
+            <li>FDA Approves Risperidone Extended-Release Injectable Suspension (Amneal). <i>Psychiatric Times</i>, September 2025.</li>
+            <li>NDA Accepted: Olanzapine Extended-Release Injectable Suspension (TEV-'749). <i>Psychiatric Times</i> / Teva Pharmaceuticals, February 2026.</li>
+            <li>2025 in Review: FDA Approvals, Practice Guidelines, and Label Changes in Psychiatry. Psychopharmacology Institute, February 2026.</li>
+            <li>New &amp; Upcoming Psychiatric Medications, 2023–2026. Arnold G. Shapiro, MD, updated June 2026.</li>
+          </ol>
+        </div>
+        <div>
+          <h4>How to read this guide</h4>
+          <p class="footer-disclaimer">
+            This is a personal study reference, not clinical decision support. Receptor-affinity bars throughout
+            are simplified, teaching-level representations of relative binding impact — not literal Ki values —
+            and dosing figures are typical ranges, not prescribing information. Always confirm against current
+            product labeling, institutional protocols, and the individual patient before acting on anything here.
+          </p>
+          <p class="footer-disclaimer">
+            Built as a single offline HTML/CSS/JS file — no external dependencies, nothing phones home. Content
+            reflects the published literature and drug-approval landscape as of mid-2026; psychopharmacology
+            moves fast, so treat the "newer agents" and LAI-pipeline sections as a snapshot, not a permanent record.
+          </p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Psychiatry Care Algorithms — personal reference</span>
+        <span>Compiled mid-2026 · offline edition</span>
+      </div>
+    </footer>
+  </div>
+</section>
+<script>
+(function(){
+  'use strict';
+
+  /* ================= Hero canvas: drifting receptor-binding constellation ================= */
+  var heroCanvas = document.getElementById('heroCanvas');
+  var hctx = heroCanvas.getContext('2d');
+  var heroSection = document.querySelector('.hero');
+  var nodes = [];
+  var HERO_COLORS = ['#d4a24e','#4fc4b0','#a988e8','#e2896a','#6b96e8'];
+
+  function sizeHero(){
+    var rect = heroSection.getBoundingClientRect();
+    heroCanvas.width = rect.width * (window.devicePixelRatio || 1);
+    heroCanvas.height = rect.height * (window.devicePixelRatio || 1);
+    heroCanvas.style.width = rect.width + 'px';
+    heroCanvas.style.height = rect.height + 'px';
+    hctx.setTransform(1,0,0,1,0,0);
+    hctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+    initNodes(rect.width, rect.height);
+  }
+
+  function initNodes(w, h){
+    nodes = [];
+    var count = Math.max(18, Math.floor(w / 70));
+    for(var i=0;i<count;i++){
+      nodes.push({
+        x: Math.random()*w,
+        y: Math.random()*h,
+        vx: (Math.random()-0.5)*0.18,
+        vy: (Math.random()-0.5)*0.18,
+        r: 1.4 + Math.random()*2.2,
+        color: HERO_COLORS[i % HERO_COLORS.length]
+      });
+    }
+  }
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function drawHero(){
+    var rect = heroSection.getBoundingClientRect();
+    var w = rect.width, h = rect.height;
+    hctx.clearRect(0,0,w,h);
+
+    for(var i=0;i<nodes.length;i++){
+      var n = nodes[i];
+      if(!reduceMotion){
+        n.x += n.vx; n.y += n.vy;
+        if(n.x < -20) n.x = w+20; if(n.x > w+20) n.x = -20;
+        if(n.y < -20) n.y = h+20; if(n.y > h+20) n.y = -20;
+      }
+    }
+    // connective lines between near nodes
+    for(var a=0; a<nodes.length; a++){
+      for(var b=a+1; b<nodes.length; b++){
+        var dx = nodes[a].x - nodes[b].x, dy = nodes[a].y - nodes[b].y;
+        var dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < 150){
+          hctx.strokeStyle = 'rgba(150,165,195,' + (0.09 * (1 - dist/150)) + ')';
+          hctx.lineWidth = 1;
+          hctx.beginPath();
+          hctx.moveTo(nodes[a].x, nodes[a].y);
+          hctx.lineTo(nodes[b].x, nodes[b].y);
+          hctx.stroke();
+        }
+      }
+    }
+    for(var j=0;j<nodes.length;j++){
+      var nd = nodes[j];
+      hctx.beginPath();
+      hctx.fillStyle = nd.color;
+      hctx.globalAlpha = 0.55;
+      hctx.arc(nd.x, nd.y, nd.r, 0, Math.PI*2);
+      hctx.fill();
+      hctx.globalAlpha = 1;
+    }
+    if(!reduceMotion){ requestAnimationFrame(drawHero); }
+  }
+
+  window.addEventListener('resize', sizeHero);
+  sizeHero();
+  drawHero();
+
+  /* ================= Nav active-state on scroll ================= */
+  var navLinks = document.querySelectorAll('nav.topnav-links a');
+  var sections = Array.prototype.map.call(navLinks, function(a){
+    return document.querySelector(a.getAttribute('href'));
+  });
+  function updateNav(){
+    var pos = window.scrollY + 100;
+    var current = 0;
+    for(var i=0;i<sections.length;i++){
+      if(sections[i] && sections[i].offsetTop <= pos){ current = i; }
+    }
+    navLinks.forEach(function(a, idx){
+      a.classList.toggle('active', idx === current);
+    });
+  }
+  window.addEventListener('scroll', updateNav, {passive:true});
+  updateNav();
+
+  /* ================= Algorithm accordion ================= */
+  var steps = document.querySelectorAll('.algo-step');
+  steps.forEach(function(step){
+    step.querySelector('.algo-step-head').addEventListener('click', function(){
+      step.classList.toggle('open');
+    });
+  });
+
+  /* ================= Drug card filter chips ================= */
+  var chips = document.querySelectorAll('.filter-chip');
+  var cards = document.querySelectorAll('#cardGrid .drug-card');
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.forEach(function(c){ c.classList.remove('active'); });
+      chip.classList.add('active');
+      var f = chip.getAttribute('data-filter');
+      cards.forEach(function(card){
+        if(f === 'all'){ card.style.display = ''; return; }
+        var tags = (card.getAttribute('data-tags') || '').split(' ');
+        card.style.display = tags.indexOf(f) !== -1 ? '' : 'none';
+      });
+    });
+  });
+
+  /* ================= Receptor radar comparator ================= */
+  var RECEPTOR_AXES = ['D2','5-HT2A','H1','M1','\u03B11'];
+  var DRUGS = {
+    risperidone: { name:'Risperidone', color:'#d4a24e', vals:[70,90,40,5,75] },
+    olanzapine:  { name:'Olanzapine',  color:'#4fc4b0', vals:[55,85,90,70,50] },
+    quetiapine:  { name:'Quetiapine',  color:'#a988e8', vals:[30,60,85,10,70] },
+    ziprasidone: { name:'Ziprasidone', color:'#e2896a', vals:[55,85,20,2,45] },
+    aripiprazole:{ name:'Aripiprazole',color:'#6b96e8', vals:[65,60,20,2,30] },
+    paliperidone:{ name:'Paliperidone (Invega)', color:'#e2605a', vals:[70,88,35,3,78] },
+    asenapine:   { name:'Asenapine',   color:'#6bbf8a', vals:[60,92,45,3,55] },
+    lurasidone:  { name:'Lurasidone',  color:'#d4a24e', vals:[58,80,15,2,50] },
+    iloperidone: { name:'Iloperidone', color:'#4fc4b0', vals:[50,78,25,3,85] },
+    cariprazine: { name:'Cariprazine', color:'#a988e8', vals:[60,55,15,2,35] },
+    brexpiprazole:{ name:'Brexpiprazole', color:'#e2896a', vals:[55,70,30,2,35] },
+    clozapine:   { name:'Clozapine',   color:'#6b96e8', vals:[25,85,95,90,88] }
+  };
+  var DRUG_ORDER = ['risperidone','olanzapine','quetiapine','ziprasidone','aripiprazole','paliperidone','asenapine','lurasidone','iloperidone','cariprazine','brexpiprazole','clozapine'];
+  var selected = ['olanzapine','aripiprazole'];
+
+  var picker = document.getElementById('comparatorPicker');
+  DRUG_ORDER.forEach(function(key){
+    var item = document.createElement('div');
+    item.className = 'picker-item' + (selected.indexOf(key) !== -1 ? ' active' : '');
+    item.setAttribute('data-key', key);
+    item.innerHTML = '<span class="picker-swatch" style="background:'+DRUGS[key].color+'"></span>' + DRUGS[key].name;
+    item.addEventListener('click', function(){
+      var idx = selected.indexOf(key);
+      if(idx !== -1){
+        selected.splice(idx,1);
+      } else {
+        if(selected.length >= 4){ selected.shift(); }
+        selected.push(key);
+      }
+      renderPicker();
+      drawRadar();
+    });
+    picker.appendChild(item);
+  });
+
+  function renderPicker(){
+    Array.prototype.forEach.call(picker.children, function(item){
+      item.classList.toggle('active', selected.indexOf(item.getAttribute('data-key')) !== -1);
+    });
+    var legend = document.getElementById('comparatorLegend');
+    legend.innerHTML = '';
+    selected.forEach(function(key){
+      var d = DRUGS[key];
+      var span = document.createElement('span');
+      span.innerHTML = '<i style="background:'+d.color+'"></i>' + d.name;
+      legend.appendChild(span);
+    });
+  }
+
+  var radarCanvas = document.getElementById('radarCanvas');
+  var rctx = radarCanvas.getContext('2d');
+
+  function drawRadar(){
+    var w = radarCanvas.width, h = radarCanvas.height;
+    var cx = w/2, cy = h/2 + 6;
+    var R = Math.min(w,h)/2 - 64;
+    var axesCount = RECEPTOR_AXES.length;
+
+    rctx.clearRect(0,0,w,h);
+
+    // grid rings
+    rctx.strokeStyle = 'rgba(150,165,195,0.14)';
+    rctx.fillStyle = 'rgba(150,165,195,0.65)';
+    rctx.font = '11px "IBM Plex Mono", monospace';
+    rctx.textAlign = 'center';
+    for(var ring=1; ring<=4; ring++){
+      var rr = R * (ring/4);
+      rctx.beginPath();
+      for(var a=0;a<=axesCount;a++){
+        var ang = (Math.PI*2 * a/axesCount) - Math.PI/2;
+        var px = cx + rr*Math.cos(ang), py = cy + rr*Math.sin(ang);
+        if(a===0) rctx.moveTo(px,py); else rctx.lineTo(px,py);
+      }
+      rctx.stroke();
+    }
+
+    // axis lines + labels
+    rctx.strokeStyle = 'rgba(150,165,195,0.22)';
+    for(var i=0;i<axesCount;i++){
+      var ang2 = (Math.PI*2 * i/axesCount) - Math.PI/2;
+      var ex = cx + R*Math.cos(ang2), ey = cy + R*Math.sin(ang2);
+      rctx.beginPath();
+      rctx.moveTo(cx,cy);
+      rctx.lineTo(ex,ey);
+      rctx.stroke();
+      var lx = cx + (R+28)*Math.cos(ang2), ly = cy + (R+28)*Math.sin(ang2);
+      rctx.fillStyle = 'rgba(226,236,255,0.75)';
+      rctx.fillText(RECEPTOR_AXES[i], lx, ly+4);
+    }
+
+    // drug polygons
+    selected.forEach(function(key){
+      var d = DRUGS[key];
+      rctx.beginPath();
+      for(var v=0; v<=axesCount; v++){
+        var vi = v % axesCount;
+        var val = d.vals[vi] / 100;
+        var ang3 = (Math.PI*2 * vi/axesCount) - Math.PI/2;
+        var px2 = cx + R*val*Math.cos(ang3), py2 = cy + R*val*Math.sin(ang3);
+        if(v===0) rctx.moveTo(px2,py2); else rctx.lineTo(px2,py2);
+      }
+      rctx.closePath();
+      rctx.fillStyle = d.color + '26';
+      rctx.strokeStyle = d.color;
+      rctx.lineWidth = 2;
+      rctx.fill();
+      rctx.stroke();
+
+      for(var p=0;p<axesCount;p++){
+        var valp = d.vals[p]/100;
+        var angp = (Math.PI*2 * p/axesCount) - Math.PI/2;
+        var pxp = cx + R*valp*Math.cos(angp), pyp = cy + R*valp*Math.sin(angp);
+        rctx.beginPath();
+        rctx.fillStyle = d.color;
+        rctx.arc(pxp,pyp,3,0,Math.PI*2);
+        rctx.fill();
+      }
+    });
+
+    if(selected.length === 0){
+      rctx.fillStyle = 'rgba(150,165,195,0.5)';
+      rctx.font = '13px "IBM Plex Sans", sans-serif';
+      rctx.fillText('Select an agent to plot its profile', cx, cy);
+    }
+  }
+
+  renderPicker();
+  drawRadar();
+
+  /* ================= Titration widget ================= */
+  var TITRATIONS = {
+    risperidone: { unit:'mg', rows:[[1,'2 mg once daily',25],[2,'4 mg once daily',50],[3,'6 mg once daily (typical target)',75],[4,'up to 8 mg if needed',100]] },
+    olanzapine:  { unit:'mg', rows:[[1,'5–10 mg once daily',35],[2,'10 mg once daily',50],[3,'15 mg once daily',65],[4,'up to 20 mg if needed',100]] },
+    quetiapine:  { unit:'mg', rows:[[1,'50 mg twice daily',12],[2,'200 mg twice daily (day 4)',40],[3,'up to 400 mg twice daily (day 7)',80],[4,'titrate to 400–800 mg/day total',100]] },
+    aripiprazole:{ unit:'mg', rows:[[1,'10–15 mg once daily (starting + target)',70],[2,'hold at target, reassess at 2 weeks',70],[3,'may increase to 15 mg if needed',75],[4,'max 30 mg/day',100]] },
+    iloperidone: { unit:'mg', rows:[[1,'1 mg twice daily',8],[2,'2 mg twice daily (day 2)',17],[3,'increase by ~2 mg/day, twice daily, over ~1 week',60],[4,'target 6–12 mg twice daily',100]] },
+    lurasidone:  { unit:'mg', rows:[[1,'40 mg once daily, with food',25],[2,'reassess at 1–2 weeks',25],[3,'increase toward 80 mg if needed',50],[4,'max 160 mg/day, always with ≥350 kcal food',100]] }
+  };
+
+  var titrationSelect = document.getElementById('titrationSelect');
+  var titrationOutput = document.getElementById('titrationOutput');
+
+  function renderTitration(){
+    var key = titrationSelect.value;
+    var data = TITRATIONS[key];
+    var html = '';
+    data.rows.forEach(function(row){
+      html += '<div class="titration-schedule-row">' +
+        '<div class="titration-week">Step ' + row[0] + '</div>' +
+        '<div class="titration-dose-bar-track"><div class="titration-dose-bar-fill" style="width:' + row[2] + '%"></div></div>' +
+        '<div class="titration-dose-label">' + row[1] + '</div>' +
+      '</div>';
+    });
+    titrationOutput.innerHTML = html;
+  }
+  titrationSelect.addEventListener('change', renderTitration);
+  renderTitration();
+
+})();
+</script>
+</body>
+</html>
